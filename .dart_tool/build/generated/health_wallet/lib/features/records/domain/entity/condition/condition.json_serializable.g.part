@@ -1,0 +1,17 @@
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$ConditionImpl _$$ConditionImplFromJson(Map<String, dynamic> json) =>
+    _$ConditionImpl(
+      name: json['name'] as String,
+      dateOfDiagnosis: json['dateOfDiagnosis'] as String,
+      status: json['status'] as String?,
+    );
+
+Map<String, dynamic> _$$ConditionImplToJson(_$ConditionImpl instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'dateOfDiagnosis': instance.dateOfDiagnosis,
+      'status': instance.status,
+    };

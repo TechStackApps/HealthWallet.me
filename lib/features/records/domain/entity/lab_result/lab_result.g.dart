@@ -1,0 +1,25 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'lab_result.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$LabResultImpl _$$LabResultImplFromJson(Map<String, dynamic> json) =>
+    _$LabResultImpl(
+      name: json['name'] as String,
+      date: json['date'] as String,
+      value: json['value'] as String,
+      unit: json['unit'] as String,
+      referenceRange: json['referenceRange'] as String?,
+    );
+
+Map<String, dynamic> _$$LabResultImplToJson(_$LabResultImpl instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'date': instance.date,
+      'value': instance.value,
+      'unit': instance.unit,
+      'referenceRange': instance.referenceRange,
+    };

@@ -1,0 +1,23 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'medication.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$MedicationImpl _$$MedicationImplFromJson(Map<String, dynamic> json) =>
+    _$MedicationImpl(
+      name: json['name'] as String,
+      dosage: json['dosage'] as String,
+      frequency: json['frequency'] as String,
+      reason: json['reason'] as String?,
+    );
+
+Map<String, dynamic> _$$MedicationImplToJson(_$MedicationImpl instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'dosage': instance.dosage,
+      'frequency': instance.frequency,
+      'reason': instance.reason,
+    };

@@ -1,0 +1,22 @@
+{
+    "appTitle": "Sports App",
+    "homeTitle": "Home",
+    "profileTitle": "Profile",
+    "settingsTitle": "Settings",
+    "welcomeMessage": "Welcome to Sports App!",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "@homeTitle": {
+        "description": "The title of the home screen"
+    },
+    "@profileTitle": {
+        "description": "The title of the profile screen"
+    },
+    "@settingsTitle": {
+        "description": "The title of the settings screen"
+    },
+    "@welcomeMessage": {
+        "description": "The welcome message shown to users"
+    }
+} 
