@@ -18,7 +18,8 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$RecordsEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String resourceType) fetchRecords,
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
     required TResult Function(String filter) addFilter,
     required TResult Function(String filter) removeFilter,
     required TResult Function() clearFilters,
@@ -26,7 +27,8 @@ mixin _$RecordsEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String resourceType)? fetchRecords,
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
     TResult? Function(String filter)? addFilter,
     TResult? Function(String filter)? removeFilter,
     TResult? Function()? clearFilters,
@@ -34,7 +36,8 @@ mixin _$RecordsEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String resourceType)? fetchRecords,
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
     TResult Function(String filter)? addFilter,
     TResult Function(String filter)? removeFilter,
     TResult Function()? clearFilters,
@@ -43,26 +46,29 @@ mixin _$RecordsEvent {
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_FetchRecords value) fetchRecords,
-    required TResult Function(_AddFilter value) addFilter,
-    required TResult Function(_RemoveFilter value) removeFilter,
-    required TResult Function(_ClearFilters value) clearFilters,
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_FetchRecords value)? fetchRecords,
-    TResult? Function(_AddFilter value)? addFilter,
-    TResult? Function(_RemoveFilter value)? removeFilter,
-    TResult? Function(_ClearFilters value)? clearFilters,
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_FetchRecords value)? fetchRecords,
-    TResult Function(_AddFilter value)? addFilter,
-    TResult Function(_RemoveFilter value)? removeFilter,
-    TResult Function(_ClearFilters value)? clearFilters,
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -95,7 +101,7 @@ abstract class _$$FetchRecordsImplCopyWith<$Res> {
           _$FetchRecordsImpl value, $Res Function(_$FetchRecordsImpl) then) =
       __$$FetchRecordsImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({String resourceType});
+  $Res call({String? filter});
 }
 
 /// @nodoc
@@ -111,28 +117,28 @@ class __$$FetchRecordsImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? resourceType = null,
+    Object? filter = freezed,
   }) {
     return _then(_$FetchRecordsImpl(
-      resourceType: null == resourceType
-          ? _value.resourceType
-          : resourceType // ignore: cast_nullable_to_non_nullable
-              as String,
+      filter: freezed == filter
+          ? _value.filter
+          : filter // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
 
 /// @nodoc
 
-class _$FetchRecordsImpl implements _FetchRecords {
-  const _$FetchRecordsImpl({required this.resourceType});
+class _$FetchRecordsImpl implements FetchRecords {
+  const _$FetchRecordsImpl({this.filter});
 
   @override
-  final String resourceType;
+  final String? filter;
 
   @override
   String toString() {
-    return 'RecordsEvent.fetchRecords(resourceType: $resourceType)';
+    return 'RecordsEvent.fetchRecords(filter: $filter)';
   }
 
   @override
@@ -140,12 +146,11 @@ class _$FetchRecordsImpl implements _FetchRecords {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$FetchRecordsImpl &&
-            (identical(other.resourceType, resourceType) ||
-                other.resourceType == resourceType));
+            (identical(other.filter, filter) || other.filter == filter));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, resourceType);
+  int get hashCode => Object.hash(runtimeType, filter);
 
   /// Create a copy of RecordsEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -158,36 +163,39 @@ class _$FetchRecordsImpl implements _FetchRecords {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String resourceType) fetchRecords,
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
     required TResult Function(String filter) addFilter,
     required TResult Function(String filter) removeFilter,
     required TResult Function() clearFilters,
   }) {
-    return fetchRecords(resourceType);
+    return fetchRecords(filter);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String resourceType)? fetchRecords,
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
     TResult? Function(String filter)? addFilter,
     TResult? Function(String filter)? removeFilter,
     TResult? Function()? clearFilters,
   }) {
-    return fetchRecords?.call(resourceType);
+    return fetchRecords?.call(filter);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String resourceType)? fetchRecords,
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
     TResult Function(String filter)? addFilter,
     TResult Function(String filter)? removeFilter,
     TResult Function()? clearFilters,
     required TResult orElse(),
   }) {
     if (fetchRecords != null) {
-      return fetchRecords(resourceType);
+      return fetchRecords(filter);
     }
     return orElse();
   }
@@ -195,10 +203,11 @@ class _$FetchRecordsImpl implements _FetchRecords {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_FetchRecords value) fetchRecords,
-    required TResult Function(_AddFilter value) addFilter,
-    required TResult Function(_RemoveFilter value) removeFilter,
-    required TResult Function(_ClearFilters value) clearFilters,
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
   }) {
     return fetchRecords(this);
   }
@@ -206,10 +215,11 @@ class _$FetchRecordsImpl implements _FetchRecords {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_FetchRecords value)? fetchRecords,
-    TResult? Function(_AddFilter value)? addFilter,
-    TResult? Function(_RemoveFilter value)? removeFilter,
-    TResult? Function(_ClearFilters value)? clearFilters,
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
   }) {
     return fetchRecords?.call(this);
   }
@@ -217,10 +227,11 @@ class _$FetchRecordsImpl implements _FetchRecords {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_FetchRecords value)? fetchRecords,
-    TResult Function(_AddFilter value)? addFilter,
-    TResult Function(_RemoveFilter value)? removeFilter,
-    TResult Function(_ClearFilters value)? clearFilters,
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
     required TResult orElse(),
   }) {
     if (fetchRecords != null) {
@@ -230,16 +241,187 @@ class _$FetchRecordsImpl implements _FetchRecords {
   }
 }
 
-abstract class _FetchRecords implements RecordsEvent {
-  const factory _FetchRecords({required final String resourceType}) =
-      _$FetchRecordsImpl;
+abstract class FetchRecords implements RecordsEvent {
+  const factory FetchRecords({final String? filter}) = _$FetchRecordsImpl;
 
-  String get resourceType;
+  String? get filter;
 
   /// Create a copy of RecordsEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$FetchRecordsImplCopyWith<_$FetchRecordsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$FetchAllergyRecordsImplCopyWith<$Res> {
+  factory _$$FetchAllergyRecordsImplCopyWith(_$FetchAllergyRecordsImpl value,
+          $Res Function(_$FetchAllergyRecordsImpl) then) =
+      __$$FetchAllergyRecordsImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({Allergy allergy});
+
+  $AllergyCopyWith<$Res> get allergy;
+}
+
+/// @nodoc
+class __$$FetchAllergyRecordsImplCopyWithImpl<$Res>
+    extends _$RecordsEventCopyWithImpl<$Res, _$FetchAllergyRecordsImpl>
+    implements _$$FetchAllergyRecordsImplCopyWith<$Res> {
+  __$$FetchAllergyRecordsImplCopyWithImpl(_$FetchAllergyRecordsImpl _value,
+      $Res Function(_$FetchAllergyRecordsImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of RecordsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? allergy = null,
+  }) {
+    return _then(_$FetchAllergyRecordsImpl(
+      null == allergy
+          ? _value.allergy
+          : allergy // ignore: cast_nullable_to_non_nullable
+              as Allergy,
+    ));
+  }
+
+  /// Create a copy of RecordsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AllergyCopyWith<$Res> get allergy {
+    return $AllergyCopyWith<$Res>(_value.allergy, (value) {
+      return _then(_value.copyWith(allergy: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class _$FetchAllergyRecordsImpl implements FetchAllergyRecords {
+  const _$FetchAllergyRecordsImpl(this.allergy);
+
+  @override
+  final Allergy allergy;
+
+  @override
+  String toString() {
+    return 'RecordsEvent.fetchAllergyRecords(allergy: $allergy)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$FetchAllergyRecordsImpl &&
+            (identical(other.allergy, allergy) || other.allergy == allergy));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, allergy);
+
+  /// Create a copy of RecordsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$FetchAllergyRecordsImplCopyWith<_$FetchAllergyRecordsImpl> get copyWith =>
+      __$$FetchAllergyRecordsImplCopyWithImpl<_$FetchAllergyRecordsImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
+    required TResult Function(String filter) addFilter,
+    required TResult Function(String filter) removeFilter,
+    required TResult Function() clearFilters,
+  }) {
+    return fetchAllergyRecords(allergy);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
+    TResult? Function(String filter)? addFilter,
+    TResult? Function(String filter)? removeFilter,
+    TResult? Function()? clearFilters,
+  }) {
+    return fetchAllergyRecords?.call(allergy);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
+    TResult Function(String filter)? addFilter,
+    TResult Function(String filter)? removeFilter,
+    TResult Function()? clearFilters,
+    required TResult orElse(),
+  }) {
+    if (fetchAllergyRecords != null) {
+      return fetchAllergyRecords(allergy);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
+  }) {
+    return fetchAllergyRecords(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
+  }) {
+    return fetchAllergyRecords?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
+    required TResult orElse(),
+  }) {
+    if (fetchAllergyRecords != null) {
+      return fetchAllergyRecords(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class FetchAllergyRecords implements RecordsEvent {
+  const factory FetchAllergyRecords(final Allergy allergy) =
+      _$FetchAllergyRecordsImpl;
+
+  Allergy get allergy;
+
+  /// Create a copy of RecordsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$FetchAllergyRecordsImplCopyWith<_$FetchAllergyRecordsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -278,7 +460,7 @@ class __$$AddFilterImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$AddFilterImpl implements _AddFilter {
+class _$AddFilterImpl implements AddFilter {
   const _$AddFilterImpl(this.filter);
 
   @override
@@ -311,7 +493,8 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String resourceType) fetchRecords,
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
     required TResult Function(String filter) addFilter,
     required TResult Function(String filter) removeFilter,
     required TResult Function() clearFilters,
@@ -322,7 +505,8 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String resourceType)? fetchRecords,
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
     TResult? Function(String filter)? addFilter,
     TResult? Function(String filter)? removeFilter,
     TResult? Function()? clearFilters,
@@ -333,7 +517,8 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String resourceType)? fetchRecords,
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
     TResult Function(String filter)? addFilter,
     TResult Function(String filter)? removeFilter,
     TResult Function()? clearFilters,
@@ -348,10 +533,11 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_FetchRecords value) fetchRecords,
-    required TResult Function(_AddFilter value) addFilter,
-    required TResult Function(_RemoveFilter value) removeFilter,
-    required TResult Function(_ClearFilters value) clearFilters,
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
   }) {
     return addFilter(this);
   }
@@ -359,10 +545,11 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_FetchRecords value)? fetchRecords,
-    TResult? Function(_AddFilter value)? addFilter,
-    TResult? Function(_RemoveFilter value)? removeFilter,
-    TResult? Function(_ClearFilters value)? clearFilters,
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
   }) {
     return addFilter?.call(this);
   }
@@ -370,10 +557,11 @@ class _$AddFilterImpl implements _AddFilter {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_FetchRecords value)? fetchRecords,
-    TResult Function(_AddFilter value)? addFilter,
-    TResult Function(_RemoveFilter value)? removeFilter,
-    TResult Function(_ClearFilters value)? clearFilters,
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
     required TResult orElse(),
   }) {
     if (addFilter != null) {
@@ -383,8 +571,8 @@ class _$AddFilterImpl implements _AddFilter {
   }
 }
 
-abstract class _AddFilter implements RecordsEvent {
-  const factory _AddFilter(final String filter) = _$AddFilterImpl;
+abstract class AddFilter implements RecordsEvent {
+  const factory AddFilter(final String filter) = _$AddFilterImpl;
 
   String get filter;
 
@@ -430,7 +618,7 @@ class __$$RemoveFilterImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RemoveFilterImpl implements _RemoveFilter {
+class _$RemoveFilterImpl implements RemoveFilter {
   const _$RemoveFilterImpl(this.filter);
 
   @override
@@ -463,7 +651,8 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String resourceType) fetchRecords,
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
     required TResult Function(String filter) addFilter,
     required TResult Function(String filter) removeFilter,
     required TResult Function() clearFilters,
@@ -474,7 +663,8 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String resourceType)? fetchRecords,
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
     TResult? Function(String filter)? addFilter,
     TResult? Function(String filter)? removeFilter,
     TResult? Function()? clearFilters,
@@ -485,7 +675,8 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String resourceType)? fetchRecords,
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
     TResult Function(String filter)? addFilter,
     TResult Function(String filter)? removeFilter,
     TResult Function()? clearFilters,
@@ -500,10 +691,11 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_FetchRecords value) fetchRecords,
-    required TResult Function(_AddFilter value) addFilter,
-    required TResult Function(_RemoveFilter value) removeFilter,
-    required TResult Function(_ClearFilters value) clearFilters,
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
   }) {
     return removeFilter(this);
   }
@@ -511,10 +703,11 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_FetchRecords value)? fetchRecords,
-    TResult? Function(_AddFilter value)? addFilter,
-    TResult? Function(_RemoveFilter value)? removeFilter,
-    TResult? Function(_ClearFilters value)? clearFilters,
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
   }) {
     return removeFilter?.call(this);
   }
@@ -522,10 +715,11 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_FetchRecords value)? fetchRecords,
-    TResult Function(_AddFilter value)? addFilter,
-    TResult Function(_RemoveFilter value)? removeFilter,
-    TResult Function(_ClearFilters value)? clearFilters,
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
     required TResult orElse(),
   }) {
     if (removeFilter != null) {
@@ -535,8 +729,8 @@ class _$RemoveFilterImpl implements _RemoveFilter {
   }
 }
 
-abstract class _RemoveFilter implements RecordsEvent {
-  const factory _RemoveFilter(final String filter) = _$RemoveFilterImpl;
+abstract class RemoveFilter implements RecordsEvent {
+  const factory RemoveFilter(final String filter) = _$RemoveFilterImpl;
 
   String get filter;
 
@@ -568,7 +762,7 @@ class __$$ClearFiltersImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ClearFiltersImpl implements _ClearFilters {
+class _$ClearFiltersImpl implements ClearFilters {
   const _$ClearFiltersImpl();
 
   @override
@@ -588,7 +782,8 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(String resourceType) fetchRecords,
+    required TResult Function(String? filter) fetchRecords,
+    required TResult Function(Allergy allergy) fetchAllergyRecords,
     required TResult Function(String filter) addFilter,
     required TResult Function(String filter) removeFilter,
     required TResult Function() clearFilters,
@@ -599,7 +794,8 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String resourceType)? fetchRecords,
+    TResult? Function(String? filter)? fetchRecords,
+    TResult? Function(Allergy allergy)? fetchAllergyRecords,
     TResult? Function(String filter)? addFilter,
     TResult? Function(String filter)? removeFilter,
     TResult? Function()? clearFilters,
@@ -610,7 +806,8 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String resourceType)? fetchRecords,
+    TResult Function(String? filter)? fetchRecords,
+    TResult Function(Allergy allergy)? fetchAllergyRecords,
     TResult Function(String filter)? addFilter,
     TResult Function(String filter)? removeFilter,
     TResult Function()? clearFilters,
@@ -625,10 +822,11 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
-    required TResult Function(_FetchRecords value) fetchRecords,
-    required TResult Function(_AddFilter value) addFilter,
-    required TResult Function(_RemoveFilter value) removeFilter,
-    required TResult Function(_ClearFilters value) clearFilters,
+    required TResult Function(FetchRecords value) fetchRecords,
+    required TResult Function(FetchAllergyRecords value) fetchAllergyRecords,
+    required TResult Function(AddFilter value) addFilter,
+    required TResult Function(RemoveFilter value) removeFilter,
+    required TResult Function(ClearFilters value) clearFilters,
   }) {
     return clearFilters(this);
   }
@@ -636,10 +834,11 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_FetchRecords value)? fetchRecords,
-    TResult? Function(_AddFilter value)? addFilter,
-    TResult? Function(_RemoveFilter value)? removeFilter,
-    TResult? Function(_ClearFilters value)? clearFilters,
+    TResult? Function(FetchRecords value)? fetchRecords,
+    TResult? Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult? Function(AddFilter value)? addFilter,
+    TResult? Function(RemoveFilter value)? removeFilter,
+    TResult? Function(ClearFilters value)? clearFilters,
   }) {
     return clearFilters?.call(this);
   }
@@ -647,10 +846,11 @@ class _$ClearFiltersImpl implements _ClearFilters {
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
-    TResult Function(_FetchRecords value)? fetchRecords,
-    TResult Function(_AddFilter value)? addFilter,
-    TResult Function(_RemoveFilter value)? removeFilter,
-    TResult Function(_ClearFilters value)? clearFilters,
+    TResult Function(FetchRecords value)? fetchRecords,
+    TResult Function(FetchAllergyRecords value)? fetchAllergyRecords,
+    TResult Function(AddFilter value)? addFilter,
+    TResult Function(RemoveFilter value)? removeFilter,
+    TResult Function(ClearFilters value)? clearFilters,
     required TResult orElse(),
   }) {
     if (clearFilters != null) {
@@ -660,8 +860,8 @@ class _$ClearFiltersImpl implements _ClearFilters {
   }
 }
 
-abstract class _ClearFilters implements RecordsEvent {
-  const factory _ClearFilters() = _$ClearFiltersImpl;
+abstract class ClearFilters implements RecordsEvent {
+  const factory ClearFilters() = _$ClearFiltersImpl;
 }
 
 /// @nodoc
@@ -676,7 +876,7 @@ mixin _$RecordsState {
     required TResult Function(
             List<String> filters, List<String> availableFilters)
         loading,
-    required TResult Function(List<FhirResource> entries, List<String> filters,
+    required TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)
         loaded,
     required TResult Function(
@@ -690,7 +890,7 @@ mixin _$RecordsState {
         initial,
     TResult? Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult? Function(List<FhirResource> entries, List<String> filters,
+    TResult? Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult? Function(String message, List<String> filters,
@@ -704,7 +904,7 @@ mixin _$RecordsState {
         initial,
     TResult Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult Function(List<FhirResource> entries, List<String> filters,
+    TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult Function(String message, List<String> filters,
@@ -892,7 +1092,7 @@ class _$InitialImpl implements _Initial {
     required TResult Function(
             List<String> filters, List<String> availableFilters)
         loading,
-    required TResult Function(List<FhirResource> entries, List<String> filters,
+    required TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)
         loaded,
     required TResult Function(
@@ -909,7 +1109,7 @@ class _$InitialImpl implements _Initial {
         initial,
     TResult? Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult? Function(List<FhirResource> entries, List<String> filters,
+    TResult? Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult? Function(String message, List<String> filters,
@@ -926,7 +1126,7 @@ class _$InitialImpl implements _Initial {
         initial,
     TResult Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult Function(List<FhirResource> entries, List<String> filters,
+    TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult Function(String message, List<String> filters,
@@ -1102,7 +1302,7 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(
             List<String> filters, List<String> availableFilters)
         loading,
-    required TResult Function(List<FhirResource> entries, List<String> filters,
+    required TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)
         loaded,
     required TResult Function(
@@ -1119,7 +1319,7 @@ class _$LoadingImpl implements _Loading {
         initial,
     TResult? Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult? Function(List<FhirResource> entries, List<String> filters,
+    TResult? Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult? Function(String message, List<String> filters,
@@ -1136,7 +1336,7 @@ class _$LoadingImpl implements _Loading {
         initial,
     TResult Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult Function(List<FhirResource> entries, List<String> filters,
+    TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult Function(String message, List<String> filters,
@@ -1215,7 +1415,7 @@ abstract class _$$LoadedImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {List<FhirResource> entries,
+      {List<RecordsEntry> entries,
       List<String> filters,
       List<String> availableFilters});
 }
@@ -1241,7 +1441,7 @@ class __$$LoadedImplCopyWithImpl<$Res>
       null == entries
           ? _value._entries
           : entries // ignore: cast_nullable_to_non_nullable
-              as List<FhirResource>,
+              as List<RecordsEntry>,
       null == filters
           ? _value._filters
           : filters // ignore: cast_nullable_to_non_nullable
@@ -1257,15 +1457,15 @@ class __$$LoadedImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$LoadedImpl implements _Loaded {
-  const _$LoadedImpl(final List<FhirResource> entries,
+  const _$LoadedImpl(final List<RecordsEntry> entries,
       final List<String> filters, final List<String> availableFilters)
       : _entries = entries,
         _filters = filters,
         _availableFilters = availableFilters;
 
-  final List<FhirResource> _entries;
+  final List<RecordsEntry> _entries;
   @override
-  List<FhirResource> get entries {
+  List<RecordsEntry> get entries {
     if (_entries is EqualUnmodifiableListView) return _entries;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_entries);
@@ -1328,7 +1528,7 @@ class _$LoadedImpl implements _Loaded {
     required TResult Function(
             List<String> filters, List<String> availableFilters)
         loading,
-    required TResult Function(List<FhirResource> entries, List<String> filters,
+    required TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)
         loaded,
     required TResult Function(
@@ -1345,7 +1545,7 @@ class _$LoadedImpl implements _Loaded {
         initial,
     TResult? Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult? Function(List<FhirResource> entries, List<String> filters,
+    TResult? Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult? Function(String message, List<String> filters,
@@ -1362,7 +1562,7 @@ class _$LoadedImpl implements _Loaded {
         initial,
     TResult Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult Function(List<FhirResource> entries, List<String> filters,
+    TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult Function(String message, List<String> filters,
@@ -1416,11 +1616,11 @@ class _$LoadedImpl implements _Loaded {
 
 abstract class _Loaded implements RecordsState {
   const factory _Loaded(
-      final List<FhirResource> entries,
+      final List<RecordsEntry> entries,
       final List<String> filters,
       final List<String> availableFilters) = _$LoadedImpl;
 
-  List<FhirResource> get entries;
+  List<RecordsEntry> get entries;
   @override
   List<String> get filters;
   @override
@@ -1550,7 +1750,7 @@ class _$ErrorImpl implements _Error {
     required TResult Function(
             List<String> filters, List<String> availableFilters)
         loading,
-    required TResult Function(List<FhirResource> entries, List<String> filters,
+    required TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)
         loaded,
     required TResult Function(
@@ -1567,7 +1767,7 @@ class _$ErrorImpl implements _Error {
         initial,
     TResult? Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult? Function(List<FhirResource> entries, List<String> filters,
+    TResult? Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult? Function(String message, List<String> filters,
@@ -1584,7 +1784,7 @@ class _$ErrorImpl implements _Error {
         initial,
     TResult Function(List<String> filters, List<String> availableFilters)?
         loading,
-    TResult Function(List<FhirResource> entries, List<String> filters,
+    TResult Function(List<RecordsEntry> entries, List<String> filters,
             List<String> availableFilters)?
         loaded,
     TResult Function(String message, List<String> filters,

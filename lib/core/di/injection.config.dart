@@ -8,9 +8,8 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
-import 'package:health_wallet/core/di/register_module.dart' as _i982;
+import 'package:health_wallet/core/di/injection.dart' as _i752;
 import 'package:health_wallet/core/navigation/app_router.dart' as _i410;
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart'
     as _i725;
@@ -34,10 +33,6 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart'
     as _i354;
 import 'package:health_wallet/features/records/data/data_source/local/records_local_data_source.dart'
     as _i181;
-import 'package:health_wallet/features/records/data/data_source/remote/records_remote_data_source.dart'
-    as _i535;
-import 'package:health_wallet/features/records/data/data_source/remote/records_remote_data_source_impl.dart'
-    as _i390;
 import 'package:health_wallet/features/records/data/repository/records_repository_impl.dart'
     as _i448;
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart'
@@ -76,13 +71,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => registerModule.prefs,
       preResolve: true,
     );
-    gh.lazySingleton<_i361.Dio>(() => registerModule.dio);
-    gh.lazySingleton<_i498.LocalDatabaseService<_i763.UserDto>>(
-        () => registerModule.userLocalDatabaseService);
+    await gh.factoryAsync<_i498.LocalDatabaseService<_i763.UserDto>>(
+      () => registerModule.userDatabaseService(),
+      preResolve: true,
+    );
     gh.lazySingleton<_i410.AppRouter>(() => _i410.AppRouter());
     gh.lazySingleton<_i725.AppRouteObserver>(() => _i725.AppRouteObserver());
-    gh.factory<_i535.RecordsRemoteDataSource>(
-        () => _i390.RecordsRemoteDataSourceImpl(gh<_i361.Dio>()));
     gh.lazySingleton<_i181.RecordsLocalDataSource>(
         () => _i181.RecordsLocalDataSourceImpl());
     gh.lazySingleton<_i346.RestApiService>(() => _i346.RestApiServiceImpl());
@@ -100,10 +94,8 @@ extension GetItInjectableX on _i174.GetIt {
             gh<_i498.LocalDatabaseService<_i763.UserDto>>()));
     gh.factory<_i762.UserNetworkDataSource>(
         () => _i762.UserNetworkDataSourceImpl(gh<_i346.RestApiService>()));
-    gh.factory<_i704.RecordsRepository>(() => _i448.RecordsRepositoryImpl(
-          gh<_i535.RecordsRemoteDataSource>(),
-          gh<_i181.RecordsLocalDataSource>(),
-        ));
+    gh.lazySingleton<_i704.RecordsRepository>(
+        () => _i448.RecordsRepositoryImpl(gh<_i181.RecordsLocalDataSource>()));
     gh.factory<_i354.HomeBloc>(
         () => _i354.HomeBloc(gh<_i704.RecordsRepository>()));
     gh.factory<_i621.SignupBloc>(
@@ -124,4 +116,4 @@ extension GetItInjectableX on _i174.GetIt {
   }
 }
 
-class _$RegisterModule extends _i982.RegisterModule {}
+class _$RegisterModule extends _i752.RegisterModule {}

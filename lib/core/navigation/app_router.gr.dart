@@ -72,12 +72,6 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const SplashPage(),
       );
     },
-    SyncRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SyncPage(),
-      );
-    },
     UserProfileRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -242,20 +236,6 @@ class SplashRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'SplashRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [SyncPage]
-class SyncRoute extends PageRouteInfo<void> {
-  const SyncRoute({List<PageRouteInfo>? children})
-      : super(
-          SyncRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'SyncRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

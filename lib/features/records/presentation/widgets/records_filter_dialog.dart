@@ -20,13 +20,9 @@ class RecordsFilterDialog extends StatelessWidget {
                 value: state.filters.contains(filter),
                 onChanged: (bool? value) {
                   if (value == true) {
-                    context
-                        .read<RecordsBloc>()
-                        .add(RecordsEvent.addFilter(filter));
+                    context.read<RecordsBloc>().add(AddFilter(filter));
                   } else {
-                    context
-                        .read<RecordsBloc>()
-                        .add(RecordsEvent.removeFilter(filter));
+                    context.read<RecordsBloc>().add(RemoveFilter(filter));
                   }
                 },
               );

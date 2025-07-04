@@ -11,7 +11,7 @@ class RecordsState with _$RecordsState {
     @Default([]) List<String> availableFilters,
   }) = _Loading;
   const factory RecordsState.loaded(
-    List<FhirResource> entries,
+    List<RecordsEntry> entries,
     List<String> filters,
     List<String> availableFilters,
   ) = _Loaded;
