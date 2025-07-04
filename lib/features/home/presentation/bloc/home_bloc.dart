@@ -38,12 +38,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // Simulate network delay for dashboard data
       // await Future.delayed(const Duration(seconds: 1));
 
-      final allergies = await _recordsRepository.getAllergies();
-      final medications = await _recordsRepository.getMedications();
-      final conditions = await _recordsRepository.getConditions();
-      final immunizations = await _recordsRepository.getImmunizations();
-      final labResults = await _recordsRepository.getLabResults();
-      final procedures = await _recordsRepository.getProcedures();
+      final allergies = await _recordsRepository.getResources(
+          resourceType: 'AllergyIntolerance');
+      final medications = await _recordsRepository.getResources(
+          resourceType: 'MedicationRequest');
+      final conditions =
+          await _recordsRepository.getResources(resourceType: 'Condition');
+      final immunizations =
+          await _recordsRepository.getResources(resourceType: 'Immunization');
+      final labResults =
+          await _recordsRepository.getResources(resourceType: 'Observation');
+      final procedures =
+          await _recordsRepository.getResources(resourceType: 'Procedure');
 
       final overviewCards = [
         OverviewCard(

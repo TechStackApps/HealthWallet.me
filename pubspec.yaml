@@ -31,11 +31,13 @@ dependencies:
   # Network
   dio: ^5.4.1
   connectivity_plus: ^5.0.2
+  mobile_scanner: ^5.1.0
 
   # Local Storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.5.3
+  hive_generator: ^2.0.1
 
   # Firebase
   # firebase_core: ^3.12.1

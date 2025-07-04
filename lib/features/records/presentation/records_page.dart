@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
+import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart'
+    as fhir;
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/filter_chip.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
@@ -24,7 +26,7 @@ class _RecordsPageState extends State<RecordsPage> {
   void initState() {
     super.initState();
     if (widget.filter != null) {
-      context.read<RecordsBloc>().add(AddFilter(widget.filter!));
+      context.read<RecordsBloc>().add(RecordsEvent.addFilter(widget.filter!));
     }
   }
 
@@ -141,8 +143,8 @@ class RecordsView extends StatelessWidget {
                                     label: filter,
                                     onDeleted: () {
                                       context.read<RecordsBloc>().add(
-                                        RemoveFilter(filter),
-                                      );
+                                            RecordsEvent.removeFilter(filter),
+                                          );
                                     },
                                   ),
                                 )
@@ -161,7 +163,7 @@ class RecordsView extends StatelessWidget {
                   loaded: (entries, filters, availableFilters) {
                     if (filters.isNotEmpty) {
                       final index = entries.indexWhere(
-                        (entry) => entry.tag == filters.first,
+                        (entry) => entry.resourceType == filters.first,
                       );
                       if (index != -1) {
                         // Scroll to the item
@@ -192,15 +194,7 @@ class RecordsView extends StatelessWidget {
                       final entry = entries[index];
                       return _buildTimelineEntry(
                         context,
-                        icon: entry.icon,
-                        title: entry.title,
-                        date: entry.date,
-                        description: entry.description,
-                        doctors: entry.doctors,
-                        location: entry.location,
-                        tag: entry.tag,
-                        tagBgColor: entry.tagBgColor,
-                        tagTextColor: entry.tagTextColor,
+                        entry: entry,
                       );
                     },
                   ),
@@ -217,15 +211,7 @@ class RecordsView extends StatelessWidget {
 
   Widget _buildTimelineEntry(
     BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String date,
-    required String description,
-    required List<String> doctors,
-    required String location,
-    required String tag,
-    required Color tagBgColor,
-    required Color tagTextColor,
+    required fhir.FhirResource entry,
   }) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return IntrinsicHeight(
@@ -265,7 +251,7 @@ class RecordsView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            title,
+                            entry.resourceType,
                             style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -273,58 +259,17 @@ class RecordsView extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            date,
+                            entry.id,
                             style: textTheme.bodySmall?.copyWith(
                               color: AppColors.textMuted,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            description,
+                            entry.resource.toString(),
                             style: textTheme.bodyMedium?.copyWith(
                               color: AppColors.textSecondary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.person_outline,
-                                size: 16,
-                                color: AppColors.textMuted,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  doctors.join(' & '),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_outlined,
-                                size: 16,
-                                color: AppColors.textMuted,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  location,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: AppColors.primaryBlue,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -334,7 +279,8 @@ class RecordsView extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            context.read<RecordsBloc>().add(AddFilter(tag));
+                            context.read<RecordsBloc>().add(
+                                RecordsEvent.addFilter(entry.resourceType));
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -342,13 +288,13 @@ class RecordsView extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: tagBgColor,
+                              color: AppColors.tagEmergencyBackground,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              tag,
+                              entry.resourceType,
                               style: textTheme.bodySmall?.copyWith(
-                                color: tagTextColor,
+                                color: AppColors.tagEmergencyText,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

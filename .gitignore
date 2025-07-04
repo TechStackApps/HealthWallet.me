@@ -1,3 +1,28 @@
-
 # FVM Version Cache
 .fvm/
+
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Flutter generated files
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.flutter_export_environment.sh
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Mac system files
+.DS_Store
+
+# Misc
+*.log

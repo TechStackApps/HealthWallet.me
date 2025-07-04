@@ -15,7 +15,7 @@ class LocalDatabaseService<T> {
     }
   }
 
-   Future<void> closeBox() async {
+  Future<void> closeBox() async {
     if (_box != null) {
       await _box!.close();
       _box = null;

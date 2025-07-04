@@ -24,8 +24,9 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          getIt<RecordsBloc>()..add(const RecordsEvent.fetchRecords()),
+      create: (context) => getIt<RecordsBloc>()
+        ..add(const RecordsEvent.fetchRecords(
+            resourceType: 'AllergyIntolerance')),
       child: Scaffold(
         body: Stack(
           children: [

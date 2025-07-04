@@ -64,6 +64,12 @@ class HomeView extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
+                        icon: Icon(Icons.sync, color: colorScheme.onSurface),
+                        onPressed: () {
+                          context.router.push(const SyncRoute());
+                        },
+                      ),
+                      IconButton(
                         icon: Icon(Icons.menu, color: colorScheme.onSurface),
                         onPressed: () {
                           PreferenceModal.show(context);
@@ -159,36 +165,35 @@ class HomeView extends StatelessWidget {
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             context.read<HomeBloc>().add(
-                              HomeEvent.sourceChanged(newValue),
-                            );
+                                  HomeEvent.sourceChanged(newValue),
+                                );
                           }
                         },
                         items: <String>['All', 'Epic', 'Other']
                             .map<DropdownMenuItem<String>>((String value) {
-                              Widget child;
-                              switch (value) {
-                                case 'Epic':
-                                  child = Assets.icons.facilities.svg(
-                                    colorFilter: ColorFilter.mode(
-                                      colorScheme.onSurface,
-                                      BlendMode.srcIn,
-                                    ),
-                                    width: 24,
-                                    height: 24,
-                                  );
-                                  break;
-                                case 'Other':
-                                  child = const Icon(Icons.more_horiz);
-                                  break;
-                                default:
-                                  child = const Text('All');
-                              }
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: child,
+                          Widget child;
+                          switch (value) {
+                            case 'Epic':
+                              child = Assets.icons.facilities.svg(
+                                colorFilter: ColorFilter.mode(
+                                  colorScheme.onSurface,
+                                  BlendMode.srcIn,
+                                ),
+                                width: 24,
+                                height: 24,
                               );
-                            })
-                            .toList(),
+                              break;
+                            case 'Other':
+                              child = const Icon(Icons.more_horiz);
+                              break;
+                            default:
+                              child = const Text('All');
+                          }
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: child,
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
@@ -373,7 +378,9 @@ class HomeView extends StatelessWidget {
           duration: const Duration(milliseconds: 300),
           curve: Curves.ease,
         );
-        context.read<RecordsBloc>().add(AddFilter(title));
+        context
+            .read<RecordsBloc>()
+            .add(RecordsEvent.fetchRecords(resourceType: title));
       },
       child: Card(
         color: Theme.of(context).colorScheme.surface,
