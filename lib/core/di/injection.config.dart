@@ -18,6 +18,7 @@ import 'package:health_wallet/core/services/local/local_database_service.dart'
     as _i498;
 import 'package:health_wallet/core/services/network/rest_api_service.dart'
     as _i346;
+import 'package:health_wallet/core/services/sync_service.dart' as _i401;
 import 'package:health_wallet/features/authentication/data/data_source/local/authentication_local_data_source.dart'
     as _i57;
 import 'package:health_wallet/features/authentication/data/data_source/network/authentication_network_data_source.dart'
@@ -46,6 +47,8 @@ import 'package:health_wallet/features/records/domain/use_case/get_records_entri
     as _i964;
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart'
     as _i891;
+import 'package:health_wallet/features/sync/presentation/bloc/sync_status_bloc.dart'
+    as _i609;
 import 'package:health_wallet/features/user/data/data_source/local/user_local_data_source.dart'
     as _i612;
 import 'package:health_wallet/features/user/data/data_source/network/user_network_data_source.dart'
@@ -95,6 +98,10 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i34.AuthenticationNetworkDataSource>(),
               gh<_i57.AuthenticationLocalDataSource>(),
             ));
+    gh.lazySingleton<_i401.SyncService>(() => registerModule.syncService(
+          gh<_i361.Dio>(),
+          gh<_i460.SharedPreferences>(),
+        ));
     gh.lazySingleton<_i612.UserLocalDataSource>(() =>
         _i612.UserLocalDataSourceImpl(
             gh<_i498.LocalDatabaseService<_i763.UserDto>>()));
@@ -104,6 +111,8 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i535.RecordsRemoteDataSource>(),
           gh<_i181.RecordsLocalDataSource>(),
         ));
+    gh.factory<_i609.SyncStatusBloc>(
+        () => _i609.SyncStatusBloc(gh<_i401.SyncService>()));
     gh.factory<_i354.HomeBloc>(
         () => _i354.HomeBloc(gh<_i704.RecordsRepository>()));
     gh.factory<_i621.SignupBloc>(

@@ -11,6 +11,9 @@ import 'package:health_wallet/features/records/presentation/records_page.dart';
 import 'package:health_wallet/features/sync/sync_page.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/user_profile_page.dart';
 import 'package:injectable/injectable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_status_bloc.dart';
+import 'package:health_wallet/core/di/injection.dart';
 
 part 'app_router.gr.dart';
 

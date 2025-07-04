@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/services/sync_service.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_status_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
@@ -16,9 +19,17 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<HomeBloc>(
-      create: (context) =>
-          getIt<HomeBloc>()..add(const HomeEvent.initialised()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<HomeBloc>(
+          create: (context) =>
+              getIt<HomeBloc>()..add(const HomeEvent.initialised()),
+        ),
+        BlocProvider<SyncStatusBloc>(
+          create: (context) => getIt<SyncStatusBloc>()
+            ..add(const SyncStatusEvent.checkSyncStatus()),
+        ),
+      ],
       child: HomeView(pageController: pageController),
     );
   }
@@ -63,10 +74,36 @@ class HomeView extends StatelessWidget {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.sync, color: colorScheme.onSurface),
-                        onPressed: () {
-                          context.router.push(const SyncRoute());
+                      BlocBuilder<SyncStatusBloc, SyncStatusState>(
+                        builder: (context, state) {
+                          return state.when(
+                            initial: () => const SizedBox.shrink(),
+                            loading: () => const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            success: (isSynced) {
+                              return IconButton(
+                                icon: Icon(
+                                  Icons.sync,
+                                  color: isSynced
+                                      ? AppColors.secondaryGreen
+                                      : AppColors.secondaryRed,
+                                ),
+                                onPressed: () {
+                                  context.router.push(const SyncRoute());
+                                },
+                              );
+                            },
+                            error: () => IconButton(
+                              icon: const Icon(Icons.sync_problem,
+                                  color: AppColors.secondaryRed),
+                              onPressed: () {
+                                context.router.push(const SyncRoute());
+                              },
+                            ),
+                          );
                         },
                       ),
                       IconButton(
@@ -108,6 +145,24 @@ class HomeView extends StatelessWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Vital Signs Section
+              BlocBuilder<SyncStatusBloc, SyncStatusState>(
+                builder: (context, state) {
+                  return state.maybeWhen(
+                    success: (isSynced) {
+                      final lastSync =
+                          getIt<SyncService>().getLastSyncTimestamp();
+                      return Text(
+                        'Last synced: ${lastSync != null ? DateFormat.yMd().add_jm().format(lastSync) : 'Never'}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      );
+                    },
+                    orElse: () => const SizedBox.shrink(),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
               Text(
                 'Vital Signs',
                 style: textTheme.titleLarge?.copyWith(

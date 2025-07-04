@@ -75,7 +75,10 @@ abstract class _$AppRouter extends RootStackRouter {
     SyncRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const SyncPage(),
+        child: BlocProvider(
+          create: (context) => getIt<SyncStatusBloc>(),
+          child: const SyncPage(),
+        ),
       );
     },
     UserProfileRoute.name: (routeData) {
