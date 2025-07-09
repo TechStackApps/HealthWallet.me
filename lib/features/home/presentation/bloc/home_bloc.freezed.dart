@@ -326,7 +326,8 @@ mixin _$HomeState {
   HomeStatus get status => throw _privateConstructorUsedError;
   List<VitalSign> get vitalSigns => throw _privateConstructorUsedError;
   List<OverviewCard> get overviewCards => throw _privateConstructorUsedError;
-  List<RecentRecord> get recentRecords => throw _privateConstructorUsedError;
+  List<FhirResource> get recentRecords => throw _privateConstructorUsedError;
+  List<Source> get sources => throw _privateConstructorUsedError;
   int get selectedIndex => throw _privateConstructorUsedError;
   String get selectedSource => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
@@ -347,7 +348,8 @@ abstract class $HomeStateCopyWith<$Res> {
       {HomeStatus status,
       List<VitalSign> vitalSigns,
       List<OverviewCard> overviewCards,
-      List<RecentRecord> recentRecords,
+      List<FhirResource> recentRecords,
+      List<Source> sources,
       int selectedIndex,
       String selectedSource,
       String? errorMessage});
@@ -374,6 +376,7 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
     Object? vitalSigns = null,
     Object? overviewCards = null,
     Object? recentRecords = null,
+    Object? sources = null,
     Object? selectedIndex = null,
     Object? selectedSource = null,
     Object? errorMessage = freezed,
@@ -394,7 +397,11 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
       recentRecords: null == recentRecords
           ? _value.recentRecords
           : recentRecords // ignore: cast_nullable_to_non_nullable
-              as List<RecentRecord>,
+              as List<FhirResource>,
+      sources: null == sources
+          ? _value.sources
+          : sources // ignore: cast_nullable_to_non_nullable
+              as List<Source>,
       selectedIndex: null == selectedIndex
           ? _value.selectedIndex
           : selectedIndex // ignore: cast_nullable_to_non_nullable
@@ -433,7 +440,8 @@ abstract class _$$HomeStateImplCopyWith<$Res>
       {HomeStatus status,
       List<VitalSign> vitalSigns,
       List<OverviewCard> overviewCards,
-      List<RecentRecord> recentRecords,
+      List<FhirResource> recentRecords,
+      List<Source> sources,
       int selectedIndex,
       String selectedSource,
       String? errorMessage});
@@ -459,6 +467,7 @@ class __$$HomeStateImplCopyWithImpl<$Res>
     Object? vitalSigns = null,
     Object? overviewCards = null,
     Object? recentRecords = null,
+    Object? sources = null,
     Object? selectedIndex = null,
     Object? selectedSource = null,
     Object? errorMessage = freezed,
@@ -479,7 +488,11 @@ class __$$HomeStateImplCopyWithImpl<$Res>
       recentRecords: null == recentRecords
           ? _value._recentRecords
           : recentRecords // ignore: cast_nullable_to_non_nullable
-              as List<RecentRecord>,
+              as List<FhirResource>,
+      sources: null == sources
+          ? _value._sources
+          : sources // ignore: cast_nullable_to_non_nullable
+              as List<Source>,
       selectedIndex: null == selectedIndex
           ? _value.selectedIndex
           : selectedIndex // ignore: cast_nullable_to_non_nullable
@@ -503,13 +516,15 @@ class _$HomeStateImpl implements _HomeState {
       {this.status = const HomeStatus.initial(),
       final List<VitalSign> vitalSigns = const [],
       final List<OverviewCard> overviewCards = const [],
-      final List<RecentRecord> recentRecords = const [],
+      final List<FhirResource> recentRecords = const [],
+      final List<Source> sources = const [],
       this.selectedIndex = 0,
       this.selectedSource = 'All',
       this.errorMessage})
       : _vitalSigns = vitalSigns,
         _overviewCards = overviewCards,
-        _recentRecords = recentRecords;
+        _recentRecords = recentRecords,
+        _sources = sources;
 
   @override
   @JsonKey()
@@ -532,13 +547,22 @@ class _$HomeStateImpl implements _HomeState {
     return EqualUnmodifiableListView(_overviewCards);
   }
 
-  final List<RecentRecord> _recentRecords;
+  final List<FhirResource> _recentRecords;
   @override
   @JsonKey()
-  List<RecentRecord> get recentRecords {
+  List<FhirResource> get recentRecords {
     if (_recentRecords is EqualUnmodifiableListView) return _recentRecords;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_recentRecords);
+  }
+
+  final List<Source> _sources;
+  @override
+  @JsonKey()
+  List<Source> get sources {
+    if (_sources is EqualUnmodifiableListView) return _sources;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sources);
   }
 
   @override
@@ -552,7 +576,7 @@ class _$HomeStateImpl implements _HomeState {
 
   @override
   String toString() {
-    return 'HomeState(status: $status, vitalSigns: $vitalSigns, overviewCards: $overviewCards, recentRecords: $recentRecords, selectedIndex: $selectedIndex, selectedSource: $selectedSource, errorMessage: $errorMessage)';
+    return 'HomeState(status: $status, vitalSigns: $vitalSigns, overviewCards: $overviewCards, recentRecords: $recentRecords, sources: $sources, selectedIndex: $selectedIndex, selectedSource: $selectedSource, errorMessage: $errorMessage)';
   }
 
   @override
@@ -567,6 +591,7 @@ class _$HomeStateImpl implements _HomeState {
                 .equals(other._overviewCards, _overviewCards) &&
             const DeepCollectionEquality()
                 .equals(other._recentRecords, _recentRecords) &&
+            const DeepCollectionEquality().equals(other._sources, _sources) &&
             (identical(other.selectedIndex, selectedIndex) ||
                 other.selectedIndex == selectedIndex) &&
             (identical(other.selectedSource, selectedSource) ||
@@ -582,6 +607,7 @@ class _$HomeStateImpl implements _HomeState {
       const DeepCollectionEquality().hash(_vitalSigns),
       const DeepCollectionEquality().hash(_overviewCards),
       const DeepCollectionEquality().hash(_recentRecords),
+      const DeepCollectionEquality().hash(_sources),
       selectedIndex,
       selectedSource,
       errorMessage);
@@ -600,7 +626,8 @@ abstract class _HomeState implements HomeState {
       {final HomeStatus status,
       final List<VitalSign> vitalSigns,
       final List<OverviewCard> overviewCards,
-      final List<RecentRecord> recentRecords,
+      final List<FhirResource> recentRecords,
+      final List<Source> sources,
       final int selectedIndex,
       final String selectedSource,
       final String? errorMessage}) = _$HomeStateImpl;
@@ -612,7 +639,9 @@ abstract class _HomeState implements HomeState {
   @override
   List<OverviewCard> get overviewCards;
   @override
-  List<RecentRecord> get recentRecords;
+  List<FhirResource> get recentRecords;
+  @override
+  List<Source> get sources;
   @override
   int get selectedIndex;
   @override

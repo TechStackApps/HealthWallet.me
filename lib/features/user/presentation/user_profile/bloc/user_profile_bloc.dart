@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/user/domain/entity/user.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 import 'package:injectable/injectable.dart';
+
 part 'user_profile_bloc.freezed.dart';
 part 'user_profile_event.dart';
 part 'user_profile_state.dart';
@@ -22,6 +23,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     on<UserProfilePictureUpdated>(_onUserProfilePictureUpdated);
     on<UserProfileEmailVerified>(_onUserProfileEmailVerified);
     on<UserProfileThemeToggled>(_onUserProfileThemeToggled);
+    on<UserProfileBiometricAuthToggled>(_onUserProfileBiometricAuthToggled);
   }
 
   final UserRepository _userRepository;
@@ -142,6 +144,24 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
       emit(
         state.copyWith(
             status: const UserProfileStatus.success(), user: updatedUser),
+      );
+    } catch (e) {
+      emit(state.copyWith(status: UserProfileStatus.failure(e)));
+    }
+  }
+
+  Future<void> _onUserProfileBiometricAuthToggled(
+    UserProfileBiometricAuthToggled event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    emit(state.copyWith(status: const UserProfileStatus.loading()));
+    try {
+      await _userRepository.saveBiometricAuth(event.isEnabled);
+      emit(
+        state.copyWith(
+          status: const UserProfileStatus.success(),
+          isBiometricAuthEnabled: event.isEnabled,
+        ),
       );
     } catch (e) {
       emit(state.copyWith(status: UserProfileStatus.failure(e)));

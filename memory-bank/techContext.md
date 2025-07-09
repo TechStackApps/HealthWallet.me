@@ -18,6 +18,7 @@ This document lists the key technologies, libraries, and development tools used 
 -   **`freezed`:** For code generation for immutable classes.
 -   **`json_serializable`:** For JSON serialization/deserialization.
 -   **`l10n`:** For localization and internationalization.
+-   **`drift`:** For local storage.
 
 ### Development & Tooling
 

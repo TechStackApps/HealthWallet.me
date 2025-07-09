@@ -1,50 +1,28 @@
-import 'package:dio/dio.dart';
+import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@lazySingleton
 class SyncService {
-  final Dio _dio;
-  final SharedPreferences _prefs;
+  final FhirRepository _fhirRepository;
+  final SharedPreferences _sharedPreferences;
 
-  SyncService(this._dio, this._prefs);
+  SyncService(this._fhirRepository, this._sharedPreferences);
 
-  Future<DateTime?> getLastServerUpdateTime() async {
-    final token = _prefs.getString('sync_token');
-    final address = _prefs.getString('sync_address');
-    final port = _prefs.getString('sync_port');
-
-    if (token == null || address == null || port == null) {
-      return null;
-    }
-
-    try {
-      final response = await _dio.get(
-        'http://$address:$port/api/secure/sync/last-updated',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        return DateTime.parse(response.data['data']['last_updated']);
-      }
-    } catch (e) {
-      print('Error getting last server update time: $e');
-    }
-    return null;
-  }
-
-  Future<void> setLastSyncTimestamp() async {
-    await _prefs.setString(
-        'last_sync_timestamp', DateTime.now().toIso8601String());
+  Future<void> syncData() async {
+    await _fhirRepository.syncData();
   }
 
   DateTime? getLastSyncTimestamp() {
-    final timestamp = _prefs.getString('last_sync_timestamp');
+    final timestamp = _sharedPreferences.getString('lastSyncTimestamp');
     if (timestamp != null) {
       return DateTime.parse(timestamp);
     }
     return null;
+  }
+
+  Future<void> setLastSyncTimestamp(DateTime dateTime) async {
+    await _sharedPreferences.setString(
+        'lastSyncTimestamp', dateTime.toIso8601String());
   }
 }

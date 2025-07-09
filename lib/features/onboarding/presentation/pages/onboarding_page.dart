@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:health_wallet/features/onboarding/presentation/pages/auth_page.dart';
 
 @RoutePage()
 class OnboardingPage extends StatefulWidget {
@@ -29,33 +32,31 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     _currentPage = page;
                   });
                 },
-                children: const [
+                children: [
                   OnboardingScreen(
-                    title: 'Welcome to HealthVault',
-                    subtitle: 'Your Health, In One Place',
-                    description:
-                        'Securely manage all your medical records with modern convenience and peace of mind.',
+                    title: context.l10n.onboardingWelcomeTitle,
+                    subtitle: context.l10n.onboardingWelcomeSubtitle,
+                    description: context.l10n.onboardingWelcomeDescription,
                     icon: Icons.favorite_border,
                   ),
                   OnboardingScreen(
-                    title: 'View & Manage Records',
-                    subtitle: 'Complete Medical History',
-                    description:
-                        'Access all your medical records, prescriptions, and health data in one beautiful interface.',
+                    title: context.l10n.onboardingRecordsTitle,
+                    subtitle: context.l10n.onboardingRecordsSubtitle,
+                    description: context.l10n.onboardingRecordsDescription,
                     icon: Icons.folder_open_outlined,
                   ),
                   OnboardingScreen(
-                    title: 'Sync Securely',
-                    subtitle: 'Healthcare Provider Integration',
-                    description:
-                        'Connect safely with your healthcare providers using encrypted, HIPAA-compliant technology.',
+                    title: context.l10n.onboardingSyncTitle,
+                    subtitle: context.l10n.onboardingSyncSubtitle,
+                    description: context.l10n.onboardingSyncDescription,
                     icon: Icons.shield_outlined,
                   ),
+                  const AuthPage(),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -68,22 +69,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         );
                       },
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text('Back'),
+                      label: Text(context.l10n.onboardingBack),
                     )
                   else
                     const SizedBox(),
                   Row(
                     children: List.generate(
-                      3,
+                      4,
                       (index) => _buildDot(index, context),
                     ),
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      if (_currentPage == 2) {
+                      if (_currentPage == 3) {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool('hasSeenOnboarding', true);
-                        context.router.replace(const DashboardRoute());
+                        context.appRouter.replace(const DashboardRoute());
                       } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),
@@ -91,12 +92,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         );
                       }
                     },
-                    child: Text(_currentPage == 2 ? 'Get Started' : 'Next'),
+                    child: Text(
+                      _currentPage == 3
+                          ? context.l10n.onboardingGetStarted
+                          : context.l10n.onboardingNext,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Insets.medium),
           ],
         ),
       ),
@@ -107,12 +112,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return Container(
       height: 10,
       width: _currentPage == index ? 25 : 10,
-      margin: const EdgeInsets.only(right: 5),
+      margin: const EdgeInsets.only(right: Insets.extraSmall),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: _currentPage == index
-            ? Theme.of(context).primaryColor
-            : Colors.grey,
+        color: _currentPage == index ? context.theme.primaryColor : Colors.grey,
       ),
     );
   }
@@ -135,32 +138,31 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(Insets.medium),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 100, color: Theme.of(context).primaryColor),
-          const SizedBox(height: 40),
+          Icon(icon, size: 100, color: context.theme.primaryColor),
+          const SizedBox(height: Insets.extraLarge),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: context.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Insets.small),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).primaryColor,
+            style: context.textTheme.titleMedium?.copyWith(
+              color: context.theme.primaryColor,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Insets.medium),
           Text(
             description,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: context.textTheme.bodyLarge,
           ),
         ],
       ),

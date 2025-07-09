@@ -20,12 +20,15 @@ FhirResource _$FhirResourceFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$FhirResource {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
-  @HiveField(1)
+  String? get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'source_resource_type')
   String get resourceType => throw _privateConstructorUsedError;
-  @HiveField(2)
-  Map<String, dynamic> get resource => throw _privateConstructorUsedError;
+  @JsonKey(name: 'resource_raw')
+  Map<String, dynamic> get resourceJson => throw _privateConstructorUsedError;
+  @JsonKey(name: 'source_id')
+  String? get sourceId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  DateTime get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this FhirResource to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -44,9 +47,11 @@ abstract class $FhirResourceCopyWith<$Res> {
       _$FhirResourceCopyWithImpl<$Res, FhirResource>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String resourceType,
-      @HiveField(2) Map<String, dynamic> resource});
+      {String? id,
+      @JsonKey(name: 'source_resource_type') String resourceType,
+      @JsonKey(name: 'resource_raw') Map<String, dynamic> resourceJson,
+      @JsonKey(name: 'source_id') String? sourceId,
+      @JsonKey(name: 'updated_at') DateTime updatedAt});
 }
 
 /// @nodoc
@@ -64,23 +69,33 @@ class _$FhirResourceCopyWithImpl<$Res, $Val extends FhirResource>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? resourceType = null,
-    Object? resource = null,
+    Object? resourceJson = null,
+    Object? sourceId = freezed,
+    Object? updatedAt = null,
   }) {
     return _then(_value.copyWith(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       resourceType: null == resourceType
           ? _value.resourceType
           : resourceType // ignore: cast_nullable_to_non_nullable
               as String,
-      resource: null == resource
-          ? _value.resource
-          : resource // ignore: cast_nullable_to_non_nullable
+      resourceJson: null == resourceJson
+          ? _value.resourceJson
+          : resourceJson // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      sourceId: freezed == sourceId
+          ? _value.sourceId
+          : sourceId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
     ) as $Val);
   }
 }
@@ -94,9 +109,11 @@ abstract class _$$FhirResourceImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String resourceType,
-      @HiveField(2) Map<String, dynamic> resource});
+      {String? id,
+      @JsonKey(name: 'source_resource_type') String resourceType,
+      @JsonKey(name: 'resource_raw') Map<String, dynamic> resourceJson,
+      @JsonKey(name: 'source_id') String? sourceId,
+      @JsonKey(name: 'updated_at') DateTime updatedAt});
 }
 
 /// @nodoc
@@ -112,23 +129,33 @@ class __$$FhirResourceImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? resourceType = null,
-    Object? resource = null,
+    Object? resourceJson = null,
+    Object? sourceId = freezed,
+    Object? updatedAt = null,
   }) {
     return _then(_$FhirResourceImpl(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       resourceType: null == resourceType
           ? _value.resourceType
           : resourceType // ignore: cast_nullable_to_non_nullable
               as String,
-      resource: null == resource
-          ? _value._resource
-          : resource // ignore: cast_nullable_to_non_nullable
+      resourceJson: null == resourceJson
+          ? _value._resourceJson
+          : resourceJson // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
+      sourceId: freezed == sourceId
+          ? _value.sourceId
+          : sourceId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: null == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
     ));
   }
 }
@@ -136,33 +163,42 @@ class __$$FhirResourceImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$FhirResourceImpl implements _FhirResource {
-  const _$FhirResourceImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.resourceType,
-      @HiveField(2) required final Map<String, dynamic> resource})
-      : _resource = resource;
+  _$FhirResourceImpl(
+      {this.id,
+      @JsonKey(name: 'source_resource_type') required this.resourceType,
+      @JsonKey(name: 'resource_raw')
+      required final Map<String, dynamic> resourceJson,
+      @JsonKey(name: 'source_id') this.sourceId,
+      @JsonKey(name: 'updated_at') required this.updatedAt})
+      : _resourceJson = resourceJson;
 
   factory _$FhirResourceImpl.fromJson(Map<String, dynamic> json) =>
       _$$FhirResourceImplFromJson(json);
 
   @override
-  @HiveField(0)
-  final String id;
+  final String? id;
   @override
-  @HiveField(1)
+  @JsonKey(name: 'source_resource_type')
   final String resourceType;
-  final Map<String, dynamic> _resource;
+  final Map<String, dynamic> _resourceJson;
   @override
-  @HiveField(2)
-  Map<String, dynamic> get resource {
-    if (_resource is EqualUnmodifiableMapView) return _resource;
+  @JsonKey(name: 'resource_raw')
+  Map<String, dynamic> get resourceJson {
+    if (_resourceJson is EqualUnmodifiableMapView) return _resourceJson;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_resource);
+    return EqualUnmodifiableMapView(_resourceJson);
   }
 
   @override
+  @JsonKey(name: 'source_id')
+  final String? sourceId;
+  @override
+  @JsonKey(name: 'updated_at')
+  final DateTime updatedAt;
+
+  @override
   String toString() {
-    return 'FhirResource(id: $id, resourceType: $resourceType, resource: $resource)';
+    return 'FhirResource(id: $id, resourceType: $resourceType, resourceJson: $resourceJson, sourceId: $sourceId, updatedAt: $updatedAt)';
   }
 
   @override
@@ -173,13 +209,18 @@ class _$FhirResourceImpl implements _FhirResource {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.resourceType, resourceType) ||
                 other.resourceType == resourceType) &&
-            const DeepCollectionEquality().equals(other._resource, _resource));
+            const DeepCollectionEquality()
+                .equals(other._resourceJson, _resourceJson) &&
+            (identical(other.sourceId, sourceId) ||
+                other.sourceId == sourceId) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, resourceType,
-      const DeepCollectionEquality().hash(_resource));
+      const DeepCollectionEquality().hash(_resourceJson), sourceId, updatedAt);
 
   /// Create a copy of FhirResource
   /// with the given fields replaced by the non-null parameter values.
@@ -198,24 +239,32 @@ class _$FhirResourceImpl implements _FhirResource {
 }
 
 abstract class _FhirResource implements FhirResource {
-  const factory _FhirResource(
-          {@HiveField(0) required final String id,
-          @HiveField(1) required final String resourceType,
-          @HiveField(2) required final Map<String, dynamic> resource}) =
-      _$FhirResourceImpl;
+  factory _FhirResource(
+      {final String? id,
+      @JsonKey(name: 'source_resource_type') required final String resourceType,
+      @JsonKey(name: 'resource_raw')
+      required final Map<String, dynamic> resourceJson,
+      @JsonKey(name: 'source_id') final String? sourceId,
+      @JsonKey(name: 'updated_at')
+      required final DateTime updatedAt}) = _$FhirResourceImpl;
 
   factory _FhirResource.fromJson(Map<String, dynamic> json) =
       _$FhirResourceImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
+  String? get id;
   @override
-  @HiveField(1)
+  @JsonKey(name: 'source_resource_type')
   String get resourceType;
   @override
-  @HiveField(2)
-  Map<String, dynamic> get resource;
+  @JsonKey(name: 'resource_raw')
+  Map<String, dynamic> get resourceJson;
+  @override
+  @JsonKey(name: 'source_id')
+  String? get sourceId;
+  @override
+  @JsonKey(name: 'updated_at')
+  DateTime get updatedAt;
 
   /// Create a copy of FhirResource
   /// with the given fields replaced by the non-null parameter values.

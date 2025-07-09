@@ -15,27 +15,110 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
-mixin _$UserProfileInitialised {}
-
-/// @nodoc
-abstract class $UserProfileInitialisedCopyWith<$Res> {
-  factory $UserProfileInitialisedCopyWith(UserProfileInitialised value,
-          $Res Function(UserProfileInitialised) then) =
-      _$UserProfileInitialisedCopyWithImpl<$Res, UserProfileInitialised>;
+mixin _$UserProfileEvent {
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-class _$UserProfileInitialisedCopyWithImpl<$Res,
-        $Val extends UserProfileInitialised>
-    implements $UserProfileInitialisedCopyWith<$Res> {
-  _$UserProfileInitialisedCopyWithImpl(this._value, this._then);
+abstract class $UserProfileEventCopyWith<$Res> {
+  factory $UserProfileEventCopyWith(
+          UserProfileEvent value, $Res Function(UserProfileEvent) then) =
+      _$UserProfileEventCopyWithImpl<$Res, UserProfileEvent>;
+}
+
+/// @nodoc
+class _$UserProfileEventCopyWithImpl<$Res, $Val extends UserProfileEvent>
+    implements $UserProfileEventCopyWith<$Res> {
+  _$UserProfileEventCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of UserProfileInitialised
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
@@ -49,26 +132,25 @@ abstract class _$$UserProfileInitialisedImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileInitialisedImplCopyWithImpl<$Res>
-    extends _$UserProfileInitialisedCopyWithImpl<$Res,
-        _$UserProfileInitialisedImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileInitialisedImpl>
     implements _$$UserProfileInitialisedImplCopyWith<$Res> {
   __$$UserProfileInitialisedImplCopyWithImpl(
       _$UserProfileInitialisedImpl _value,
       $Res Function(_$UserProfileInitialisedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileInitialised
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileInitialisedImpl implements _UserProfileInitialised {
+class _$UserProfileInitialisedImpl implements UserProfileInitialised {
   const _$UserProfileInitialisedImpl();
 
   @override
   String toString() {
-    return 'UserProfileInitialised()';
+    return 'UserProfileEvent.initialised()';
   }
 
   @override
@@ -80,35 +162,117 @@ class _$UserProfileInitialisedImpl implements _UserProfileInitialised {
 
   @override
   int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return initialised();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return initialised?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (initialised != null) {
+      return initialised();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return initialised(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return initialised?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (initialised != null) {
+      return initialised(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfileInitialised implements UserProfileInitialised {
-  const factory _UserProfileInitialised() = _$UserProfileInitialisedImpl;
-}
-
-/// @nodoc
-mixin _$UserProfileRefreshed {}
-
-/// @nodoc
-abstract class $UserProfileRefreshedCopyWith<$Res> {
-  factory $UserProfileRefreshedCopyWith(UserProfileRefreshed value,
-          $Res Function(UserProfileRefreshed) then) =
-      _$UserProfileRefreshedCopyWithImpl<$Res, UserProfileRefreshed>;
-}
-
-/// @nodoc
-class _$UserProfileRefreshedCopyWithImpl<$Res,
-        $Val extends UserProfileRefreshed>
-    implements $UserProfileRefreshedCopyWith<$Res> {
-  _$UserProfileRefreshedCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileRefreshed
-  /// with the given fields replaced by the non-null parameter values.
+abstract class UserProfileInitialised implements UserProfileEvent {
+  const factory UserProfileInitialised() = _$UserProfileInitialisedImpl;
 }
 
 /// @nodoc
@@ -120,24 +284,24 @@ abstract class _$$UserProfileRefreshedImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileRefreshedImplCopyWithImpl<$Res>
-    extends _$UserProfileRefreshedCopyWithImpl<$Res, _$UserProfileRefreshedImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileRefreshedImpl>
     implements _$$UserProfileRefreshedImplCopyWith<$Res> {
   __$$UserProfileRefreshedImplCopyWithImpl(_$UserProfileRefreshedImpl _value,
       $Res Function(_$UserProfileRefreshedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileRefreshed
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileRefreshedImpl implements _UserProfileRefreshed {
+class _$UserProfileRefreshedImpl implements UserProfileRefreshed {
   const _$UserProfileRefreshedImpl();
 
   @override
   String toString() {
-    return 'UserProfileRefreshed()';
+    return 'UserProfileEvent.refreshed()';
   }
 
   @override
@@ -149,97 +313,141 @@ class _$UserProfileRefreshedImpl implements _UserProfileRefreshed {
 
   @override
   int get hashCode => runtimeType.hashCode;
-}
 
-abstract class _UserProfileRefreshed implements UserProfileRefreshed {
-  const factory _UserProfileRefreshed() = _$UserProfileRefreshedImpl;
-}
-
-/// @nodoc
-mixin _$UserProfileUserUpdated {
-  User get user => throw _privateConstructorUsedError;
-
-  /// Create a copy of UserProfileUserUpdated
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $UserProfileUserUpdatedCopyWith<UserProfileUserUpdated> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UserProfileUserUpdatedCopyWith<$Res> {
-  factory $UserProfileUserUpdatedCopyWith(UserProfileUserUpdated value,
-          $Res Function(UserProfileUserUpdated) then) =
-      _$UserProfileUserUpdatedCopyWithImpl<$Res, UserProfileUserUpdated>;
-  @useResult
-  $Res call({User user});
-
-  $UserCopyWith<$Res> get user;
-}
-
-/// @nodoc
-class _$UserProfileUserUpdatedCopyWithImpl<$Res,
-        $Val extends UserProfileUserUpdated>
-    implements $UserProfileUserUpdatedCopyWith<$Res> {
-  _$UserProfileUserUpdatedCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileUserUpdated
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? user = null,
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
   }) {
-    return _then(_value.copyWith(
-      user: null == user
-          ? _value.user
-          : user // ignore: cast_nullable_to_non_nullable
-              as User,
-    ) as $Val);
+    return refreshed();
   }
 
-  /// Create a copy of UserProfileUserUpdated
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @pragma('vm:prefer-inline')
-  $UserCopyWith<$Res> get user {
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value) as $Val);
-    });
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return refreshed?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (refreshed != null) {
+      return refreshed();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return refreshed(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return refreshed?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (refreshed != null) {
+      return refreshed(this);
+    }
+    return orElse();
   }
 }
 
+abstract class UserProfileRefreshed implements UserProfileEvent {
+  const factory UserProfileRefreshed() = _$UserProfileRefreshedImpl;
+}
+
 /// @nodoc
-abstract class _$$UserProfileUserUpdatedImplCopyWith<$Res>
-    implements $UserProfileUserUpdatedCopyWith<$Res> {
+abstract class _$$UserProfileUserUpdatedImplCopyWith<$Res> {
   factory _$$UserProfileUserUpdatedImplCopyWith(
           _$UserProfileUserUpdatedImpl value,
           $Res Function(_$UserProfileUserUpdatedImpl) then) =
       __$$UserProfileUserUpdatedImplCopyWithImpl<$Res>;
-  @override
   @useResult
   $Res call({User user});
 
-  @override
   $UserCopyWith<$Res> get user;
 }
 
 /// @nodoc
 class __$$UserProfileUserUpdatedImplCopyWithImpl<$Res>
-    extends _$UserProfileUserUpdatedCopyWithImpl<$Res,
-        _$UserProfileUserUpdatedImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileUserUpdatedImpl>
     implements _$$UserProfileUserUpdatedImplCopyWith<$Res> {
   __$$UserProfileUserUpdatedImplCopyWithImpl(
       _$UserProfileUserUpdatedImpl _value,
       $Res Function(_$UserProfileUserUpdatedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileUserUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -253,11 +461,21 @@ class __$$UserProfileUserUpdatedImplCopyWithImpl<$Res>
               as User,
     ));
   }
+
+  /// Create a copy of UserProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $UserCopyWith<$Res> get user {
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
 }
 
 /// @nodoc
 
-class _$UserProfileUserUpdatedImpl implements _UserProfileUserUpdated {
+class _$UserProfileUserUpdatedImpl implements UserProfileUserUpdated {
   const _$UserProfileUserUpdatedImpl({required this.user});
 
   @override
@@ -265,7 +483,7 @@ class _$UserProfileUserUpdatedImpl implements _UserProfileUserUpdated {
 
   @override
   String toString() {
-    return 'UserProfileUserUpdated(user: $user)';
+    return 'UserProfileEvent.userUpdated(user: $user)';
   }
 
   @override
@@ -279,7 +497,7 @@ class _$UserProfileUserUpdatedImpl implements _UserProfileUserUpdated {
   @override
   int get hashCode => Object.hash(runtimeType, user);
 
-  /// Create a copy of UserProfileUserUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
@@ -287,46 +505,126 @@ class _$UserProfileUserUpdatedImpl implements _UserProfileUserUpdated {
   _$$UserProfileUserUpdatedImplCopyWith<_$UserProfileUserUpdatedImpl>
       get copyWith => __$$UserProfileUserUpdatedImplCopyWithImpl<
           _$UserProfileUserUpdatedImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return userUpdated(user);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return userUpdated?.call(user);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (userUpdated != null) {
+      return userUpdated(user);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return userUpdated(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return userUpdated?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (userUpdated != null) {
+      return userUpdated(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfileUserUpdated implements UserProfileUserUpdated {
-  const factory _UserProfileUserUpdated({required final User user}) =
+abstract class UserProfileUserUpdated implements UserProfileEvent {
+  const factory UserProfileUserUpdated({required final User user}) =
       _$UserProfileUserUpdatedImpl;
 
-  @override
   User get user;
 
-  /// Create a copy of UserProfileUserUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
-  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserProfileUserUpdatedImplCopyWith<_$UserProfileUserUpdatedImpl>
       get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$UserProfileUserDeleted {}
-
-/// @nodoc
-abstract class $UserProfileUserDeletedCopyWith<$Res> {
-  factory $UserProfileUserDeletedCopyWith(UserProfileUserDeleted value,
-          $Res Function(UserProfileUserDeleted) then) =
-      _$UserProfileUserDeletedCopyWithImpl<$Res, UserProfileUserDeleted>;
-}
-
-/// @nodoc
-class _$UserProfileUserDeletedCopyWithImpl<$Res,
-        $Val extends UserProfileUserDeleted>
-    implements $UserProfileUserDeletedCopyWith<$Res> {
-  _$UserProfileUserDeletedCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileUserDeleted
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -339,26 +637,25 @@ abstract class _$$UserProfileUserDeletedImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileUserDeletedImplCopyWithImpl<$Res>
-    extends _$UserProfileUserDeletedCopyWithImpl<$Res,
-        _$UserProfileUserDeletedImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileUserDeletedImpl>
     implements _$$UserProfileUserDeletedImplCopyWith<$Res> {
   __$$UserProfileUserDeletedImplCopyWithImpl(
       _$UserProfileUserDeletedImpl _value,
       $Res Function(_$UserProfileUserDeletedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileUserDeleted
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileUserDeletedImpl implements _UserProfileUserDeleted {
+class _$UserProfileUserDeletedImpl implements UserProfileUserDeleted {
   const _$UserProfileUserDeletedImpl();
 
   @override
   String toString() {
-    return 'UserProfileUserDeleted()';
+    return 'UserProfileEvent.userDeleted()';
   }
 
   @override
@@ -370,35 +667,117 @@ class _$UserProfileUserDeletedImpl implements _UserProfileUserDeleted {
 
   @override
   int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return userDeleted();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return userDeleted?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (userDeleted != null) {
+      return userDeleted();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return userDeleted(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return userDeleted?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (userDeleted != null) {
+      return userDeleted(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfileUserDeleted implements UserProfileUserDeleted {
-  const factory _UserProfileUserDeleted() = _$UserProfileUserDeletedImpl;
-}
-
-/// @nodoc
-mixin _$UserProfileSignedOut {}
-
-/// @nodoc
-abstract class $UserProfileSignedOutCopyWith<$Res> {
-  factory $UserProfileSignedOutCopyWith(UserProfileSignedOut value,
-          $Res Function(UserProfileSignedOut) then) =
-      _$UserProfileSignedOutCopyWithImpl<$Res, UserProfileSignedOut>;
-}
-
-/// @nodoc
-class _$UserProfileSignedOutCopyWithImpl<$Res,
-        $Val extends UserProfileSignedOut>
-    implements $UserProfileSignedOutCopyWith<$Res> {
-  _$UserProfileSignedOutCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileSignedOut
-  /// with the given fields replaced by the non-null parameter values.
+abstract class UserProfileUserDeleted implements UserProfileEvent {
+  const factory UserProfileUserDeleted() = _$UserProfileUserDeletedImpl;
 }
 
 /// @nodoc
@@ -410,24 +789,24 @@ abstract class _$$UserProfileSignedOutImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileSignedOutImplCopyWithImpl<$Res>
-    extends _$UserProfileSignedOutCopyWithImpl<$Res, _$UserProfileSignedOutImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileSignedOutImpl>
     implements _$$UserProfileSignedOutImplCopyWith<$Res> {
   __$$UserProfileSignedOutImplCopyWithImpl(_$UserProfileSignedOutImpl _value,
       $Res Function(_$UserProfileSignedOutImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileSignedOut
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileSignedOutImpl implements _UserProfileSignedOut {
+class _$UserProfileSignedOutImpl implements UserProfileSignedOut {
   const _$UserProfileSignedOutImpl();
 
   @override
   String toString() {
-    return 'UserProfileSignedOut()';
+    return 'UserProfileEvent.signedOut()';
   }
 
   @override
@@ -439,74 +818,132 @@ class _$UserProfileSignedOutImpl implements _UserProfileSignedOut {
 
   @override
   int get hashCode => runtimeType.hashCode;
-}
 
-abstract class _UserProfileSignedOut implements UserProfileSignedOut {
-  const factory _UserProfileSignedOut() = _$UserProfileSignedOutImpl;
-}
-
-/// @nodoc
-mixin _$UserProfilePictureUpdated {
-  String get photoUrl => throw _privateConstructorUsedError;
-
-  /// Create a copy of UserProfilePictureUpdated
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $UserProfilePictureUpdatedCopyWith<UserProfilePictureUpdated> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UserProfilePictureUpdatedCopyWith<$Res> {
-  factory $UserProfilePictureUpdatedCopyWith(UserProfilePictureUpdated value,
-          $Res Function(UserProfilePictureUpdated) then) =
-      _$UserProfilePictureUpdatedCopyWithImpl<$Res, UserProfilePictureUpdated>;
-  @useResult
-  $Res call({String photoUrl});
-}
-
-/// @nodoc
-class _$UserProfilePictureUpdatedCopyWithImpl<$Res,
-        $Val extends UserProfilePictureUpdated>
-    implements $UserProfilePictureUpdatedCopyWith<$Res> {
-  _$UserProfilePictureUpdatedCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfilePictureUpdated
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? photoUrl = null,
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
   }) {
-    return _then(_value.copyWith(
-      photoUrl: null == photoUrl
-          ? _value.photoUrl
-          : photoUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return signedOut();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return signedOut?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (signedOut != null) {
+      return signedOut();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return signedOut(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return signedOut?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (signedOut != null) {
+      return signedOut(this);
+    }
+    return orElse();
   }
 }
 
+abstract class UserProfileSignedOut implements UserProfileEvent {
+  const factory UserProfileSignedOut() = _$UserProfileSignedOutImpl;
+}
+
 /// @nodoc
-abstract class _$$UserProfilePictureUpdatedImplCopyWith<$Res>
-    implements $UserProfilePictureUpdatedCopyWith<$Res> {
+abstract class _$$UserProfilePictureUpdatedImplCopyWith<$Res> {
   factory _$$UserProfilePictureUpdatedImplCopyWith(
           _$UserProfilePictureUpdatedImpl value,
           $Res Function(_$UserProfilePictureUpdatedImpl) then) =
       __$$UserProfilePictureUpdatedImplCopyWithImpl<$Res>;
-  @override
   @useResult
   $Res call({String photoUrl});
 }
 
 /// @nodoc
 class __$$UserProfilePictureUpdatedImplCopyWithImpl<$Res>
-    extends _$UserProfilePictureUpdatedCopyWithImpl<$Res,
+    extends _$UserProfileEventCopyWithImpl<$Res,
         _$UserProfilePictureUpdatedImpl>
     implements _$$UserProfilePictureUpdatedImplCopyWith<$Res> {
   __$$UserProfilePictureUpdatedImplCopyWithImpl(
@@ -514,7 +951,7 @@ class __$$UserProfilePictureUpdatedImplCopyWithImpl<$Res>
       $Res Function(_$UserProfilePictureUpdatedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfilePictureUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -532,7 +969,7 @@ class __$$UserProfilePictureUpdatedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$UserProfilePictureUpdatedImpl implements _UserProfilePictureUpdated {
+class _$UserProfilePictureUpdatedImpl implements UserProfilePictureUpdated {
   const _$UserProfilePictureUpdatedImpl({required this.photoUrl});
 
   @override
@@ -540,7 +977,7 @@ class _$UserProfilePictureUpdatedImpl implements _UserProfilePictureUpdated {
 
   @override
   String toString() {
-    return 'UserProfilePictureUpdated(photoUrl: $photoUrl)';
+    return 'UserProfileEvent.pictureUpdated(photoUrl: $photoUrl)';
   }
 
   @override
@@ -555,7 +992,7 @@ class _$UserProfilePictureUpdatedImpl implements _UserProfilePictureUpdated {
   @override
   int get hashCode => Object.hash(runtimeType, photoUrl);
 
-  /// Create a copy of UserProfilePictureUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
@@ -563,46 +1000,126 @@ class _$UserProfilePictureUpdatedImpl implements _UserProfilePictureUpdated {
   _$$UserProfilePictureUpdatedImplCopyWith<_$UserProfilePictureUpdatedImpl>
       get copyWith => __$$UserProfilePictureUpdatedImplCopyWithImpl<
           _$UserProfilePictureUpdatedImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return pictureUpdated(photoUrl);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return pictureUpdated?.call(photoUrl);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (pictureUpdated != null) {
+      return pictureUpdated(photoUrl);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return pictureUpdated(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return pictureUpdated?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (pictureUpdated != null) {
+      return pictureUpdated(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfilePictureUpdated implements UserProfilePictureUpdated {
-  const factory _UserProfilePictureUpdated({required final String photoUrl}) =
+abstract class UserProfilePictureUpdated implements UserProfileEvent {
+  const factory UserProfilePictureUpdated({required final String photoUrl}) =
       _$UserProfilePictureUpdatedImpl;
 
-  @override
   String get photoUrl;
 
-  /// Create a copy of UserProfilePictureUpdated
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
-  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$UserProfilePictureUpdatedImplCopyWith<_$UserProfilePictureUpdatedImpl>
       get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$UserProfileEmailVerified {}
-
-/// @nodoc
-abstract class $UserProfileEmailVerifiedCopyWith<$Res> {
-  factory $UserProfileEmailVerifiedCopyWith(UserProfileEmailVerified value,
-          $Res Function(UserProfileEmailVerified) then) =
-      _$UserProfileEmailVerifiedCopyWithImpl<$Res, UserProfileEmailVerified>;
-}
-
-/// @nodoc
-class _$UserProfileEmailVerifiedCopyWithImpl<$Res,
-        $Val extends UserProfileEmailVerified>
-    implements $UserProfileEmailVerifiedCopyWith<$Res> {
-  _$UserProfileEmailVerifiedCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileEmailVerified
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -615,26 +1132,25 @@ abstract class _$$UserProfileEmailVerifiedImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileEmailVerifiedImplCopyWithImpl<$Res>
-    extends _$UserProfileEmailVerifiedCopyWithImpl<$Res,
-        _$UserProfileEmailVerifiedImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileEmailVerifiedImpl>
     implements _$$UserProfileEmailVerifiedImplCopyWith<$Res> {
   __$$UserProfileEmailVerifiedImplCopyWithImpl(
       _$UserProfileEmailVerifiedImpl _value,
       $Res Function(_$UserProfileEmailVerifiedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileEmailVerified
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileEmailVerifiedImpl implements _UserProfileEmailVerified {
+class _$UserProfileEmailVerifiedImpl implements UserProfileEmailVerified {
   const _$UserProfileEmailVerifiedImpl();
 
   @override
   String toString() {
-    return 'UserProfileEmailVerified()';
+    return 'UserProfileEvent.emailVerified()';
   }
 
   @override
@@ -646,35 +1162,117 @@ class _$UserProfileEmailVerifiedImpl implements _UserProfileEmailVerified {
 
   @override
   int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return emailVerified();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return emailVerified?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (emailVerified != null) {
+      return emailVerified();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return emailVerified(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return emailVerified?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (emailVerified != null) {
+      return emailVerified(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfileEmailVerified implements UserProfileEmailVerified {
-  const factory _UserProfileEmailVerified() = _$UserProfileEmailVerifiedImpl;
-}
-
-/// @nodoc
-mixin _$UserProfileThemeToggled {}
-
-/// @nodoc
-abstract class $UserProfileThemeToggledCopyWith<$Res> {
-  factory $UserProfileThemeToggledCopyWith(UserProfileThemeToggled value,
-          $Res Function(UserProfileThemeToggled) then) =
-      _$UserProfileThemeToggledCopyWithImpl<$Res, UserProfileThemeToggled>;
-}
-
-/// @nodoc
-class _$UserProfileThemeToggledCopyWithImpl<$Res,
-        $Val extends UserProfileThemeToggled>
-    implements $UserProfileThemeToggledCopyWith<$Res> {
-  _$UserProfileThemeToggledCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserProfileThemeToggled
-  /// with the given fields replaced by the non-null parameter values.
+abstract class UserProfileEmailVerified implements UserProfileEvent {
+  const factory UserProfileEmailVerified() = _$UserProfileEmailVerifiedImpl;
 }
 
 /// @nodoc
@@ -687,26 +1285,25 @@ abstract class _$$UserProfileThemeToggledImplCopyWith<$Res> {
 
 /// @nodoc
 class __$$UserProfileThemeToggledImplCopyWithImpl<$Res>
-    extends _$UserProfileThemeToggledCopyWithImpl<$Res,
-        _$UserProfileThemeToggledImpl>
+    extends _$UserProfileEventCopyWithImpl<$Res, _$UserProfileThemeToggledImpl>
     implements _$$UserProfileThemeToggledImplCopyWith<$Res> {
   __$$UserProfileThemeToggledImplCopyWithImpl(
       _$UserProfileThemeToggledImpl _value,
       $Res Function(_$UserProfileThemeToggledImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UserProfileThemeToggled
+  /// Create a copy of UserProfileEvent
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$UserProfileThemeToggledImpl implements _UserProfileThemeToggled {
+class _$UserProfileThemeToggledImpl implements UserProfileThemeToggled {
   const _$UserProfileThemeToggledImpl();
 
   @override
   String toString() {
-    return 'UserProfileThemeToggled()';
+    return 'UserProfileEvent.themeToggled()';
   }
 
   @override
@@ -718,10 +1315,311 @@ class _$UserProfileThemeToggledImpl implements _UserProfileThemeToggled {
 
   @override
   int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return themeToggled();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return themeToggled?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (themeToggled != null) {
+      return themeToggled();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return themeToggled(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return themeToggled?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (themeToggled != null) {
+      return themeToggled(this);
+    }
+    return orElse();
+  }
 }
 
-abstract class _UserProfileThemeToggled implements UserProfileThemeToggled {
-  const factory _UserProfileThemeToggled() = _$UserProfileThemeToggledImpl;
+abstract class UserProfileThemeToggled implements UserProfileEvent {
+  const factory UserProfileThemeToggled() = _$UserProfileThemeToggledImpl;
+}
+
+/// @nodoc
+abstract class _$$UserProfileBiometricAuthToggledImplCopyWith<$Res> {
+  factory _$$UserProfileBiometricAuthToggledImplCopyWith(
+          _$UserProfileBiometricAuthToggledImpl value,
+          $Res Function(_$UserProfileBiometricAuthToggledImpl) then) =
+      __$$UserProfileBiometricAuthToggledImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({bool isEnabled});
+}
+
+/// @nodoc
+class __$$UserProfileBiometricAuthToggledImplCopyWithImpl<$Res>
+    extends _$UserProfileEventCopyWithImpl<$Res,
+        _$UserProfileBiometricAuthToggledImpl>
+    implements _$$UserProfileBiometricAuthToggledImplCopyWith<$Res> {
+  __$$UserProfileBiometricAuthToggledImplCopyWithImpl(
+      _$UserProfileBiometricAuthToggledImpl _value,
+      $Res Function(_$UserProfileBiometricAuthToggledImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of UserProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isEnabled = null,
+  }) {
+    return _then(_$UserProfileBiometricAuthToggledImpl(
+      null == isEnabled
+          ? _value.isEnabled
+          : isEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$UserProfileBiometricAuthToggledImpl
+    implements UserProfileBiometricAuthToggled {
+  const _$UserProfileBiometricAuthToggledImpl(this.isEnabled);
+
+  @override
+  final bool isEnabled;
+
+  @override
+  String toString() {
+    return 'UserProfileEvent.biometricAuthToggled(isEnabled: $isEnabled)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UserProfileBiometricAuthToggledImpl &&
+            (identical(other.isEnabled, isEnabled) ||
+                other.isEnabled == isEnabled));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, isEnabled);
+
+  /// Create a copy of UserProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UserProfileBiometricAuthToggledImplCopyWith<
+          _$UserProfileBiometricAuthToggledImpl>
+      get copyWith => __$$UserProfileBiometricAuthToggledImplCopyWithImpl<
+          _$UserProfileBiometricAuthToggledImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initialised,
+    required TResult Function() refreshed,
+    required TResult Function(User user) userUpdated,
+    required TResult Function() userDeleted,
+    required TResult Function() signedOut,
+    required TResult Function(String photoUrl) pictureUpdated,
+    required TResult Function() emailVerified,
+    required TResult Function() themeToggled,
+    required TResult Function(bool isEnabled) biometricAuthToggled,
+  }) {
+    return biometricAuthToggled(isEnabled);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initialised,
+    TResult? Function()? refreshed,
+    TResult? Function(User user)? userUpdated,
+    TResult? Function()? userDeleted,
+    TResult? Function()? signedOut,
+    TResult? Function(String photoUrl)? pictureUpdated,
+    TResult? Function()? emailVerified,
+    TResult? Function()? themeToggled,
+    TResult? Function(bool isEnabled)? biometricAuthToggled,
+  }) {
+    return biometricAuthToggled?.call(isEnabled);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initialised,
+    TResult Function()? refreshed,
+    TResult Function(User user)? userUpdated,
+    TResult Function()? userDeleted,
+    TResult Function()? signedOut,
+    TResult Function(String photoUrl)? pictureUpdated,
+    TResult Function()? emailVerified,
+    TResult Function()? themeToggled,
+    TResult Function(bool isEnabled)? biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (biometricAuthToggled != null) {
+      return biometricAuthToggled(isEnabled);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(UserProfileInitialised value) initialised,
+    required TResult Function(UserProfileRefreshed value) refreshed,
+    required TResult Function(UserProfileUserUpdated value) userUpdated,
+    required TResult Function(UserProfileUserDeleted value) userDeleted,
+    required TResult Function(UserProfileSignedOut value) signedOut,
+    required TResult Function(UserProfilePictureUpdated value) pictureUpdated,
+    required TResult Function(UserProfileEmailVerified value) emailVerified,
+    required TResult Function(UserProfileThemeToggled value) themeToggled,
+    required TResult Function(UserProfileBiometricAuthToggled value)
+        biometricAuthToggled,
+  }) {
+    return biometricAuthToggled(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(UserProfileInitialised value)? initialised,
+    TResult? Function(UserProfileRefreshed value)? refreshed,
+    TResult? Function(UserProfileUserUpdated value)? userUpdated,
+    TResult? Function(UserProfileUserDeleted value)? userDeleted,
+    TResult? Function(UserProfileSignedOut value)? signedOut,
+    TResult? Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult? Function(UserProfileEmailVerified value)? emailVerified,
+    TResult? Function(UserProfileThemeToggled value)? themeToggled,
+    TResult? Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+  }) {
+    return biometricAuthToggled?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(UserProfileInitialised value)? initialised,
+    TResult Function(UserProfileRefreshed value)? refreshed,
+    TResult Function(UserProfileUserUpdated value)? userUpdated,
+    TResult Function(UserProfileUserDeleted value)? userDeleted,
+    TResult Function(UserProfileSignedOut value)? signedOut,
+    TResult Function(UserProfilePictureUpdated value)? pictureUpdated,
+    TResult Function(UserProfileEmailVerified value)? emailVerified,
+    TResult Function(UserProfileThemeToggled value)? themeToggled,
+    TResult Function(UserProfileBiometricAuthToggled value)?
+        biometricAuthToggled,
+    required TResult orElse(),
+  }) {
+    if (biometricAuthToggled != null) {
+      return biometricAuthToggled(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class UserProfileBiometricAuthToggled implements UserProfileEvent {
+  const factory UserProfileBiometricAuthToggled(final bool isEnabled) =
+      _$UserProfileBiometricAuthToggledImpl;
+
+  bool get isEnabled;
+
+  /// Create a copy of UserProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UserProfileBiometricAuthToggledImplCopyWith<
+          _$UserProfileBiometricAuthToggledImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -1457,6 +2355,7 @@ abstract class _Failure implements UserProfileStatus {
 mixin _$UserProfileState {
   UserProfileStatus get status => throw _privateConstructorUsedError;
   User get user => throw _privateConstructorUsedError;
+  bool get isBiometricAuthEnabled => throw _privateConstructorUsedError;
 
   /// Create a copy of UserProfileState
   /// with the given fields replaced by the non-null parameter values.
@@ -1471,7 +2370,7 @@ abstract class $UserProfileStateCopyWith<$Res> {
           UserProfileState value, $Res Function(UserProfileState) then) =
       _$UserProfileStateCopyWithImpl<$Res, UserProfileState>;
   @useResult
-  $Res call({UserProfileStatus status, User user});
+  $Res call({UserProfileStatus status, User user, bool isBiometricAuthEnabled});
 
   $UserProfileStatusCopyWith<$Res> get status;
   $UserCopyWith<$Res> get user;
@@ -1494,6 +2393,7 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
   $Res call({
     Object? status = null,
     Object? user = null,
+    Object? isBiometricAuthEnabled = null,
   }) {
     return _then(_value.copyWith(
       status: null == status
@@ -1504,6 +2404,10 @@ class _$UserProfileStateCopyWithImpl<$Res, $Val extends UserProfileState>
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
               as User,
+      isBiometricAuthEnabled: null == isBiometricAuthEnabled
+          ? _value.isBiometricAuthEnabled
+          : isBiometricAuthEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 
@@ -1536,7 +2440,7 @@ abstract class _$$UserProfileStateImplCopyWith<$Res>
       __$$UserProfileStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({UserProfileStatus status, User user});
+  $Res call({UserProfileStatus status, User user, bool isBiometricAuthEnabled});
 
   @override
   $UserProfileStatusCopyWith<$Res> get status;
@@ -1559,6 +2463,7 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
   $Res call({
     Object? status = null,
     Object? user = null,
+    Object? isBiometricAuthEnabled = null,
   }) {
     return _then(_$UserProfileStateImpl(
       status: null == status
@@ -1569,6 +2474,10 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
               as User,
+      isBiometricAuthEnabled: null == isBiometricAuthEnabled
+          ? _value.isBiometricAuthEnabled
+          : isBiometricAuthEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -1578,7 +2487,8 @@ class __$$UserProfileStateImplCopyWithImpl<$Res>
 class _$UserProfileStateImpl implements _UserProfileState {
   const _$UserProfileStateImpl(
       {this.status = const UserProfileStatus.initial(),
-      this.user = const User()});
+      this.user = const User(),
+      this.isBiometricAuthEnabled = false});
 
   @override
   @JsonKey()
@@ -1586,10 +2496,13 @@ class _$UserProfileStateImpl implements _UserProfileState {
   @override
   @JsonKey()
   final User user;
+  @override
+  @JsonKey()
+  final bool isBiometricAuthEnabled;
 
   @override
   String toString() {
-    return 'UserProfileState(status: $status, user: $user)';
+    return 'UserProfileState(status: $status, user: $user, isBiometricAuthEnabled: $isBiometricAuthEnabled)';
   }
 
   @override
@@ -1598,11 +2511,14 @@ class _$UserProfileStateImpl implements _UserProfileState {
         (other.runtimeType == runtimeType &&
             other is _$UserProfileStateImpl &&
             (identical(other.status, status) || other.status == status) &&
-            (identical(other.user, user) || other.user == user));
+            (identical(other.user, user) || other.user == user) &&
+            (identical(other.isBiometricAuthEnabled, isBiometricAuthEnabled) ||
+                other.isBiometricAuthEnabled == isBiometricAuthEnabled));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, status, user);
+  int get hashCode =>
+      Object.hash(runtimeType, status, user, isBiometricAuthEnabled);
 
   /// Create a copy of UserProfileState
   /// with the given fields replaced by the non-null parameter values.
@@ -1617,12 +2533,15 @@ class _$UserProfileStateImpl implements _UserProfileState {
 abstract class _UserProfileState implements UserProfileState {
   const factory _UserProfileState(
       {final UserProfileStatus status,
-      final User user}) = _$UserProfileStateImpl;
+      final User user,
+      final bool isBiometricAuthEnabled}) = _$UserProfileStateImpl;
 
   @override
   UserProfileStatus get status;
   @override
   User get user;
+  @override
+  bool get isBiometricAuthEnabled;
 
   /// Create a copy of UserProfileState
   /// with the given fields replaced by the non-null parameter values.

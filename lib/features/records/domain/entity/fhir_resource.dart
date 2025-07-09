@@ -1,16 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hive/hive.dart';
 
 part 'fhir_resource.freezed.dart';
 part 'fhir_resource.g.dart';
 
 @freezed
-@HiveType(typeId: 0)
 class FhirResource with _$FhirResource {
-  const factory FhirResource({
-    @HiveField(0) required String id,
-    @HiveField(1) required String resourceType,
-    @HiveField(2) required Map<String, dynamic> resource,
+  factory FhirResource({
+    String? id,
+    @JsonKey(name: 'source_resource_type') required String resourceType,
+    @JsonKey(name: 'resource_raw') required Map<String, dynamic> resourceJson,
+    @JsonKey(name: 'source_id') String? sourceId,
+    @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _FhirResource;
 
   factory FhirResource.fromJson(Map<String, dynamic> json) =>

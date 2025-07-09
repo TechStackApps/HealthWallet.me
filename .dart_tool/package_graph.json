@@ -5,12 +5,13 @@
   "packages": [
     {
       "name": "health_wallet",
-      "version": "1.0.0+1",
+      "version": "1.0.0+2",
       "dependencies": [
         "auto_route",
         "bloc",
         "connectivity_plus",
         "dio",
+        "drift",
         "equatable",
         "flutter",
         "flutter_bloc",
@@ -21,15 +22,16 @@
         "freezed_annotation",
         "get_it",
         "google_fonts",
-        "hive",
-        "hive_flutter",
         "injectable",
         "intl",
         "json_annotation",
         "liquid_glass_renderer",
+        "local_auth",
         "logger",
+        "mobile_scanner",
         "path_provider",
-        "shared_preferences"
+        "shared_preferences",
+        "sqlite3_flutter_libs"
       ],
       "devDependencies": [
         "auto_route_generator",
@@ -37,12 +39,12 @@
         "bloc_test",
         "build_runner",
         "custom_lint",
+        "drift_dev",
         "flutter_gen_runner",
         "flutter_lints",
         "flutter_test",
         "freezed",
         "golden_toolkit",
-        "hive_generator",
         "injectable_generator",
         "integration_test",
         "json_serializable",
@@ -119,14 +121,34 @@
       ]
     },
     {
-      "name": "hive_generator",
-      "version": "2.0.1",
+      "name": "drift_dev",
+      "version": "2.26.0",
       "dependencies": [
         "analyzer",
+        "args",
         "build",
-        "hive",
+        "build_config",
+        "build_resolvers",
+        "charcode",
+        "cli_util",
+        "collection",
+        "dart_style",
+        "drift",
+        "io",
+        "json_annotation",
+        "logging",
+        "meta",
+        "package_config",
+        "path",
+        "pub_semver",
+        "recase",
         "source_gen",
-        "source_helper"
+        "source_span",
+        "sqlite3",
+        "sqlparser",
+        "stream_transform",
+        "string_scanner",
+        "yaml"
       ]
     },
     {
@@ -320,6 +342,17 @@
       ]
     },
     {
+      "name": "local_auth",
+      "version": "2.3.0",
+      "dependencies": [
+        "flutter",
+        "local_auth_android",
+        "local_auth_darwin",
+        "local_auth_platform_interface",
+        "local_auth_windows"
+      ]
+    },
+    {
       "name": "google_fonts",
       "version": "6.2.1",
       "dependencies": [
@@ -335,18 +368,6 @@
       "dependencies": [
         "collection",
         "meta"
-      ]
-    },
-    {
-      "name": "path_provider",
-      "version": "2.1.5",
-      "dependencies": [
-        "flutter",
-        "path_provider_android",
-        "path_provider_foundation",
-        "path_provider_linux",
-        "path_provider_platform_interface",
-        "path_provider_windows"
       ]
     },
     {
@@ -428,21 +449,49 @@
       ]
     },
     {
-      "name": "hive_flutter",
-      "version": "1.1.0",
+      "name": "path_provider",
+      "version": "2.1.5",
       "dependencies": [
         "flutter",
-        "hive",
-        "path",
-        "path_provider"
+        "path_provider_android",
+        "path_provider_foundation",
+        "path_provider_linux",
+        "path_provider_platform_interface",
+        "path_provider_windows"
       ]
     },
     {
-      "name": "hive",
-      "version": "2.2.3",
+      "name": "sqlite3_flutter_libs",
+      "version": "0.5.34",
       "dependencies": [
-        "crypto",
-        "meta"
+        "flutter"
+      ]
+    },
+    {
+      "name": "drift",
+      "version": "2.26.1",
+      "dependencies": [
+        "async",
+        "collection",
+        "convert",
+        "meta",
+        "path",
+        "sqlite3",
+        "stack_trace",
+        "stream_channel",
+        "web"
+      ]
+    },
+    {
+      "name": "mobile_scanner",
+      "version": "7.0.1",
+      "dependencies": [
+        "collection",
+        "flutter",
+        "flutter_web_plugins",
+        "meta",
+        "plugin_platform_interface",
+        "web"
       ]
     },
     {
@@ -894,12 +943,79 @@
       ]
     },
     {
-      "name": "source_helper",
-      "version": "1.3.5",
+      "name": "build_config",
+      "version": "1.1.2",
+      "dependencies": [
+        "checked_yaml",
+        "json_annotation",
+        "path",
+        "pubspec_parse",
+        "yaml"
+      ]
+    },
+    {
+      "name": "build_resolvers",
+      "version": "2.5.4",
       "dependencies": [
         "analyzer",
+        "async",
+        "build",
+        "build_runner_core",
         "collection",
-        "source_gen"
+        "convert",
+        "crypto",
+        "graphs",
+        "logging",
+        "package_config",
+        "path",
+        "pool",
+        "pub_semver",
+        "stream_transform"
+      ]
+    },
+    {
+      "name": "pub_semver",
+      "version": "2.2.0",
+      "dependencies": [
+        "collection"
+      ]
+    },
+    {
+      "name": "package_config",
+      "version": "2.2.0",
+      "dependencies": [
+        "path"
+      ]
+    },
+    {
+      "name": "sqlparser",
+      "version": "0.41.0",
+      "dependencies": [
+        "charcode",
+        "collection",
+        "meta",
+        "source_span"
+      ]
+    },
+    {
+      "name": "sqlite3",
+      "version": "2.7.6",
+      "dependencies": [
+        "collection",
+        "ffi",
+        "meta",
+        "path",
+        "typed_data",
+        "web"
+      ]
+    },
+    {
+      "name": "io",
+      "version": "1.0.5",
+      "dependencies": [
+        "meta",
+        "path",
+        "string_scanner"
       ]
     },
     {
@@ -910,6 +1026,39 @@
         "source_span",
         "string_scanner"
       ]
+    },
+    {
+      "name": "cli_util",
+      "version": "0.4.2",
+      "dependencies": [
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "logging",
+      "version": "1.3.0",
+      "dependencies": []
+    },
+    {
+      "name": "args",
+      "version": "2.7.0",
+      "dependencies": []
+    },
+    {
+      "name": "stream_transform",
+      "version": "2.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "recase",
+      "version": "4.1.0",
+      "dependencies": []
+    },
+    {
+      "name": "charcode",
+      "version": "1.4.0",
+      "dependencies": []
     },
     {
       "name": "glob",
@@ -952,11 +1101,6 @@
       ]
     },
     {
-      "name": "args",
-      "version": "2.7.0",
-      "dependencies": []
-    },
-    {
       "name": "xml",
       "version": "6.5.0",
       "dependencies": [
@@ -966,9 +1110,13 @@
       ]
     },
     {
-      "name": "recase",
-      "version": "4.1.0",
-      "dependencies": []
+      "name": "source_helper",
+      "version": "1.3.5",
+      "dependencies": [
+        "analyzer",
+        "collection",
+        "source_gen"
+      ]
     },
     {
       "name": "pubspec_parse",
@@ -978,24 +1126,6 @@
         "collection",
         "json_annotation",
         "pub_semver",
-        "yaml"
-      ]
-    },
-    {
-      "name": "pub_semver",
-      "version": "2.2.0",
-      "dependencies": [
-        "collection"
-      ]
-    },
-    {
-      "name": "build_config",
-      "version": "1.1.2",
-      "dependencies": [
-        "checked_yaml",
-        "json_annotation",
-        "path",
-        "pubspec_parse",
         "yaml"
       ]
     },
@@ -1031,11 +1161,6 @@
       ]
     },
     {
-      "name": "stream_transform",
-      "version": "2.1.1",
-      "dependencies": []
-    },
-    {
       "name": "shelf_web_socket",
       "version": "3.0.0",
       "dependencies": [
@@ -1065,20 +1190,8 @@
       ]
     },
     {
-      "name": "package_config",
-      "version": "2.2.0",
-      "dependencies": [
-        "path"
-      ]
-    },
-    {
       "name": "mime",
       "version": "2.0.0",
-      "dependencies": []
-    },
-    {
-      "name": "logging",
-      "version": "1.3.0",
       "dependencies": []
     },
     {
@@ -1086,15 +1199,6 @@
       "version": "0.6.7",
       "dependencies": [
         "meta"
-      ]
-    },
-    {
-      "name": "io",
-      "version": "1.0.5",
-      "dependencies": [
-        "meta",
-        "path",
-        "string_scanner"
       ]
     },
     {
@@ -1155,26 +1259,6 @@
         "timing",
         "watcher",
         "yaml"
-      ]
-    },
-    {
-      "name": "build_resolvers",
-      "version": "2.5.4",
-      "dependencies": [
-        "analyzer",
-        "async",
-        "build",
-        "build_runner_core",
-        "collection",
-        "convert",
-        "crypto",
-        "graphs",
-        "logging",
-        "package_config",
-        "path",
-        "pool",
-        "pub_semver",
-        "stream_transform"
       ]
     },
     {
@@ -1260,14 +1344,6 @@
       ]
     },
     {
-      "name": "cli_util",
-      "version": "0.4.2",
-      "dependencies": [
-        "meta",
-        "path"
-      ]
-    },
-    {
       "name": "ci",
       "version": "0.1.0",
       "dependencies": []
@@ -1278,49 +1354,38 @@
       "dependencies": []
     },
     {
-      "name": "path_provider_windows",
-      "version": "2.3.0",
+      "name": "local_auth_windows",
+      "version": "1.0.11",
       "dependencies": [
-        "ffi",
         "flutter",
-        "path",
-        "path_provider_platform_interface"
+        "local_auth_platform_interface"
       ]
     },
     {
-      "name": "path_provider_platform_interface",
-      "version": "2.1.2",
+      "name": "local_auth_platform_interface",
+      "version": "1.0.10",
       "dependencies": [
         "flutter",
-        "platform",
         "plugin_platform_interface"
       ]
     },
     {
-      "name": "path_provider_linux",
-      "version": "2.2.1",
+      "name": "local_auth_darwin",
+      "version": "1.5.0",
       "dependencies": [
-        "ffi",
         "flutter",
-        "path",
-        "path_provider_platform_interface",
-        "xdg_directories"
+        "intl",
+        "local_auth_platform_interface"
       ]
     },
     {
-      "name": "path_provider_foundation",
-      "version": "2.4.1",
+      "name": "local_auth_android",
+      "version": "1.0.49",
       "dependencies": [
         "flutter",
-        "path_provider_platform_interface"
-      ]
-    },
-    {
-      "name": "path_provider_android",
-      "version": "2.2.17",
-      "dependencies": [
-        "flutter",
-        "path_provider_platform_interface"
+        "flutter_plugin_android_lifecycle",
+        "intl",
+        "local_auth_platform_interface"
       ]
     },
     {
@@ -1465,6 +1530,66 @@
       "dependencies": [
         "flutter",
         "shared_preferences_platform_interface"
+      ]
+    },
+    {
+      "name": "path_provider_windows",
+      "version": "2.3.0",
+      "dependencies": [
+        "ffi",
+        "flutter",
+        "path",
+        "path_provider_platform_interface"
+      ]
+    },
+    {
+      "name": "path_provider_platform_interface",
+      "version": "2.1.2",
+      "dependencies": [
+        "flutter",
+        "platform",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "path_provider_linux",
+      "version": "2.2.1",
+      "dependencies": [
+        "ffi",
+        "flutter",
+        "path",
+        "path_provider_platform_interface",
+        "xdg_directories"
+      ]
+    },
+    {
+      "name": "path_provider_foundation",
+      "version": "2.4.1",
+      "dependencies": [
+        "flutter",
+        "path_provider_platform_interface"
+      ]
+    },
+    {
+      "name": "path_provider_android",
+      "version": "2.2.17",
+      "dependencies": [
+        "flutter",
+        "path_provider_platform_interface"
+      ]
+    },
+    {
+      "name": "convert",
+      "version": "3.1.2",
+      "dependencies": [
+        "typed_data"
+      ]
+    },
+    {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
       ]
     },
     {
@@ -1642,13 +1767,6 @@
       "dependencies": []
     },
     {
-      "name": "convert",
-      "version": "3.1.2",
-      "dependencies": [
-        "typed_data"
-      ]
-    },
-    {
       "name": "macros",
       "version": "0.1.3-main.0",
       "dependencies": [
@@ -1661,6 +1779,11 @@
       "dependencies": [
         "meta"
       ]
+    },
+    {
+      "name": "ffi",
+      "version": "2.1.4",
+      "dependencies": []
     },
     {
       "name": "image_size_getter",
@@ -1742,23 +1865,10 @@
       "dependencies": []
     },
     {
-      "name": "ffi",
-      "version": "2.1.4",
-      "dependencies": []
-    },
-    {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
+      "name": "flutter_plugin_android_lifecycle",
+      "version": "2.0.28",
       "dependencies": [
-        "meta"
-      ]
-    },
-    {
-      "name": "xdg_directories",
-      "version": "1.1.0",
-      "dependencies": [
-        "meta",
-        "path"
+        "flutter"
       ]
     },
     {
@@ -1774,6 +1884,14 @@
       "dependencies": [
         "meta",
         "vector_math"
+      ]
+    },
+    {
+      "name": "xdg_directories",
+      "version": "1.1.0",
+      "dependencies": [
+        "meta",
+        "path"
       ]
     },
     {

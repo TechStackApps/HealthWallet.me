@@ -6,20 +6,23 @@ This document tracks the current focus of development, recent changes, and next 
 
 ### Current Task
 
--   **Records Feature:** Reorganized the file structure for `allergies` and `medications` data types.
+-   **Refactor Authentication Flow:** Refactored the authentication flow to be an optional step in the onboarding process.
 
 ### Recent Changes
 
--   Created subdirectories for `allergy` and `medication` within the `records` feature's `data/dto` and `domain/entity` folders.
--   Moved the corresponding files into the new subdirectories.
--   Updated import paths to reflect the new file locations.
--   Updated the `memory-bank` documentation to reflect the new, more granular structure.
+-   Created a new `AuthPage` at `lib/features/onboarding/presentation/pages/auth_page.dart` to handle the authentication setup.
+-   Added the `AuthPage` as the fourth step in the `OnboardingPage`.
+-   Added a biometric authentication toggle to the `ProfileContent` widget.
+-   Updated the `UserProfileBloc` to handle the new biometric authentication state.
+-   Removed the `AuthGate` widget and updated the `main.dart` file to use the `App` widget directly.
+-   Updated the `SplashPage` to navigate to the `AuthPage` if biometric authentication is enabled.
+-   **Manual Step:** The old `android/app/src/main/kotlin/com/example` directory needs to be deleted.
 
 ### Next Steps
 
-1.  Verify the implementation of the records filtering.
-2.  Address the error in `test/widget_test.dart`.
-3.  Begin implementation of the authentication feature.
+1.  Implement the `Source` table and related logic.
+2.  Verify the implementation of the records filtering.
+3.  Address the error in `test/widget_test.dart`.
 
 ### Active Decisions & Considerations
 

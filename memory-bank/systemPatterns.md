@@ -141,7 +141,7 @@ my_app/
 -   **Dependency Injection:** `get_it` and `injectable` are used for managing dependencies, making the codebase more modular and testable.
 -   **Navigation:** `auto_route` is used for declarative routing, simplifying navigation and deep linking.
 -   **Networking:** The `dio` package is used for making HTTP requests, with interceptors for handling authentication and logging.
--   **Local Storage:** `shared_preferences` or a similar solution will be used for simple key-value storage, while a more robust database like `hive` or `isar` might be used for complex data.
+-   **Local Storage:** `shared_preferences` is used for simple key-value storage, while `drift` is used for complex data.
 
 ### Component Relationships
 

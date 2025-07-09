@@ -1,23 +1,14 @@
 part of 'records_bloc.dart';
 
+enum RecordsStatus { initial, loading, success, failure }
+
 @freezed
 class RecordsState with _$RecordsState {
-  const factory RecordsState.initial({
+  const factory RecordsState({
+    @Default(RecordsStatus.initial) RecordsStatus status,
+    @Default([]) List<FhirResource> entries,
     @Default([]) List<String> filters,
     @Default([]) List<String> availableFilters,
-  }) = _Initial;
-  const factory RecordsState.loading({
-    @Default([]) List<String> filters,
-    @Default([]) List<String> availableFilters,
-  }) = _Loading;
-  const factory RecordsState.loaded(
-    List<FhirResource> entries,
-    List<String> filters,
-    List<String> availableFilters,
-  ) = _Loaded;
-  const factory RecordsState.error(
-    String message, {
-    @Default([]) List<String> filters,
-    @Default([]) List<String> availableFilters,
-  }) = _Error;
+    @Default('') String error,
+  }) = _RecordsState;
 }

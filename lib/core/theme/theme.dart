@@ -1,82 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    scaffoldBackgroundColor: AppColors.fastenLightGray100,
+    scaffoldBackgroundColor: AppColors.background,
+    fontFamily: 'Matter',
     colorScheme: const ColorScheme.light(
-      primary: AppColors.fastenLightPrimaryColor,
-      onPrimary: AppColors.backgroundWhite,
-      secondary: AppColors.fastenLightBlue,
-      onSecondary: AppColors.backgroundWhite,
-      error: AppColors.fastenLightRed,
-      onError: AppColors.backgroundWhite,
-      surface: AppColors.backgroundWhite, // Card background
-      onSurface: AppColors.fastenLightBodyColor,
+      primary: AppColors.primary,
+      onPrimary: AppColors.background,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.background,
+      error: AppColors.error,
+      onError: AppColors.background,
+      surface: AppColors.surface, // Card background
+      onSurface: AppColors.textPrimary,
     ),
-    textTheme: GoogleFonts.interTextTheme(
-      ThemeData.light().textTheme.apply(
-        bodyColor: AppColors.fastenLightBodyColor,
-        displayColor: AppColors.fastenLightGray900,
-      ),
-    ),
+    textTheme: ThemeData.light().textTheme.apply(
+          fontFamily: 'Matter',
+          bodyColor: AppColors.textPrimary,
+          displayColor: AppColors.textPrimary,
+        ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.backgroundWhite,
-      foregroundColor: AppColors.fastenLightGray900,
+      backgroundColor: AppColors.surface,
+      foregroundColor: AppColors.textPrimary,
       elevation: 0,
     ),
     cardTheme: CardThemeData(
-      color: AppColors.backgroundWhite,
+      color: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
         side: const BorderSide(
-          color: AppColors.fastenLightBorderBase,
+          color: AppColors.border,
           width: 1.0,
         ),
       ),
       elevation: 0,
       margin: EdgeInsets.zero,
     ),
-    dividerColor: AppColors.fastenLightBorderBase,
+    dividerColor: AppColors.border,
   );
 
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: AppColors.fastenDarkBackground,
+    scaffoldBackgroundColor: AppColors.textPrimary,
+    fontFamily: 'Matter',
     colorScheme: const ColorScheme.dark(
-      primary: AppColors.fastenDarkPrimary,
-      onPrimary: AppColors.fastenDarkTextWhiteColor,
-      secondary: AppColors.fastenDarkLinkColor,
-      onSecondary: AppColors.fastenDarkTextWhiteColor,
-      error: Colors.redAccent, // Keep Flutter default for now
-      onError: AppColors.fastenDarkTextWhiteColor,
-      surface: AppColors.fastenDarkCard, // Card background
-      onSurface: AppColors.fastenDarkTextColor,
+      primary: AppColors.primary,
+      onPrimary: AppColors.background,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.background,
+      error: AppColors.error,
+      onError: AppColors.background,
+      surface: AppColors.textPrimary, // Card background
+      onSurface: AppColors.background,
     ),
-    textTheme: GoogleFonts.interTextTheme(
-      ThemeData.dark().textTheme.apply(
-        bodyColor: AppColors.fastenDarkTextColor,
-        displayColor: AppColors.fastenDarkCardForeground,
-      ),
-    ),
+    textTheme: ThemeData.dark().textTheme.apply(
+          fontFamily: 'Matter',
+          bodyColor: AppColors.background,
+          displayColor: AppColors.background,
+        ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.fastenDarkHeader,
-      foregroundColor: AppColors.fastenDarkTextWhiteColor,
+      backgroundColor: AppColors.textPrimary,
+      foregroundColor: AppColors.background,
       elevation: 0,
     ),
     cardTheme: CardThemeData(
-      color: AppColors.fastenDarkCard,
+      color: AppColors.textPrimary,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: const BorderSide(color: AppColors.fastenDarkBorder, width: 1.0),
+        side: const BorderSide(color: AppColors.border, width: 1.0),
       ),
       elevation: 0,
       margin: EdgeInsets.zero,
     ),
-    dividerColor: AppColors.fastenDarkBorder,
+    dividerColor: AppColors.border,
   );
 }

@@ -9,4 +9,13 @@ class ClinicalDataTags {
   static const String specialtyVisit = 'Specialty Visit';
   static const String preventiveCare = 'Preventive Care';
   static const String emergency = 'Emergency';
+
+  static const Map<String, String> resourceTypeMap = {
+    allergy: 'AllergyIntolerance',
+    medication: 'MedicationRequest',
+    condition: 'Condition',
+    immunization: 'Immunization',
+    labResult: 'Observation',
+    procedure: 'Procedure',
+  };
 }

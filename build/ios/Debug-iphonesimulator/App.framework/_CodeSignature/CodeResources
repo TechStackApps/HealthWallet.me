@@ -10,19 +10,19 @@
 		</data>
 		<key>flutter_assets/AssetManifest.bin</key>
 		<data>
-		gyXlZ1HjWzddK1yTJOVDu99+3Q8=
+		yDHmzYZOOgFEWi3VCpWTkKugpbM=
 		</data>
 		<key>flutter_assets/AssetManifest.json</key>
 		<data>
-		IbHFEpyaMNhbJ02zzYrABI8jhyQ=
+		uFsq/PJSWldYLT1Eoh6jmd0EVCM=
 		</data>
 		<key>flutter_assets/FontManifest.json</key>
 		<data>
-		V/gr76C6BWGAML6t0COxk9ryxmU=
+		kVV/cadGM538CoRT3J0C66e6DCo=
 		</data>
 		<key>flutter_assets/NOTICES.Z</key>
 		<data>
-		Jhjwxizg1C7jRq8Eee4n+CJSnJo=
+		0y4R6FWmwyDTDdDhmOE6fq4AFIY=
 		</data>
 		<key>flutter_assets/NativeAssetsManifest.json</key>
 		<data>
@@ -30,99 +30,163 @@
 		</data>
 		<key>flutter_assets/assets/.DS_Store</key>
 		<data>
-		eZr/DZ7uWbaPNxJddrm5yzsPph0=
+		on2w0BEx07UYAAP6vKhfsn6z96Y=
 		</data>
 		<key>flutter_assets/assets/favIcons/epic.svg</key>
 		<data>
 		37HO3BOGU/2XEe6JToly7PtpYZk=
 		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-Bold.ttf</key>
+		<data>
+		lBGUK4TeZHfaasveQbCVxO1MYvY=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-BoldItalic.ttf</key>
+		<data>
+		0aSCx4VIXKR4k/snvRYWaTDF6hE=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-Heavy.ttf</key>
+		<data>
+		nPrTlvWS+5IjCiVINr7MeLBrFrk=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-HeavyItalic.ttf</key>
+		<data>
+		8FWTO0juqY2eYI8vncwADTgMxfU=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-Light.ttf</key>
+		<data>
+		B6dFOyn6GJ0UVM752wIu0XKy5Wk=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-LightItalic.ttf</key>
+		<data>
+		RXunl1FN24dsx6Gk80SSMf/rWbU=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-Medium.ttf</key>
+		<data>
+		xvmO8kSCSaoTo1w6mrRVCTUAbjk=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-MediumItalic.ttf</key>
+		<data>
+		+FDa+v7BIl8hnvbiIcpacrXQ1T4=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-Regular.ttf</key>
+		<data>
+		dnt98ZubFBVdCtGB74LCnQh67FQ=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-RegularItalic.ttf</key>
+		<data>
+		mXVMam4eInyaXiWEE3sIHYCiiy8=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-SemiBold.ttf</key>
+		<data>
+		FKaI7Lc9EgsrX3oFAnJnz8X2Nys=
+		</data>
+		<key>flutter_assets/assets/font/matter-font/Matter-SemiBoldItalic.ttf</key>
+		<data>
+		ZU0xfjpxLqEJqgQphkpNkHj1QIM=
+		</data>
 		<key>flutter_assets/assets/icons/.DS_Store</key>
 		<data>
 		3y++sUAKzaCQmjLBz2v0kvESHgc=
 		</data>
-		<key>flutter_assets/assets/icons/allergies.svg</key>
+		<key>flutter_assets/assets/icons/activity.svg</key>
 		<data>
-		hTSaXHCv7XyqZB+DOUfa/1UdQcc=
+		qfrHbQ+s8CyOqm/DgaykpVGfl8I=
 		</data>
-		<key>flutter_assets/assets/icons/care-plans.svg</key>
+		<key>flutter_assets/assets/icons/calendar.svg</key>
 		<data>
-		Z8hos1dku2eIXfUz9wxHZtGu+Rc=
+		Wrl2jG1qwRxDBaz+oPCnr17mYC0=
 		</data>
-		<key>flutter_assets/assets/icons/care-team.svg</key>
+		<key>flutter_assets/assets/icons/checkmark-circle-outline.svg</key>
 		<data>
-		EO5CwySMm0/VJfRyj3tN/xQUdWk=
+		1WRB0QU435BS5RayQTwTwHu9o9w=
 		</data>
-		<key>flutter_assets/assets/icons/clinical-notes.svg</key>
+		<key>flutter_assets/assets/icons/dashboard.svg</key>
 		<data>
-		05W4MO4yUN0w41sw6Cm/3nTRCSQ=
+		RCIFNCqiP1leVrBKuKeIElYLYHk=
 		</data>
-		<key>flutter_assets/assets/icons/demographics.svg</key>
+		<key>flutter_assets/assets/icons/drop.svg</key>
 		<data>
-		tS56A5/5NleIfb6I0bBXwiRGuVI=
+		v6kUT60lZU3SFO5oTbOA5VLFmnc=
 		</data>
-		<key>flutter_assets/assets/icons/epic.svg</key>
+		<key>flutter_assets/assets/icons/edit.svg</key>
 		<data>
-		37HO3BOGU/2XEe6JToly7PtpYZk=
+		ZMRJdSG922ftCN2eILr2fZpU+AI=
 		</data>
-		<key>flutter_assets/assets/icons/facilities.svg</key>
+		<key>flutter_assets/assets/icons/face-mask.svg</key>
 		<data>
-		a5P7bWslOUSzFz7PwTUiLWp91es=
+		g9ZnSrHUJNumXWfwbgCJxeQl/Uo=
 		</data>
-		<key>flutter_assets/assets/icons/files.svg</key>
+		<key>flutter_assets/assets/icons/filter.svg</key>
 		<data>
-		05W4MO4yUN0w41sw6Cm/3nTRCSQ=
+		cV0UG6q4inm1UZGhcrnNm/G/AUA=
 		</data>
-		<key>flutter_assets/assets/icons/health-assessments.svg</key>
+		<key>flutter_assets/assets/icons/gender-male.svg</key>
 		<data>
-		VKiCUT91jEUUDp7EaSettTEDlhk=
+		7vojCr2K6zEFX1eop6C4hN7Zxqo=
 		</data>
-		<key>flutter_assets/assets/icons/health-goals.svg</key>
+		<key>flutter_assets/assets/icons/heart-favorite.svg</key>
 		<data>
-		Z8hos1dku2eIXfUz9wxHZtGu+Rc=
+		Lfl18uIjAC60ukxtpwbJ54MFfPk=
 		</data>
-		<key>flutter_assets/assets/icons/health-issues.svg</key>
+		<key>flutter_assets/assets/icons/lab.svg</key>
 		<data>
-		LtHoLtUzAthjEP17MeJUQD0qU6k=
+		AY456v1GTZI/aGxB98EdPC9v85M=
 		</data>
-		<key>flutter_assets/assets/icons/immunizations.svg</key>
+		<key>flutter_assets/assets/icons/medication.svg</key>
 		<data>
-		6d3QanbYLApYUMdQsNn/qQkwqak=
-		</data>
-		<key>flutter_assets/assets/icons/implants.svg</key>
-		<data>
-		4ub6dIVqlqh8HxfEgTi2/uoBfhA=
-		</data>
-		<key>flutter_assets/assets/icons/lab-results.svg</key>
-		<data>
-		jH0IpureJh/dnCasWYT8Sm/Lb9I=
-		</data>
-		<key>flutter_assets/assets/icons/medications.svg</key>
-		<data>
-		NGfvHs5+dkGA/eEXKn+bBH+yTro=
+		SxibXGyqiPm//eeI5uZnf4RU/Kc=
 		</data>
 		<key>flutter_assets/assets/icons/moon.svg</key>
 		<data>
-		OTCEZXfebzQZmauX5YH+L0b2kSw=
+		Dg9LKaTtcUCsH1AogDsIF0GoJNM=
 		</data>
-		<key>flutter_assets/assets/icons/procedures.svg</key>
+		<key>flutter_assets/assets/icons/renew-sync.svg</key>
 		<data>
-		mdEruVh0QC9BmNwGiaN8pkXPM9Y=
+		dBAGGx413maW/5QnZxl0eIb1ShE=
 		</data>
-		<key>flutter_assets/assets/icons/proxyinformation.svg</key>
+		<key>flutter_assets/assets/icons/scalpel.svg</key>
 		<data>
-		ZcV6SXFbX6Snex6fYQlA+IoK1oY=
+		m7pwun8E+0ERinm/0u0dUN2B7WY=
+		</data>
+		<key>flutter_assets/assets/icons/search.svg</key>
+		<data>
+		On8b5gVzUBQObVSayT8ooFApddg=
+		</data>
+		<key>flutter_assets/assets/icons/settings.svg</key>
+		<data>
+		Vhm+n5wjnrpRJNM6sTL6FXn1t3c=
+		</data>
+		<key>flutter_assets/assets/icons/share.svg</key>
+		<data>
+		vINmkb4z56krSHc6v793EwtL35g=
+		</data>
+		<key>flutter_assets/assets/icons/shield.svg</key>
+		<data>
+		SUlhae73vEVO5A9PzBlQziYu9z0=
+		</data>
+		<key>flutter_assets/assets/icons/stethoscope.svg</key>
+		<data>
+		Q6WjWpLYvEDE5dAqtGlO2sh/D88=
 		</data>
 		<key>flutter_assets/assets/icons/sun.svg</key>
 		<data>
-		p5OX/IfX2Qy0zkYY1ZmsZ3hjedo=
+		ZMNgvCmZB4zE+Y81faXZBZBV4Po=
 		</data>
-		<key>flutter_assets/assets/icons/visits.svg</key>
+		<key>flutter_assets/assets/icons/temperature.svg</key>
 		<data>
-		vUvWrzkDCBkGPESDfn/7GSznXjI=
+		OpprcrqIoYMF9v9NutpxWOFs/Sk=
 		</data>
-		<key>flutter_assets/assets/icons/vitalsigns.svg</key>
+		<key>flutter_assets/assets/icons/timeline.svg</key>
 		<data>
-		kssKPF86EO0eLfZyAjjeVvSJVLE=
+		x1/O9I9BDFqsbvK+EBOnTjDe4SE=
+		</data>
+		<key>flutter_assets/assets/icons/user.svg</key>
+		<data>
+		GFy0IiJ0nv4bvhBemAi4o/51jY4=
+		</data>
+		<key>flutter_assets/assets/icons/warning.svg</key>
+		<data>
+		2yk2zM3HYfhOOluXxnKagmcKXqw=
 		</data>
 		<key>flutter_assets/fonts/MaterialIcons-Regular.otf</key>
 		<data>
@@ -134,7 +198,7 @@
 		</data>
 		<key>flutter_assets/kernel_blob.bin</key>
 		<data>
-		a2FZcvKPM4GQl8rBEPwL4QFu16g=
+		+IUjzWzbXwRB39DARfAeTWkJrGU=
 		</data>
 		<key>flutter_assets/packages/golden_toolkit/fonts/Roboto-Regular.ttf</key>
 		<data>
@@ -163,28 +227,28 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			EuY1iA6RmwLHrq8X9oQGNWuU1I8ANc+bGyDIHJIbbRQ=
+			ZuuMQSdJm+yZYuQcWIoE99E3z6GTIySoJJ2m6vOhuBI=
 			</data>
 		</dict>
 		<key>flutter_assets/AssetManifest.json</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			bjBzZNKp4KvNSo05gqgtBeSOQHK8mJp4PZGlZ7rixa4=
+			zbvM7rtMX6NFevhOPUFQYpHoeN5aevxeHtxzu08sz0Q=
 			</data>
 		</dict>
 		<key>flutter_assets/FontManifest.json</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			ZNGvSSuhHz4G9MovyctLZE5AnpHbdgVLT3hy0maK6NA=
+			1O8i+S5fnayivymKqHdJWlzka5eJrzuOKvYG1cLOV9U=
 			</data>
 		</dict>
 		<key>flutter_assets/NOTICES.Z</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			r+6+err3URs4MKQ3GIeypNaXHWxCVieRuDTGGokKLKI=
+			fMOubtguiglADGcvLAHz1FiP0ZfxHgTdwUUnSz+Fxpk=
 			</data>
 		</dict>
 		<key>flutter_assets/NativeAssetsManifest.json</key>
@@ -201,151 +265,263 @@
 			n/50T6OxTK1kmo7SdZ5Bz7uWdyPPm07Y0vQRqcuVlOk=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/allergies.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-Bold.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			XXvunV87x2XyOdrdJC6B5Ji1IQQObxSsUecnn2UeKwE=
+			syodHXE/7koaR4q5xPcsU3tnAKCeISOmZOQ5QQHSBZw=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/care-plans.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-BoldItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			X6fssydUK9vrRUV7MpPl+m8yulm7h2hYRA0EbAewxwM=
+			ihcS+ozrTpdA0lISPuoiYylXndD/TJT0IlVFEfXXXc8=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/care-team.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-Heavy.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			fYmFzo60PizYy7mq6wbhKhLCTBz6RPGcN6oChJylKtU=
+			vQamKgh+H8U+CyVwLNprCr+5o9UwjvjfvLQ0coe8SW0=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/clinical-notes.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-HeavyItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			8DPO2gTts6vMWbx3JkWS3A5qNMtHohm+hvcHvbfCqyM=
+			ZzafRSbsaFDWhI7tp4VSzNeykdVyHuXL+SV3LVmNtRg=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/demographics.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-Light.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Po1zimyO5boz1O+jYpVB09iajtFIrj5ebMydNuL9OIg=
+			xw954gHKzEWvq2JaoHcai/obImVa3tZw4+OmV1rPyZc=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/epic.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-LightItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			n/50T6OxTK1kmo7SdZ5Bz7uWdyPPm07Y0vQRqcuVlOk=
+			c6y5WXAFPr4GPeFi2XeZTRl6kKYB63auKvCNyzz2Esg=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/facilities.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-Medium.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			kpbNwh4+w6oCSwwoVB+cXpeiodXhAR+zLctzzkc225U=
+			86UdKsz5at36KWxv8J/4Js1nb7DlgFNueqpw1y7FNDs=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/files.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-MediumItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			8DPO2gTts6vMWbx3JkWS3A5qNMtHohm+hvcHvbfCqyM=
+			qa1Go0x6mOeIjt8VKzKZA9yIaUv7Q+chy27a6ZCCw9Y=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/health-assessments.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-Regular.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Suj/38clVUFtGgQZl0XAz26l4C5jq9j911z3Ac+JzXU=
+			Vkj54PYJu6sqHfaUPQ4HE6VoQtEXELxxwhwPWTRsLuo=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/health-goals.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-RegularItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			X6fssydUK9vrRUV7MpPl+m8yulm7h2hYRA0EbAewxwM=
+			nzVlzcohp/oh8OuWRSQv0mqDTJ1TYRlOlIGOakGRK9c=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/health-issues.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-SemiBold.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			IZ0YXQZFK9YvdAPOgSLHoasJAzL36+gVBe+eSXYrQAk=
+			WysFg/WDruAv9VteVKxbEQPqM8KYqgC8raMH+yy8HiY=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/immunizations.svg</key>
+		<key>flutter_assets/assets/font/matter-font/Matter-SemiBoldItalic.ttf</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			NWRW3q1Z2xXQb/bQKH+H9KLxJaGXz0qE47lSF94l1zI=
+			AsrOzcn05c7tU4dJiZ6y0p8EfuJAnVU7+yoN8zmTvFI=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/implants.svg</key>
+		<key>flutter_assets/assets/icons/activity.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			QXhi1vB6lftQBzVmuRJMojFs0nVgGvWr1osnpexsyS8=
+			DOvIhknM8M/SXosHCW1SFVDgYrjjGHqgwbzEJ/qXeT4=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/lab-results.svg</key>
+		<key>flutter_assets/assets/icons/calendar.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			K1YfQVNKyQGwKekQUfWHdNKnWcbVA3TVHV58F6uEVG4=
+			1eQExJuHpDko3sIOTrI5NESo+wpGO8Y4bWxRknrE7Mo=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/medications.svg</key>
+		<key>flutter_assets/assets/icons/checkmark-circle-outline.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			q6jo8cUZLLybXHr3FEQms1j+7IQmitPqCXjzVTtxe/4=
+			9or+WGhBpmJEZYlnVCfLkDt2tgKoisfNeGHFsY00dLg=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/dashboard.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			nepNK1Amz4b7YagE5Jol3a6QFyDfqY4AhB263Hu8ZWE=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/drop.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			slOid4DnqLae37dszHBK2HHpeZalUZlzvFywHruD6fM=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/edit.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			fWbzsj06VBzRtNunyQ3GrH7y3JAY3pLnKXNpFIIrwTw=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/face-mask.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			0ayAegz5qgZ0wFmRzMKvxKv95aettVz4Mb+8tum3Y9g=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/filter.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			bF6bBwfN30aNweMR3NGid+HRAnKCJxjnSmBRm3ldsn8=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/gender-male.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			3Xi9rzCe3sR9EduukTp6xLMvNnhZ8xWGzTi79XoKk0A=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/heart-favorite.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			1Qjxta+lKE46+HIPgHJOvdueEja1XlbdILcT0/PqgxU=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/lab.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			eRa79e+FGC2OryIicG1jP0jwDUGrveL1Jc07ArykWoU=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/medication.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			gcUWm9hwdq9JML+0quS/NvR28hSCnSiZaMsIlKMSaFg=
 			</data>
 		</dict>
 		<key>flutter_assets/assets/icons/moon.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Uuse3uySFyZaOg6Q90EMbRykBpH8IO3DJE6aXTKlfio=
+			Iumu+14EQ6ytP8pAKDgYlp/Tc6m3qZEsDCEHrhpyGzI=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/procedures.svg</key>
+		<key>flutter_assets/assets/icons/renew-sync.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			ZIlHF4Rgd8qWiG6WvLZSeoQF8N1EEVN5R1FF+4pQLbY=
+			giyT72SAn4yO+kDccTI3Fb0Ggv0k7ra4Ya+kE8TYPj8=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/proxyinformation.svg</key>
+		<key>flutter_assets/assets/icons/scalpel.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			g0t2y1u6Ajx/opA9eX0tBAwKvnORZSY8meLDrFoThig=
+			aO2X0z5Wd2AEOW2pFSzmLgJ0L7ZFTLkFpirxPH5nxy4=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/search.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			K9q9g5vZ5SVIziRO1G906fE0RjEoHR+jMwJtwUKp1jQ=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/settings.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			9PEwL2HrijbQDBI4JemvIJpR9FFAnN/01uAtSfoq3eY=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/share.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			s7vBTMknF70Y/RRUI2T5SXtXLr8ks9LhrO7bAvo2Hog=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/shield.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			o7N0m+g14sMJDv4eQWlFlF68sisTksLmUxf3swZuacc=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/stethoscope.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			gKBwCQWmar8Cvzq7JyBJ9irhnpdNDh95pB+U3Qx1cf8=
 			</data>
 		</dict>
 		<key>flutter_assets/assets/icons/sun.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			wEd5EBhOYhdVELeCOUzD6BoIPAAMeICdD1DOVSbRXVA=
+			BlSMVtbpB7+2Rk0vW+sWQ6z9fR85cI6KCBwVsdoV1kA=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/visits.svg</key>
+		<key>flutter_assets/assets/icons/temperature.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			3+VJNMOhf3kh3zgdVXt/1urMZmg47hkmmwhYRLJpgxE=
+			KEMWES5+tYiHeMuyjLQ+gYLQdVhQFY/uWWG/x/Q27j8=
 			</data>
 		</dict>
-		<key>flutter_assets/assets/icons/vitalsigns.svg</key>
+		<key>flutter_assets/assets/icons/timeline.svg</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			kShucTxAOyzajhHdY/d5kpqKsIb0hqSMsvel8E1EALA=
+			7b011OJgGyptzQ7NfuXGkuBPOOQ6wjQPC3MYwIm367E=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/user.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			EndRL361EpFYhNVYlVVjKbDYNT/9UIBMC95Zp4Zi9dU=
+			</data>
+		</dict>
+		<key>flutter_assets/assets/icons/warning.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			pDeVcS6Vyn1Yzhv4RgHw0+KqZ6yx8gIddNk56S6L1fU=
 			</data>
 		</dict>
 		<key>flutter_assets/fonts/MaterialIcons-Regular.otf</key>
@@ -366,7 +542,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			FCzrAaBh3vI7r8UXPdG8cE6foRLOhhm28dmcC5qZ3Go=
+			YZJksBRRm4uCbW5kkZ1//1OgtqDFGkemXyWyteM+W3o=
 			</data>
 		</dict>
 		<key>flutter_assets/packages/golden_toolkit/fonts/Roboto-Regular.ttf</key>
