@@ -189,6 +189,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       recentRecords.sort((a, b) => b.date.compareTo(a.date));
 
+      final patientResource = await _fhirRepository.getResources(
+        resourceType: 'Patient',
+      );
+
       emit(
         state.copyWith(
           status: const HomeStatus.success(),
@@ -196,6 +200,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           overviewCards: overviewCards,
           recentRecords: allResources.take(3).toList(),
           sources: sources,
+          patient: patientResource.isNotEmpty ? patientResource.first : null,
         ),
       );
     } catch (e) {

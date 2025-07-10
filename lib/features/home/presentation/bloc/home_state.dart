@@ -10,6 +10,7 @@ class HomeState with _$HomeState {
     @Default([]) List<Source> sources,
     @Default(0) int selectedIndex,
     @Default('All') String selectedSource,
+    FhirResource? patient,
     String? errorMessage,
   }) = _HomeState;
 }

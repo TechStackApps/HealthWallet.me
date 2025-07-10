@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
@@ -29,6 +30,19 @@ class _RecordsPageState extends State<RecordsPage> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final homeState = context.read<HomeBloc>().state;
+    final selectedSource = homeState.selectedSource;
+    context.read<RecordsBloc>().add(
+          RecordsEvent.loadRecords(
+            sourceId: selectedSource == 'All' ? null : selectedSource,
+            filter: widget.filter,
+          ),
+        );
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
@@ -37,15 +51,20 @@ class _RecordsPageState extends State<RecordsPage> {
 
   @override
   Widget build(BuildContext context) {
+    logger.d('RecordsPage: build method called');
     return BlocListener<HomeBloc, HomeState>(
       listener: (context, state) {
         final selectedSource = state.selectedSource;
+        logger.d(
+            'RecordsPage: HomeBloc listener triggered, selectedSource: $selectedSource');
         context.read<RecordsBloc>().add(
               RecordsEvent.loadRecords(
                 sourceId: selectedSource == 'All' ? null : selectedSource,
               ),
             );
       },
+      listenWhen: (previous, current) =>
+          previous.selectedSource != current.selectedSource,
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -171,11 +190,16 @@ class _RecordsPageState extends State<RecordsPage> {
                 ),
                 BlocBuilder<RecordsBloc, RecordsState>(
                   builder: (context, state) {
+                    logger.d(
+                        'RecordsPage: RecordsBloc builder called with state: $state');
                     if (state.status == RecordsStatus.loading &&
                         state.entries.isEmpty) {
+                      logger.d('RecordsPage: showing loading indicator');
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (state.status == RecordsStatus.failure) {
+                      logger.e(
+                          'RecordsPage: showing failure state: ${state.error}');
                       return Center(child: Text(state.error));
                     }
 
@@ -241,86 +265,7 @@ class _RecordsPageState extends State<RecordsPage> {
                 margin: const EdgeInsets.only(right: Insets.normal),
                 child: Padding(
                   padding: const EdgeInsets.all(Insets.normal),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left text section
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              entry.resourceType,
-                              style: context.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: Insets.extraSmall),
-                            Text(
-                              entry.id ?? '',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: Insets.small),
-                            Text(
-                              entry.resourceJson.toString(),
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: Insets.small),
-                      // Right action section
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              final newFilters = List<String>.from(
-                                  context.read<RecordsBloc>().state.filters)
-                                ..add(entry.resourceType);
-                              context
-                                  .read<RecordsBloc>()
-                                  .add(RecordsEvent.updateFilters(newFilters));
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: Insets.small,
-                                vertical: Insets.extraSmall,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.errorLight,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                entry.resourceType,
-                                style: context.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.error,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: Insets.small),
-                          IconButton(
-                            onPressed: () {
-                              // Share functionality
-                            },
-                            icon: Icon(
-                              Icons.share,
-                              color: context.colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  child: _RecordCard(resource: entry),
                 ),
               ),
             ),
@@ -370,6 +315,130 @@ class _RecordsPageState extends State<RecordsPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RecordCard extends StatelessWidget {
+  final fhir.FhirResource resource;
+
+  const _RecordCard({required this.resource});
+
+  @override
+  Widget build(BuildContext context) {
+    final resourceJson = resource.resourceJson;
+    String title;
+    String subtitle;
+
+    switch (resource.resourceType) {
+      case 'Patient':
+        final name = resourceJson['name'] as List?;
+        final firstName = name?.first['given']?.first ?? 'N/A';
+        final lastName = name?.first['family'] ?? 'N/A';
+        title = '$firstName $lastName';
+        subtitle = 'Patient';
+        break;
+      case 'Observation':
+        title = resourceJson['code']?['text'] ?? 'Observation';
+        final value = resourceJson['valueQuantity']?['value'] ?? '';
+        final unit = resourceJson['valueQuantity']?['unit'] ?? '';
+        subtitle = '$value $unit';
+        break;
+      case 'MedicationRequest':
+        title = resourceJson['medicationCodeableConcept']?['text'] ??
+            'Medication Request';
+        subtitle = resourceJson['requester']?['display'] ?? '';
+        break;
+      case 'Condition':
+        title = resourceJson['code']?['text'] ?? 'Condition';
+        subtitle =
+            resourceJson['clinicalStatus']?['coding']?.first['display'] ?? '';
+        break;
+      case 'Immunization':
+        title = resourceJson['vaccineCode']?['text'] ?? 'Immunization';
+        subtitle = resourceJson['status'] ?? '';
+        break;
+      case 'Procedure':
+        title = resourceJson['code']?['text'] ?? 'Procedure';
+        subtitle = resourceJson['status'] ?? '';
+        break;
+      default:
+        title = resource.resourceType;
+        subtitle = resource.id ?? '';
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left text section
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: context.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: Insets.extraSmall),
+              Text(
+                subtitle,
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: Insets.small),
+        // Right action section
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            GestureDetector(
+              onTap: () {
+                final newFilters =
+                    List<String>.from(context.read<RecordsBloc>().state.filters)
+                      ..add(resource.resourceType);
+                context
+                    .read<RecordsBloc>()
+                    .add(RecordsEvent.updateFilters(newFilters));
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Insets.small,
+                  vertical: Insets.extraSmall,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.errorLight,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  resource.resourceType,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: Insets.small),
+            IconButton(
+              onPressed: () {
+                // Share functionality
+              },
+              icon: Icon(
+                Icons.share,
+                color: context.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -330,6 +330,7 @@ mixin _$HomeState {
   List<Source> get sources => throw _privateConstructorUsedError;
   int get selectedIndex => throw _privateConstructorUsedError;
   String get selectedSource => throw _privateConstructorUsedError;
+  FhirResource? get patient => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
 
   /// Create a copy of HomeState
@@ -352,9 +353,11 @@ abstract class $HomeStateCopyWith<$Res> {
       List<Source> sources,
       int selectedIndex,
       String selectedSource,
+      FhirResource? patient,
       String? errorMessage});
 
   $HomeStatusCopyWith<$Res> get status;
+  $FhirResourceCopyWith<$Res>? get patient;
 }
 
 /// @nodoc
@@ -379,6 +382,7 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
     Object? sources = null,
     Object? selectedIndex = null,
     Object? selectedSource = null,
+    Object? patient = freezed,
     Object? errorMessage = freezed,
   }) {
     return _then(_value.copyWith(
@@ -410,6 +414,10 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
           ? _value.selectedSource
           : selectedSource // ignore: cast_nullable_to_non_nullable
               as String,
+      patient: freezed == patient
+          ? _value.patient
+          : patient // ignore: cast_nullable_to_non_nullable
+              as FhirResource?,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -424,6 +432,20 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
   $HomeStatusCopyWith<$Res> get status {
     return $HomeStatusCopyWith<$Res>(_value.status, (value) {
       return _then(_value.copyWith(status: value) as $Val);
+    });
+  }
+
+  /// Create a copy of HomeState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $FhirResourceCopyWith<$Res>? get patient {
+    if (_value.patient == null) {
+      return null;
+    }
+
+    return $FhirResourceCopyWith<$Res>(_value.patient!, (value) {
+      return _then(_value.copyWith(patient: value) as $Val);
     });
   }
 }
@@ -444,10 +466,13 @@ abstract class _$$HomeStateImplCopyWith<$Res>
       List<Source> sources,
       int selectedIndex,
       String selectedSource,
+      FhirResource? patient,
       String? errorMessage});
 
   @override
   $HomeStatusCopyWith<$Res> get status;
+  @override
+  $FhirResourceCopyWith<$Res>? get patient;
 }
 
 /// @nodoc
@@ -470,6 +495,7 @@ class __$$HomeStateImplCopyWithImpl<$Res>
     Object? sources = null,
     Object? selectedIndex = null,
     Object? selectedSource = null,
+    Object? patient = freezed,
     Object? errorMessage = freezed,
   }) {
     return _then(_$HomeStateImpl(
@@ -501,6 +527,10 @@ class __$$HomeStateImplCopyWithImpl<$Res>
           ? _value.selectedSource
           : selectedSource // ignore: cast_nullable_to_non_nullable
               as String,
+      patient: freezed == patient
+          ? _value.patient
+          : patient // ignore: cast_nullable_to_non_nullable
+              as FhirResource?,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -520,6 +550,7 @@ class _$HomeStateImpl implements _HomeState {
       final List<Source> sources = const [],
       this.selectedIndex = 0,
       this.selectedSource = 'All',
+      this.patient,
       this.errorMessage})
       : _vitalSigns = vitalSigns,
         _overviewCards = overviewCards,
@@ -572,11 +603,13 @@ class _$HomeStateImpl implements _HomeState {
   @JsonKey()
   final String selectedSource;
   @override
+  final FhirResource? patient;
+  @override
   final String? errorMessage;
 
   @override
   String toString() {
-    return 'HomeState(status: $status, vitalSigns: $vitalSigns, overviewCards: $overviewCards, recentRecords: $recentRecords, sources: $sources, selectedIndex: $selectedIndex, selectedSource: $selectedSource, errorMessage: $errorMessage)';
+    return 'HomeState(status: $status, vitalSigns: $vitalSigns, overviewCards: $overviewCards, recentRecords: $recentRecords, sources: $sources, selectedIndex: $selectedIndex, selectedSource: $selectedSource, patient: $patient, errorMessage: $errorMessage)';
   }
 
   @override
@@ -596,6 +629,7 @@ class _$HomeStateImpl implements _HomeState {
                 other.selectedIndex == selectedIndex) &&
             (identical(other.selectedSource, selectedSource) ||
                 other.selectedSource == selectedSource) &&
+            (identical(other.patient, patient) || other.patient == patient) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage));
   }
@@ -610,6 +644,7 @@ class _$HomeStateImpl implements _HomeState {
       const DeepCollectionEquality().hash(_sources),
       selectedIndex,
       selectedSource,
+      patient,
       errorMessage);
 
   /// Create a copy of HomeState
@@ -630,6 +665,7 @@ abstract class _HomeState implements HomeState {
       final List<Source> sources,
       final int selectedIndex,
       final String selectedSource,
+      final FhirResource? patient,
       final String? errorMessage}) = _$HomeStateImpl;
 
   @override
@@ -646,6 +682,8 @@ abstract class _HomeState implements HomeState {
   int get selectedIndex;
   @override
   String get selectedSource;
+  @override
+  FhirResource? get patient;
   @override
   String? get errorMessage;
 

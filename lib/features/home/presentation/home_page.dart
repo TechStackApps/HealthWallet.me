@@ -61,7 +61,12 @@ class HomeView extends StatelessWidget {
                       children: [
                         TextSpan(text: context.l10n.homeHi),
                         TextSpan(
-                          text: 'SourceName',
+                          text: state.patient != null
+                              ? ((state.patient!.resourceJson['name'] as List?)
+                                      ?.first['given']
+                                      ?.first as String?) ??
+                                  ''
+                              : 'SourceName',
                           style: TextStyle(color: context.colorScheme.primary),
                         ),
                       ],
@@ -404,6 +409,9 @@ class HomeView extends StatelessWidget {
       case ClinicalDataTags.procedure:
         icon = Assets.icons.scalpel.svg();
         break;
+      case ClinicalDataTags.goal:
+        icon = Assets.icons.goal.svg();
+        break;
       default:
         icon = const SizedBox.shrink();
     }
@@ -414,7 +422,7 @@ class HomeView extends StatelessWidget {
         context.read<RecordsBloc>().add(
               RecordsEvent.loadRecords(
                 sourceId: selectedSource == 'All' ? null : selectedSource,
-                filter: title,
+                filter: ClinicalDataTags.resourceTypeMap[title],
               ),
             );
         pageController.animateToPage(

@@ -61,6 +61,9 @@ class $AssetsIconsGen {
   SvgGenImage get genderMale =>
       const SvgGenImage('assets/icons/gender-male.svg');
 
+  /// File path: assets/icons/goal.svg
+  SvgGenImage get goal => const SvgGenImage('assets/icons/goal.svg');
+
   /// File path: assets/icons/heart-favorite.svg
   SvgGenImage get heartFavorite =>
       const SvgGenImage('assets/icons/heart-favorite.svg');
@@ -124,6 +127,7 @@ class $AssetsIconsGen {
         faceMask,
         filter,
         genderMale,
+        goal,
         heartFavorite,
         lab,
         medication,

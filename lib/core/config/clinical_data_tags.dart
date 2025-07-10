@@ -5,6 +5,7 @@ class ClinicalDataTags {
   static const String immunization = 'Immunization';
   static const String labResult = 'Lab Result';
   static const String procedure = 'Procedure';
+  static const String goal = 'Goal';
   static const String checkup = 'Checkup';
   static const String specialtyVisit = 'Specialty Visit';
   static const String preventiveCare = 'Preventive Care';
@@ -17,5 +18,6 @@ class ClinicalDataTags {
     immunization: 'Immunization',
     labResult: 'Observation',
     procedure: 'Procedure',
+    goal: 'Goal',
   };
 }
