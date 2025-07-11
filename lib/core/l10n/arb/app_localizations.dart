@@ -229,7 +229,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeOverview.
   ///
   /// In en, this message translates to:
-  /// **'Overview'**
+  /// **'Medical Records'**
   String get homeOverview;
 
   /// No description provided for @homeSource.

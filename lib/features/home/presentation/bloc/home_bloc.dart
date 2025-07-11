@@ -30,167 +30,86 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       await event.when(
         initialised: () => _onInitialised(event, emit),
         sourceChanged: (source) => _onSourceChanged(source, emit),
+        filtersChanged: (filters) => _onFiltersChanged(filters, emit),
+        editModeChanged: (editMode) async {
+          emit(state.copyWith(editMode: editMode));
+        },
+        recordsReordered: (oldIndex, newIndex) async {
+          final cards = List.of(state.overviewCards);
+          final card = cards.removeAt(oldIndex);
+          cards.insert(newIndex, card);
+          emit(state.copyWith(overviewCards: cards));
+        },
+        vitalsReordered: (oldIndex, newIndex) async {
+          final vitals = List.of(state.vitalSigns);
+          final vital = vitals.removeAt(oldIndex);
+          vitals.insert(newIndex, vital);
+          emit(state.copyWith(vitalSigns: vitals));
+        },
       );
     });
   }
 
   Future<void> _onSourceChanged(String source, Emitter<HomeState> emit) async {
-    emit(state.copyWith(
-      selectedSource: source,
-      status: const HomeStatus.loading(),
-    ));
-    try {
-      final sourceId = source == 'All' ? null : source;
-
-      final allergies = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.allergy],
-        sourceId: sourceId,
-      );
-      final medications = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.medication],
-        sourceId: sourceId,
-      );
-      final conditions = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.condition],
-        sourceId: sourceId,
-      );
-      final immunizations = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.immunization],
-        sourceId: sourceId,
-      );
-      final labResults = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.labResult],
-        sourceId: sourceId,
-      );
-      final procedures = await _fhirRepository.getResources(
-        resourceType:
-            ClinicalDataTags.resourceTypeMap[ClinicalDataTags.procedure],
-        sourceId: sourceId,
-      );
-
-      final overviewCards = [
-        OverviewCard(
-          title: ClinicalDataTags.allergy,
-          count: allergies.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.medication,
-          count: medications.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.condition,
-          count: conditions.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.immunization,
-          count: immunizations.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.labResult,
-          count: labResults.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.procedure,
-          count: procedures.length.toString(),
-        ),
-      ];
-
-      final allResources =
-          await _fhirRepository.getResources(sourceId: sourceId);
-
-      allResources.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-      allResources.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-
-      emit(
-        state.copyWith(
-          status: const HomeStatus.success(),
-          overviewCards: overviewCards,
-          selectedSource: source,
-          sources: state.sources,
-          recentRecords: allResources.take(3).toList(),
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(status: HomeStatus.failure(e)));
-    }
+    emit(state.copyWith(selectedSource: source));
+    await _loadData(emit);
   }
 
   Future<void> _onInitialised(HomeEvent event, Emitter<HomeState> emit) async {
+    await _loadData(emit);
+  }
+
+  Future<void> _onFiltersChanged(
+      Map<String, bool> filters, Emitter<HomeState> emit) async {
+    emit(state.copyWith(selectedResources: filters));
+    await _loadData(emit);
+  }
+
+  Future<void> _loadData(Emitter<HomeState> emit) async {
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
-      // Simulate network delay for dashboard data
-      // await Future.delayed(const Duration(seconds: 1));
-
       final sources = await _getSourcesUseCase();
-      sources.insert(0, const Source(id: 'All', name: 'All'));
-      final allergies = await _fhirRepository.getResources(
-          resourceType: 'AllergyIntolerance');
-      final medications =
-          await _fhirRepository.getResources(resourceType: 'MedicationRequest');
-      final conditions =
-          await _fhirRepository.getResources(resourceType: 'Condition');
-      final immunizations =
-          await _fhirRepository.getResources(resourceType: 'Immunization');
-      final labResults =
-          await _fhirRepository.getResources(resourceType: 'Observation');
-      final procedures =
-          await _fhirRepository.getResources(resourceType: 'Procedure');
+      if (sources.where((s) => s.id == 'All').isEmpty) {
+        sources.insert(0, const Source(id: 'All', name: 'All'));
+      }
 
-      final overviewCards = [
-        OverviewCard(
-          title: ClinicalDataTags.allergy,
-          count: allergies.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.medication,
-          count: medications.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.condition,
-          count: conditions.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.immunization,
-          count: immunizations.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.labResult,
-          count: labResults.length.toString(),
-        ),
-        OverviewCard(
-          title: ClinicalDataTags.procedure,
-          count: procedures.length.toString(),
-        ),
-      ];
+      final sourceId =
+          state.selectedSource == 'All' ? null : state.selectedSource;
 
-      final allResources = await _fhirRepository.getResources();
+      final List<OverviewCard> overviewCards = [];
+      final List<FhirResource> allEnabledResources = [];
 
-      final recentRecords = allResources.map((e) {
-        final resourceJson = e.resourceJson;
-        final title = resourceJson['code']?['text'] ??
-            resourceJson['vaccineCode']?['text'] ??
-            e.resourceType;
-        final doctor = resourceJson['recorder']?['display'] ?? 'N/A';
-        final date = e.updatedAt.toString();
-        return RecentRecord(
-          title: title,
-          doctor: doctor,
-          date: date,
-          tag: e.resourceType,
-          tagBackgroundColor: Colors.blue.withOpacity(0.1),
-          tagTextColor: Colors.blue,
-        );
-      }).toList();
+      for (var resourceName in state.selectedResources.keys) {
+        final resourceType = ClinicalDataTags.resourceTypeMap[resourceName];
+        if (resourceType != null) {
+          if (state.selectedResources[resourceName]!) {
+            final resources = await _fhirRepository.getResources(
+              resourceType: resourceType,
+              sourceId: sourceId,
+            );
+            allEnabledResources.addAll(resources);
+            overviewCards.add(
+              OverviewCard(
+                title: resourceName,
+                count: resources.length.toString(),
+              ),
+            );
+          } else {
+            overviewCards.add(
+              OverviewCard(
+                title: resourceName,
+                count: '0',
+              ),
+            );
+          }
+        }
+      }
 
-      recentRecords.sort((a, b) => b.date.compareTo(a.date));
+      allEnabledResources.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
       final patientResource = await _fhirRepository.getResources(
         resourceType: 'Patient',
+        sourceId: sourceId,
       );
 
       emit(
@@ -198,7 +117,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           status: const HomeStatus.success(),
           vitalSigns: MockData.vitalSigns,
           overviewCards: overviewCards,
-          recentRecords: allResources.take(3).toList(),
+          recentRecords: allEnabledResources.take(3).toList(),
           sources: sources,
           patient: patientResource.isNotEmpty ? patientResource.first : null,
         ),

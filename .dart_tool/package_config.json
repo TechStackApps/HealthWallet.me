@@ -818,6 +818,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "reorderable_grid_view",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/reorderable_grid_view-2.2.8",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "rxdart",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/rxdart-0.28.0",
       "packageUri": "lib/",

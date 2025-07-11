@@ -75,7 +75,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeVitalSigns => 'Vital Signs';
 
   @override
-  String get homeOverview => 'Overview';
+  String get homeOverview => 'Medical Records';
 
   @override
   String get homeSource => 'Source:';
