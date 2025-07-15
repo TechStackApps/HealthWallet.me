@@ -8,10 +8,9 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:health_wallet/core/data/local/app_database.dart' as _i474;
-import 'package:health_wallet/core/di/register_module.dart' as _i982;
+import 'package:health_wallet/core/di/injection.dart' as _i752;
 import 'package:health_wallet/core/navigation/app_router.dart' as _i410;
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart'
     as _i725;
@@ -145,4 +144,4 @@ extension GetItInjectableX on _i174.GetIt {
   }
 }
 
-class _$RegisterModule extends _i982.RegisterModule {}
+class _$RegisterModule extends _i752.RegisterModule {}

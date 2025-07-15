@@ -259,7 +259,7 @@ class _HomeViewState extends State<HomeView> {
                             if (newValue != null) {
                               context
                                   .read<HomeBloc>()
-                                  .add(HomeEvent.sourceChanged(newValue));
+                              .add(HomeEvent.sourceChanged(newValue));
                             }
                           },
                           items: state.sources
@@ -275,11 +275,11 @@ class _HomeViewState extends State<HomeView> {
                                       ? source.name!
                                       : source.id,
                                   overflow: TextOverflow.ellipsis,
-                                ),
+                                    ),
                               ),
                             );
                           }).toList()
-                            ..insert(
+                                ..insert(
                                 0,
                                 DropdownMenuItem<String>(
                                   value: 'All',

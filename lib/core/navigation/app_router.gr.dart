@@ -315,17 +315,3 @@ class SplashRoute extends PageRouteInfo<void> {
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
-
-/// generated route for
-/// [SyncPage]
-class SyncRoute extends PageRouteInfo<void> {
-  const SyncRoute({List<PageRouteInfo>? children})
-      : super(
-          SyncRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'SyncRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
