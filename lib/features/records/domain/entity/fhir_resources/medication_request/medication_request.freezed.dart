@@ -27,6 +27,11 @@ mixin _$MedicationRequest {
       throw _privateConstructorUsedError;
   @ReferenceConverter()
   Reference? get requester => throw _privateConstructorUsedError;
+  @ReferenceConverter()
+  Reference? get subject => throw _privateConstructorUsedError;
+  @ReferenceConverter()
+  Reference? get encounter => throw _privateConstructorUsedError;
+  String? get authoredOn => throw _privateConstructorUsedError;
 
   /// Serializes this MedicationRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,10 +54,15 @@ abstract class $MedicationRequestCopyWith<$Res> {
       String status,
       String intent,
       CodeableConcept? medicationCodeableConcept,
-      @ReferenceConverter() Reference? requester});
+      @ReferenceConverter() Reference? requester,
+      @ReferenceConverter() Reference? subject,
+      @ReferenceConverter() Reference? encounter,
+      String? authoredOn});
 
   $CodeableConceptCopyWith<$Res>? get medicationCodeableConcept;
   $ReferenceCopyWith<$Res>? get requester;
+  $ReferenceCopyWith<$Res>? get subject;
+  $ReferenceCopyWith<$Res>? get encounter;
 }
 
 /// @nodoc
@@ -75,6 +85,9 @@ class _$MedicationRequestCopyWithImpl<$Res, $Val extends MedicationRequest>
     Object? intent = null,
     Object? medicationCodeableConcept = freezed,
     Object? requester = freezed,
+    Object? subject = freezed,
+    Object? encounter = freezed,
+    Object? authoredOn = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -97,6 +110,18 @@ class _$MedicationRequestCopyWithImpl<$Res, $Val extends MedicationRequest>
           ? _value.requester
           : requester // ignore: cast_nullable_to_non_nullable
               as Reference?,
+      subject: freezed == subject
+          ? _value.subject
+          : subject // ignore: cast_nullable_to_non_nullable
+              as Reference?,
+      encounter: freezed == encounter
+          ? _value.encounter
+          : encounter // ignore: cast_nullable_to_non_nullable
+              as Reference?,
+      authoredOn: freezed == authoredOn
+          ? _value.authoredOn
+          : authoredOn // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -128,6 +153,34 @@ class _$MedicationRequestCopyWithImpl<$Res, $Val extends MedicationRequest>
       return _then(_value.copyWith(requester: value) as $Val);
     });
   }
+
+  /// Create a copy of MedicationRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReferenceCopyWith<$Res>? get subject {
+    if (_value.subject == null) {
+      return null;
+    }
+
+    return $ReferenceCopyWith<$Res>(_value.subject!, (value) {
+      return _then(_value.copyWith(subject: value) as $Val);
+    });
+  }
+
+  /// Create a copy of MedicationRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReferenceCopyWith<$Res>? get encounter {
+    if (_value.encounter == null) {
+      return null;
+    }
+
+    return $ReferenceCopyWith<$Res>(_value.encounter!, (value) {
+      return _then(_value.copyWith(encounter: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -143,12 +196,19 @@ abstract class _$$MedicationRequestImplCopyWith<$Res>
       String status,
       String intent,
       CodeableConcept? medicationCodeableConcept,
-      @ReferenceConverter() Reference? requester});
+      @ReferenceConverter() Reference? requester,
+      @ReferenceConverter() Reference? subject,
+      @ReferenceConverter() Reference? encounter,
+      String? authoredOn});
 
   @override
   $CodeableConceptCopyWith<$Res>? get medicationCodeableConcept;
   @override
   $ReferenceCopyWith<$Res>? get requester;
+  @override
+  $ReferenceCopyWith<$Res>? get subject;
+  @override
+  $ReferenceCopyWith<$Res>? get encounter;
 }
 
 /// @nodoc
@@ -169,6 +229,9 @@ class __$$MedicationRequestImplCopyWithImpl<$Res>
     Object? intent = null,
     Object? medicationCodeableConcept = freezed,
     Object? requester = freezed,
+    Object? subject = freezed,
+    Object? encounter = freezed,
+    Object? authoredOn = freezed,
   }) {
     return _then(_$MedicationRequestImpl(
       id: null == id
@@ -191,19 +254,35 @@ class __$$MedicationRequestImplCopyWithImpl<$Res>
           ? _value.requester
           : requester // ignore: cast_nullable_to_non_nullable
               as Reference?,
+      subject: freezed == subject
+          ? _value.subject
+          : subject // ignore: cast_nullable_to_non_nullable
+              as Reference?,
+      encounter: freezed == encounter
+          ? _value.encounter
+          : encounter // ignore: cast_nullable_to_non_nullable
+              as Reference?,
+      authoredOn: freezed == authoredOn
+          ? _value.authoredOn
+          : authoredOn // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
 
 /// @nodoc
-@JsonSerializable()
+
+@JsonSerializable(explicitToJson: true)
 class _$MedicationRequestImpl implements _MedicationRequest {
   _$MedicationRequestImpl(
       {required this.id,
       required this.status,
       required this.intent,
       this.medicationCodeableConcept,
-      @ReferenceConverter() this.requester});
+      @ReferenceConverter() this.requester,
+      @ReferenceConverter() this.subject,
+      @ReferenceConverter() this.encounter,
+      this.authoredOn});
 
   factory _$MedicationRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$MedicationRequestImplFromJson(json);
@@ -219,10 +298,18 @@ class _$MedicationRequestImpl implements _MedicationRequest {
   @override
   @ReferenceConverter()
   final Reference? requester;
+  @override
+  @ReferenceConverter()
+  final Reference? subject;
+  @override
+  @ReferenceConverter()
+  final Reference? encounter;
+  @override
+  final String? authoredOn;
 
   @override
   String toString() {
-    return 'MedicationRequest(id: $id, status: $status, intent: $intent, medicationCodeableConcept: $medicationCodeableConcept, requester: $requester)';
+    return 'MedicationRequest(id: $id, status: $status, intent: $intent, medicationCodeableConcept: $medicationCodeableConcept, requester: $requester, subject: $subject, encounter: $encounter, authoredOn: $authoredOn)';
   }
 
   @override
@@ -237,13 +324,18 @@ class _$MedicationRequestImpl implements _MedicationRequest {
                     medicationCodeableConcept) ||
                 other.medicationCodeableConcept == medicationCodeableConcept) &&
             (identical(other.requester, requester) ||
-                other.requester == requester));
+                other.requester == requester) &&
+            (identical(other.subject, subject) || other.subject == subject) &&
+            (identical(other.encounter, encounter) ||
+                other.encounter == encounter) &&
+            (identical(other.authoredOn, authoredOn) ||
+                other.authoredOn == authoredOn));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, status, intent, medicationCodeableConcept, requester);
+  int get hashCode => Object.hash(runtimeType, id, status, intent,
+      medicationCodeableConcept, requester, subject, encounter, authoredOn);
 
   /// Create a copy of MedicationRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -264,12 +356,14 @@ class _$MedicationRequestImpl implements _MedicationRequest {
 
 abstract class _MedicationRequest implements MedicationRequest {
   factory _MedicationRequest(
-          {required final String id,
-          required final String status,
-          required final String intent,
-          final CodeableConcept? medicationCodeableConcept,
-          @ReferenceConverter() final Reference? requester}) =
-      _$MedicationRequestImpl;
+      {required final String id,
+      required final String status,
+      required final String intent,
+      final CodeableConcept? medicationCodeableConcept,
+      @ReferenceConverter() final Reference? requester,
+      @ReferenceConverter() final Reference? subject,
+      @ReferenceConverter() final Reference? encounter,
+      final String? authoredOn}) = _$MedicationRequestImpl;
 
   factory _MedicationRequest.fromJson(Map<String, dynamic> json) =
       _$MedicationRequestImpl.fromJson;
@@ -285,6 +379,14 @@ abstract class _MedicationRequest implements MedicationRequest {
   @override
   @ReferenceConverter()
   Reference? get requester;
+  @override
+  @ReferenceConverter()
+  Reference? get subject;
+  @override
+  @ReferenceConverter()
+  Reference? get encounter;
+  @override
+  String? get authoredOn;
 
   /// Create a copy of MedicationRequest
   /// with the given fields replaced by the non-null parameter values.

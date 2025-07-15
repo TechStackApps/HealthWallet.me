@@ -68,6 +68,9 @@ class $AssetsIconsGen {
   SvgGenImage get heartFavorite =>
       const SvgGenImage('assets/icons/heart-favorite.svg');
 
+  /// File path: assets/icons/hospital.svg
+  SvgGenImage get hospital => const SvgGenImage('assets/icons/hospital.svg');
+
   /// File path: assets/icons/lab.svg
   SvgGenImage get lab => const SvgGenImage('assets/icons/lab.svg');
 
@@ -129,6 +132,7 @@ class $AssetsIconsGen {
         genderMale,
         goal,
         heartFavorite,
+        hospital,
         lab,
         medication,
         moon,

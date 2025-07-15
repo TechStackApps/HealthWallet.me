@@ -254,8 +254,6 @@ abstract class $BundleEntryCopyWith<$Res> {
       _$BundleEntryCopyWithImpl<$Res, BundleEntry>;
   @useResult
   $Res call({FhirResource resource});
-
-  $FhirResourceCopyWith<$Res> get resource;
 }
 
 /// @nodoc
@@ -282,16 +280,6 @@ class _$BundleEntryCopyWithImpl<$Res, $Val extends BundleEntry>
               as FhirResource,
     ) as $Val);
   }
-
-  /// Create a copy of BundleEntry
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $FhirResourceCopyWith<$Res> get resource {
-    return $FhirResourceCopyWith<$Res>(_value.resource, (value) {
-      return _then(_value.copyWith(resource: value) as $Val);
-    });
-  }
 }
 
 /// @nodoc
@@ -303,9 +291,6 @@ abstract class _$$BundleEntryImplCopyWith<$Res>
   @override
   @useResult
   $Res call({FhirResource resource});
-
-  @override
-  $FhirResourceCopyWith<$Res> get resource;
 }
 
 /// @nodoc

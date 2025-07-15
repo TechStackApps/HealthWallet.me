@@ -13,6 +13,7 @@ abstract class FhirLocalDataSource {
   Future<void> cacheFhirResources(List<FhirResource> fhirResources,
       {required String sourceId});
   Future<List<FhirResource>> getFhirResources({String? sourceId});
+  Future<List<FhirResource>> getEncounterWithReferences(String encounterId);
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
@@ -60,6 +61,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
               id: e.id,
               resourceType: e.resourceType,
               resourceJson: jsonDecode(e.resource),
+              sourceId: e.sourceId,
               updatedAt: e.updatedAt,
             ),
           )
@@ -74,6 +76,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
               id: e.id,
               resourceType: e.resourceType,
               resourceJson: jsonDecode(e.resource),
+              sourceId: e.sourceId,
               updatedAt: e.updatedAt,
             ),
           )
@@ -128,6 +131,24 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
             id: e.id,
             name: e.name,
             logo: e.logo,
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<List<FhirResource>> getEncounterWithReferences(
+      String encounterId) async {
+    final resources =
+        await _appDatabase.getEncounterWithReferences(encounterId);
+    return resources
+        .map(
+          (e) => FhirResource(
+            id: e.id,
+            resourceType: e.resourceType,
+            resourceJson: jsonDecode(e.resource),
+            sourceId: e.sourceId,
+            updatedAt: e.updatedAt,
           ),
         )
         .toList();

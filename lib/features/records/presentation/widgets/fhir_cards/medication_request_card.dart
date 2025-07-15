@@ -23,7 +23,14 @@ class MedicationRequestCard extends StatelessWidget {
             _buildDetailRow('Status', medicationRequest.status),
             _buildDetailRow('Intent', medicationRequest.intent),
             _buildDetailRow(
-                'Requester', medicationRequest.requester?.display ?? 'N/A'),
+                'Requester',
+                medicationRequest.requester?.when(
+                      resolved: (resource) =>
+                          (resource.resourceJson['name'] as List<dynamic>)
+                              .first['text'],
+                      unresolved: (reference) => reference,
+                    ) ??
+                    'N/A'),
           ],
         ),
       ),

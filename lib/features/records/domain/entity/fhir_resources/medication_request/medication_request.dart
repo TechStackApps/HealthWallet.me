@@ -7,12 +7,16 @@ part 'medication_request.g.dart';
 
 @freezed
 class MedicationRequest with _$MedicationRequest {
+  @JsonSerializable(explicitToJson: true)
   factory MedicationRequest({
     required String id,
     required String status,
     required String intent,
     CodeableConcept? medicationCodeableConcept,
     @ReferenceConverter() Reference? requester,
+    @ReferenceConverter() Reference? subject,
+    @ReferenceConverter() Reference? encounter,
+    String? authoredOn,
   }) = _MedicationRequest;
 
   factory MedicationRequest.fromJson(Map<String, dynamic> json) =>

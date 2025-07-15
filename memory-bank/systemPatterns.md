@@ -15,6 +15,8 @@ graph TD
         subgraph Presentation
             direction TB
             UI(Pages/Widgets) --> BLoC(State Management)
+            BLoC --> Mappers(Mappers)
+            Mappers --> ViewModels(View Models)
         end
         subgraph Domain
             direction TB

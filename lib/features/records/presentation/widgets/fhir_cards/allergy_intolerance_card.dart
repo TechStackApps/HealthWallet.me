@@ -8,24 +8,26 @@ class AllergyIntoleranceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              allergy.title ?? 'Allergy/Intolerance',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            if (allergy.type != null) _buildDetailRow('Type', allergy.type!),
-            if (allergy.category != null)
-              _buildDetailRow('Category', allergy.category!.join(', ')),
-            if (allergy.status != null)
-              _buildDetailRow('Status', allergy.status!),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Allergy/Intoleranceeee',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          Text(
+            allergy.title ?? 'Allergy/Intolerance',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          if (allergy.type != null) _buildDetailRow('Type', allergy.type!),
+          if (allergy.category != null)
+            _buildDetailRow('Category', allergy.category!.join(', ')),
+          if (allergy.status != null)
+            _buildDetailRow('Status', allergy.status!),
+        ],
       ),
     );
   }

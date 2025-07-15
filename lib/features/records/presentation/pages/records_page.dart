@@ -1,70 +1,161 @@
+import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
-import 'package:health_wallet/core/navigation/app_router.dart';
-import 'package:health_wallet/features/records/presentation/widgets/filter_chip_widget.dart';
+
+import 'package:health_wallet/features/records/presentation/bloc/timeline_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/encounter_detail_bloc.dart';
+import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
+import 'package:health_wallet/features/records/data/repository/records_repository.dart';
+import 'package:health_wallet/core/di/injection.dart';
+
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart'
-    as fhir;
+import 'package:health_wallet/core/utils/fhir_resource_utils.dart';
+import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
+import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
+import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
+import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
+
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 @RoutePage()
-class RecordsPage extends StatefulWidget {
+class RecordsPage extends StatelessWidget {
   final String? filter;
 
   const RecordsPage({super.key, this.filter});
 
   @override
-  State<RecordsPage> createState() => _RecordsPageState();
+  Widget build(BuildContext context) {
+    final recordsFilterBloc = context.read<RecordsFilterBloc>();
+    final homeState = context.read<HomeBloc>().state;
+    final sourceId =
+        homeState.selectedSource == 'All' ? null : homeState.selectedSource;
+
+    // Provide TimelineBloc at the page level, as it depends on current filters and source
+    return BlocProvider(
+      create: (context) => TimelineBloc(
+        getIt<RecordsRepository>(),
+        initialFilters: recordsFilterBloc.state.activeFilters,
+        sourceId: sourceId,
+      )..add(const TimelineEvent.load()),
+      child: RecordsView(filter: filter),
+    );
+  }
 }
 
-class _RecordsPageState extends State<RecordsPage> {
+class RecordsView extends StatefulWidget {
+  final String? filter;
+
+  const RecordsView({super.key, this.filter});
+
+  @override
+  State<RecordsView> createState() => _RecordsViewState();
+}
+
+class _RecordsViewState extends State<RecordsView> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+
+  Timer? _debounceTimer;
+  bool _showScrollToTopButton = false;
 
   @override
   void initState() {
     super.initState();
-    final homeState = context.read<HomeBloc>().state;
-    final selectedSource = homeState.selectedSource;
-    context.read<RecordsBloc>().add(
-          RecordsEvent.loadRecords(
-            sourceId: selectedSource == 'All' ? null : selectedSource,
-            filter: widget.filter,
-          ),
-        );
+
+    // Set up scroll listener for pagination and scroll to top button
+    _scrollController.addListener(_onScroll);
+
+    if (widget.filter != null) {
+      context
+          .read<RecordsFilterBloc>()
+          .add(RecordsFilterEvent.toggleFilter(widget.filter!));
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    final currentScroll = _scrollController.offset;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+
+    // Show/hide scroll to top button based on scroll position
+    final shouldShowButton = currentScroll > 200; // Show after scrolling 200px
+    if (shouldShowButton != _showScrollToTopButton) {
+      setState(() {
+        _showScrollToTopButton = shouldShowButton;
+      });
+    }
+
+    // Simple pagination trigger - when within 200px of bottom
+    if (maxScroll > 0 && currentScroll >= maxScroll - 200) {
+      _loadMoreData();
+    }
+  }
+
+  void _loadMoreData() {
+    // Simple debounce to prevent multiple requests
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        final state = context.read<TimelineBloc>().state;
+        if (state.status != TimelineStatus.loading && state.hasMorePages) {
+          context.read<TimelineBloc>().add(const TimelineEvent.loadMore());
+        }
+      }
+    });
+  }
+
+  void _scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  // Custom floating action button location that positions the button 50px higher
+  FloatingActionButtonLocation get _customFabLocation {
+    return _CustomFabLocation();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    logger.d('RecordsPage: build method called');
-    return BlocListener<HomeBloc, HomeState>(
-      listener: (context, state) {
-        final selectedSource = state.selectedSource;
-        logger.d(
-            'RecordsPage: HomeBloc listener triggered, selectedSource: $selectedSource');
-        context.read<RecordsBloc>().add(
-              RecordsEvent.loadRecords(
-                sourceId: selectedSource == 'All' ? null : selectedSource,
-              ),
-            );
-      },
-      listenWhen: (previous, current) =>
-          previous.selectedSource != current.selectedSource,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<RecordsFilterBloc, RecordsFilterState>(
+          listener: (context, state) {
+            context
+                .read<TimelineBloc>()
+                .add(TimelineEvent.filterChanged(state.activeFilters));
+          },
+        ),
+        BlocListener<HomeBloc, HomeState>(
+          listener: (context, state) {
+            final selectedSourceId =
+                state.selectedSource == 'All' ? null : state.selectedSource;
+            print(
+                'DEBUG: HomeBloc selectedSource changed to: ${state.selectedSource}, mapped to: ${selectedSourceId}');
+            context
+                .read<TimelineBloc>()
+                .add(TimelineEvent.sourceChanged(selectedSourceId));
+          },
+        ),
+      ],
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -79,235 +170,322 @@ class _RecordsPageState extends State<RecordsPage> {
             backgroundColor: context.colorScheme.surface,
             actions: [
               IconButton(
-                onPressed: () {
-                  // Add share functionality here
+                onPressed: () async {
+                  _showFilterDialog(context);
                 },
-                icon: Assets.icons.share.svg(),
-              ),
-              BlocBuilder<RecordsBloc, RecordsState>(
-                builder: (context, state) {
-                  return IconButton(
-                    icon: Assets.icons.filter.svg(),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => BlocProvider.value(
-                          value: BlocProvider.of<RecordsBloc>(context),
-                          child: RecordsFilterDialog(
-                            selectedFilter: state.filters.isNotEmpty
-                                ? state.filters.first
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                icon: Assets.icons.filter.svg(
+                  colorFilter: ColorFilter.mode(
+                    context.colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
             ],
             elevation: 0,
           ),
-          body: SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(Insets.normal),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _searchController,
-                        onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                        decoration: InputDecoration(
-                          hintText: context.l10n.searchRecordsHint,
-                          hintStyle:
-                              const TextStyle(color: AppColors.textSecondary),
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(Insets.smallNormal),
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: Assets.icons.search.svg(),
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            borderSide:
-                                const BorderSide(color: AppColors.border),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            borderSide:
-                                const BorderSide(color: AppColors.border),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: context.colorScheme.surface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: Insets.smallNormal,
+          floatingActionButton: _showScrollToTopButton
+              ? FloatingActionButton(
+                  onPressed: _scrollToTop,
+                  mini: true,
+                  backgroundColor: context.colorScheme.primary,
+                  foregroundColor: context.colorScheme.onPrimary,
+                  child: const Icon(Icons.keyboard_arrow_up),
+                )
+              : null,
+          floatingActionButtonLocation: _customFabLocation,
+          body: Column(
+            children: [
+              // Search and filter section
+              Padding(
+                padding: const EdgeInsets.all(Insets.normal),
+                child: Column(
+                  children: [
+                    // Search bar
+                    TextField(
+                      controller: _searchController,
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                      decoration: InputDecoration(
+                        hintText: context.l10n.searchRecordsHint,
+                        hintStyle:
+                            const TextStyle(color: AppColors.textSecondary),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(Insets.smallNormal),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: Assets.icons.search.svg(),
                           ),
                         ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide: const BorderSide(color: AppColors.border),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          borderSide:
+                              const BorderSide(color: AppColors.primary),
+                        ),
+                        filled: true,
+                        fillColor: context.colorScheme.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: Insets.smallNormal,
+                        ),
                       ),
-                      const SizedBox(height: Insets.small),
-                      BlocBuilder<RecordsBloc, RecordsState>(
-                        builder: (context, state) {
-                          if (state.filters.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Wrap(
-                                spacing: 8.0,
-                                children: state.filters
-                                    .map(
-                                      (filter) => FilterChipWidget(
-                                        label: filter,
-                                        onDeleted: () {
-                                          final newFilters =
-                                              List<String>.from(state.filters)
-                                                ..remove(filter);
-                                          context.read<RecordsBloc>().add(
-                                                RecordsEvent.updateFilters(
-                                                    newFilters),
-                                              );
-                                        },
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: Insets.small),
+                    // Filter chips
+                    BlocBuilder<RecordsFilterBloc, RecordsFilterState>(
+                      builder: (context, state) {
+                        if (state.activeFilters.isEmpty) {
+                          return const SizedBox();
+                        }
+                        return Wrap(
+                          spacing: 8.0,
+                          children: state.activeFilters
+                              .map(
+                                (filter) => FilterChip(
+                                  label: Text(getFhirResourceDisplay(filter)),
+                                  selected: true,
+                                  selectedColor: _getResourceTypeColor(filter)
+                                      .withAlpha(45),
+                                  onSelected: (bool value) {},
+                                  deleteIcon: const Icon(Icons.close, size: 16),
+                                  onDeleted: () {
+                                    context.read<RecordsFilterBloc>().add(
+                                        RecordsFilterEvent.toggleFilter(
+                                            filter));
+                                  },
+                                ),
+                              )
+                              .toList(),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                BlocBuilder<RecordsBloc, RecordsState>(
+              ),
+              // Records list
+              Expanded(
+                child: BlocBuilder<TimelineBloc, TimelineState>(
                   builder: (context, state) {
-                    logger.d(
-                        'RecordsPage: RecordsBloc builder called with state: $state');
-                    if (state.status == RecordsStatus.loading &&
-                        state.entries.isEmpty) {
-                      logger.d('RecordsPage: showing loading indicator');
+                    if (state.status == TimelineStatus.loading &&
+                        state.resources.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (state.status == RecordsStatus.failure) {
-                      logger.e(
-                          'RecordsPage: showing failure state: ${state.error}');
+
+                    if (state.status == TimelineStatus.failure) {
                       return Center(child: Text(state.error));
                     }
 
-                    final filteredEntries = state.entries.where((entry) {
-                      if (state.filters.isEmpty) {
-                        return true;
-                      }
-                      return state.filters.contains(entry.resourceType);
-                    }).toList();
+                    final timelineResources = state.resources;
+
+                    if (timelineResources.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.folder_open,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'No records found',
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
 
                     return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filteredEntries.length,
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(
+                        left: Insets.normal,
+                        right: Insets.normal,
+                        bottom: 100,
+                      ),
+                      itemCount: timelineResources.length +
+                          (state.hasMorePages ? 1 : 0),
                       itemBuilder: (context, index) {
-                        final entry = filteredEntries[index];
-                        return _buildTimelineEntry(
+                        if (index == timelineResources.length) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        final resource = timelineResources[index];
+                        return _buildTimelineResourceEntry(
                           context,
-                          entry: entry,
+                          resource: resource,
+                          index: index,
                           isFirst: index == 0,
-                          isLast: index == filteredEntries.length - 1,
+                          isLast: index == timelineResources.length - 1,
                         );
                       },
                     );
                   },
                 ),
-                const SizedBox(height: Insets.huge),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTimelineEntry(
+  Widget _buildTimelineResourceEntry(
     BuildContext context, {
-    required fhir.FhirResource entry,
+    required TimelineResourceModel resource,
+    required int index,
     required bool isFirst,
     required bool isLast,
   }) {
     const double dotSize = 16.0;
     const double lineWidth = 2.0;
     const double timelineColumnWidth = 40.0;
-    // For first/last logic, you may want to pass index/length, but for now, use green dot for all
 
     return IntrinsicHeight(
+      key: ValueKey('timeline-${resource.resourceType}-${resource.id}-$index'),
       child: Stack(
         children: [
+          // Main content
           Padding(
             padding: const EdgeInsets.only(
-                left: timelineColumnWidth / 3.5 + dotSize / 2,
-                bottom: Insets.normal),
-            child: GestureDetector(
-              onTap: () {
-                context.appRouter.push(RecordDetailRoute(resource: entry));
-              },
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(color: AppColors.border),
-                ),
-                margin: const EdgeInsets.only(right: Insets.normal),
-                child: Padding(
-                  padding: const EdgeInsets.all(Insets.normal),
-                  child: _RecordCard(resource: entry),
+              left: timelineColumnWidth / 3.5 + dotSize / 2,
+              bottom: Insets.normal,
+            ),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: AppColors.border),
+              ),
+              margin: const EdgeInsets.only(right: Insets.normal),
+              child: Padding(
+                padding: const EdgeInsets.all(Insets.normal),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Resource type tag and date
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            context.read<RecordsFilterBloc>().add(
+                                RecordsFilterEvent.toggleFilter(
+                                    resource.resourceType));
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: Insets.small,
+                              vertical: Insets.extraSmall,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  _getResourceTypeColor(resource.resourceType)
+                                      .withAlpha(45),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _getResourceTypeColor(
+                                    resource.resourceType),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              getFhirResourceDisplay(resource.resourceType),
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: _getResourceTypeColor(
+                                    resource.resourceType),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (resource.formattedDate != null)
+                          Text(
+                            resource.formattedDate!,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: Insets.small),
+                    // Resource content
+                    if (resource.isEncounter && resource.encounterModel != null)
+                      BlocProvider(
+                        create: (context) => getIt<EncounterDetailBloc>()
+                          ..add(EncounterDetailEvent.load(
+                              resource.encounterModel!.id)),
+                        child: EncounterCard(
+                            displayModel: resource.encounterModel!),
+                      )
+                    else if (resource.isStandalone &&
+                        resource.resourceModel != null)
+                      UnifiedResourceCard(
+                        displayModel: resource.resourceModel!,
+                        isStandalone: true,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ResourceDetailPage(
+                                  resource: resource.resourceModel!),
+                            ),
+                          );
+                        },
+                      )
+                    else
+                      // Fallback for any resource that doesn't have proper models
+                      Text(
+                        resource.primaryDisplay,
+                        style: context.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
           ),
+          // Timeline line and dot
           SizedBox(
             width: timelineColumnWidth,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment
-                  .center, // Vertically center the dot and lines within its column
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Upper line segment: Always an Expanded widget, but transparent if it's the first item.
+                // Upper line
                 Expanded(
                   child: Container(
                     width: lineWidth,
-                    color: !isFirst
-                        ? AppColors.primary
-                        : Colors
-                            .transparent, // Grey line, or transparent if first item
+                    color: !isFirst ? AppColors.primary : Colors.transparent,
                   ),
                 ),
-
-                // Dot: A circular container representing the point on the timeline.
+                // Dot
                 Container(
                   width: dotSize,
                   height: dotSize,
                   decoration: BoxDecoration(
-                    color: Colors.white, // White background for the dot
+                    color: Colors.white,
                     border: Border.all(
-                        color: AppColors.primary,
-                        width: 3), // Blue border for the dot
+                      color: _getResourceTypeColor(resource.resourceType),
+                      width: 3,
+                    ),
                     shape: BoxShape.circle,
                   ),
                 ),
-
-                // Lower line segment: Always an Expanded widget, but transparent if it's the last item.
+                // Lower line
                 Expanded(
                   child: Container(
                     width: lineWidth,
-                    color: !isLast
-                        ? AppColors.primary
-                        : Colors
-                            .transparent, // Grey line, or transparent if last item
+                    color: !isLast ? AppColors.primary : Colors.transparent,
                   ),
                 ),
               ],
@@ -317,128 +495,76 @@ class _RecordsPageState extends State<RecordsPage> {
       ),
     );
   }
+
+  Color _getResourceTypeColor(String resourceType) {
+    switch (resourceType.toLowerCase()) {
+      case 'encounter':
+        return Colors.blue;
+      case 'allergyintolerance':
+        return Colors.red;
+      case 'condition':
+        return Colors.orange;
+      case 'procedure':
+        return Colors.green;
+      case 'medicationrequest':
+        return Colors.purple;
+      case 'observation':
+        return Colors.teal;
+      case 'diagnosticreport':
+        return Colors.indigo;
+      case 'immunization':
+        return Colors.pink;
+      case 'careplan':
+        return Colors.brown;
+      case 'goal':
+        return Colors.amber;
+      case 'documentreference':
+        return Colors.cyan;
+      case 'media':
+        return Colors.deepOrange;
+      case 'location':
+        return Colors.lime;
+      case 'organization':
+        return Colors.deepPurple;
+      case 'practitioner':
+        return Colors.lightBlue;
+      case 'patient':
+        return Colors.lightGreen;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    final timelineState = context.read<TimelineBloc>().state;
+    final uniqueResourceTypes =
+        timelineState.resources.map((e) => e.resourceType).toSet();
+
+    showDialog(
+      context: context,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(
+            value: BlocProvider.of<RecordsFilterBloc>(context),
+          ),
+          BlocProvider.value(
+            value: BlocProvider.of<TimelineBloc>(context),
+          ),
+        ],
+        child: RecordsFilterDialog(
+          displayedResourceTypes: uniqueResourceTypes,
+        ),
+      ),
+    );
+  }
 }
 
-class _RecordCard extends StatelessWidget {
-  final fhir.FhirResource resource;
-
-  const _RecordCard({required this.resource});
-
+// Custom FloatingActionButtonLocation that positions the button 50px higher
+class _CustomFabLocation extends FloatingActionButtonLocation {
   @override
-  Widget build(BuildContext context) {
-    final resourceJson = resource.resourceJson;
-    String title;
-    String subtitle;
-
-    switch (resource.resourceType) {
-      case 'Patient':
-        final name = resourceJson['name'] as List?;
-        final firstName = name?.first['given']?.first ?? 'N/A';
-        final lastName = name?.first['family'] ?? 'N/A';
-        title = '$firstName $lastName';
-        subtitle = 'Patient';
-        break;
-      case 'Observation':
-        title = resourceJson['code']?['text'] ?? 'Observation';
-        final value = resourceJson['valueQuantity']?['value'] ?? '';
-        final unit = resourceJson['valueQuantity']?['unit'] ?? '';
-        subtitle = '$value $unit';
-        break;
-      case 'MedicationRequest':
-        title = resourceJson['medicationCodeableConcept']?['text'] ??
-            'Medication Request';
-        subtitle = resourceJson['requester']?['display'] ?? '';
-        break;
-      case 'Condition':
-        title = resourceJson['code']?['text'] ?? 'Condition';
-        subtitle =
-            resourceJson['clinicalStatus']?['coding']?.first['display'] ?? '';
-        break;
-      case 'Immunization':
-        title = resourceJson['vaccineCode']?['text'] ?? 'Immunization';
-        subtitle = resourceJson['status'] ?? '';
-        break;
-      case 'Procedure':
-        title = resourceJson['code']?['text'] ?? 'Procedure';
-        subtitle = resourceJson['status'] ?? '';
-        break;
-      default:
-        title = resource.resourceType;
-        subtitle = resource.id ?? '';
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Left text section
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: Insets.extraSmall),
-              Text(
-                subtitle,
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: Insets.small),
-        // Right action section
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            GestureDetector(
-              onTap: () {
-                final newFilters =
-                    List<String>.from(context.read<RecordsBloc>().state.filters)
-                      ..add(resource.resourceType);
-                context
-                    .read<RecordsBloc>()
-                    .add(RecordsEvent.updateFilters(newFilters));
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Insets.small,
-                  vertical: Insets.extraSmall,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  resource.resourceType,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: Insets.small),
-            IconButton(
-              onPressed: () {
-                // Share functionality
-              },
-              icon: Icon(
-                Icons.share,
-                color: context.colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final defaultOffset =
+        FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
+    return Offset(defaultOffset.dx, defaultOffset.dy - 38);
   }
 }

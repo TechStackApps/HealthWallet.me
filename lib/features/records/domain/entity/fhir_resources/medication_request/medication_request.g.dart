@@ -18,6 +18,11 @@ _$MedicationRequestImpl _$$MedicationRequestImplFromJson(
               json['medicationCodeableConcept'] as Map<String, dynamic>),
       requester: _$JsonConverterFromJson<Map<String, dynamic>, Reference>(
           json['requester'], const ReferenceConverter().fromJson),
+      subject: _$JsonConverterFromJson<Map<String, dynamic>, Reference>(
+          json['subject'], const ReferenceConverter().fromJson),
+      encounter: _$JsonConverterFromJson<Map<String, dynamic>, Reference>(
+          json['encounter'], const ReferenceConverter().fromJson),
+      authoredOn: json['authoredOn'] as String?,
     );
 
 Map<String, dynamic> _$$MedicationRequestImplToJson(
@@ -26,9 +31,14 @@ Map<String, dynamic> _$$MedicationRequestImplToJson(
       'id': instance.id,
       'status': instance.status,
       'intent': instance.intent,
-      'medicationCodeableConcept': instance.medicationCodeableConcept,
+      'medicationCodeableConcept': instance.medicationCodeableConcept?.toJson(),
       'requester': _$JsonConverterToJson<Map<String, dynamic>, Reference>(
           instance.requester, const ReferenceConverter().toJson),
+      'subject': _$JsonConverterToJson<Map<String, dynamic>, Reference>(
+          instance.subject, const ReferenceConverter().toJson),
+      'encounter': _$JsonConverterToJson<Map<String, dynamic>, Reference>(
+          instance.encounter, const ReferenceConverter().toJson),
+      'authoredOn': instance.authoredOn,
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(

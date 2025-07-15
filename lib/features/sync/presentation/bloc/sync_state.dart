@@ -9,9 +9,19 @@ sealed class SyncStatus with _$SyncStatus {
 }
 
 @freezed
+sealed class SyncTokenStatus with _$SyncTokenStatus {
+  const factory SyncTokenStatus.none() = _NoneTokenStatus;
+  const factory SyncTokenStatus.active() = _ActiveTokenStatus;
+  const factory SyncTokenStatus.expired() = _ExpiredTokenStatus;
+  const factory SyncTokenStatus.expiringSoon() = _ExpiringSoonTokenStatus;
+}
+
+@freezed
 class SyncState with _$SyncState {
   const factory SyncState({
     @Default(SyncStatus.initial()) SyncStatus status,
     @Default([]) List<DateTime> history,
+    @Default(SyncTokenStatus.none()) SyncTokenStatus tokenStatus,
+    SyncToken? currentToken,
   }) = _SyncState;
 }

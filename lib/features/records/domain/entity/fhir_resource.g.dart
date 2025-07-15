@@ -6,8 +6,7 @@ part of 'fhir_resource.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FhirResourceImpl _$$FhirResourceImplFromJson(Map<String, dynamic> json) =>
-    _$FhirResourceImpl(
+FhirResource _$FhirResourceFromJson(Map<String, dynamic> json) => FhirResource(
       id: json['id'] as String?,
       resourceType: json['source_resource_type'] as String,
       resourceJson: json['resource_raw'] as Map<String, dynamic>,
@@ -15,7 +14,7 @@ _$FhirResourceImpl _$$FhirResourceImplFromJson(Map<String, dynamic> json) =>
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
 
-Map<String, dynamic> _$$FhirResourceImplToJson(_$FhirResourceImpl instance) =>
+Map<String, dynamic> _$FhirResourceToJson(FhirResource instance) =>
     <String, dynamic>{
       'id': instance.id,
       'source_resource_type': instance.resourceType,

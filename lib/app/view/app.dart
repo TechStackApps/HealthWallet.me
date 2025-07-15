@@ -7,7 +7,7 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
 
@@ -23,7 +23,6 @@ class App extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => getIt<RecordsBloc>()),
         BlocProvider(
             create: (context) =>
                 getIt<HomeBloc>()..add(const HomeEvent.initialised())),
@@ -31,6 +30,9 @@ class App extends StatelessWidget {
             create: (context) => getIt<UserProfileBloc>()
               ..add(const UserProfileEvent.initialised())),
         BlocProvider(create: (context) => getIt<SyncBloc>()),
+        BlocProvider(
+            create: (context) => getIt<RecordsFilterBloc>()
+              ..add(const RecordsFilterEvent.load())),
       ],
       child: BlocListener<SyncBloc, SyncState>(
         listener: (context, state) {

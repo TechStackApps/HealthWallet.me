@@ -1126,7 +1126,6 @@ abstract class $HomeStateCopyWith<$Res> {
       bool editMode});
 
   $HomeStatusCopyWith<$Res> get status;
-  $FhirResourceCopyWith<$Res>? get patient;
 }
 
 /// @nodoc
@@ -1213,20 +1212,6 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
       return _then(_value.copyWith(status: value) as $Val);
     });
   }
-
-  /// Create a copy of HomeState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $FhirResourceCopyWith<$Res>? get patient {
-    if (_value.patient == null) {
-      return null;
-    }
-
-    return $FhirResourceCopyWith<$Res>(_value.patient!, (value) {
-      return _then(_value.copyWith(patient: value) as $Val);
-    });
-  }
 }
 
 /// @nodoc
@@ -1252,8 +1237,6 @@ abstract class _$$HomeStateImplCopyWith<$Res>
 
   @override
   $HomeStatusCopyWith<$Res> get status;
-  @override
-  $FhirResourceCopyWith<$Res>? get patient;
 }
 
 /// @nodoc

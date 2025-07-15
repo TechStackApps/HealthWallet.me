@@ -21,6 +21,9 @@ mixin _$SyncEvent {
     required TResult Function() syncData,
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -28,6 +31,9 @@ mixin _$SyncEvent {
     TResult? Function()? syncData,
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -35,6 +41,9 @@ mixin _$SyncEvent {
     TResult Function()? syncData,
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -43,6 +52,9 @@ mixin _$SyncEvent {
     required TResult Function(_SyncData value) syncData,
     required TResult Function(_SyncDataWithJson value) syncDataWithJson,
     required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -50,6 +62,9 @@ mixin _$SyncEvent {
     TResult? Function(_SyncData value)? syncData,
     TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -57,6 +72,9 @@ mixin _$SyncEvent {
     TResult Function(_SyncData value)? syncData,
     TResult Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -126,6 +144,9 @@ class _$SyncDataImpl implements _SyncData {
     required TResult Function() syncData,
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
   }) {
     return syncData();
   }
@@ -136,6 +157,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult? Function()? syncData,
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
   }) {
     return syncData?.call();
   }
@@ -146,6 +170,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult Function()? syncData,
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (syncData != null) {
@@ -160,6 +187,9 @@ class _$SyncDataImpl implements _SyncData {
     required TResult Function(_SyncData value) syncData,
     required TResult Function(_SyncDataWithJson value) syncDataWithJson,
     required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
   }) {
     return syncData(this);
   }
@@ -170,6 +200,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult? Function(_SyncData value)? syncData,
     TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
   }) {
     return syncData?.call(this);
   }
@@ -180,6 +213,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult Function(_SyncData value)? syncData,
     TResult Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (syncData != null) {
@@ -266,6 +302,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     required TResult Function() syncData,
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
   }) {
     return syncDataWithJson(jsonData);
   }
@@ -276,6 +315,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult? Function()? syncData,
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
   }) {
     return syncDataWithJson?.call(jsonData);
   }
@@ -286,6 +328,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult Function()? syncData,
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (syncDataWithJson != null) {
@@ -300,6 +345,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     required TResult Function(_SyncData value) syncData,
     required TResult Function(_SyncDataWithJson value) syncDataWithJson,
     required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
   }) {
     return syncDataWithJson(this);
   }
@@ -310,6 +358,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult? Function(_SyncData value)? syncData,
     TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
   }) {
     return syncDataWithJson?.call(this);
   }
@@ -320,6 +371,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult Function(_SyncData value)? syncData,
     TResult Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (syncDataWithJson != null) {
@@ -386,6 +440,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     required TResult Function() syncData,
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
   }) {
     return historyLoaded();
   }
@@ -396,6 +453,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult? Function()? syncData,
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
   }) {
     return historyLoaded?.call();
   }
@@ -406,6 +466,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult Function()? syncData,
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (historyLoaded != null) {
@@ -420,6 +483,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     required TResult Function(_SyncData value) syncData,
     required TResult Function(_SyncDataWithJson value) syncDataWithJson,
     required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
   }) {
     return historyLoaded(this);
   }
@@ -430,6 +496,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult? Function(_SyncData value)? syncData,
     TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
   }) {
     return historyLoaded?.call(this);
   }
@@ -440,6 +509,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult Function(_SyncData value)? syncData,
     TResult Function(_SyncDataWithJson value)? syncDataWithJson,
     TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
     required TResult orElse(),
   }) {
     if (historyLoaded != null) {
@@ -451,6 +523,393 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
 
 abstract class _HistoryLoaded implements SyncEvent {
   const factory _HistoryLoaded() = _$HistoryLoadedImpl;
+}
+
+/// @nodoc
+abstract class _$$TokenStatusLoadedImplCopyWith<$Res> {
+  factory _$$TokenStatusLoadedImplCopyWith(_$TokenStatusLoadedImpl value,
+          $Res Function(_$TokenStatusLoadedImpl) then) =
+      __$$TokenStatusLoadedImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$TokenStatusLoadedImplCopyWithImpl<$Res>
+    extends _$SyncEventCopyWithImpl<$Res, _$TokenStatusLoadedImpl>
+    implements _$$TokenStatusLoadedImplCopyWith<$Res> {
+  __$$TokenStatusLoadedImplCopyWithImpl(_$TokenStatusLoadedImpl _value,
+      $Res Function(_$TokenStatusLoadedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
+  const _$TokenStatusLoadedImpl();
+
+  @override
+  String toString() {
+    return 'SyncEvent.tokenStatusLoaded()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$TokenStatusLoadedImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() syncData,
+    required TResult Function(String jsonData) syncDataWithJson,
+    required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
+  }) {
+    return tokenStatusLoaded();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? syncData,
+    TResult? Function(String jsonData)? syncDataWithJson,
+    TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
+  }) {
+    return tokenStatusLoaded?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? syncData,
+    TResult Function(String jsonData)? syncDataWithJson,
+    TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (tokenStatusLoaded != null) {
+      return tokenStatusLoaded();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_SyncData value) syncData,
+    required TResult Function(_SyncDataWithJson value) syncDataWithJson,
+    required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+  }) {
+    return tokenStatusLoaded(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_SyncData value)? syncData,
+    TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+  }) {
+    return tokenStatusLoaded?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_SyncData value)? syncData,
+    TResult Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (tokenStatusLoaded != null) {
+      return tokenStatusLoaded(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _TokenStatusLoaded implements SyncEvent {
+  const factory _TokenStatusLoaded() = _$TokenStatusLoadedImpl;
+}
+
+/// @nodoc
+abstract class _$$TokenRevokedImplCopyWith<$Res> {
+  factory _$$TokenRevokedImplCopyWith(
+          _$TokenRevokedImpl value, $Res Function(_$TokenRevokedImpl) then) =
+      __$$TokenRevokedImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$TokenRevokedImplCopyWithImpl<$Res>
+    extends _$SyncEventCopyWithImpl<$Res, _$TokenRevokedImpl>
+    implements _$$TokenRevokedImplCopyWith<$Res> {
+  __$$TokenRevokedImplCopyWithImpl(
+      _$TokenRevokedImpl _value, $Res Function(_$TokenRevokedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$TokenRevokedImpl implements _TokenRevoked {
+  const _$TokenRevokedImpl();
+
+  @override
+  String toString() {
+    return 'SyncEvent.tokenRevoked()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$TokenRevokedImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() syncData,
+    required TResult Function(String jsonData) syncDataWithJson,
+    required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
+  }) {
+    return tokenRevoked();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? syncData,
+    TResult? Function(String jsonData)? syncDataWithJson,
+    TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
+  }) {
+    return tokenRevoked?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? syncData,
+    TResult Function(String jsonData)? syncDataWithJson,
+    TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (tokenRevoked != null) {
+      return tokenRevoked();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_SyncData value) syncData,
+    required TResult Function(_SyncDataWithJson value) syncDataWithJson,
+    required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+  }) {
+    return tokenRevoked(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_SyncData value)? syncData,
+    TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+  }) {
+    return tokenRevoked?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_SyncData value)? syncData,
+    TResult Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (tokenRevoked != null) {
+      return tokenRevoked(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _TokenRevoked implements SyncEvent {
+  const factory _TokenRevoked() = _$TokenRevokedImpl;
+}
+
+/// @nodoc
+abstract class _$$CheckTokenStatusImplCopyWith<$Res> {
+  factory _$$CheckTokenStatusImplCopyWith(_$CheckTokenStatusImpl value,
+          $Res Function(_$CheckTokenStatusImpl) then) =
+      __$$CheckTokenStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$CheckTokenStatusImplCopyWithImpl<$Res>
+    extends _$SyncEventCopyWithImpl<$Res, _$CheckTokenStatusImpl>
+    implements _$$CheckTokenStatusImplCopyWith<$Res> {
+  __$$CheckTokenStatusImplCopyWithImpl(_$CheckTokenStatusImpl _value,
+      $Res Function(_$CheckTokenStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$CheckTokenStatusImpl implements _CheckTokenStatus {
+  const _$CheckTokenStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncEvent.checkTokenStatus()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$CheckTokenStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() syncData,
+    required TResult Function(String jsonData) syncDataWithJson,
+    required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function() tokenRevoked,
+    required TResult Function() checkTokenStatus,
+  }) {
+    return checkTokenStatus();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? syncData,
+    TResult? Function(String jsonData)? syncDataWithJson,
+    TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function()? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
+  }) {
+    return checkTokenStatus?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? syncData,
+    TResult Function(String jsonData)? syncDataWithJson,
+    TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function()? tokenRevoked,
+    TResult Function()? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (checkTokenStatus != null) {
+      return checkTokenStatus();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_SyncData value) syncData,
+    required TResult Function(_SyncDataWithJson value) syncDataWithJson,
+    required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+  }) {
+    return checkTokenStatus(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_SyncData value)? syncData,
+    TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+  }) {
+    return checkTokenStatus?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_SyncData value)? syncData,
+    TResult Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    required TResult orElse(),
+  }) {
+    if (checkTokenStatus != null) {
+      return checkTokenStatus(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _CheckTokenStatus implements SyncEvent {
+  const factory _CheckTokenStatus() = _$CheckTokenStatusImpl;
 }
 
 /// @nodoc
@@ -1032,9 +1491,557 @@ abstract class _FailureStatus implements SyncStatus {
 }
 
 /// @nodoc
+mixin _$SyncTokenStatus {
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() none,
+    required TResult Function() active,
+    required TResult Function() expired,
+    required TResult Function() expiringSoon,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? none,
+    TResult? Function()? active,
+    TResult? Function()? expired,
+    TResult? Function()? expiringSoon,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? none,
+    TResult Function()? active,
+    TResult Function()? expired,
+    TResult Function()? expiringSoon,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_NoneTokenStatus value) none,
+    required TResult Function(_ActiveTokenStatus value) active,
+    required TResult Function(_ExpiredTokenStatus value) expired,
+    required TResult Function(_ExpiringSoonTokenStatus value) expiringSoon,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_NoneTokenStatus value)? none,
+    TResult? Function(_ActiveTokenStatus value)? active,
+    TResult? Function(_ExpiredTokenStatus value)? expired,
+    TResult? Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_NoneTokenStatus value)? none,
+    TResult Function(_ActiveTokenStatus value)? active,
+    TResult Function(_ExpiredTokenStatus value)? expired,
+    TResult Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SyncTokenStatusCopyWith<$Res> {
+  factory $SyncTokenStatusCopyWith(
+          SyncTokenStatus value, $Res Function(SyncTokenStatus) then) =
+      _$SyncTokenStatusCopyWithImpl<$Res, SyncTokenStatus>;
+}
+
+/// @nodoc
+class _$SyncTokenStatusCopyWithImpl<$Res, $Val extends SyncTokenStatus>
+    implements $SyncTokenStatusCopyWith<$Res> {
+  _$SyncTokenStatusCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SyncTokenStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+abstract class _$$NoneTokenStatusImplCopyWith<$Res> {
+  factory _$$NoneTokenStatusImplCopyWith(_$NoneTokenStatusImpl value,
+          $Res Function(_$NoneTokenStatusImpl) then) =
+      __$$NoneTokenStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$NoneTokenStatusImplCopyWithImpl<$Res>
+    extends _$SyncTokenStatusCopyWithImpl<$Res, _$NoneTokenStatusImpl>
+    implements _$$NoneTokenStatusImplCopyWith<$Res> {
+  __$$NoneTokenStatusImplCopyWithImpl(
+      _$NoneTokenStatusImpl _value, $Res Function(_$NoneTokenStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncTokenStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$NoneTokenStatusImpl implements _NoneTokenStatus {
+  const _$NoneTokenStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncTokenStatus.none()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$NoneTokenStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() none,
+    required TResult Function() active,
+    required TResult Function() expired,
+    required TResult Function() expiringSoon,
+  }) {
+    return none();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? none,
+    TResult? Function()? active,
+    TResult? Function()? expired,
+    TResult? Function()? expiringSoon,
+  }) {
+    return none?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? none,
+    TResult Function()? active,
+    TResult Function()? expired,
+    TResult Function()? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (none != null) {
+      return none();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_NoneTokenStatus value) none,
+    required TResult Function(_ActiveTokenStatus value) active,
+    required TResult Function(_ExpiredTokenStatus value) expired,
+    required TResult Function(_ExpiringSoonTokenStatus value) expiringSoon,
+  }) {
+    return none(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_NoneTokenStatus value)? none,
+    TResult? Function(_ActiveTokenStatus value)? active,
+    TResult? Function(_ExpiredTokenStatus value)? expired,
+    TResult? Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+  }) {
+    return none?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_NoneTokenStatus value)? none,
+    TResult Function(_ActiveTokenStatus value)? active,
+    TResult Function(_ExpiredTokenStatus value)? expired,
+    TResult Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (none != null) {
+      return none(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _NoneTokenStatus implements SyncTokenStatus {
+  const factory _NoneTokenStatus() = _$NoneTokenStatusImpl;
+}
+
+/// @nodoc
+abstract class _$$ActiveTokenStatusImplCopyWith<$Res> {
+  factory _$$ActiveTokenStatusImplCopyWith(_$ActiveTokenStatusImpl value,
+          $Res Function(_$ActiveTokenStatusImpl) then) =
+      __$$ActiveTokenStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$ActiveTokenStatusImplCopyWithImpl<$Res>
+    extends _$SyncTokenStatusCopyWithImpl<$Res, _$ActiveTokenStatusImpl>
+    implements _$$ActiveTokenStatusImplCopyWith<$Res> {
+  __$$ActiveTokenStatusImplCopyWithImpl(_$ActiveTokenStatusImpl _value,
+      $Res Function(_$ActiveTokenStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncTokenStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$ActiveTokenStatusImpl implements _ActiveTokenStatus {
+  const _$ActiveTokenStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncTokenStatus.active()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$ActiveTokenStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() none,
+    required TResult Function() active,
+    required TResult Function() expired,
+    required TResult Function() expiringSoon,
+  }) {
+    return active();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? none,
+    TResult? Function()? active,
+    TResult? Function()? expired,
+    TResult? Function()? expiringSoon,
+  }) {
+    return active?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? none,
+    TResult Function()? active,
+    TResult Function()? expired,
+    TResult Function()? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (active != null) {
+      return active();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_NoneTokenStatus value) none,
+    required TResult Function(_ActiveTokenStatus value) active,
+    required TResult Function(_ExpiredTokenStatus value) expired,
+    required TResult Function(_ExpiringSoonTokenStatus value) expiringSoon,
+  }) {
+    return active(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_NoneTokenStatus value)? none,
+    TResult? Function(_ActiveTokenStatus value)? active,
+    TResult? Function(_ExpiredTokenStatus value)? expired,
+    TResult? Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+  }) {
+    return active?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_NoneTokenStatus value)? none,
+    TResult Function(_ActiveTokenStatus value)? active,
+    TResult Function(_ExpiredTokenStatus value)? expired,
+    TResult Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (active != null) {
+      return active(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ActiveTokenStatus implements SyncTokenStatus {
+  const factory _ActiveTokenStatus() = _$ActiveTokenStatusImpl;
+}
+
+/// @nodoc
+abstract class _$$ExpiredTokenStatusImplCopyWith<$Res> {
+  factory _$$ExpiredTokenStatusImplCopyWith(_$ExpiredTokenStatusImpl value,
+          $Res Function(_$ExpiredTokenStatusImpl) then) =
+      __$$ExpiredTokenStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$ExpiredTokenStatusImplCopyWithImpl<$Res>
+    extends _$SyncTokenStatusCopyWithImpl<$Res, _$ExpiredTokenStatusImpl>
+    implements _$$ExpiredTokenStatusImplCopyWith<$Res> {
+  __$$ExpiredTokenStatusImplCopyWithImpl(_$ExpiredTokenStatusImpl _value,
+      $Res Function(_$ExpiredTokenStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncTokenStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$ExpiredTokenStatusImpl implements _ExpiredTokenStatus {
+  const _$ExpiredTokenStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncTokenStatus.expired()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$ExpiredTokenStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() none,
+    required TResult Function() active,
+    required TResult Function() expired,
+    required TResult Function() expiringSoon,
+  }) {
+    return expired();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? none,
+    TResult? Function()? active,
+    TResult? Function()? expired,
+    TResult? Function()? expiringSoon,
+  }) {
+    return expired?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? none,
+    TResult Function()? active,
+    TResult Function()? expired,
+    TResult Function()? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (expired != null) {
+      return expired();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_NoneTokenStatus value) none,
+    required TResult Function(_ActiveTokenStatus value) active,
+    required TResult Function(_ExpiredTokenStatus value) expired,
+    required TResult Function(_ExpiringSoonTokenStatus value) expiringSoon,
+  }) {
+    return expired(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_NoneTokenStatus value)? none,
+    TResult? Function(_ActiveTokenStatus value)? active,
+    TResult? Function(_ExpiredTokenStatus value)? expired,
+    TResult? Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+  }) {
+    return expired?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_NoneTokenStatus value)? none,
+    TResult Function(_ActiveTokenStatus value)? active,
+    TResult Function(_ExpiredTokenStatus value)? expired,
+    TResult Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (expired != null) {
+      return expired(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ExpiredTokenStatus implements SyncTokenStatus {
+  const factory _ExpiredTokenStatus() = _$ExpiredTokenStatusImpl;
+}
+
+/// @nodoc
+abstract class _$$ExpiringSoonTokenStatusImplCopyWith<$Res> {
+  factory _$$ExpiringSoonTokenStatusImplCopyWith(
+          _$ExpiringSoonTokenStatusImpl value,
+          $Res Function(_$ExpiringSoonTokenStatusImpl) then) =
+      __$$ExpiringSoonTokenStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$ExpiringSoonTokenStatusImplCopyWithImpl<$Res>
+    extends _$SyncTokenStatusCopyWithImpl<$Res, _$ExpiringSoonTokenStatusImpl>
+    implements _$$ExpiringSoonTokenStatusImplCopyWith<$Res> {
+  __$$ExpiringSoonTokenStatusImplCopyWithImpl(
+      _$ExpiringSoonTokenStatusImpl _value,
+      $Res Function(_$ExpiringSoonTokenStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncTokenStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$ExpiringSoonTokenStatusImpl implements _ExpiringSoonTokenStatus {
+  const _$ExpiringSoonTokenStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncTokenStatus.expiringSoon()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ExpiringSoonTokenStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() none,
+    required TResult Function() active,
+    required TResult Function() expired,
+    required TResult Function() expiringSoon,
+  }) {
+    return expiringSoon();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? none,
+    TResult? Function()? active,
+    TResult? Function()? expired,
+    TResult? Function()? expiringSoon,
+  }) {
+    return expiringSoon?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? none,
+    TResult Function()? active,
+    TResult Function()? expired,
+    TResult Function()? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (expiringSoon != null) {
+      return expiringSoon();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_NoneTokenStatus value) none,
+    required TResult Function(_ActiveTokenStatus value) active,
+    required TResult Function(_ExpiredTokenStatus value) expired,
+    required TResult Function(_ExpiringSoonTokenStatus value) expiringSoon,
+  }) {
+    return expiringSoon(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_NoneTokenStatus value)? none,
+    TResult? Function(_ActiveTokenStatus value)? active,
+    TResult? Function(_ExpiredTokenStatus value)? expired,
+    TResult? Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+  }) {
+    return expiringSoon?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_NoneTokenStatus value)? none,
+    TResult Function(_ActiveTokenStatus value)? active,
+    TResult Function(_ExpiredTokenStatus value)? expired,
+    TResult Function(_ExpiringSoonTokenStatus value)? expiringSoon,
+    required TResult orElse(),
+  }) {
+    if (expiringSoon != null) {
+      return expiringSoon(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ExpiringSoonTokenStatus implements SyncTokenStatus {
+  const factory _ExpiringSoonTokenStatus() = _$ExpiringSoonTokenStatusImpl;
+}
+
+/// @nodoc
 mixin _$SyncState {
   SyncStatus get status => throw _privateConstructorUsedError;
   List<DateTime> get history => throw _privateConstructorUsedError;
+  SyncTokenStatus get tokenStatus => throw _privateConstructorUsedError;
+  SyncToken? get currentToken => throw _privateConstructorUsedError;
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.
@@ -1048,9 +2055,15 @@ abstract class $SyncStateCopyWith<$Res> {
   factory $SyncStateCopyWith(SyncState value, $Res Function(SyncState) then) =
       _$SyncStateCopyWithImpl<$Res, SyncState>;
   @useResult
-  $Res call({SyncStatus status, List<DateTime> history});
+  $Res call(
+      {SyncStatus status,
+      List<DateTime> history,
+      SyncTokenStatus tokenStatus,
+      SyncToken? currentToken});
 
   $SyncStatusCopyWith<$Res> get status;
+  $SyncTokenStatusCopyWith<$Res> get tokenStatus;
+  $SyncTokenCopyWith<$Res>? get currentToken;
 }
 
 /// @nodoc
@@ -1070,6 +2083,8 @@ class _$SyncStateCopyWithImpl<$Res, $Val extends SyncState>
   $Res call({
     Object? status = null,
     Object? history = null,
+    Object? tokenStatus = null,
+    Object? currentToken = freezed,
   }) {
     return _then(_value.copyWith(
       status: null == status
@@ -1080,6 +2095,14 @@ class _$SyncStateCopyWithImpl<$Res, $Val extends SyncState>
           ? _value.history
           : history // ignore: cast_nullable_to_non_nullable
               as List<DateTime>,
+      tokenStatus: null == tokenStatus
+          ? _value.tokenStatus
+          : tokenStatus // ignore: cast_nullable_to_non_nullable
+              as SyncTokenStatus,
+      currentToken: freezed == currentToken
+          ? _value.currentToken
+          : currentToken // ignore: cast_nullable_to_non_nullable
+              as SyncToken?,
     ) as $Val);
   }
 
@@ -1092,6 +2115,30 @@ class _$SyncStateCopyWithImpl<$Res, $Val extends SyncState>
       return _then(_value.copyWith(status: value) as $Val);
     });
   }
+
+  /// Create a copy of SyncState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SyncTokenStatusCopyWith<$Res> get tokenStatus {
+    return $SyncTokenStatusCopyWith<$Res>(_value.tokenStatus, (value) {
+      return _then(_value.copyWith(tokenStatus: value) as $Val);
+    });
+  }
+
+  /// Create a copy of SyncState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SyncTokenCopyWith<$Res>? get currentToken {
+    if (_value.currentToken == null) {
+      return null;
+    }
+
+    return $SyncTokenCopyWith<$Res>(_value.currentToken!, (value) {
+      return _then(_value.copyWith(currentToken: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -1102,10 +2149,18 @@ abstract class _$$SyncStateImplCopyWith<$Res>
       __$$SyncStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({SyncStatus status, List<DateTime> history});
+  $Res call(
+      {SyncStatus status,
+      List<DateTime> history,
+      SyncTokenStatus tokenStatus,
+      SyncToken? currentToken});
 
   @override
   $SyncStatusCopyWith<$Res> get status;
+  @override
+  $SyncTokenStatusCopyWith<$Res> get tokenStatus;
+  @override
+  $SyncTokenCopyWith<$Res>? get currentToken;
 }
 
 /// @nodoc
@@ -1123,6 +2178,8 @@ class __$$SyncStateImplCopyWithImpl<$Res>
   $Res call({
     Object? status = null,
     Object? history = null,
+    Object? tokenStatus = null,
+    Object? currentToken = freezed,
   }) {
     return _then(_$SyncStateImpl(
       status: null == status
@@ -1133,6 +2190,14 @@ class __$$SyncStateImplCopyWithImpl<$Res>
           ? _value._history
           : history // ignore: cast_nullable_to_non_nullable
               as List<DateTime>,
+      tokenStatus: null == tokenStatus
+          ? _value.tokenStatus
+          : tokenStatus // ignore: cast_nullable_to_non_nullable
+              as SyncTokenStatus,
+      currentToken: freezed == currentToken
+          ? _value.currentToken
+          : currentToken // ignore: cast_nullable_to_non_nullable
+              as SyncToken?,
     ));
   }
 }
@@ -1142,7 +2207,9 @@ class __$$SyncStateImplCopyWithImpl<$Res>
 class _$SyncStateImpl implements _SyncState {
   const _$SyncStateImpl(
       {this.status = const SyncStatus.initial(),
-      final List<DateTime> history = const []})
+      final List<DateTime> history = const [],
+      this.tokenStatus = const SyncTokenStatus.none(),
+      this.currentToken})
       : _history = history;
 
   @override
@@ -1158,8 +2225,14 @@ class _$SyncStateImpl implements _SyncState {
   }
 
   @override
+  @JsonKey()
+  final SyncTokenStatus tokenStatus;
+  @override
+  final SyncToken? currentToken;
+
+  @override
   String toString() {
-    return 'SyncState(status: $status, history: $history)';
+    return 'SyncState(status: $status, history: $history, tokenStatus: $tokenStatus, currentToken: $currentToken)';
   }
 
   @override
@@ -1168,12 +2241,16 @@ class _$SyncStateImpl implements _SyncState {
         (other.runtimeType == runtimeType &&
             other is _$SyncStateImpl &&
             (identical(other.status, status) || other.status == status) &&
-            const DeepCollectionEquality().equals(other._history, _history));
+            const DeepCollectionEquality().equals(other._history, _history) &&
+            (identical(other.tokenStatus, tokenStatus) ||
+                other.tokenStatus == tokenStatus) &&
+            (identical(other.currentToken, currentToken) ||
+                other.currentToken == currentToken));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, status, const DeepCollectionEquality().hash(_history));
+  int get hashCode => Object.hash(runtimeType, status,
+      const DeepCollectionEquality().hash(_history), tokenStatus, currentToken);
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.
@@ -1187,12 +2264,18 @@ class _$SyncStateImpl implements _SyncState {
 abstract class _SyncState implements SyncState {
   const factory _SyncState(
       {final SyncStatus status,
-      final List<DateTime> history}) = _$SyncStateImpl;
+      final List<DateTime> history,
+      final SyncTokenStatus tokenStatus,
+      final SyncToken? currentToken}) = _$SyncStateImpl;
 
   @override
   SyncStatus get status;
   @override
   List<DateTime> get history;
+  @override
+  SyncTokenStatus get tokenStatus;
+  @override
+  SyncToken? get currentToken;
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.

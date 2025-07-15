@@ -7,7 +7,7 @@ import 'package:health_wallet/features/records/domain/entity/fhir_resources/cond
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/diagnostic_report/diagnostic_report.dart';
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/goal/goal.dart';
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/document_reference/document_reference.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resources/encounter/encounter.dart';
+import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/immunization/immunization.dart';
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/location/location.dart';
 import 'package:health_wallet/features/records/domain/entity/fhir_resources/media/media.dart';
@@ -69,7 +69,8 @@ class FhirResourceViewer extends StatelessWidget {
             procedure: Procedure.fromJson(resource.resourceJson));
       case 'Encounter':
         return EncounterCard(
-            encounter: Encounter.fromJson(resource.resourceJson));
+          displayModel: _createEncounterDisplayModel(resource),
+        );
       case 'AllergyIntolerance':
         return AllergyIntoleranceCard(
             allergy: AllergyIntolerance.fromJson(resource.resourceJson));
@@ -97,6 +98,21 @@ class FhirResourceViewer extends StatelessWidget {
       default:
         return _DefaultViewer(resource: resource.resourceJson);
     }
+  }
+
+  EncounterDisplayModel _createEncounterDisplayModel(FhirResource resource) {
+    // Create a minimal display model for legacy FhirResource
+    // In new architecture, use RecordsService.getEncountersForDisplay() instead
+    return EncounterDisplayModel(
+      id: resource.id ?? '',
+      patientDisplay:
+          'Patient', // Placeholder - relationships not resolved in legacy mode
+      encounterType: resource.resourceJson['class']?['display'] ?? 'Encounter',
+      practitionerNames: const [], // Empty - relationships not resolved
+      organizationName: '', // Empty - relationships not resolved
+      locationNames: const [], // Empty - relationships not resolved
+      rawEncounter: resource.resourceJson,
+    );
   }
 }
 
