@@ -1,48 +1,47 @@
-import 'package:health_wallet/features/user/data/dto/user_dto.dart';
+import 'package:health_wallet/features/user/data/data_source/local/user_local_data_source.dart';
+import 'package:health_wallet/features/user/data/data_source/remote/user_remote_data_source.dart';
 import 'package:health_wallet/features/user/domain/entity/user.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 import 'package:injectable/injectable.dart';
-import '../data_source/local/user_local_data_source.dart';
-import '../data_source/network/user_network_data_source.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @Injectable(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource _remoteDataSource;
   final UserLocalDataSource _localDataSource;
-  final UserNetworkDataSource _networkDataSource;
+  final SharedPreferences _sharedPreferences;
 
-  UserRepositoryImpl(this._localDataSource, this._networkDataSource);
+  UserRepositoryImpl(
+    this._remoteDataSource,
+    this._localDataSource,
+    this._sharedPreferences,
+  );
+
+  static const _biometricAuthKey = 'isBiometricAuthEnabled';
 
   @override
   Future<User> getCurrentUser({bool fetchFromNetwork = false}) async {
-    UserDto? userDto;
-    if (!fetchFromNetwork) {
-      userDto = _localDataSource.getCachedUser();
+    if (fetchFromNetwork) {
+      final remoteUser = await _remoteDataSource.fetchUser();
+      await _localDataSource.saveUser(remoteUser);
+      return remoteUser;
     }
-
-    if (userDto != null) return userDto.toEntity();
-
-    userDto = await _networkDataSource.fetchUser();
-    await _localDataSource.cacheUser(userDto);
-
-    return userDto.toEntity();
+    final localUser = await _localDataSource.getUser();
+    if (localUser == null) {
+      throw Exception('User not found in local storage');
+    }
+    return localUser;
   }
 
   @override
-  Future<User> updateUser(User user) async {
-    try {
-      final updatedUser =
-          await _networkDataSource.updateUser(UserDto.fromEntity(user));
-      await _localDataSource.cacheUser(updatedUser);
-      return updatedUser.toEntity();
-    } catch (e) {
-      await _localDataSource.cacheUser(UserDto.fromEntity(user));
-      rethrow;
-    }
+  Future<void> updateUser(User user) async {
+    await _remoteDataSource.updateUser(user);
+    await _localDataSource.saveUser(user);
   }
 
   @override
   Future<void> deleteUser() async {
-    await _networkDataSource.deleteUser();
+    await _remoteDataSource.deleteUser();
     await _localDataSource.clearUser();
   }
 
@@ -53,17 +52,24 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> updateProfilePicture(String photoUrl) async {
-    await _networkDataSource.updateProfilePicture(photoUrl);
+    await _remoteDataSource.updateProfilePicture(photoUrl);
     final user = await getCurrentUser();
-
-    await _localDataSource.cacheUser(UserDto.fromEntity(user));
+    final updatedUser = user.copyWith(photoUrl: photoUrl);
+    await _localDataSource.saveUser(updatedUser);
   }
 
   @override
   Future<void> verifyEmail() async {
-    await _networkDataSource.verifyEmail();
-    final user = await getCurrentUser();
+    await _remoteDataSource.verifyEmail();
+  }
 
-    await _localDataSource.cacheUser(UserDto.fromEntity(user));
+  @override
+  Future<bool> isBiometricAuthEnabled() async {
+    return _sharedPreferences.getBool(_biometricAuthKey) ?? false;
+  }
+
+  @override
+  Future<void> saveBiometricAuth(bool isEnabled) async {
+    await _sharedPreferences.setBool(_biometricAuthKey, isEnabled);
   }
 }

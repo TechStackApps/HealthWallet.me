@@ -14,5 +14,6 @@ class UserProfileState with _$UserProfileState {
   const factory UserProfileState({
     @Default(UserProfileStatus.initial()) UserProfileStatus status,
     @Default(User()) User user,
+    @Default(false) bool isBiometricAuthEnabled,
   }) = _UserProfileState;
 }

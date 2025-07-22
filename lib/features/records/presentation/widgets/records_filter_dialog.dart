@@ -1,43 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/utils/fhir_resource_utils.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 
 class RecordsFilterDialog extends StatelessWidget {
-  final String? selectedFilter;
-  const RecordsFilterDialog({super.key, this.selectedFilter});
+  const RecordsFilterDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RecordsBloc, RecordsState>(
-      builder: (context, state) {
-        return AlertDialog(
-          title: const Text('Filter Timeline'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+    return AlertDialog(
+      title: const Text('Filter Records'),
+      content: BlocBuilder<RecordsBloc, RecordsState>(
+        builder: (context, state) {
+          return Wrap(
+            spacing: 8.0,
             children: state.availableFilters.map((filter) {
-              return CheckboxListTile(
-                title: Text(filter),
-                value: state.filters.contains(filter),
-                onChanged: (bool? value) {
-                  if (value == true) {
-                    context.read<RecordsBloc>().add(AddFilter(filter));
-                  } else {
-                    context.read<RecordsBloc>().add(RemoveFilter(filter));
-                  }
+              final isSelected = state.activeFilters.contains(filter);
+              return FilterChip(
+                label: Text(getFhirResourceDisplay(filter)),
+                selected: isSelected,
+                onSelected: (selected) {
+                  context.read<RecordsBloc>().add(RecordsFilterToggled(filter));
                 },
               );
             }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Done'),
-            ),
-          ],
-        );
-      },
+          );
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => context.popDialog(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<RecordsBloc>().add(const RecordsInitialised());
+            context.popDialog();
+          },
+          child: const Text('Apply'),
+        ),
+      ],
     );
   }
 }

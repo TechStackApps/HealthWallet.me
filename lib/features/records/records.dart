@@ -1,4 +1,3 @@
-export 'data/dto/records_entry_dto.dart';
-export 'domain/entity/records_entry.dart';
-export 'domain/repository/records_repository.dart';
-export 'presentation/records_page.dart';
+export 'presentation/bloc/records_bloc.dart';
+export 'presentation/pages/records_page.dart';
+// Add more exports here as needed for widgets or additional blocs

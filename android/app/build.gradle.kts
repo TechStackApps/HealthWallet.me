@@ -21,9 +21,9 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.health_wallet"
+    namespace = "com.techstackapps.healthwallet"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

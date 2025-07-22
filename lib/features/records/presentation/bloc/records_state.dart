@@ -2,22 +2,31 @@ part of 'records_bloc.dart';
 
 @freezed
 class RecordsState with _$RecordsState {
-  const factory RecordsState.initial({
-    @Default([]) List<String> filters,
+  const factory RecordsState({
+    @Default(RecordsStatus.initial()) RecordsStatus status,
+    @Default([]) List<TimelineResourceModel> resources,
+    @Default({}) Set<String> activeFilters,
     @Default([]) List<String> availableFilters,
-  }) = _Initial;
-  const factory RecordsState.loading({
-    @Default([]) List<String> filters,
-    @Default([]) List<String> availableFilters,
-  }) = _Loading;
-  const factory RecordsState.loaded(
-    List<RecordsEntry> entries,
-    List<String> filters,
-    List<String> availableFilters,
-  ) = _Loaded;
-  const factory RecordsState.error(
-    String message, {
-    @Default([]) List<String> filters,
-    @Default([]) List<String> availableFilters,
-  }) = _Error;
+    String? sourceId,
+    @Default(false) bool hasMorePages,
+    @Default(RecordDetailStatus.initial())
+    RecordDetailStatus recordDetailStatus,
+    @Default({}) Map<String, List<FhirResourceDisplayModel>> relatedResources,
+  }) = _RecordsState;
+}
+
+@freezed
+class RecordsStatus with _$RecordsStatus {
+  const factory RecordsStatus.initial() = _Initial;
+  const factory RecordsStatus.loading() = _Loading;
+  const factory RecordsStatus.success() = _Success;
+  const factory RecordsStatus.failure(Object error) = _Failure;
+}
+
+@freezed
+class RecordDetailStatus with _$RecordDetailStatus {
+  const factory RecordDetailStatus.initial() = _DetailInitial;
+  const factory RecordDetailStatus.loading() = _DetailLoading;
+  const factory RecordDetailStatus.success() = _DetailSuccess;
+  const factory RecordDetailStatus.failure(Object error) = _DetailFailure;
 }

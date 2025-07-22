@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/services/biometric_auth_service.dart';
 import 'package:health_wallet/features/user/domain/entity/user.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 import 'package:injectable/injectable.dart';
+
 part 'user_profile_bloc.freezed.dart';
 part 'user_profile_event.dart';
 part 'user_profile_state.dart';
@@ -12,6 +14,7 @@ part 'user_profile_state.dart';
 class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
   UserProfileBloc(
     this._userRepository,
+    this._biometricAuthService,
     // this._authRepository,
   ) : super(const UserProfileState()) {
     on<UserProfileInitialised>(_onUserProfileInitialised);
@@ -22,9 +25,11 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     on<UserProfilePictureUpdated>(_onUserProfilePictureUpdated);
     on<UserProfileEmailVerified>(_onUserProfileEmailVerified);
     on<UserProfileThemeToggled>(_onUserProfileThemeToggled);
+    on<UserProfileBiometricAuthToggled>(_onUserProfileBiometricAuthToggled);
   }
 
   final UserRepository _userRepository;
+  final BiometricAuthService _biometricAuthService;
   // final AuthenticationRepository _authRepository;
 
   Future<void> _onUserProfileInitialised(
@@ -46,13 +51,26 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     Emitter<UserProfileState> emit,
   ) async {
     emit(state.copyWith(status: const UserProfileStatus.loading()));
+
+    // Always load biometric state, even if user data fails
+    final isBiometricAuthEnabled =
+        await _userRepository.isBiometricAuthEnabled();
+
     try {
       final user = await _userRepository.getCurrentUser(
           fetchFromNetwork: fetchFromNetwork);
+
       emit(state.copyWith(
-          status: const UserProfileStatus.success(), user: user));
+        status: const UserProfileStatus.success(),
+        user: user,
+        isBiometricAuthEnabled: isBiometricAuthEnabled,
+      ));
     } catch (e) {
-      emit(state.copyWith(status: UserProfileStatus.failure(e)));
+      // Even if user data fails, emit success with biometric state
+      emit(state.copyWith(
+        status: const UserProfileStatus.success(),
+        isBiometricAuthEnabled: isBiometricAuthEnabled,
+      ));
     }
   }
 
@@ -143,6 +161,58 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
         state.copyWith(
             status: const UserProfileStatus.success(), user: updatedUser),
       );
+    } catch (e) {
+      emit(state.copyWith(status: UserProfileStatus.failure(e)));
+    }
+  }
+
+  Future<void> _onUserProfileBiometricAuthToggled(
+    UserProfileBiometricAuthToggled event,
+    Emitter<UserProfileState> emit,
+  ) async {
+    emit(state.copyWith(status: const UserProfileStatus.loading()));
+    try {
+      if (event.isEnabled) {
+        // When enabling biometric auth, trigger authentication first
+        final canAuth = await _biometricAuthService.canAuthenticate();
+        if (canAuth) {
+          final didAuthenticate = await _biometricAuthService.authenticate();
+          if (didAuthenticate) {
+            await _userRepository.saveBiometricAuth(true);
+            emit(
+              state.copyWith(
+                status: const UserProfileStatus.success(),
+                isBiometricAuthEnabled: true,
+              ),
+            );
+          } else {
+            // Authentication failed, don't enable biometric auth
+            emit(
+              state.copyWith(
+                status: const UserProfileStatus.success(),
+                isBiometricAuthEnabled: false,
+              ),
+            );
+          }
+        } else {
+          // Biometric auth not available, don't enable
+          emit(
+            state.copyWith(
+              status: const UserProfileStatus.success(),
+              isBiometricAuthEnabled: false,
+            ),
+          );
+        }
+      } else {
+        // When disabling biometric auth, just save the state
+        await _userRepository.saveBiometricAuth(false);
+        emit(
+          state.copyWith(
+            status: const UserProfileStatus.success(),
+            isBiometricAuthEnabled: false,
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(status: UserProfileStatus.failure(e)));
     }

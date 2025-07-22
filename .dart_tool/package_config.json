@@ -140,6 +140,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "charcode",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/charcode-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "checked_yaml",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/checked_yaml-2.0.4",
       "packageUri": "lib/",
@@ -284,6 +290,18 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "drift",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/drift-2.26.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "drift_dev",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/drift_dev-2.26.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "equatable",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/equatable-2.0.7",
       "packageUri": "lib/",
@@ -368,6 +386,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "flutter_plugin_android_lifecycle",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/flutter_plugin_android_lifecycle-2.0.28",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
       "name": "flutter_shaders",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/flutter_shaders-0.1.3",
       "packageUri": "lib/",
@@ -448,24 +472,6 @@
     {
       "name": "hashcodes",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/hashcodes-2.0.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "hive",
-      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/hive-2.2.3",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "hive_flutter",
-      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/hive_flutter-1.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "hive_generator",
-      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/hive_generator-2.0.1",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -590,6 +596,36 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "local_auth",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/local_auth-2.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "local_auth_android",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/local_auth_android-1.0.49",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "local_auth_darwin",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/local_auth_darwin-1.5.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "local_auth_platform_interface",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/local_auth_platform_interface-1.0.10",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "local_auth_windows",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/local_auth_windows-1.0.11",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "logger",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/logger-2.6.0",
       "packageUri": "lib/",
@@ -630,6 +666,12 @@
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/mime-2.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
+    },
+    {
+      "name": "mobile_scanner",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/mobile_scanner-7.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
     },
     {
       "name": "mockito",
@@ -776,6 +818,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "reorderable_grid_view",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/reorderable_grid_view-2.2.8",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "rxdart",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/rxdart-0.28.0",
       "packageUri": "lib/",
@@ -890,6 +938,24 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "sqlite3",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/sqlite3-2.7.6",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "sqlite3_flutter_libs",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/sqlite3_flutter_libs-0.5.34",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "sqlparser",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/sqlparser-0.41.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "stack_trace",
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/stack_trace-1.12.1",
       "packageUri": "lib/",
@@ -966,6 +1032,54 @@
       "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/universal_io-2.2.2",
       "packageUri": "lib/",
       "languageVersion": "2.17"
+    },
+    {
+      "name": "url_launcher",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher-6.3.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "url_launcher_android",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.16",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "url_launcher_ios",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "url_launcher_linux",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_linux-3.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "url_launcher_macos",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_macos-3.2.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "url_launcher_platform_interface",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_platform_interface-2.3.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "url_launcher_web",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_web-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "url_launcher_windows",
+      "rootUri": "file:///Users/beniamin/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "uuid",

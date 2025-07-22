@@ -2,11 +2,19 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
-import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
+import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
+import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
+import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -15,30 +23,59 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final _appRouter = getIt.get<AppRouter>();
     final _appRouteObserver = getIt.get<AppRouteObserver>();
-    final _userProfileBloc = getIt.get<UserProfileBloc>()
-      ..add(UserProfileInitialised());
+    final _syncTokenService = getIt<SyncTokenService>();
 
     // final _authRepository = getIt.get<AuthenticationRepository>();
 
-    return MultiBlocProvider(
-      providers: [BlocProvider.value(value: _userProfileBloc)],
-      child: BlocBuilder<UserProfileBloc, UserProfileState>(
-        bloc: _userProfileBloc,
-        builder: (context, userProfileState) {
-          final isDarkMode = userProfileState.user.isDarkMode;
-          return MaterialApp.router(
-            title: 'Health Wallet',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            routerConfig: _appRouter.config(
-              navigatorObservers: () => [_appRouteObserver],
-            ),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            builder: (context, child) => child!,
-          );
-        },
+    return Provider<SyncTokenService>(
+      create: (_) => _syncTokenService,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (context) => getIt<UserProfileBloc>()
+                ..add(const UserProfileEvent.initialised())),
+          BlocProvider(
+            create: (context) => getIt<SyncBloc>()
+              ..add(const SyncEvent.checkConnectionValidity()),
+          ),
+          BlocProvider(
+              create: (context) => getIt<RecordsBloc>()
+                ..add(const RecordsLoadFilters())
+                ..add(const RecordsInitialised())),
+          BlocProvider(
+            create: (context) => HomeBloc(
+              getIt<FhirRepository>(),
+              getIt<GetSourcesUseCase>(),
+              HomeLocalDataSourceImpl(),
+            )..add(const HomeInitialised()),
+          ),
+        ],
+        child: BlocListener<SyncBloc, SyncState>(
+          listener: (context, state) {
+            state.status.whenOrNull(
+              success: () {
+                context.read<HomeBloc>().add(const HomeInitialised());
+              },
+            );
+          },
+          child: BlocBuilder<UserProfileBloc, UserProfileState>(
+            builder: (context, state) {
+              return MaterialApp.router(
+                title: 'Health Wallet',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode:
+                    state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                routerConfig: _appRouter.config(
+                  navigatorObservers: () => [_appRouteObserver],
+                ),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                builder: (context, child) => child!,
+              );
+            },
+          ),
+        ),
       ),
     );
   }

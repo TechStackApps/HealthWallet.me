@@ -1,74 +1,89 @@
-import 'package:health_wallet/core/data/mock_data.dart';
 import 'package:health_wallet/features/records/data/data_source/local/records_local_data_source.dart';
-import 'package:health_wallet/features/records/domain/entity/allergy/allergy.dart';
-import 'package:health_wallet/features/records/domain/entity/condition/condition.dart';
-import 'package:health_wallet/features/records/domain/entity/immunization/immunization.dart';
-import 'package:health_wallet/features/records/domain/entity/lab_result/lab_result.dart';
-import 'package:health_wallet/features/records/domain/entity/medication/medication.dart';
-import 'package:health_wallet/features/records/domain/entity/procedure/procedure.dart';
-import 'package:health_wallet/features/records/domain/entity/records_entry.dart';
+import 'package:health_wallet/features/records/data/data_source/remote/records_remote_data_source.dart';
+import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
+import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:injectable/injectable.dart';
 
-@LazySingleton(as: RecordsRepository)
+@Injectable(as: RecordsRepository)
 class RecordsRepositoryImpl implements RecordsRepository {
+  final RecordsRemoteDataSource _remoteDataSource;
   final RecordsLocalDataSource _localDataSource;
 
-  RecordsRepositoryImpl(this._localDataSource);
+  RecordsRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   @override
-  Future<List<RecordsEntry>> getTimelineEntries({String? filter}) async {
-    final dtos = await _localDataSource.getTimelineEntries(filter: filter);
-    return dtos.map((dto) => dto.toEntity()).toList();
+  Future<void> deleteResourcesForSource(String sourceId) {
+    // TODO: implement deleteResourcesForSource
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<RecordsEntry>> getTimelineEntriesForAllergy(
-    Allergy allergy,
-  ) async {
-    final dtos = await _localDataSource.getTimelineEntriesForAllergy(allergy);
-    return dtos.map((dto) => dto.toEntity()).toList();
+  Future<List<FhirResourceDisplayModel>> getAllResourcesForDisplay(
+      {List<String>? resourceTypes}) {
+    // TODO: implement getAllResourcesForDisplay
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<Allergy>> getAllergies() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return MockData.allergies;
+  Future<List<String>> getAvailableResourceTypes() {
+    // TODO: implement getAvailableResourceTypes
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<Medication>> getMedications() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return MockData.medications;
+  Future<List<EncounterDisplayModel>> getEncountersForDisplay() {
+    // TODO: implement getEncountersForDisplay
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<Condition>> getConditions() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return [];
+  Future<Map<String, List<FhirResourceDisplayModel>>>
+      getRelatedResourcesForEncounter(String encounterId) {
+    // TODO: implement getRelatedResourcesForEncounter
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<Immunization>> getImmunizations() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return [];
+  Future<Map<String, int>> getResourceCounts() {
+    // TODO: implement getResourceCounts
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<LabResult>> getLabResults() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return [];
+  Future<List<FhirResourceDisplayModel>> getResourcesForPatient(
+      String patientId) {
+    // TODO: implement getResourcesForPatient
+    throw UnimplementedError();
   }
 
   @override
-  Future<List<Procedure>> getProcedures() async {
-    // Simulate a network delay
-    // await Future.delayed(const Duration(seconds: 1));
-    return [];
+  Future<List<FhirResourceDisplayModel>> getResourcesWithFilters(
+      {List<String>? resourceTypes,
+      DateTime? startDate,
+      DateTime? endDate,
+      String? patientId}) {
+    // TODO: implement getResourcesWithFilters
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<FhirResourceDisplayModel>> getStandaloneResourcesForDisplay(
+      {List<String>? resourceTypes}) {
+    // TODO: implement getStandaloneResourcesForDisplay
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, int>> importFhirBundle(String bundleJson) {
+    // TODO: implement importFhirBundle
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<FhirResourceDisplayModel>> searchResources(String query) {
+    // TODO: implement searchResources
+    throw UnimplementedError();
   }
 }

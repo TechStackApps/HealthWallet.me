@@ -15,16 +15,16 @@ abstract class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
+    AuthRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const AuthPage(),
+      );
+    },
     DashboardRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const DashboardPage(),
-      );
-    },
-    DummyRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const DummyPage(),
       );
     },
     HomeRoute.name: (routeData) {
@@ -37,16 +37,26 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
-    LoginRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LoginPage(),
-      );
-    },
     OnboardingRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const OnboardingPage(),
+      );
+    },
+    PrivacyPolicyRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const PrivacyPolicyPage(),
+      );
+    },
+    RecordDetailRoute.name: (routeData) {
+      final args = routeData.argsAs<RecordDetailRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: RecordDetailPage(
+          key: args.key,
+          encounter: args.encounter,
+        ),
       );
     },
     RecordsRoute.name: (routeData) {
@@ -60,10 +70,14 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
-    SignupRoute.name: (routeData) {
+    ResourceDetailRoute.name: (routeData) {
+      final args = routeData.argsAs<ResourceDetailRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const SignupPage(),
+        child: ResourceDetailPage(
+          key: args.key,
+          resource: args.resource,
+        ),
       );
     },
     SplashRoute.name: (routeData) {
@@ -72,13 +86,27 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const SplashPage(),
       );
     },
-    UserProfileRoute.name: (routeData) {
+    SyncRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const UserProfilePage(),
+        child: const SyncPage(),
       );
     },
   };
+}
+
+/// generated route for
+/// [AuthPage]
+class AuthRoute extends PageRouteInfo<void> {
+  const AuthRoute({List<PageRouteInfo>? children})
+      : super(
+          AuthRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'AuthRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
 }
 
 /// generated route for
@@ -91,20 +119,6 @@ class DashboardRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'DashboardRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [DummyPage]
-class DummyRoute extends PageRouteInfo<void> {
-  const DummyRoute({List<PageRouteInfo>? children})
-      : super(
-          DummyRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'DummyRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
@@ -147,20 +161,6 @@ class HomeRouteArgs {
 }
 
 /// generated route for
-/// [LoginPage]
-class LoginRoute extends PageRouteInfo<void> {
-  const LoginRoute({List<PageRouteInfo>? children})
-      : super(
-          LoginRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'LoginRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
 /// [OnboardingPage]
 class OnboardingRoute extends PageRouteInfo<void> {
   const OnboardingRoute({List<PageRouteInfo>? children})
@@ -172,6 +172,58 @@ class OnboardingRoute extends PageRouteInfo<void> {
   static const String name = 'OnboardingRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [PrivacyPolicyPage]
+class PrivacyPolicyRoute extends PageRouteInfo<void> {
+  const PrivacyPolicyRoute({List<PageRouteInfo>? children})
+      : super(
+          PrivacyPolicyRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'PrivacyPolicyRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [RecordDetailPage]
+class RecordDetailRoute extends PageRouteInfo<RecordDetailRouteArgs> {
+  RecordDetailRoute({
+    Key? key,
+    required EncounterDisplayModel encounter,
+    List<PageRouteInfo>? children,
+  }) : super(
+          RecordDetailRoute.name,
+          args: RecordDetailRouteArgs(
+            key: key,
+            encounter: encounter,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'RecordDetailRoute';
+
+  static const PageInfo<RecordDetailRouteArgs> page =
+      PageInfo<RecordDetailRouteArgs>(name);
+}
+
+class RecordDetailRouteArgs {
+  const RecordDetailRouteArgs({
+    this.key,
+    required this.encounter,
+  });
+
+  final Key? key;
+
+  final EncounterDisplayModel encounter;
+
+  @override
+  String toString() {
+    return 'RecordDetailRouteArgs{key: $key, encounter: $encounter}';
+  }
 }
 
 /// generated route for
@@ -213,17 +265,41 @@ class RecordsRouteArgs {
 }
 
 /// generated route for
-/// [SignupPage]
-class SignupRoute extends PageRouteInfo<void> {
-  const SignupRoute({List<PageRouteInfo>? children})
-      : super(
-          SignupRoute.name,
+/// [ResourceDetailPage]
+class ResourceDetailRoute extends PageRouteInfo<ResourceDetailRouteArgs> {
+  ResourceDetailRoute({
+    Key? key,
+    required FhirResourceDisplayModel resource,
+    List<PageRouteInfo>? children,
+  }) : super(
+          ResourceDetailRoute.name,
+          args: ResourceDetailRouteArgs(
+            key: key,
+            resource: resource,
+          ),
           initialChildren: children,
         );
 
-  static const String name = 'SignupRoute';
+  static const String name = 'ResourceDetailRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static const PageInfo<ResourceDetailRouteArgs> page =
+      PageInfo<ResourceDetailRouteArgs>(name);
+}
+
+class ResourceDetailRouteArgs {
+  const ResourceDetailRouteArgs({
+    this.key,
+    required this.resource,
+  });
+
+  final Key? key;
+
+  final FhirResourceDisplayModel resource;
+
+  @override
+  String toString() {
+    return 'ResourceDetailRouteArgs{key: $key, resource: $resource}';
+  }
 }
 
 /// generated route for
@@ -241,15 +317,15 @@ class SplashRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [UserProfilePage]
-class UserProfileRoute extends PageRouteInfo<void> {
-  const UserProfileRoute({List<PageRouteInfo>? children})
+/// [SyncPage]
+class SyncRoute extends PageRouteInfo<void> {
+  const SyncRoute({List<PageRouteInfo>? children})
       : super(
-          UserProfileRoute.name,
+          SyncRoute.name,
           initialChildren: children,
         );
 
-  static const String name = 'UserProfileRoute';
+  static const String name = 'SyncRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

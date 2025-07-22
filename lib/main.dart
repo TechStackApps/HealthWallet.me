@@ -13,5 +13,5 @@ void main() async {
 
   FlutterNativeSplash.remove();
 
-  await bootstrap(() => App());
+  await bootstrap(() => const App());
 }
