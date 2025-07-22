@@ -1,6 +1,0 @@
-framework module integration_test {
-  umbrella header "integration_test-umbrella.h"
-
-  export *
-  module * { export * }
-}
