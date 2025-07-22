@@ -43,25 +43,31 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verwalten Sie alle Ihre Krankenakten sicher mit modernem Komfort und Seelenfrieden.';
 
   @override
-  String get onboardingRecordsTitle => 'Datensätze anzeigen und verwalten';
+  String get onboardingRecordsTitle => 'Synchronisierung';
 
   @override
-  String get onboardingRecordsSubtitle => 'Vollständige Krankengeschichte';
+  String get onboardingRecordsSubtitle => 'Ihre Gesundheit, aktuell';
 
   @override
   String get onboardingRecordsDescription =>
-      'Greifen Sie auf alle Ihre Krankenakten, Rezepte und Gesundheitsdaten in einer schönen Oberfläche zu.';
+      'Ein einziger Scan reicht aus, um Ihre Gesundheitsakten auf dem neuesten Stand zu halten.';
 
   @override
-  String get onboardingSyncTitle => 'Sicher synchronisieren';
+  String get onboardingScanButton => 'Scannen';
 
   @override
-  String get onboardingSyncSubtitle =>
-      'Integration von Gesundheitsdienstleistern';
+  String get onboardingSyncTitle => 'Sicherheit & Datenschutz';
+
+  @override
+  String get onboardingSyncSubtitle => 'Ihre Daten, Ihre Kontrolle';
 
   @override
   String get onboardingSyncDescription =>
-      'Verbinden Sie sich sicher mit Ihren Gesundheitsdienstleistern mithilfe verschlüsselter, HIPAA-konformer Technologie.';
+      'Ihre Gesundheitsdaten werden lokal auf Ihrem Telefon gespeichert und verlassen Ihr Gerät niemals ohne Ihre Erlaubnis.';
+
+  @override
+  String get onboardingBiometricText =>
+      'Fügen Sie eine zusätzliche Sicherheitsebene hinzu, indem Sie die biometrische Authentifizierung aktivieren.';
 
   @override
   String get homeHi => 'Hallo, ';

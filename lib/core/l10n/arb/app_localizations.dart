@@ -151,56 +151,68 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to HealthVault'**
+  /// **'a Health Wallet for You!'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Health, In One Place'**
+  /// **'All your data into your phone from 100k+ insurances/hospitals/clinics from USA. Secured. Compliant, always only on your device!'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingWelcomeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Securely manage all your medical records with modern convenience and peace of mind.'**
+  /// **'Sync your healthcare data through <link>FastenHealth OnPrem</link> with the healthcare providers and see your complete medical history in one place. Secured, compliant and always on your device. Enjoy!'**
   String get onboardingWelcomeDescription;
 
   /// No description provided for @onboardingRecordsTitle.
   ///
   /// In en, this message translates to:
-  /// **'View & Manage Records'**
+  /// **'Synchronization'**
   String get onboardingRecordsTitle;
 
   /// No description provided for @onboardingRecordsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Complete Medical History'**
+  /// **'Your Health, Up-To-Date'**
   String get onboardingRecordsSubtitle;
 
   /// No description provided for @onboardingRecordsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Access all your medical records, prescriptions, and health data in one beautiful interface.'**
+  /// **'A single scan is all it takes to keep your health records up-to-date.'**
   String get onboardingRecordsDescription;
+
+  /// No description provided for @onboardingScanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get onboardingScanButton;
 
   /// No description provided for @onboardingSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sync Securely'**
+  /// **'Security & Privacy'**
   String get onboardingSyncTitle;
 
   /// No description provided for @onboardingSyncSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Healthcare Provider Integration'**
+  /// **'Your Data, Your Control'**
   String get onboardingSyncSubtitle;
 
   /// No description provided for @onboardingSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Connect safely with your healthcare providers using encrypted, HIPAA-compliant technology.'**
+  /// **'Your health data is stored locally on your phone and never leaves your device without your permission.'**
   String get onboardingSyncDescription;
+
+  /// No description provided for @onboardingBiometricText.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an extra layer of security by enabling biometric authentication.'**
+  String get onboardingBiometricText;
 
   /// No description provided for @homeHi.
   ///

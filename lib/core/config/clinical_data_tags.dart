@@ -6,6 +6,11 @@ class ClinicalDataTags {
   static const String labResult = 'Lab Result';
   static const String procedure = 'Procedure';
   static const String goal = 'Goal';
+  static const String careTeam = 'Care Team';
+  static const String clinicalNotes = 'Clinical Notes';
+  static const String files = 'Files';
+  static const String facilities = 'Facilities';
+  static const String demographics = 'Demographics';
   static const String checkup = 'Checkup';
   static const String specialtyVisit = 'Specialty Visit';
   static const String preventiveCare = 'Preventive Care';
@@ -16,8 +21,13 @@ class ClinicalDataTags {
     medication: 'MedicationRequest',
     condition: 'Condition',
     immunization: 'Immunization',
-    labResult: 'Observation',
+    labResult: 'DiagnosticReport',
     procedure: 'Procedure',
     goal: 'Goal',
+    careTeam: 'CareTeam',
+    clinicalNotes: 'Encounter',
+    files: 'DocumentReference',
+    facilities: 'Organization',
+    demographics: 'Patient',
   };
 }

@@ -27,16 +27,6 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const DashboardPage(),
       );
     },
-    EncounterDetailRoute.name: (routeData) {
-      final args = routeData.argsAs<EncounterDetailRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: EncounterDetailPage(
-          key: args.key,
-          encounter: args.encounter,
-        ),
-      );
-    },
     HomeRoute.name: (routeData) {
       final args = routeData.argsAs<HomeRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -57,6 +47,16 @@ abstract class _$AppRouter extends RootStackRouter {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const PrivacyPolicyPage(),
+      );
+    },
+    RecordDetailRoute.name: (routeData) {
+      final args = routeData.argsAs<RecordDetailRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: RecordDetailPage(
+          key: args.key,
+          encounter: args.encounter,
+        ),
       );
     },
     RecordsRoute.name: (routeData) {
@@ -124,44 +124,6 @@ class DashboardRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [EncounterDetailPage]
-class EncounterDetailRoute extends PageRouteInfo<EncounterDetailRouteArgs> {
-  EncounterDetailRoute({
-    Key? key,
-    required EncounterDisplayModel encounter,
-    List<PageRouteInfo>? children,
-  }) : super(
-          EncounterDetailRoute.name,
-          args: EncounterDetailRouteArgs(
-            key: key,
-            encounter: encounter,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'EncounterDetailRoute';
-
-  static const PageInfo<EncounterDetailRouteArgs> page =
-      PageInfo<EncounterDetailRouteArgs>(name);
-}
-
-class EncounterDetailRouteArgs {
-  const EncounterDetailRouteArgs({
-    this.key,
-    required this.encounter,
-  });
-
-  final Key? key;
-
-  final EncounterDisplayModel encounter;
-
-  @override
-  String toString() {
-    return 'EncounterDetailRouteArgs{key: $key, encounter: $encounter}';
-  }
-}
-
-/// generated route for
 /// [HomePage]
 class HomeRoute extends PageRouteInfo<HomeRouteArgs> {
   HomeRoute({
@@ -224,6 +186,44 @@ class PrivacyPolicyRoute extends PageRouteInfo<void> {
   static const String name = 'PrivacyPolicyRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [RecordDetailPage]
+class RecordDetailRoute extends PageRouteInfo<RecordDetailRouteArgs> {
+  RecordDetailRoute({
+    Key? key,
+    required EncounterDisplayModel encounter,
+    List<PageRouteInfo>? children,
+  }) : super(
+          RecordDetailRoute.name,
+          args: RecordDetailRouteArgs(
+            key: key,
+            encounter: encounter,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'RecordDetailRoute';
+
+  static const PageInfo<RecordDetailRouteArgs> page =
+      PageInfo<RecordDetailRouteArgs>(name);
+}
+
+class RecordDetailRouteArgs {
+  const RecordDetailRouteArgs({
+    this.key,
+    required this.encounter,
+  });
+
+  final Key? key;
+
+  final EncounterDisplayModel encounter;
+
+  @override
+  String toString() {
+    return 'RecordDetailRouteArgs{key: $key, encounter: $encounter}';
+  }
 }
 
 /// generated route for
@@ -312,6 +312,20 @@ class SplashRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'SplashRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [SyncPage]
+class SyncRoute extends PageRouteInfo<void> {
+  const SyncRoute({List<PageRouteInfo>? children})
+      : super(
+          SyncRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'SyncRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

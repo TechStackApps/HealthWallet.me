@@ -35,8 +35,20 @@ class $AssetsIconsGen {
   /// File path: assets/icons/activity.svg
   SvgGenImage get activity => const SvgGenImage('assets/icons/activity.svg');
 
+  /// File path: assets/icons/attachment.svg
+  SvgGenImage get attachment =>
+      const SvgGenImage('assets/icons/attachment.svg');
+
+  /// File path: assets/icons/briefcase-procedures.svg
+  SvgGenImage get briefcaseProcedures =>
+      const SvgGenImage('assets/icons/briefcase-procedures.svg');
+
   /// File path: assets/icons/calendar.svg
   SvgGenImage get calendar => const SvgGenImage('assets/icons/calendar.svg');
+
+  /// File path: assets/icons/catalog-notes.svg
+  SvgGenImage get catalogNotes =>
+      const SvgGenImage('assets/icons/catalog-notes.svg');
 
   /// File path: assets/icons/checkmark-circle-outline.svg
   SvgGenImage get checkmarkCircleOutline =>
@@ -45,11 +57,19 @@ class $AssetsIconsGen {
   /// File path: assets/icons/dashboard.svg
   SvgGenImage get dashboard => const SvgGenImage('assets/icons/dashboard.svg');
 
+  /// File path: assets/icons/document-file.svg
+  SvgGenImage get documentFile =>
+      const SvgGenImage('assets/icons/document-file.svg');
+
   /// File path: assets/icons/drop.svg
   SvgGenImage get drop => const SvgGenImage('assets/icons/drop.svg');
 
   /// File path: assets/icons/edit.svg
   SvgGenImage get edit => const SvgGenImage('assets/icons/edit.svg');
+
+  /// File path: assets/icons/events-team.svg
+  SvgGenImage get eventsTeam =>
+      const SvgGenImage('assets/icons/events-team.svg');
 
   /// File path: assets/icons/face-mask.svg
   SvgGenImage get faceMask => const SvgGenImage('assets/icons/face-mask.svg');
@@ -61,9 +81,6 @@ class $AssetsIconsGen {
   SvgGenImage get genderMale =>
       const SvgGenImage('assets/icons/gender-male.svg');
 
-  /// File path: assets/icons/goal.svg
-  SvgGenImage get goal => const SvgGenImage('assets/icons/goal.svg');
-
   /// File path: assets/icons/heart-favorite.svg
   SvgGenImage get heartFavorite =>
       const SvgGenImage('assets/icons/heart-favorite.svg');
@@ -71,8 +88,20 @@ class $AssetsIconsGen {
   /// File path: assets/icons/hospital.svg
   SvgGenImage get hospital => const SvgGenImage('assets/icons/hospital.svg');
 
+  /// File path: assets/icons/identification.svg
+  SvgGenImage get identification =>
+      const SvgGenImage('assets/icons/identification.svg');
+
+  /// File path: assets/icons/improve-relevance.svg
+  SvgGenImage get improveRelevance =>
+      const SvgGenImage('assets/icons/improve-relevance.svg');
+
   /// File path: assets/icons/lab.svg
   SvgGenImage get lab => const SvgGenImage('assets/icons/lab.svg');
+
+  /// File path: assets/icons/license-draft-notes.svg
+  SvgGenImage get licenseDraftNotes =>
+      const SvgGenImage('assets/icons/license-draft-notes.svg');
 
   /// File path: assets/icons/medication.svg
   SvgGenImage get medication =>
@@ -122,18 +151,25 @@ class $AssetsIconsGen {
   /// List of all assets
   List<SvgGenImage> get values => [
         activity,
+        attachment,
+        briefcaseProcedures,
         calendar,
+        catalogNotes,
         checkmarkCircleOutline,
         dashboard,
+        documentFile,
         drop,
         edit,
+        eventsTeam,
         faceMask,
         filter,
         genderMale,
-        goal,
         heartFavorite,
         hospital,
+        identification,
+        improveRelevance,
         lab,
+        licenseDraftNotes,
         medication,
         moon,
         renewSync,

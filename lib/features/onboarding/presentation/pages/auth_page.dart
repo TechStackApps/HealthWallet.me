@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
-import 'package:health_wallet/core/services/local_auth_service.dart';
+import 'package:health_wallet/core/services/biometric_auth_service.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
@@ -20,14 +20,15 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final LocalAuthService _localAuthService = getIt<LocalAuthService>();
+  final BiometricAuthService _biometricAuthService =
+      getIt<BiometricAuthService>();
 
   Future<void> _authenticate() async {
     logger.i('Starting authentication process...');
-    final canAuth = await _localAuthService.canAuthenticate();
+    final canAuth = await _biometricAuthService.canAuthenticate();
     logger.i('Can authenticate check returned: $canAuth');
     if (canAuth) {
-      final didAuthenticate = await _localAuthService.authenticate();
+      final didAuthenticate = await _biometricAuthService.authenticate();
       logger.i('Authentication result: $didAuthenticate');
       if (didAuthenticate) {
         final prefs = await SharedPreferences.getInstance();

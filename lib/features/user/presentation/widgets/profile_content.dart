@@ -7,6 +7,7 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/theme_toggle_button.dart';
+import 'package:health_wallet/features/user/presentation/widgets/biometric_toggle_button.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
@@ -198,24 +199,27 @@ class ProfileContent extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(context.l10n.biometricAuthentication),
-                      Switch(
-                        value: state.isBiometricAuthEnabled,
-                        onChanged: (value) {
-                          context.read<UserProfileBloc>().add(
-                                UserProfileEvent.biometricAuthToggled(value),
-                              );
-                        },
-                      ),
+                      const BiometricToggleButton(),
                     ],
                   ),
-                  const SizedBox(height: Insets.medium),
 
-                  /// 📄 Privacy Policy
-                  ListTile(
-                    title: Text(context.l10n.privacyPolicy),
-                    onTap: () {
-                      context.appRouter.push(const PrivacyPolicyRoute());
-                    },
+                  const SizedBox(height: Insets.medium),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(context.l10n.privacyPolicy),
+                      IconButton(
+                        onPressed: () {
+                          context.appRouter.push(const PrivacyPolicyRoute());
+                        },
+                        icon: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: context.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

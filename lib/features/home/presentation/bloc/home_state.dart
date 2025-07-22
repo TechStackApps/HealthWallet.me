@@ -17,6 +17,12 @@ class HomeState with _$HomeState {
       ClinicalDataTags.immunization: true,
       ClinicalDataTags.labResult: true,
       ClinicalDataTags.procedure: true,
+      ClinicalDataTags.goal: true,
+      ClinicalDataTags.careTeam: true,
+      ClinicalDataTags.clinicalNotes: true,
+      ClinicalDataTags.files: true,
+      ClinicalDataTags.facilities: true,
+      ClinicalDataTags.demographics: true,
     })
     Map<String, bool> selectedResources,
     FhirResource? patient,

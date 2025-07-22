@@ -26,7 +26,13 @@ mixin _$SyncToken {
   String get serverName => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get expiresAt => throw _privateConstructorUsedError;
-  bool get isActive => throw _privateConstructorUsedError;
+  bool get isActive =>
+      throw _privateConstructorUsedError; // Enhanced fields for GitHub-like token management
+  String get tokenId => throw _privateConstructorUsedError;
+  DateTime? get lastUsedAt =>
+      throw _privateConstructorUsedError; // Network resilience fields
+  List<String> get fallbackAddresses => throw _privateConstructorUsedError;
+  Map<String, dynamic> get serverInfo => throw _privateConstructorUsedError;
 
   /// Serializes this SyncToken to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,7 +56,11 @@ abstract class $SyncTokenCopyWith<$Res> {
       String serverName,
       DateTime createdAt,
       DateTime expiresAt,
-      bool isActive});
+      bool isActive,
+      String tokenId,
+      DateTime? lastUsedAt,
+      List<String> fallbackAddresses,
+      Map<String, dynamic> serverInfo});
 }
 
 /// @nodoc
@@ -75,6 +85,10 @@ class _$SyncTokenCopyWithImpl<$Res, $Val extends SyncToken>
     Object? createdAt = null,
     Object? expiresAt = null,
     Object? isActive = null,
+    Object? tokenId = null,
+    Object? lastUsedAt = freezed,
+    Object? fallbackAddresses = null,
+    Object? serverInfo = null,
   }) {
     return _then(_value.copyWith(
       token: null == token
@@ -105,6 +119,22 @@ class _$SyncTokenCopyWithImpl<$Res, $Val extends SyncToken>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      tokenId: null == tokenId
+          ? _value.tokenId
+          : tokenId // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastUsedAt: freezed == lastUsedAt
+          ? _value.lastUsedAt
+          : lastUsedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      fallbackAddresses: null == fallbackAddresses
+          ? _value.fallbackAddresses
+          : fallbackAddresses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      serverInfo: null == serverInfo
+          ? _value.serverInfo
+          : serverInfo // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ) as $Val);
   }
 }
@@ -124,7 +154,11 @@ abstract class _$$SyncTokenImplCopyWith<$Res>
       String serverName,
       DateTime createdAt,
       DateTime expiresAt,
-      bool isActive});
+      bool isActive,
+      String tokenId,
+      DateTime? lastUsedAt,
+      List<String> fallbackAddresses,
+      Map<String, dynamic> serverInfo});
 }
 
 /// @nodoc
@@ -147,6 +181,10 @@ class __$$SyncTokenImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? expiresAt = null,
     Object? isActive = null,
+    Object? tokenId = null,
+    Object? lastUsedAt = freezed,
+    Object? fallbackAddresses = null,
+    Object? serverInfo = null,
   }) {
     return _then(_$SyncTokenImpl(
       token: null == token
@@ -177,6 +215,22 @@ class __$$SyncTokenImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      tokenId: null == tokenId
+          ? _value.tokenId
+          : tokenId // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastUsedAt: freezed == lastUsedAt
+          ? _value.lastUsedAt
+          : lastUsedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      fallbackAddresses: null == fallbackAddresses
+          ? _value._fallbackAddresses
+          : fallbackAddresses // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      serverInfo: null == serverInfo
+          ? _value._serverInfo
+          : serverInfo // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }
@@ -191,7 +245,13 @@ class _$SyncTokenImpl implements _SyncToken {
       required this.serverName,
       required this.createdAt,
       required this.expiresAt,
-      this.isActive = true});
+      this.isActive = true,
+      required this.tokenId,
+      this.lastUsedAt,
+      final List<String> fallbackAddresses = const [],
+      final Map<String, dynamic> serverInfo = const {}})
+      : _fallbackAddresses = fallbackAddresses,
+        _serverInfo = serverInfo;
 
   factory _$SyncTokenImpl.fromJson(Map<String, dynamic> json) =>
       _$$SyncTokenImplFromJson(json);
@@ -211,10 +271,35 @@ class _$SyncTokenImpl implements _SyncToken {
   @override
   @JsonKey()
   final bool isActive;
+// Enhanced fields for GitHub-like token management
+  @override
+  final String tokenId;
+  @override
+  final DateTime? lastUsedAt;
+// Network resilience fields
+  final List<String> _fallbackAddresses;
+// Network resilience fields
+  @override
+  @JsonKey()
+  List<String> get fallbackAddresses {
+    if (_fallbackAddresses is EqualUnmodifiableListView)
+      return _fallbackAddresses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_fallbackAddresses);
+  }
+
+  final Map<String, dynamic> _serverInfo;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get serverInfo {
+    if (_serverInfo is EqualUnmodifiableMapView) return _serverInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_serverInfo);
+  }
 
   @override
   String toString() {
-    return 'SyncToken(token: $token, address: $address, port: $port, serverName: $serverName, createdAt: $createdAt, expiresAt: $expiresAt, isActive: $isActive)';
+    return 'SyncToken(token: $token, address: $address, port: $port, serverName: $serverName, createdAt: $createdAt, expiresAt: $expiresAt, isActive: $isActive, tokenId: $tokenId, lastUsedAt: $lastUsedAt, fallbackAddresses: $fallbackAddresses, serverInfo: $serverInfo)';
   }
 
   @override
@@ -232,13 +317,31 @@ class _$SyncTokenImpl implements _SyncToken {
             (identical(other.expiresAt, expiresAt) ||
                 other.expiresAt == expiresAt) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.tokenId, tokenId) || other.tokenId == tokenId) &&
+            (identical(other.lastUsedAt, lastUsedAt) ||
+                other.lastUsedAt == lastUsedAt) &&
+            const DeepCollectionEquality()
+                .equals(other._fallbackAddresses, _fallbackAddresses) &&
+            const DeepCollectionEquality()
+                .equals(other._serverInfo, _serverInfo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, token, address, port, serverName,
-      createdAt, expiresAt, isActive);
+  int get hashCode => Object.hash(
+      runtimeType,
+      token,
+      address,
+      port,
+      serverName,
+      createdAt,
+      expiresAt,
+      isActive,
+      tokenId,
+      lastUsedAt,
+      const DeepCollectionEquality().hash(_fallbackAddresses),
+      const DeepCollectionEquality().hash(_serverInfo));
 
   /// Create a copy of SyncToken
   /// with the given fields replaced by the non-null parameter values.
@@ -264,7 +367,11 @@ abstract class _SyncToken implements SyncToken {
       required final String serverName,
       required final DateTime createdAt,
       required final DateTime expiresAt,
-      final bool isActive}) = _$SyncTokenImpl;
+      final bool isActive,
+      required final String tokenId,
+      final DateTime? lastUsedAt,
+      final List<String> fallbackAddresses,
+      final Map<String, dynamic> serverInfo}) = _$SyncTokenImpl;
 
   factory _SyncToken.fromJson(Map<String, dynamic> json) =
       _$SyncTokenImpl.fromJson;
@@ -282,7 +389,15 @@ abstract class _SyncToken implements SyncToken {
   @override
   DateTime get expiresAt;
   @override
-  bool get isActive;
+  bool get isActive; // Enhanced fields for GitHub-like token management
+  @override
+  String get tokenId;
+  @override
+  DateTime? get lastUsedAt; // Network resilience fields
+  @override
+  List<String> get fallbackAddresses;
+  @override
+  Map<String, dynamic> get serverInfo;
 
   /// Create a copy of SyncToken
   /// with the given fields replaced by the non-null parameter values.

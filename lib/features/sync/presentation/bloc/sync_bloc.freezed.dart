@@ -22,8 +22,9 @@ mixin _$SyncEvent {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -32,8 +33,9 @@ mixin _$SyncEvent {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -42,8 +44,9 @@ mixin _$SyncEvent {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -55,6 +58,8 @@ mixin _$SyncEvent {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -65,6 +70,7 @@ mixin _$SyncEvent {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -75,6 +81,7 @@ mixin _$SyncEvent {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -121,8 +128,8 @@ class __$$SyncDataImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SyncDataImpl implements _SyncData {
-  const _$SyncDataImpl();
+class _$SyncDataImpl extends _SyncData {
+  const _$SyncDataImpl() : super._();
 
   @override
   String toString() {
@@ -145,8 +152,9 @@ class _$SyncDataImpl implements _SyncData {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
     return syncData();
   }
@@ -158,8 +166,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
     return syncData?.call();
   }
@@ -171,8 +180,9 @@ class _$SyncDataImpl implements _SyncData {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (syncData != null) {
@@ -190,6 +200,8 @@ class _$SyncDataImpl implements _SyncData {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return syncData(this);
   }
@@ -203,6 +215,7 @@ class _$SyncDataImpl implements _SyncData {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return syncData?.call(this);
   }
@@ -216,6 +229,7 @@ class _$SyncDataImpl implements _SyncData {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (syncData != null) {
@@ -225,8 +239,9 @@ class _$SyncDataImpl implements _SyncData {
   }
 }
 
-abstract class _SyncData implements SyncEvent {
+abstract class _SyncData extends SyncEvent {
   const factory _SyncData() = _$SyncDataImpl;
+  const _SyncData._() : super._();
 }
 
 /// @nodoc
@@ -264,8 +279,8 @@ class __$$SyncDataWithJsonImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
-  const _$SyncDataWithJsonImpl(this.jsonData);
+class _$SyncDataWithJsonImpl extends _SyncDataWithJson {
+  const _$SyncDataWithJsonImpl(this.jsonData) : super._();
 
   @override
   final String jsonData;
@@ -303,8 +318,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
     return syncDataWithJson(jsonData);
   }
@@ -316,8 +332,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
     return syncDataWithJson?.call(jsonData);
   }
@@ -329,8 +346,9 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (syncDataWithJson != null) {
@@ -348,6 +366,8 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return syncDataWithJson(this);
   }
@@ -361,6 +381,7 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return syncDataWithJson?.call(this);
   }
@@ -374,6 +395,7 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (syncDataWithJson != null) {
@@ -383,9 +405,10 @@ class _$SyncDataWithJsonImpl implements _SyncDataWithJson {
   }
 }
 
-abstract class _SyncDataWithJson implements SyncEvent {
+abstract class _SyncDataWithJson extends SyncEvent {
   const factory _SyncDataWithJson(final String jsonData) =
       _$SyncDataWithJsonImpl;
+  const _SyncDataWithJson._() : super._();
 
   String get jsonData;
 
@@ -417,8 +440,8 @@ class __$$HistoryLoadedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$HistoryLoadedImpl implements _HistoryLoaded {
-  const _$HistoryLoadedImpl();
+class _$HistoryLoadedImpl extends _HistoryLoaded {
+  const _$HistoryLoadedImpl() : super._();
 
   @override
   String toString() {
@@ -441,8 +464,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
     return historyLoaded();
   }
@@ -454,8 +478,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
     return historyLoaded?.call();
   }
@@ -467,8 +492,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (historyLoaded != null) {
@@ -486,6 +512,8 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return historyLoaded(this);
   }
@@ -499,6 +527,7 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return historyLoaded?.call(this);
   }
@@ -512,6 +541,7 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (historyLoaded != null) {
@@ -521,8 +551,9 @@ class _$HistoryLoadedImpl implements _HistoryLoaded {
   }
 }
 
-abstract class _HistoryLoaded implements SyncEvent {
+abstract class _HistoryLoaded extends SyncEvent {
   const factory _HistoryLoaded() = _$HistoryLoadedImpl;
+  const _HistoryLoaded._() : super._();
 }
 
 /// @nodoc
@@ -546,8 +577,8 @@ class __$$TokenStatusLoadedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
-  const _$TokenStatusLoadedImpl();
+class _$TokenStatusLoadedImpl extends _TokenStatusLoaded {
+  const _$TokenStatusLoadedImpl() : super._();
 
   @override
   String toString() {
@@ -570,8 +601,9 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
     return tokenStatusLoaded();
   }
@@ -583,8 +615,9 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
     return tokenStatusLoaded?.call();
   }
@@ -596,8 +629,9 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (tokenStatusLoaded != null) {
@@ -615,6 +649,8 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return tokenStatusLoaded(this);
   }
@@ -628,6 +664,7 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return tokenStatusLoaded?.call(this);
   }
@@ -641,6 +678,7 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (tokenStatusLoaded != null) {
@@ -650,8 +688,9 @@ class _$TokenStatusLoadedImpl implements _TokenStatusLoaded {
   }
 }
 
-abstract class _TokenStatusLoaded implements SyncEvent {
+abstract class _TokenStatusLoaded extends SyncEvent {
   const factory _TokenStatusLoaded() = _$TokenStatusLoadedImpl;
+  const _TokenStatusLoaded._() : super._();
 }
 
 /// @nodoc
@@ -659,6 +698,8 @@ abstract class _$$TokenRevokedImplCopyWith<$Res> {
   factory _$$TokenRevokedImplCopyWith(
           _$TokenRevokedImpl value, $Res Function(_$TokenRevokedImpl) then) =
       __$$TokenRevokedImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String? tokenId});
 }
 
 /// @nodoc
@@ -671,26 +712,51 @@ class __$$TokenRevokedImplCopyWithImpl<$Res>
 
   /// Create a copy of SyncEvent
   /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? tokenId = freezed,
+  }) {
+    return _then(_$TokenRevokedImpl(
+      tokenId: freezed == tokenId
+          ? _value.tokenId
+          : tokenId // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 }
 
 /// @nodoc
 
-class _$TokenRevokedImpl implements _TokenRevoked {
-  const _$TokenRevokedImpl();
+class _$TokenRevokedImpl extends _TokenRevoked {
+  const _$TokenRevokedImpl({this.tokenId}) : super._();
+
+  @override
+  final String? tokenId;
 
   @override
   String toString() {
-    return 'SyncEvent.tokenRevoked()';
+    return 'SyncEvent.tokenRevoked(tokenId: $tokenId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$TokenRevokedImpl);
+        (other.runtimeType == runtimeType &&
+            other is _$TokenRevokedImpl &&
+            (identical(other.tokenId, tokenId) || other.tokenId == tokenId));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, tokenId);
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TokenRevokedImplCopyWith<_$TokenRevokedImpl> get copyWith =>
+      __$$TokenRevokedImplCopyWithImpl<_$TokenRevokedImpl>(this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -699,10 +765,11 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
-    return tokenRevoked();
+    return tokenRevoked(tokenId);
   }
 
   @override
@@ -712,10 +779,11 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
-    return tokenRevoked?.call();
+    return tokenRevoked?.call(tokenId);
   }
 
   @override
@@ -725,12 +793,13 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (tokenRevoked != null) {
-      return tokenRevoked();
+      return tokenRevoked(tokenId);
     }
     return orElse();
   }
@@ -744,6 +813,8 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return tokenRevoked(this);
   }
@@ -757,6 +828,7 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return tokenRevoked?.call(this);
   }
@@ -770,6 +842,7 @@ class _$TokenRevokedImpl implements _TokenRevoked {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (tokenRevoked != null) {
@@ -779,8 +852,17 @@ class _$TokenRevokedImpl implements _TokenRevoked {
   }
 }
 
-abstract class _TokenRevoked implements SyncEvent {
-  const factory _TokenRevoked() = _$TokenRevokedImpl;
+abstract class _TokenRevoked extends SyncEvent {
+  const factory _TokenRevoked({final String? tokenId}) = _$TokenRevokedImpl;
+  const _TokenRevoked._() : super._();
+
+  String? get tokenId;
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TokenRevokedImplCopyWith<_$TokenRevokedImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -804,8 +886,8 @@ class __$$CheckTokenStatusImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$CheckTokenStatusImpl implements _CheckTokenStatus {
-  const _$CheckTokenStatusImpl();
+class _$CheckTokenStatusImpl extends _CheckTokenStatus {
+  const _$CheckTokenStatusImpl() : super._();
 
   @override
   String toString() {
@@ -828,8 +910,9 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     required TResult Function(String jsonData) syncDataWithJson,
     required TResult Function() historyLoaded,
     required TResult Function() tokenStatusLoaded,
-    required TResult Function() tokenRevoked,
+    required TResult Function(String? tokenId) tokenRevoked,
     required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
   }) {
     return checkTokenStatus();
   }
@@ -841,8 +924,9 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     TResult? Function(String jsonData)? syncDataWithJson,
     TResult? Function()? historyLoaded,
     TResult? Function()? tokenStatusLoaded,
-    TResult? Function()? tokenRevoked,
+    TResult? Function(String? tokenId)? tokenRevoked,
     TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
   }) {
     return checkTokenStatus?.call();
   }
@@ -854,8 +938,9 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     TResult Function(String jsonData)? syncDataWithJson,
     TResult Function()? historyLoaded,
     TResult Function()? tokenStatusLoaded,
-    TResult Function()? tokenRevoked,
+    TResult Function(String? tokenId)? tokenRevoked,
     TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (checkTokenStatus != null) {
@@ -873,6 +958,8 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
     required TResult Function(_TokenRevoked value) tokenRevoked,
     required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
   }) {
     return checkTokenStatus(this);
   }
@@ -886,6 +973,7 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult? Function(_TokenRevoked value)? tokenRevoked,
     TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
   }) {
     return checkTokenStatus?.call(this);
   }
@@ -899,6 +987,7 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
     TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
     TResult Function(_TokenRevoked value)? tokenRevoked,
     TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
     required TResult orElse(),
   }) {
     if (checkTokenStatus != null) {
@@ -908,8 +997,149 @@ class _$CheckTokenStatusImpl implements _CheckTokenStatus {
   }
 }
 
-abstract class _CheckTokenStatus implements SyncEvent {
+abstract class _CheckTokenStatus extends SyncEvent {
   const factory _CheckTokenStatus() = _$CheckTokenStatusImpl;
+  const _CheckTokenStatus._() : super._();
+}
+
+/// @nodoc
+abstract class _$$CheckConnectionValidityImplCopyWith<$Res> {
+  factory _$$CheckConnectionValidityImplCopyWith(
+          _$CheckConnectionValidityImpl value,
+          $Res Function(_$CheckConnectionValidityImpl) then) =
+      __$$CheckConnectionValidityImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$CheckConnectionValidityImplCopyWithImpl<$Res>
+    extends _$SyncEventCopyWithImpl<$Res, _$CheckConnectionValidityImpl>
+    implements _$$CheckConnectionValidityImplCopyWith<$Res> {
+  __$$CheckConnectionValidityImplCopyWithImpl(
+      _$CheckConnectionValidityImpl _value,
+      $Res Function(_$CheckConnectionValidityImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncEvent
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$CheckConnectionValidityImpl extends _CheckConnectionValidity {
+  const _$CheckConnectionValidityImpl() : super._();
+
+  @override
+  String toString() {
+    return 'SyncEvent.checkConnectionValidity()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CheckConnectionValidityImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() syncData,
+    required TResult Function(String jsonData) syncDataWithJson,
+    required TResult Function() historyLoaded,
+    required TResult Function() tokenStatusLoaded,
+    required TResult Function(String? tokenId) tokenRevoked,
+    required TResult Function() checkTokenStatus,
+    required TResult Function() checkConnectionValidity,
+  }) {
+    return checkConnectionValidity();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? syncData,
+    TResult? Function(String jsonData)? syncDataWithJson,
+    TResult? Function()? historyLoaded,
+    TResult? Function()? tokenStatusLoaded,
+    TResult? Function(String? tokenId)? tokenRevoked,
+    TResult? Function()? checkTokenStatus,
+    TResult? Function()? checkConnectionValidity,
+  }) {
+    return checkConnectionValidity?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? syncData,
+    TResult Function(String jsonData)? syncDataWithJson,
+    TResult Function()? historyLoaded,
+    TResult Function()? tokenStatusLoaded,
+    TResult Function(String? tokenId)? tokenRevoked,
+    TResult Function()? checkTokenStatus,
+    TResult Function()? checkConnectionValidity,
+    required TResult orElse(),
+  }) {
+    if (checkConnectionValidity != null) {
+      return checkConnectionValidity();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_SyncData value) syncData,
+    required TResult Function(_SyncDataWithJson value) syncDataWithJson,
+    required TResult Function(_HistoryLoaded value) historyLoaded,
+    required TResult Function(_TokenStatusLoaded value) tokenStatusLoaded,
+    required TResult Function(_TokenRevoked value) tokenRevoked,
+    required TResult Function(_CheckTokenStatus value) checkTokenStatus,
+    required TResult Function(_CheckConnectionValidity value)
+        checkConnectionValidity,
+  }) {
+    return checkConnectionValidity(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_SyncData value)? syncData,
+    TResult? Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult? Function(_HistoryLoaded value)? historyLoaded,
+    TResult? Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult? Function(_TokenRevoked value)? tokenRevoked,
+    TResult? Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult? Function(_CheckConnectionValidity value)? checkConnectionValidity,
+  }) {
+    return checkConnectionValidity?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_SyncData value)? syncData,
+    TResult Function(_SyncDataWithJson value)? syncDataWithJson,
+    TResult Function(_HistoryLoaded value)? historyLoaded,
+    TResult Function(_TokenStatusLoaded value)? tokenStatusLoaded,
+    TResult Function(_TokenRevoked value)? tokenRevoked,
+    TResult Function(_CheckTokenStatus value)? checkTokenStatus,
+    TResult Function(_CheckConnectionValidity value)? checkConnectionValidity,
+    required TResult orElse(),
+  }) {
+    if (checkConnectionValidity != null) {
+      return checkConnectionValidity(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _CheckConnectionValidity extends SyncEvent {
+  const factory _CheckConnectionValidity() = _$CheckConnectionValidityImpl;
+  const _CheckConnectionValidity._() : super._();
 }
 
 /// @nodoc
@@ -920,6 +1150,7 @@ mixin _$SyncStatus {
     required TResult Function() loading,
     required TResult Function() success,
     required TResult Function(String error) failure,
+    required TResult Function() connected,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -928,6 +1159,7 @@ mixin _$SyncStatus {
     TResult? Function()? loading,
     TResult? Function()? success,
     TResult? Function(String error)? failure,
+    TResult? Function()? connected,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -936,6 +1168,7 @@ mixin _$SyncStatus {
     TResult Function()? loading,
     TResult Function()? success,
     TResult Function(String error)? failure,
+    TResult Function()? connected,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -945,6 +1178,7 @@ mixin _$SyncStatus {
     required TResult Function(_LoadingStatus value) loading,
     required TResult Function(_SuccessStatus value) success,
     required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -953,6 +1187,7 @@ mixin _$SyncStatus {
     TResult? Function(_LoadingStatus value)? loading,
     TResult? Function(_SuccessStatus value)? success,
     TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -961,6 +1196,7 @@ mixin _$SyncStatus {
     TResult Function(_LoadingStatus value)? loading,
     TResult Function(_SuccessStatus value)? success,
     TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -1032,6 +1268,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     required TResult Function() loading,
     required TResult Function() success,
     required TResult Function(String error) failure,
+    required TResult Function() connected,
   }) {
     return initial();
   }
@@ -1043,6 +1280,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     TResult? Function()? loading,
     TResult? Function()? success,
     TResult? Function(String error)? failure,
+    TResult? Function()? connected,
   }) {
     return initial?.call();
   }
@@ -1054,6 +1292,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     TResult Function()? loading,
     TResult Function()? success,
     TResult Function(String error)? failure,
+    TResult Function()? connected,
     required TResult orElse(),
   }) {
     if (initial != null) {
@@ -1069,6 +1308,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     required TResult Function(_LoadingStatus value) loading,
     required TResult Function(_SuccessStatus value) success,
     required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
   }) {
     return initial(this);
   }
@@ -1080,6 +1320,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     TResult? Function(_LoadingStatus value)? loading,
     TResult? Function(_SuccessStatus value)? success,
     TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
   }) {
     return initial?.call(this);
   }
@@ -1091,6 +1332,7 @@ class _$InitialStatusImpl implements _InitialStatus {
     TResult Function(_LoadingStatus value)? loading,
     TResult Function(_SuccessStatus value)? success,
     TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
     required TResult orElse(),
   }) {
     if (initial != null) {
@@ -1149,6 +1391,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     required TResult Function() loading,
     required TResult Function() success,
     required TResult Function(String error) failure,
+    required TResult Function() connected,
   }) {
     return loading();
   }
@@ -1160,6 +1403,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     TResult? Function()? loading,
     TResult? Function()? success,
     TResult? Function(String error)? failure,
+    TResult? Function()? connected,
   }) {
     return loading?.call();
   }
@@ -1171,6 +1415,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     TResult Function()? loading,
     TResult Function()? success,
     TResult Function(String error)? failure,
+    TResult Function()? connected,
     required TResult orElse(),
   }) {
     if (loading != null) {
@@ -1186,6 +1431,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     required TResult Function(_LoadingStatus value) loading,
     required TResult Function(_SuccessStatus value) success,
     required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
   }) {
     return loading(this);
   }
@@ -1197,6 +1443,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     TResult? Function(_LoadingStatus value)? loading,
     TResult? Function(_SuccessStatus value)? success,
     TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
   }) {
     return loading?.call(this);
   }
@@ -1208,6 +1455,7 @@ class _$LoadingStatusImpl implements _LoadingStatus {
     TResult Function(_LoadingStatus value)? loading,
     TResult Function(_SuccessStatus value)? success,
     TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
     required TResult orElse(),
   }) {
     if (loading != null) {
@@ -1266,6 +1514,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     required TResult Function() loading,
     required TResult Function() success,
     required TResult Function(String error) failure,
+    required TResult Function() connected,
   }) {
     return success();
   }
@@ -1277,6 +1526,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     TResult? Function()? loading,
     TResult? Function()? success,
     TResult? Function(String error)? failure,
+    TResult? Function()? connected,
   }) {
     return success?.call();
   }
@@ -1288,6 +1538,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     TResult Function()? loading,
     TResult Function()? success,
     TResult Function(String error)? failure,
+    TResult Function()? connected,
     required TResult orElse(),
   }) {
     if (success != null) {
@@ -1303,6 +1554,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     required TResult Function(_LoadingStatus value) loading,
     required TResult Function(_SuccessStatus value) success,
     required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
   }) {
     return success(this);
   }
@@ -1314,6 +1566,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     TResult? Function(_LoadingStatus value)? loading,
     TResult? Function(_SuccessStatus value)? success,
     TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
   }) {
     return success?.call(this);
   }
@@ -1325,6 +1578,7 @@ class _$SuccessStatusImpl implements _SuccessStatus {
     TResult Function(_LoadingStatus value)? loading,
     TResult Function(_SuccessStatus value)? success,
     TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
     required TResult orElse(),
   }) {
     if (success != null) {
@@ -1410,6 +1664,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     required TResult Function() loading,
     required TResult Function() success,
     required TResult Function(String error) failure,
+    required TResult Function() connected,
   }) {
     return failure(error);
   }
@@ -1421,6 +1676,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     TResult? Function()? loading,
     TResult? Function()? success,
     TResult? Function(String error)? failure,
+    TResult? Function()? connected,
   }) {
     return failure?.call(error);
   }
@@ -1432,6 +1688,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     TResult Function()? loading,
     TResult Function()? success,
     TResult Function(String error)? failure,
+    TResult Function()? connected,
     required TResult orElse(),
   }) {
     if (failure != null) {
@@ -1447,6 +1704,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     required TResult Function(_LoadingStatus value) loading,
     required TResult Function(_SuccessStatus value) success,
     required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
   }) {
     return failure(this);
   }
@@ -1458,6 +1716,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     TResult? Function(_LoadingStatus value)? loading,
     TResult? Function(_SuccessStatus value)? success,
     TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
   }) {
     return failure?.call(this);
   }
@@ -1469,6 +1728,7 @@ class _$FailureStatusImpl implements _FailureStatus {
     TResult Function(_LoadingStatus value)? loading,
     TResult Function(_SuccessStatus value)? success,
     TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
     required TResult orElse(),
   }) {
     if (failure != null) {
@@ -1488,6 +1748,129 @@ abstract class _FailureStatus implements SyncStatus {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$FailureStatusImplCopyWith<_$FailureStatusImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ConnectedStatusImplCopyWith<$Res> {
+  factory _$$ConnectedStatusImplCopyWith(_$ConnectedStatusImpl value,
+          $Res Function(_$ConnectedStatusImpl) then) =
+      __$$ConnectedStatusImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$ConnectedStatusImplCopyWithImpl<$Res>
+    extends _$SyncStatusCopyWithImpl<$Res, _$ConnectedStatusImpl>
+    implements _$$ConnectedStatusImplCopyWith<$Res> {
+  __$$ConnectedStatusImplCopyWithImpl(
+      _$ConnectedStatusImpl _value, $Res Function(_$ConnectedStatusImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SyncStatus
+  /// with the given fields replaced by the non-null parameter values.
+}
+
+/// @nodoc
+
+class _$ConnectedStatusImpl implements _ConnectedStatus {
+  const _$ConnectedStatusImpl();
+
+  @override
+  String toString() {
+    return 'SyncStatus.connected()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$ConnectedStatusImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function() success,
+    required TResult Function(String error) failure,
+    required TResult Function() connected,
+  }) {
+    return connected();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function()? success,
+    TResult? Function(String error)? failure,
+    TResult? Function()? connected,
+  }) {
+    return connected?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function()? success,
+    TResult Function(String error)? failure,
+    TResult Function()? connected,
+    required TResult orElse(),
+  }) {
+    if (connected != null) {
+      return connected();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_InitialStatus value) initial,
+    required TResult Function(_LoadingStatus value) loading,
+    required TResult Function(_SuccessStatus value) success,
+    required TResult Function(_FailureStatus value) failure,
+    required TResult Function(_ConnectedStatus value) connected,
+  }) {
+    return connected(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_InitialStatus value)? initial,
+    TResult? Function(_LoadingStatus value)? loading,
+    TResult? Function(_SuccessStatus value)? success,
+    TResult? Function(_FailureStatus value)? failure,
+    TResult? Function(_ConnectedStatus value)? connected,
+  }) {
+    return connected?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_InitialStatus value)? initial,
+    TResult Function(_LoadingStatus value)? loading,
+    TResult Function(_SuccessStatus value)? success,
+    TResult Function(_FailureStatus value)? failure,
+    TResult Function(_ConnectedStatus value)? connected,
+    required TResult orElse(),
+  }) {
+    if (connected != null) {
+      return connected(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ConnectedStatus implements SyncStatus {
+  const factory _ConnectedStatus() = _$ConnectedStatusImpl;
 }
 
 /// @nodoc
@@ -2042,6 +2425,7 @@ mixin _$SyncState {
   List<DateTime> get history => throw _privateConstructorUsedError;
   SyncTokenStatus get tokenStatus => throw _privateConstructorUsedError;
   SyncToken? get currentToken => throw _privateConstructorUsedError;
+  bool? get connectionValid => throw _privateConstructorUsedError;
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.
@@ -2059,7 +2443,8 @@ abstract class $SyncStateCopyWith<$Res> {
       {SyncStatus status,
       List<DateTime> history,
       SyncTokenStatus tokenStatus,
-      SyncToken? currentToken});
+      SyncToken? currentToken,
+      bool? connectionValid});
 
   $SyncStatusCopyWith<$Res> get status;
   $SyncTokenStatusCopyWith<$Res> get tokenStatus;
@@ -2085,6 +2470,7 @@ class _$SyncStateCopyWithImpl<$Res, $Val extends SyncState>
     Object? history = null,
     Object? tokenStatus = null,
     Object? currentToken = freezed,
+    Object? connectionValid = freezed,
   }) {
     return _then(_value.copyWith(
       status: null == status
@@ -2103,6 +2489,10 @@ class _$SyncStateCopyWithImpl<$Res, $Val extends SyncState>
           ? _value.currentToken
           : currentToken // ignore: cast_nullable_to_non_nullable
               as SyncToken?,
+      connectionValid: freezed == connectionValid
+          ? _value.connectionValid
+          : connectionValid // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ) as $Val);
   }
 
@@ -2153,7 +2543,8 @@ abstract class _$$SyncStateImplCopyWith<$Res>
       {SyncStatus status,
       List<DateTime> history,
       SyncTokenStatus tokenStatus,
-      SyncToken? currentToken});
+      SyncToken? currentToken,
+      bool? connectionValid});
 
   @override
   $SyncStatusCopyWith<$Res> get status;
@@ -2180,6 +2571,7 @@ class __$$SyncStateImplCopyWithImpl<$Res>
     Object? history = null,
     Object? tokenStatus = null,
     Object? currentToken = freezed,
+    Object? connectionValid = freezed,
   }) {
     return _then(_$SyncStateImpl(
       status: null == status
@@ -2198,19 +2590,25 @@ class __$$SyncStateImplCopyWithImpl<$Res>
           ? _value.currentToken
           : currentToken // ignore: cast_nullable_to_non_nullable
               as SyncToken?,
+      connectionValid: freezed == connectionValid
+          ? _value.connectionValid
+          : connectionValid // ignore: cast_nullable_to_non_nullable
+              as bool?,
     ));
   }
 }
 
 /// @nodoc
 
-class _$SyncStateImpl implements _SyncState {
+class _$SyncStateImpl extends _SyncState {
   const _$SyncStateImpl(
       {this.status = const SyncStatus.initial(),
       final List<DateTime> history = const [],
       this.tokenStatus = const SyncTokenStatus.none(),
-      this.currentToken})
-      : _history = history;
+      this.currentToken,
+      this.connectionValid})
+      : _history = history,
+        super._();
 
   @override
   @JsonKey()
@@ -2229,10 +2627,12 @@ class _$SyncStateImpl implements _SyncState {
   final SyncTokenStatus tokenStatus;
   @override
   final SyncToken? currentToken;
+  @override
+  final bool? connectionValid;
 
   @override
   String toString() {
-    return 'SyncState(status: $status, history: $history, tokenStatus: $tokenStatus, currentToken: $currentToken)';
+    return 'SyncState(status: $status, history: $history, tokenStatus: $tokenStatus, currentToken: $currentToken, connectionValid: $connectionValid)';
   }
 
   @override
@@ -2245,12 +2645,19 @@ class _$SyncStateImpl implements _SyncState {
             (identical(other.tokenStatus, tokenStatus) ||
                 other.tokenStatus == tokenStatus) &&
             (identical(other.currentToken, currentToken) ||
-                other.currentToken == currentToken));
+                other.currentToken == currentToken) &&
+            (identical(other.connectionValid, connectionValid) ||
+                other.connectionValid == connectionValid));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, status,
-      const DeepCollectionEquality().hash(_history), tokenStatus, currentToken);
+  int get hashCode => Object.hash(
+      runtimeType,
+      status,
+      const DeepCollectionEquality().hash(_history),
+      tokenStatus,
+      currentToken,
+      connectionValid);
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.
@@ -2261,12 +2668,14 @@ class _$SyncStateImpl implements _SyncState {
       __$$SyncStateImplCopyWithImpl<_$SyncStateImpl>(this, _$identity);
 }
 
-abstract class _SyncState implements SyncState {
+abstract class _SyncState extends SyncState {
   const factory _SyncState(
       {final SyncStatus status,
       final List<DateTime> history,
       final SyncTokenStatus tokenStatus,
-      final SyncToken? currentToken}) = _$SyncStateImpl;
+      final SyncToken? currentToken,
+      final bool? connectionValid}) = _$SyncStateImpl;
+  const _SyncState._() : super._();
 
   @override
   SyncStatus get status;
@@ -2276,6 +2685,8 @@ abstract class _SyncState implements SyncState {
   SyncTokenStatus get tokenStatus;
   @override
   SyncToken? get currentToken;
+  @override
+  bool? get connectionValid;
 
   /// Create a copy of SyncState
   /// with the given fields replaced by the non-null parameter values.

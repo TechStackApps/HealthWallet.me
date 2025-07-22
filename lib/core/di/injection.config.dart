@@ -8,32 +8,33 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:health_wallet/core/data/local/app_database.dart' as _i474;
-import 'package:health_wallet/core/di/injection.dart' as _i752;
+import 'package:health_wallet/core/di/register_module.dart' as _i982;
 import 'package:health_wallet/core/navigation/app_router.dart' as _i410;
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart'
     as _i725;
-import 'package:health_wallet/core/services/home_preferences_service.dart'
-    as _i693;
-import 'package:health_wallet/core/services/local_auth_service.dart' as _i421;
+import 'package:health_wallet/core/services/biometric_auth_service.dart'
+    as _i1023;
 import 'package:health_wallet/core/services/network/rest_api_service.dart'
     as _i346;
-import 'package:health_wallet/core/services/sync_service.dart' as _i401;
-import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart'
-    as _i354;
+import 'package:health_wallet/features/records/data/data_source/local/records_local_data_source.dart'
+    as _i181;
+import 'package:health_wallet/features/records/data/data_source/remote/records_remote_data_source.dart'
+    as _i535;
 import 'package:health_wallet/features/records/data/repository/records_repository.dart'
     as _i1060;
+import 'package:health_wallet/features/records/data/repository/records_repository_impl.dart'
+    as _i448;
+import 'package:health_wallet/features/records/domain/repository/records_repository.dart'
+    as _i704;
 import 'package:health_wallet/features/records/domain/use_case/get_encounter_with_references_use_case.dart'
     as _i564;
 import 'package:health_wallet/features/records/domain/use_case/get_resources_use_case.dart'
     as _i44;
-import 'package:health_wallet/features/records/presentation/bloc/encounter_detail_bloc.dart'
-    as _i55;
-import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart'
-    as _i460;
-import 'package:health_wallet/features/records/presentation/bloc/timeline_bloc.dart'
-    as _i331;
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart'
+    as _i891;
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_local_data_source.dart'
     as _i526;
 import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart'
@@ -83,35 +84,35 @@ extension GetItInjectableX on _i174.GetIt {
         () => registerModule.userRemoteDataSource);
     gh.lazySingleton<_i612.UserLocalDataSource>(
         () => registerModule.userLocalDataSource);
-    gh.lazySingleton<_i421.LocalAuthService>(
-        () => registerModule.localAuthService);
+    gh.lazySingleton<_i1023.BiometricAuthService>(
+        () => registerModule.biometricAuthService);
     gh.lazySingleton<_i410.AppRouter>(() => _i410.AppRouter());
     gh.lazySingleton<_i725.AppRouteObserver>(() => _i725.AppRouteObserver());
+    gh.factory<_i535.RecordsRemoteDataSource>(
+        () => _i535.RecordsRemoteDataSourceImpl());
     gh.factory<_i259.SyncTokenService>(
         () => _i259.SyncTokenServiceImpl(gh<_i460.SharedPreferences>()));
+    gh.factory<_i181.RecordsLocalDataSource>(
+        () => _i181.RecordsLocalDataSourceImpl());
     gh.lazySingleton<_i346.RestApiService>(() => _i346.RestApiServiceImpl());
     gh.factory<_i683.FhirApiService>(
         () => _i683.FhirApiService(gh<_i361.Dio>()));
     gh.factory<_i1060.RecordsRepository>(
         () => _i1060.RecordsRepository(gh<_i474.AppDatabase>()));
-    gh.lazySingleton<_i693.HomePreferencesService>(
-        () => _i693.HomePreferencesService(gh<_i460.SharedPreferences>()));
-    gh.factory<_i55.EncounterDetailBloc>(
-        () => _i55.EncounterDetailBloc(gh<_i1060.RecordsRepository>()));
-    gh.singleton<_i460.RecordsFilterBloc>(
-        () => _i460.RecordsFilterBloc(gh<_i1060.RecordsRepository>()));
-    gh.factory<_i331.TimelineBloc>(() => _i331.TimelineBloc(
-          gh<_i1060.RecordsRepository>(),
-          initialFilters: gh<Set<String>>(),
-        ));
     gh.factory<_i526.FhirLocalDataSource>(() => _i526.FhirLocalDataSourceImpl(
           gh<_i474.AppDatabase>(),
           gh<_i460.SharedPreferences>(),
         ));
+    gh.factory<_i891.RecordsBloc>(
+        () => _i891.RecordsBloc(gh<_i1060.RecordsRepository>()));
     gh.factory<_i925.FhirRepository>(() => _i406.FhirRepositoryImpl(
           gh<_i683.FhirApiService>(),
           gh<_i526.FhirLocalDataSource>(),
           gh<_i259.SyncTokenService>(),
+        ));
+    gh.factory<_i704.RecordsRepository>(() => _i448.RecordsRepositoryImpl(
+          gh<_i535.RecordsRemoteDataSource>(),
+          gh<_i181.RecordsLocalDataSource>(),
         ));
     gh.factory<_i504.UserRepository>(() => _i637.UserRepositoryImpl(
           gh<_i547.UserRemoteDataSource>(),
@@ -129,19 +130,12 @@ extension GetItInjectableX on _i174.GetIt {
         _i564.GetEncounterWithReferencesUseCase(gh<_i925.FhirRepository>()));
     gh.factory<_i416.GetSourcesUseCase>(
         () => _i416.GetSourcesUseCase(gh<_i925.FhirRepository>()));
-    gh.factory<_i354.HomeBloc>(() => _i354.HomeBloc(
-          gh<_i925.FhirRepository>(),
-          gh<_i416.GetSourcesUseCase>(),
-          gh<_i693.HomePreferencesService>(),
+    gh.factory<_i230.UserProfileBloc>(() => _i230.UserProfileBloc(
+          gh<_i504.UserRepository>(),
+          gh<_i1023.BiometricAuthService>(),
         ));
-    gh.lazySingleton<_i401.SyncService>(() => _i401.SyncService(
-          gh<_i925.FhirRepository>(),
-          gh<_i460.SharedPreferences>(),
-        ));
-    gh.factory<_i230.UserProfileBloc>(
-        () => _i230.UserProfileBloc(gh<_i504.UserRepository>()));
     return this;
   }
 }
 
-class _$RegisterModule extends _i752.RegisterModule {}
+class _$RegisterModule extends _i982.RegisterModule {}

@@ -15,245 +15,145 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
-mixin _$HomeEvent {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+mixin _$HomeInitialised {}
+
+/// @nodoc
+abstract class $HomeInitialisedCopyWith<$Res> {
+  factory $HomeInitialisedCopyWith(
+          HomeInitialised value, $Res Function(HomeInitialised) then) =
+      _$HomeInitialisedCopyWithImpl<$Res, HomeInitialised>;
 }
 
 /// @nodoc
-abstract class $HomeEventCopyWith<$Res> {
-  factory $HomeEventCopyWith(HomeEvent value, $Res Function(HomeEvent) then) =
-      _$HomeEventCopyWithImpl<$Res, HomeEvent>;
-}
-
-/// @nodoc
-class _$HomeEventCopyWithImpl<$Res, $Val extends HomeEvent>
-    implements $HomeEventCopyWith<$Res> {
-  _$HomeEventCopyWithImpl(this._value, this._then);
+class _$HomeInitialisedCopyWithImpl<$Res, $Val extends HomeInitialised>
+    implements $HomeInitialisedCopyWith<$Res> {
+  _$HomeInitialisedCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeInitialised
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
-abstract class _$$InitialisedImplCopyWith<$Res> {
-  factory _$$InitialisedImplCopyWith(
-          _$InitialisedImpl value, $Res Function(_$InitialisedImpl) then) =
-      __$$InitialisedImplCopyWithImpl<$Res>;
+abstract class _$$HomeInitialisedImplCopyWith<$Res> {
+  factory _$$HomeInitialisedImplCopyWith(_$HomeInitialisedImpl value,
+          $Res Function(_$HomeInitialisedImpl) then) =
+      __$$HomeInitialisedImplCopyWithImpl<$Res>;
 }
 
 /// @nodoc
-class __$$InitialisedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$InitialisedImpl>
-    implements _$$InitialisedImplCopyWith<$Res> {
-  __$$InitialisedImplCopyWithImpl(
-      _$InitialisedImpl _value, $Res Function(_$InitialisedImpl) _then)
+class __$$HomeInitialisedImplCopyWithImpl<$Res>
+    extends _$HomeInitialisedCopyWithImpl<$Res, _$HomeInitialisedImpl>
+    implements _$$HomeInitialisedImplCopyWith<$Res> {
+  __$$HomeInitialisedImplCopyWithImpl(
+      _$HomeInitialisedImpl _value, $Res Function(_$HomeInitialisedImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeInitialised
   /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
 
-class _$InitialisedImpl implements _Initialised {
-  const _$InitialisedImpl();
+class _$HomeInitialisedImpl implements _HomeInitialised {
+  const _$HomeInitialisedImpl();
 
   @override
   String toString() {
-    return 'HomeEvent.initialised()';
+    return 'HomeInitialised()';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$InitialisedImpl);
+        (other.runtimeType == runtimeType && other is _$HomeInitialisedImpl);
   }
 
   @override
   int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return initialised();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return initialised?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (initialised != null) {
-      return initialised();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return initialised(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return initialised?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (initialised != null) {
-      return initialised(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class _Initialised implements HomeEvent {
-  const factory _Initialised() = _$InitialisedImpl;
+abstract class _HomeInitialised implements HomeInitialised {
+  const factory _HomeInitialised() = _$HomeInitialisedImpl;
 }
 
 /// @nodoc
-abstract class _$$SourceChangedImplCopyWith<$Res> {
-  factory _$$SourceChangedImplCopyWith(
-          _$SourceChangedImpl value, $Res Function(_$SourceChangedImpl) then) =
-      __$$SourceChangedImplCopyWithImpl<$Res>;
+mixin _$HomeSourceChanged {
+  String get source => throw _privateConstructorUsedError;
+
+  /// Create a copy of HomeSourceChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HomeSourceChangedCopyWith<HomeSourceChanged> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HomeSourceChangedCopyWith<$Res> {
+  factory $HomeSourceChangedCopyWith(
+          HomeSourceChanged value, $Res Function(HomeSourceChanged) then) =
+      _$HomeSourceChangedCopyWithImpl<$Res, HomeSourceChanged>;
   @useResult
   $Res call({String source});
 }
 
 /// @nodoc
-class __$$SourceChangedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$SourceChangedImpl>
-    implements _$$SourceChangedImplCopyWith<$Res> {
-  __$$SourceChangedImplCopyWithImpl(
-      _$SourceChangedImpl _value, $Res Function(_$SourceChangedImpl) _then)
-      : super(_value, _then);
+class _$HomeSourceChangedCopyWithImpl<$Res, $Val extends HomeSourceChanged>
+    implements $HomeSourceChangedCopyWith<$Res> {
+  _$HomeSourceChangedCopyWithImpl(this._value, this._then);
 
-  /// Create a copy of HomeEvent
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HomeSourceChanged
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? source = null,
   }) {
-    return _then(_$SourceChangedImpl(
+    return _then(_value.copyWith(
+      source: null == source
+          ? _value.source
+          : source // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$HomeSourceChangedImplCopyWith<$Res>
+    implements $HomeSourceChangedCopyWith<$Res> {
+  factory _$$HomeSourceChangedImplCopyWith(_$HomeSourceChangedImpl value,
+          $Res Function(_$HomeSourceChangedImpl) then) =
+      __$$HomeSourceChangedImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String source});
+}
+
+/// @nodoc
+class __$$HomeSourceChangedImplCopyWithImpl<$Res>
+    extends _$HomeSourceChangedCopyWithImpl<$Res, _$HomeSourceChangedImpl>
+    implements _$$HomeSourceChangedImplCopyWith<$Res> {
+  __$$HomeSourceChangedImplCopyWithImpl(_$HomeSourceChangedImpl _value,
+      $Res Function(_$HomeSourceChangedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of HomeSourceChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? source = null,
+  }) {
+    return _then(_$HomeSourceChangedImpl(
       null == source
           ? _value.source
           : source // ignore: cast_nullable_to_non_nullable
@@ -264,160 +164,126 @@ class __$$SourceChangedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$SourceChangedImpl implements _SourceChanged {
-  const _$SourceChangedImpl(this.source);
+class _$HomeSourceChangedImpl implements _HomeSourceChanged {
+  const _$HomeSourceChangedImpl(this.source);
 
   @override
   final String source;
 
   @override
   String toString() {
-    return 'HomeEvent.sourceChanged(source: $source)';
+    return 'HomeSourceChanged(source: $source)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SourceChangedImpl &&
+            other is _$HomeSourceChangedImpl &&
             (identical(other.source, source) || other.source == source));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, source);
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeSourceChanged
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$SourceChangedImplCopyWith<_$SourceChangedImpl> get copyWith =>
-      __$$SourceChangedImplCopyWithImpl<_$SourceChangedImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return sourceChanged(source);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return sourceChanged?.call(source);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (sourceChanged != null) {
-      return sourceChanged(source);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return sourceChanged(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return sourceChanged?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (sourceChanged != null) {
-      return sourceChanged(this);
-    }
-    return orElse();
-  }
+  _$$HomeSourceChangedImplCopyWith<_$HomeSourceChangedImpl> get copyWith =>
+      __$$HomeSourceChangedImplCopyWithImpl<_$HomeSourceChangedImpl>(
+          this, _$identity);
 }
 
-abstract class _SourceChanged implements HomeEvent {
-  const factory _SourceChanged(final String source) = _$SourceChangedImpl;
+abstract class _HomeSourceChanged implements HomeSourceChanged {
+  const factory _HomeSourceChanged(final String source) =
+      _$HomeSourceChangedImpl;
 
+  @override
   String get source;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeSourceChanged
   /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SourceChangedImplCopyWith<_$SourceChangedImpl> get copyWith =>
+  _$$HomeSourceChangedImplCopyWith<_$HomeSourceChangedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$FiltersChangedImplCopyWith<$Res> {
-  factory _$$FiltersChangedImplCopyWith(_$FiltersChangedImpl value,
-          $Res Function(_$FiltersChangedImpl) then) =
-      __$$FiltersChangedImplCopyWithImpl<$Res>;
+mixin _$HomeFiltersChanged {
+  Map<String, bool> get filters => throw _privateConstructorUsedError;
+
+  /// Create a copy of HomeFiltersChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HomeFiltersChangedCopyWith<HomeFiltersChanged> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HomeFiltersChangedCopyWith<$Res> {
+  factory $HomeFiltersChangedCopyWith(
+          HomeFiltersChanged value, $Res Function(HomeFiltersChanged) then) =
+      _$HomeFiltersChangedCopyWithImpl<$Res, HomeFiltersChanged>;
   @useResult
   $Res call({Map<String, bool> filters});
 }
 
 /// @nodoc
-class __$$FiltersChangedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$FiltersChangedImpl>
-    implements _$$FiltersChangedImplCopyWith<$Res> {
-  __$$FiltersChangedImplCopyWithImpl(
-      _$FiltersChangedImpl _value, $Res Function(_$FiltersChangedImpl) _then)
-      : super(_value, _then);
+class _$HomeFiltersChangedCopyWithImpl<$Res, $Val extends HomeFiltersChanged>
+    implements $HomeFiltersChangedCopyWith<$Res> {
+  _$HomeFiltersChangedCopyWithImpl(this._value, this._then);
 
-  /// Create a copy of HomeEvent
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HomeFiltersChanged
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? filters = null,
   }) {
-    return _then(_$FiltersChangedImpl(
+    return _then(_value.copyWith(
+      filters: null == filters
+          ? _value.filters
+          : filters // ignore: cast_nullable_to_non_nullable
+              as Map<String, bool>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$HomeFiltersChangedImplCopyWith<$Res>
+    implements $HomeFiltersChangedCopyWith<$Res> {
+  factory _$$HomeFiltersChangedImplCopyWith(_$HomeFiltersChangedImpl value,
+          $Res Function(_$HomeFiltersChangedImpl) then) =
+      __$$HomeFiltersChangedImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({Map<String, bool> filters});
+}
+
+/// @nodoc
+class __$$HomeFiltersChangedImplCopyWithImpl<$Res>
+    extends _$HomeFiltersChangedCopyWithImpl<$Res, _$HomeFiltersChangedImpl>
+    implements _$$HomeFiltersChangedImplCopyWith<$Res> {
+  __$$HomeFiltersChangedImplCopyWithImpl(_$HomeFiltersChangedImpl _value,
+      $Res Function(_$HomeFiltersChangedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of HomeFiltersChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? filters = null,
+  }) {
+    return _then(_$HomeFiltersChangedImpl(
       null == filters
           ? _value._filters
           : filters // ignore: cast_nullable_to_non_nullable
@@ -428,8 +294,8 @@ class __$$FiltersChangedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$FiltersChangedImpl implements _FiltersChanged {
-  const _$FiltersChangedImpl(final Map<String, bool> filters)
+class _$HomeFiltersChangedImpl implements _HomeFiltersChanged {
+  const _$HomeFiltersChangedImpl(final Map<String, bool> filters)
       : _filters = filters;
 
   final Map<String, bool> _filters;
@@ -442,14 +308,14 @@ class _$FiltersChangedImpl implements _FiltersChanged {
 
   @override
   String toString() {
-    return 'HomeEvent.filtersChanged(filters: $filters)';
+    return 'HomeFiltersChanged(filters: $filters)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$FiltersChangedImpl &&
+            other is _$HomeFiltersChangedImpl &&
             const DeepCollectionEquality().equals(other._filters, _filters));
   }
 
@@ -457,140 +323,104 @@ class _$FiltersChangedImpl implements _FiltersChanged {
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_filters));
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeFiltersChanged
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$FiltersChangedImplCopyWith<_$FiltersChangedImpl> get copyWith =>
-      __$$FiltersChangedImplCopyWithImpl<_$FiltersChangedImpl>(
+  _$$HomeFiltersChangedImplCopyWith<_$HomeFiltersChangedImpl> get copyWith =>
+      __$$HomeFiltersChangedImplCopyWithImpl<_$HomeFiltersChangedImpl>(
           this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return filtersChanged(filters);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return filtersChanged?.call(filters);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (filtersChanged != null) {
-      return filtersChanged(filters);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return filtersChanged(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return filtersChanged?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (filtersChanged != null) {
-      return filtersChanged(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class _FiltersChanged implements HomeEvent {
-  const factory _FiltersChanged(final Map<String, bool> filters) =
-      _$FiltersChangedImpl;
+abstract class _HomeFiltersChanged implements HomeFiltersChanged {
+  const factory _HomeFiltersChanged(final Map<String, bool> filters) =
+      _$HomeFiltersChangedImpl;
 
+  @override
   Map<String, bool> get filters;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeFiltersChanged
   /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$FiltersChangedImplCopyWith<_$FiltersChangedImpl> get copyWith =>
+  _$$HomeFiltersChangedImplCopyWith<_$HomeFiltersChangedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$EditModeChangedImplCopyWith<$Res> {
-  factory _$$EditModeChangedImplCopyWith(_$EditModeChangedImpl value,
-          $Res Function(_$EditModeChangedImpl) then) =
-      __$$EditModeChangedImplCopyWithImpl<$Res>;
+mixin _$HomeEditModeChanged {
+  bool get editMode => throw _privateConstructorUsedError;
+
+  /// Create a copy of HomeEditModeChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HomeEditModeChangedCopyWith<HomeEditModeChanged> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HomeEditModeChangedCopyWith<$Res> {
+  factory $HomeEditModeChangedCopyWith(
+          HomeEditModeChanged value, $Res Function(HomeEditModeChanged) then) =
+      _$HomeEditModeChangedCopyWithImpl<$Res, HomeEditModeChanged>;
   @useResult
   $Res call({bool editMode});
 }
 
 /// @nodoc
-class __$$EditModeChangedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$EditModeChangedImpl>
-    implements _$$EditModeChangedImplCopyWith<$Res> {
-  __$$EditModeChangedImplCopyWithImpl(
-      _$EditModeChangedImpl _value, $Res Function(_$EditModeChangedImpl) _then)
-      : super(_value, _then);
+class _$HomeEditModeChangedCopyWithImpl<$Res, $Val extends HomeEditModeChanged>
+    implements $HomeEditModeChangedCopyWith<$Res> {
+  _$HomeEditModeChangedCopyWithImpl(this._value, this._then);
 
-  /// Create a copy of HomeEvent
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HomeEditModeChanged
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? editMode = null,
   }) {
-    return _then(_$EditModeChangedImpl(
+    return _then(_value.copyWith(
+      editMode: null == editMode
+          ? _value.editMode
+          : editMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$HomeEditModeChangedImplCopyWith<$Res>
+    implements $HomeEditModeChangedCopyWith<$Res> {
+  factory _$$HomeEditModeChangedImplCopyWith(_$HomeEditModeChangedImpl value,
+          $Res Function(_$HomeEditModeChangedImpl) then) =
+      __$$HomeEditModeChangedImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({bool editMode});
+}
+
+/// @nodoc
+class __$$HomeEditModeChangedImplCopyWithImpl<$Res>
+    extends _$HomeEditModeChangedCopyWithImpl<$Res, _$HomeEditModeChangedImpl>
+    implements _$$HomeEditModeChangedImplCopyWith<$Res> {
+  __$$HomeEditModeChangedImplCopyWithImpl(_$HomeEditModeChangedImpl _value,
+      $Res Function(_$HomeEditModeChangedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of HomeEditModeChanged
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? editMode = null,
+  }) {
+    return _then(_$HomeEditModeChangedImpl(
       null == editMode
           ? _value.editMode
           : editMode // ignore: cast_nullable_to_non_nullable
@@ -601,22 +431,22 @@ class __$$EditModeChangedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$EditModeChangedImpl implements _EditModeChanged {
-  const _$EditModeChangedImpl(this.editMode);
+class _$HomeEditModeChangedImpl implements _HomeEditModeChanged {
+  const _$HomeEditModeChangedImpl(this.editMode);
 
   @override
   final bool editMode;
 
   @override
   String toString() {
-    return 'HomeEvent.editModeChanged(editMode: $editMode)';
+    return 'HomeEditModeChanged(editMode: $editMode)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$EditModeChangedImpl &&
+            other is _$HomeEditModeChangedImpl &&
             (identical(other.editMode, editMode) ||
                 other.editMode == editMode));
   }
@@ -624,132 +454,64 @@ class _$EditModeChangedImpl implements _EditModeChanged {
   @override
   int get hashCode => Object.hash(runtimeType, editMode);
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeEditModeChanged
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$EditModeChangedImplCopyWith<_$EditModeChangedImpl> get copyWith =>
-      __$$EditModeChangedImplCopyWithImpl<_$EditModeChangedImpl>(
+  _$$HomeEditModeChangedImplCopyWith<_$HomeEditModeChangedImpl> get copyWith =>
+      __$$HomeEditModeChangedImplCopyWithImpl<_$HomeEditModeChangedImpl>(
           this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return editModeChanged(editMode);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return editModeChanged?.call(editMode);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (editModeChanged != null) {
-      return editModeChanged(editMode);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return editModeChanged(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return editModeChanged?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (editModeChanged != null) {
-      return editModeChanged(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class _EditModeChanged implements HomeEvent {
-  const factory _EditModeChanged(final bool editMode) = _$EditModeChangedImpl;
+abstract class _HomeEditModeChanged implements HomeEditModeChanged {
+  const factory _HomeEditModeChanged(final bool editMode) =
+      _$HomeEditModeChangedImpl;
 
+  @override
   bool get editMode;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeEditModeChanged
   /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$EditModeChangedImplCopyWith<_$EditModeChangedImpl> get copyWith =>
+  _$$HomeEditModeChangedImplCopyWith<_$HomeEditModeChangedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$RecordsReorderedImplCopyWith<$Res> {
-  factory _$$RecordsReorderedImplCopyWith(_$RecordsReorderedImpl value,
-          $Res Function(_$RecordsReorderedImpl) then) =
-      __$$RecordsReorderedImplCopyWithImpl<$Res>;
+mixin _$HomeRecordsReordered {
+  int get oldIndex => throw _privateConstructorUsedError;
+  int get newIndex => throw _privateConstructorUsedError;
+
+  /// Create a copy of HomeRecordsReordered
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $HomeRecordsReorderedCopyWith<HomeRecordsReordered> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $HomeRecordsReorderedCopyWith<$Res> {
+  factory $HomeRecordsReorderedCopyWith(HomeRecordsReordered value,
+          $Res Function(HomeRecordsReordered) then) =
+      _$HomeRecordsReorderedCopyWithImpl<$Res, HomeRecordsReordered>;
   @useResult
   $Res call({int oldIndex, int newIndex});
 }
 
 /// @nodoc
-class __$$RecordsReorderedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$RecordsReorderedImpl>
-    implements _$$RecordsReorderedImplCopyWith<$Res> {
-  __$$RecordsReorderedImplCopyWithImpl(_$RecordsReorderedImpl _value,
-      $Res Function(_$RecordsReorderedImpl) _then)
-      : super(_value, _then);
+class _$HomeRecordsReorderedCopyWithImpl<$Res,
+        $Val extends HomeRecordsReordered>
+    implements $HomeRecordsReorderedCopyWith<$Res> {
+  _$HomeRecordsReorderedCopyWithImpl(this._value, this._then);
 
-  /// Create a copy of HomeEvent
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HomeRecordsReordered
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -757,7 +519,47 @@ class __$$RecordsReorderedImplCopyWithImpl<$Res>
     Object? oldIndex = null,
     Object? newIndex = null,
   }) {
-    return _then(_$RecordsReorderedImpl(
+    return _then(_value.copyWith(
+      oldIndex: null == oldIndex
+          ? _value.oldIndex
+          : oldIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      newIndex: null == newIndex
+          ? _value.newIndex
+          : newIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$HomeRecordsReorderedImplCopyWith<$Res>
+    implements $HomeRecordsReorderedCopyWith<$Res> {
+  factory _$$HomeRecordsReorderedImplCopyWith(_$HomeRecordsReorderedImpl value,
+          $Res Function(_$HomeRecordsReorderedImpl) then) =
+      __$$HomeRecordsReorderedImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int oldIndex, int newIndex});
+}
+
+/// @nodoc
+class __$$HomeRecordsReorderedImplCopyWithImpl<$Res>
+    extends _$HomeRecordsReorderedCopyWithImpl<$Res, _$HomeRecordsReorderedImpl>
+    implements _$$HomeRecordsReorderedImplCopyWith<$Res> {
+  __$$HomeRecordsReorderedImplCopyWithImpl(_$HomeRecordsReorderedImpl _value,
+      $Res Function(_$HomeRecordsReorderedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of HomeRecordsReordered
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? oldIndex = null,
+    Object? newIndex = null,
+  }) {
+    return _then(_$HomeRecordsReorderedImpl(
       null == oldIndex
           ? _value.oldIndex
           : oldIndex // ignore: cast_nullable_to_non_nullable
@@ -772,8 +574,8 @@ class __$$RecordsReorderedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$RecordsReorderedImpl implements _RecordsReordered {
-  const _$RecordsReorderedImpl(this.oldIndex, this.newIndex);
+class _$HomeRecordsReorderedImpl implements _HomeRecordsReordered {
+  const _$HomeRecordsReorderedImpl(this.oldIndex, this.newIndex);
 
   @override
   final int oldIndex;
@@ -782,14 +584,14 @@ class _$RecordsReorderedImpl implements _RecordsReordered {
 
   @override
   String toString() {
-    return 'HomeEvent.recordsReordered(oldIndex: $oldIndex, newIndex: $newIndex)';
+    return 'HomeRecordsReordered(oldIndex: $oldIndex, newIndex: $newIndex)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$RecordsReorderedImpl &&
+            other is _$HomeRecordsReorderedImpl &&
             (identical(other.oldIndex, oldIndex) ||
                 other.oldIndex == oldIndex) &&
             (identical(other.newIndex, newIndex) ||
@@ -799,134 +601,66 @@ class _$RecordsReorderedImpl implements _RecordsReordered {
   @override
   int get hashCode => Object.hash(runtimeType, oldIndex, newIndex);
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeRecordsReordered
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$RecordsReorderedImplCopyWith<_$RecordsReorderedImpl> get copyWith =>
-      __$$RecordsReorderedImplCopyWithImpl<_$RecordsReorderedImpl>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return recordsReordered(oldIndex, newIndex);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return recordsReordered?.call(oldIndex, newIndex);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (recordsReordered != null) {
-      return recordsReordered(oldIndex, newIndex);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return recordsReordered(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return recordsReordered?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (recordsReordered != null) {
-      return recordsReordered(this);
-    }
-    return orElse();
-  }
+  _$$HomeRecordsReorderedImplCopyWith<_$HomeRecordsReorderedImpl>
+      get copyWith =>
+          __$$HomeRecordsReorderedImplCopyWithImpl<_$HomeRecordsReorderedImpl>(
+              this, _$identity);
 }
 
-abstract class _RecordsReordered implements HomeEvent {
-  const factory _RecordsReordered(final int oldIndex, final int newIndex) =
-      _$RecordsReorderedImpl;
+abstract class _HomeRecordsReordered implements HomeRecordsReordered {
+  const factory _HomeRecordsReordered(final int oldIndex, final int newIndex) =
+      _$HomeRecordsReorderedImpl;
 
+  @override
   int get oldIndex;
+  @override
   int get newIndex;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeRecordsReordered
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$HomeRecordsReorderedImplCopyWith<_$HomeRecordsReorderedImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$HomeVitalsReordered {
+  int get oldIndex => throw _privateConstructorUsedError;
+  int get newIndex => throw _privateConstructorUsedError;
+
+  /// Create a copy of HomeVitalsReordered
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$RecordsReorderedImplCopyWith<_$RecordsReorderedImpl> get copyWith =>
+  $HomeVitalsReorderedCopyWith<HomeVitalsReordered> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$VitalsReorderedImplCopyWith<$Res> {
-  factory _$$VitalsReorderedImplCopyWith(_$VitalsReorderedImpl value,
-          $Res Function(_$VitalsReorderedImpl) then) =
-      __$$VitalsReorderedImplCopyWithImpl<$Res>;
+abstract class $HomeVitalsReorderedCopyWith<$Res> {
+  factory $HomeVitalsReorderedCopyWith(
+          HomeVitalsReordered value, $Res Function(HomeVitalsReordered) then) =
+      _$HomeVitalsReorderedCopyWithImpl<$Res, HomeVitalsReordered>;
   @useResult
   $Res call({int oldIndex, int newIndex});
 }
 
 /// @nodoc
-class __$$VitalsReorderedImplCopyWithImpl<$Res>
-    extends _$HomeEventCopyWithImpl<$Res, _$VitalsReorderedImpl>
-    implements _$$VitalsReorderedImplCopyWith<$Res> {
-  __$$VitalsReorderedImplCopyWithImpl(
-      _$VitalsReorderedImpl _value, $Res Function(_$VitalsReorderedImpl) _then)
-      : super(_value, _then);
+class _$HomeVitalsReorderedCopyWithImpl<$Res, $Val extends HomeVitalsReordered>
+    implements $HomeVitalsReorderedCopyWith<$Res> {
+  _$HomeVitalsReorderedCopyWithImpl(this._value, this._then);
 
-  /// Create a copy of HomeEvent
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of HomeVitalsReordered
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -934,7 +668,47 @@ class __$$VitalsReorderedImplCopyWithImpl<$Res>
     Object? oldIndex = null,
     Object? newIndex = null,
   }) {
-    return _then(_$VitalsReorderedImpl(
+    return _then(_value.copyWith(
+      oldIndex: null == oldIndex
+          ? _value.oldIndex
+          : oldIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      newIndex: null == newIndex
+          ? _value.newIndex
+          : newIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$HomeVitalsReorderedImplCopyWith<$Res>
+    implements $HomeVitalsReorderedCopyWith<$Res> {
+  factory _$$HomeVitalsReorderedImplCopyWith(_$HomeVitalsReorderedImpl value,
+          $Res Function(_$HomeVitalsReorderedImpl) then) =
+      __$$HomeVitalsReorderedImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int oldIndex, int newIndex});
+}
+
+/// @nodoc
+class __$$HomeVitalsReorderedImplCopyWithImpl<$Res>
+    extends _$HomeVitalsReorderedCopyWithImpl<$Res, _$HomeVitalsReorderedImpl>
+    implements _$$HomeVitalsReorderedImplCopyWith<$Res> {
+  __$$HomeVitalsReorderedImplCopyWithImpl(_$HomeVitalsReorderedImpl _value,
+      $Res Function(_$HomeVitalsReorderedImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of HomeVitalsReordered
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? oldIndex = null,
+    Object? newIndex = null,
+  }) {
+    return _then(_$HomeVitalsReorderedImpl(
       null == oldIndex
           ? _value.oldIndex
           : oldIndex // ignore: cast_nullable_to_non_nullable
@@ -949,8 +723,8 @@ class __$$VitalsReorderedImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$VitalsReorderedImpl implements _VitalsReordered {
-  const _$VitalsReorderedImpl(this.oldIndex, this.newIndex);
+class _$HomeVitalsReorderedImpl implements _HomeVitalsReordered {
+  const _$HomeVitalsReorderedImpl(this.oldIndex, this.newIndex);
 
   @override
   final int oldIndex;
@@ -959,14 +733,14 @@ class _$VitalsReorderedImpl implements _VitalsReordered {
 
   @override
   String toString() {
-    return 'HomeEvent.vitalsReordered(oldIndex: $oldIndex, newIndex: $newIndex)';
+    return 'HomeVitalsReordered(oldIndex: $oldIndex, newIndex: $newIndex)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$VitalsReorderedImpl &&
+            other is _$HomeVitalsReorderedImpl &&
             (identical(other.oldIndex, oldIndex) ||
                 other.oldIndex == oldIndex) &&
             (identical(other.newIndex, newIndex) ||
@@ -976,113 +750,30 @@ class _$VitalsReorderedImpl implements _VitalsReordered {
   @override
   int get hashCode => Object.hash(runtimeType, oldIndex, newIndex);
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeVitalsReordered
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$VitalsReorderedImplCopyWith<_$VitalsReorderedImpl> get copyWith =>
-      __$$VitalsReorderedImplCopyWithImpl<_$VitalsReorderedImpl>(
+  _$$HomeVitalsReorderedImplCopyWith<_$HomeVitalsReorderedImpl> get copyWith =>
+      __$$HomeVitalsReorderedImplCopyWithImpl<_$HomeVitalsReorderedImpl>(
           this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function() initialised,
-    required TResult Function(String source) sourceChanged,
-    required TResult Function(Map<String, bool> filters) filtersChanged,
-    required TResult Function(bool editMode) editModeChanged,
-    required TResult Function(int oldIndex, int newIndex) recordsReordered,
-    required TResult Function(int oldIndex, int newIndex) vitalsReordered,
-  }) {
-    return vitalsReordered(oldIndex, newIndex);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function()? initialised,
-    TResult? Function(String source)? sourceChanged,
-    TResult? Function(Map<String, bool> filters)? filtersChanged,
-    TResult? Function(bool editMode)? editModeChanged,
-    TResult? Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult? Function(int oldIndex, int newIndex)? vitalsReordered,
-  }) {
-    return vitalsReordered?.call(oldIndex, newIndex);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function()? initialised,
-    TResult Function(String source)? sourceChanged,
-    TResult Function(Map<String, bool> filters)? filtersChanged,
-    TResult Function(bool editMode)? editModeChanged,
-    TResult Function(int oldIndex, int newIndex)? recordsReordered,
-    TResult Function(int oldIndex, int newIndex)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (vitalsReordered != null) {
-      return vitalsReordered(oldIndex, newIndex);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_Initialised value) initialised,
-    required TResult Function(_SourceChanged value) sourceChanged,
-    required TResult Function(_FiltersChanged value) filtersChanged,
-    required TResult Function(_EditModeChanged value) editModeChanged,
-    required TResult Function(_RecordsReordered value) recordsReordered,
-    required TResult Function(_VitalsReordered value) vitalsReordered,
-  }) {
-    return vitalsReordered(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_Initialised value)? initialised,
-    TResult? Function(_SourceChanged value)? sourceChanged,
-    TResult? Function(_FiltersChanged value)? filtersChanged,
-    TResult? Function(_EditModeChanged value)? editModeChanged,
-    TResult? Function(_RecordsReordered value)? recordsReordered,
-    TResult? Function(_VitalsReordered value)? vitalsReordered,
-  }) {
-    return vitalsReordered?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_Initialised value)? initialised,
-    TResult Function(_SourceChanged value)? sourceChanged,
-    TResult Function(_FiltersChanged value)? filtersChanged,
-    TResult Function(_EditModeChanged value)? editModeChanged,
-    TResult Function(_RecordsReordered value)? recordsReordered,
-    TResult Function(_VitalsReordered value)? vitalsReordered,
-    required TResult orElse(),
-  }) {
-    if (vitalsReordered != null) {
-      return vitalsReordered(this);
-    }
-    return orElse();
-  }
 }
 
-abstract class _VitalsReordered implements HomeEvent {
-  const factory _VitalsReordered(final int oldIndex, final int newIndex) =
-      _$VitalsReorderedImpl;
+abstract class _HomeVitalsReordered implements HomeVitalsReordered {
+  const factory _HomeVitalsReordered(final int oldIndex, final int newIndex) =
+      _$HomeVitalsReorderedImpl;
 
+  @override
   int get oldIndex;
+  @override
   int get newIndex;
 
-  /// Create a copy of HomeEvent
+  /// Create a copy of HomeVitalsReordered
   /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$VitalsReorderedImplCopyWith<_$VitalsReorderedImpl> get copyWith =>
+  _$$HomeVitalsReorderedImplCopyWith<_$HomeVitalsReorderedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -1330,7 +1021,13 @@ class _$HomeStateImpl implements _HomeState {
         ClinicalDataTags.condition: true,
         ClinicalDataTags.immunization: true,
         ClinicalDataTags.labResult: true,
-        ClinicalDataTags.procedure: true
+        ClinicalDataTags.procedure: true,
+        ClinicalDataTags.goal: true,
+        ClinicalDataTags.careTeam: true,
+        ClinicalDataTags.clinicalNotes: true,
+        ClinicalDataTags.files: true,
+        ClinicalDataTags.facilities: true,
+        ClinicalDataTags.demographics: true
       },
       this.patient,
       this.errorMessage,

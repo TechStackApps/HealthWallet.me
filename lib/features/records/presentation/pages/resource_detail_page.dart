@@ -5,7 +5,7 @@ import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
-import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card_configs.dart';
+import 'package:health_wallet/features/records/presentation/widgets/resource_card_configs.dart';
 import 'package:intl/intl.dart';
 
 @RoutePage()

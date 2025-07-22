@@ -33,34 +33,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingNext => 'Next';
 
   @override
-  String get onboardingWelcomeTitle => 'Welcome to HealthVault';
+  String get onboardingWelcomeTitle => 'a Health Wallet for You!';
 
   @override
-  String get onboardingWelcomeSubtitle => 'Your Health, In One Place';
+  String get onboardingWelcomeSubtitle =>
+      'All your data into your phone from 100k+ insurances/hospitals/clinics from USA. Secured. Compliant, always only on your device!';
 
   @override
   String get onboardingWelcomeDescription =>
-      'Securely manage all your medical records with modern convenience and peace of mind.';
+      'Sync your healthcare data through <link>FastenHealth OnPrem</link> with the healthcare providers and see your complete medical history in one place. Secured, compliant and always on your device. Enjoy!';
 
   @override
-  String get onboardingRecordsTitle => 'View & Manage Records';
+  String get onboardingRecordsTitle => 'Synchronization';
 
   @override
-  String get onboardingRecordsSubtitle => 'Complete Medical History';
+  String get onboardingRecordsSubtitle => 'Your Health, Up-To-Date';
 
   @override
   String get onboardingRecordsDescription =>
-      'Access all your medical records, prescriptions, and health data in one beautiful interface.';
+      'A single scan is all it takes to keep your health records up-to-date.';
 
   @override
-  String get onboardingSyncTitle => 'Sync Securely';
+  String get onboardingScanButton => 'Scan';
 
   @override
-  String get onboardingSyncSubtitle => 'Healthcare Provider Integration';
+  String get onboardingSyncTitle => 'Security & Privacy';
+
+  @override
+  String get onboardingSyncSubtitle => 'Your Data, Your Control';
 
   @override
   String get onboardingSyncDescription =>
-      'Connect safely with your healthcare providers using encrypted, HIPAA-compliant technology.';
+      'Your health data is stored locally on your phone and never leaves your device without your permission.';
+
+  @override
+  String get onboardingBiometricText =>
+      'Add an extra layer of security by enabling biometric authentication.';
 
   @override
   String get homeHi => 'Hi, ';

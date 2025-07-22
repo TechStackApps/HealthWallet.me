@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/utils/logger.dart';
-import 'package:health_wallet/features/records/presentation/bloc/encounter_detail_bloc.dart';
+
 import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
-import 'package:health_wallet/features/records/presentation/pages/encounter_detail_page.dart';
+import 'package:health_wallet/features/records/presentation/pages/record_detail_page.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
 class EncounterCard extends StatefulWidget {
@@ -36,15 +38,15 @@ class _EncounterCardState extends State<EncounterCard> {
         // Main encounter info (always visible)
         _buildMainEncounterInfo(context),
 
-        // Expandable section for related resources
+        // Expand/Collapse button (always visible, positioned at top)
+        const SizedBox(height: Insets.small),
+        _buildExpandButton(context),
+
+        // Expandable section for related resources (below the button)
         if (_isExpanded) ...[
           const SizedBox(height: Insets.small),
           _buildRelatedResourcesSection(context),
         ],
-
-        // Expand/Collapse button
-        const SizedBox(height: Insets.small),
-        _buildExpandButton(context),
       ],
     );
   }
@@ -56,7 +58,7 @@ class _EncounterCardState extends State<EncounterCard> {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) =>
-                EncounterDetailPage(encounter: widget.displayModel),
+                RecordDetailPage(encounter: widget.displayModel),
           ),
         );
       },
@@ -223,65 +225,133 @@ class _EncounterCardState extends State<EncounterCard> {
   }
 
   Widget _buildExpandButton(BuildContext context) {
-    return BlocBuilder<EncounterDetailBloc, EncounterDetailState>(
+    return BlocBuilder<RecordsBloc, RecordsState>(
       builder: (context, state) {
-        final isLoadingRelated = state.status == EncounterDetailStatus.loading;
-        final hasRelatedResources = state.relatedResources.isNotEmpty;
-        final totalRelatedCount = state.relatedResources.values
-            .fold<int>(0, (sum, resources) => sum + resources.length);
+        final isLoadingRelated =
+            state.recordDetailStatus == RecordDetailStatus.loading();
 
-        return InkWell(
-          onTap: () {
-            setState(() {
-              _isExpanded = !_isExpanded;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              vertical: Insets.small,
-              horizontal: Insets.normal,
-            ),
-            decoration: BoxDecoration(
-              color: context.colorScheme.surface.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColors.border,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    _isExpanded
-                        ? 'Hide related resources'
-                        : isLoadingRelated
-                            ? 'Loading related resources...'
-                            : hasRelatedResources
-                                ? 'Show $totalRelatedCount related resources'
-                                : 'Show related resources',
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            vertical: Insets.small,
+            horizontal: Insets.normal,
+          ),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left side: Icons (individually tappable)
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      // TODO: Implement license draft notes functionality
+                      print('License draft notes tapped');
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Assets.icons.licenseDraftNotes.svg(
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          context.colorScheme.onSurface.withOpacity(0.6),
+                          BlendMode.srcIn,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                if (isLoadingRelated)
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Icon(
-                    _isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: AppColors.primary,
+                  const SizedBox(width: Insets.small),
+                  InkWell(
+                    onTap: () {
+                      // TODO: Implement attachment functionality
+                      print('Attachment tapped');
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Assets.icons.attachment.svg(
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          context.colorScheme.onSurface.withOpacity(0.6),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
                   ),
-              ],
-            ),
+                  const SizedBox(width: Insets.small),
+                  InkWell(
+                    onTap: () {
+                      // TODO: Implement share functionality
+                      print('Share tapped');
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Assets.icons.share.svg(
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          context.colorScheme.onSurface.withOpacity(0.6),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Right side: Text and loading indicator (with InkWell only here)
+              InkWell(
+                onTap: () {
+                  final wasExpanded = _isExpanded;
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+
+                  // Load related resources when expanding (going from collapsed to expanded)
+                  if (!wasExpanded) {
+                    context
+                        .read<RecordsBloc>()
+                        .add(RecordDetailLoaded(widget.displayModel.id));
+                  }
+                },
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: [
+                      if (isLoadingRelated)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        Text(
+                          _isExpanded ? 'Hide Related' : 'View Related',
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      if (!isLoadingRelated) ...[
+                        const SizedBox(width: Insets.extraSmall),
+                        Icon(
+                          _isExpanded ? Icons.expand_less : Icons.expand_more,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -289,9 +359,9 @@ class _EncounterCardState extends State<EncounterCard> {
   }
 
   Widget _buildRelatedResourcesSection(BuildContext context) {
-    return BlocBuilder<EncounterDetailBloc, EncounterDetailState>(
+    return BlocBuilder<RecordsBloc, RecordsState>(
       builder: (context, state) {
-        if (state.status == EncounterDetailStatus.loading) {
+        if (state.recordDetailStatus == RecordDetailStatus.loading()) {
           return const Padding(
             padding: EdgeInsets.all(Insets.normal),
             child: Center(
@@ -336,10 +406,6 @@ class _EncounterCardState extends State<EncounterCard> {
           decoration: BoxDecoration(
             color: context.colorScheme.surface.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppColors.border,
-              width: 1,
-            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

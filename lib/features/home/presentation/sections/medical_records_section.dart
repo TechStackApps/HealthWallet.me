@@ -49,6 +49,8 @@ class MedicalRecordsSection extends StatelessWidget {
   Widget _buildOverviewCard(BuildContext context, dynamic card) {
     final TextTheme textTheme = context.textTheme;
     Widget icon;
+
+    // Map card titles to their corresponding icons
     switch (card.title) {
       case ClinicalDataTags.allergy:
         icon = Assets.icons.faceMask.svg();
@@ -66,10 +68,25 @@ class MedicalRecordsSection extends StatelessWidget {
         icon = Assets.icons.lab.svg();
         break;
       case ClinicalDataTags.procedure:
-        icon = Assets.icons.scalpel.svg();
+        icon = Assets.icons.briefcaseProcedures.svg();
         break;
       case ClinicalDataTags.goal:
-        icon = Assets.icons.goal.svg();
+        icon = Assets.icons.improveRelevance.svg();
+        break;
+      case ClinicalDataTags.careTeam:
+        icon = Assets.icons.eventsTeam.svg();
+        break;
+      case ClinicalDataTags.clinicalNotes:
+        icon = Assets.icons.catalogNotes.svg();
+        break;
+      case ClinicalDataTags.files:
+        icon = Assets.icons.documentFile.svg();
+        break;
+      case ClinicalDataTags.facilities:
+        icon = Assets.icons.hospital.svg();
+        break;
+      case ClinicalDataTags.demographics:
+        icon = Assets.icons.identification.svg();
         break;
       default:
         icon = const SizedBox.shrink();

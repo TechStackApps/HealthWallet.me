@@ -2,20 +2,14 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 
-import 'package:health_wallet/features/records/presentation/bloc/timeline_bloc.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart';
-import 'package:health_wallet/features/records/presentation/bloc/encounter_detail_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
-import 'package:health_wallet/features/records/data/repository/records_repository.dart';
-import 'package:health_wallet/core/di/injection.dart';
 
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/fhir_resource_utils.dart';
-import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
 import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
@@ -32,20 +26,8 @@ class RecordsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recordsFilterBloc = context.read<RecordsFilterBloc>();
-    final homeState = context.read<HomeBloc>().state;
-    final sourceId =
-        homeState.selectedSource == 'All' ? null : homeState.selectedSource;
-
-    // Provide TimelineBloc at the page level, as it depends on current filters and source
-    return BlocProvider(
-      create: (context) => TimelineBloc(
-        getIt<RecordsRepository>(),
-        initialFilters: recordsFilterBloc.state.activeFilters,
-        sourceId: sourceId,
-      )..add(const TimelineEvent.load()),
-      child: RecordsView(filter: filter),
-    );
+    // Use the global RecordsBloc that's already provided in app.dart
+    return RecordsView(filter: filter);
   }
 }
 
@@ -72,10 +54,11 @@ class _RecordsViewState extends State<RecordsView> {
     // Set up scroll listener for pagination and scroll to top button
     _scrollController.addListener(_onScroll);
 
+    // Initialize the RecordsBloc with data
+    context.read<RecordsBloc>().add(const RecordsInitialised());
+
     if (widget.filter != null) {
-      context
-          .read<RecordsFilterBloc>()
-          .add(RecordsFilterEvent.toggleFilter(widget.filter!));
+      context.read<RecordsBloc>().add(RecordsFilterToggled(widget.filter!));
     }
   }
 
@@ -104,9 +87,9 @@ class _RecordsViewState extends State<RecordsView> {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
-        final state = context.read<TimelineBloc>().state;
-        if (state.status != TimelineStatus.loading && state.hasMorePages) {
-          context.read<TimelineBloc>().add(const TimelineEvent.loadMore());
+        final state = context.read<RecordsBloc>().state;
+        if (state.status != RecordsStatus.loading() && state.hasMorePages) {
+          context.read<RecordsBloc>().add(const RecordsLoadMore());
         }
       }
     });
@@ -137,13 +120,6 @@ class _RecordsViewState extends State<RecordsView> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        BlocListener<RecordsFilterBloc, RecordsFilterState>(
-          listener: (context, state) {
-            context
-                .read<TimelineBloc>()
-                .add(TimelineEvent.filterChanged(state.activeFilters));
-          },
-        ),
         BlocListener<HomeBloc, HomeState>(
           listener: (context, state) {
             final selectedSourceId =
@@ -151,8 +127,8 @@ class _RecordsViewState extends State<RecordsView> {
             print(
                 'DEBUG: HomeBloc selectedSource changed to: ${state.selectedSource}, mapped to: ${selectedSourceId}');
             context
-                .read<TimelineBloc>()
-                .add(TimelineEvent.sourceChanged(selectedSourceId));
+                .read<RecordsBloc>()
+                .add(RecordsSourceChanged(selectedSourceId));
           },
         ),
       ],
@@ -169,6 +145,18 @@ class _RecordsViewState extends State<RecordsView> {
             ),
             backgroundColor: context.colorScheme.surface,
             actions: [
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement share functionality
+                  print('Share button pressed');
+                },
+                icon: Assets.icons.share.svg(
+                  colorFilter: ColorFilter.mode(
+                    context.colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
               IconButton(
                 onPressed: () async {
                   _showFilterDialog(context);
@@ -238,7 +226,7 @@ class _RecordsViewState extends State<RecordsView> {
                     ),
                     const SizedBox(height: Insets.small),
                     // Filter chips
-                    BlocBuilder<RecordsFilterBloc, RecordsFilterState>(
+                    BlocBuilder<RecordsBloc, RecordsState>(
                       builder: (context, state) {
                         if (state.activeFilters.isEmpty) {
                           return const SizedBox();
@@ -255,9 +243,9 @@ class _RecordsViewState extends State<RecordsView> {
                                   onSelected: (bool value) {},
                                   deleteIcon: const Icon(Icons.close, size: 16),
                                   onDeleted: () {
-                                    context.read<RecordsFilterBloc>().add(
-                                        RecordsFilterEvent.toggleFilter(
-                                            filter));
+                                    context
+                                        .read<RecordsBloc>()
+                                        .add(RecordsFilterToggled(filter));
                                   },
                                 ),
                               )
@@ -270,15 +258,15 @@ class _RecordsViewState extends State<RecordsView> {
               ),
               // Records list
               Expanded(
-                child: BlocBuilder<TimelineBloc, TimelineState>(
+                child: BlocBuilder<RecordsBloc, RecordsState>(
                   builder: (context, state) {
-                    if (state.status == TimelineStatus.loading &&
+                    if (state.status == RecordsStatus.loading() &&
                         state.resources.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (state.status == TimelineStatus.failure) {
-                      return Center(child: Text(state.error));
+                    if (state.status == RecordsStatus.failure(Exception())) {
+                      return Center(child: Text(state.status.toString()));
                     }
 
                     final timelineResources = state.resources;
@@ -379,9 +367,8 @@ class _RecordsViewState extends State<RecordsView> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            context.read<RecordsFilterBloc>().add(
-                                RecordsFilterEvent.toggleFilter(
-                                    resource.resourceType));
+                            context.read<RecordsBloc>().add(
+                                RecordsFilterToggled(resource.resourceType));
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -421,13 +408,7 @@ class _RecordsViewState extends State<RecordsView> {
                     const SizedBox(height: Insets.small),
                     // Resource content
                     if (resource.isEncounter && resource.encounterModel != null)
-                      BlocProvider(
-                        create: (context) => getIt<EncounterDetailBloc>()
-                          ..add(EncounterDetailEvent.load(
-                              resource.encounterModel!.id)),
-                        child: EncounterCard(
-                            displayModel: resource.encounterModel!),
-                      )
+                      EncounterCard(displayModel: resource.encounterModel!)
                     else if (resource.isStandalone &&
                         resource.resourceModel != null)
                       UnifiedResourceCard(
@@ -536,25 +517,9 @@ class _RecordsViewState extends State<RecordsView> {
   }
 
   void _showFilterDialog(BuildContext context) {
-    final timelineState = context.read<TimelineBloc>().state;
-    final uniqueResourceTypes =
-        timelineState.resources.map((e) => e.resourceType).toSet();
-
     showDialog(
       context: context,
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(
-            value: BlocProvider.of<RecordsFilterBloc>(context),
-          ),
-          BlocProvider.value(
-            value: BlocProvider.of<TimelineBloc>(context),
-          ),
-        ],
-        child: RecordsFilterDialog(
-          displayedResourceTypes: uniqueResourceTypes,
-        ),
-      ),
+      builder: (_) => const RecordsFilterDialog(),
     );
   }
 }

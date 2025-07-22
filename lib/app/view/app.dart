@@ -7,9 +7,14 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
+import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
+import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -18,46 +23,58 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final _appRouter = getIt.get<AppRouter>();
     final _appRouteObserver = getIt.get<AppRouteObserver>();
+    final _syncTokenService = getIt<SyncTokenService>();
 
     // final _authRepository = getIt.get<AuthenticationRepository>();
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-            create: (context) =>
-                getIt<HomeBloc>()..add(const HomeEvent.initialised())),
-        BlocProvider(
-            create: (context) => getIt<UserProfileBloc>()
-              ..add(const UserProfileEvent.initialised())),
-        BlocProvider(create: (context) => getIt<SyncBloc>()),
-        BlocProvider(
-            create: (context) => getIt<RecordsFilterBloc>()
-              ..add(const RecordsFilterEvent.load())),
-      ],
-      child: BlocListener<SyncBloc, SyncState>(
-        listener: (context, state) {
-          state.status.whenOrNull(
-            success: () {
-              context.read<HomeBloc>().add(const HomeEvent.initialised());
-            },
-          );
-        },
-        child: BlocBuilder<UserProfileBloc, UserProfileState>(
-          builder: (context, state) {
-            return MaterialApp.router(
-              title: 'Health Wallet',
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode:
-                  state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              routerConfig: _appRouter.config(
-                navigatorObservers: () => [_appRouteObserver],
-              ),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              builder: (context, child) => child!,
+    return Provider<SyncTokenService>(
+      create: (_) => _syncTokenService,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (context) => getIt<UserProfileBloc>()
+                ..add(const UserProfileEvent.initialised())),
+          BlocProvider(
+            create: (context) => getIt<SyncBloc>()
+              ..add(const SyncEvent.checkConnectionValidity()),
+          ),
+          BlocProvider(
+              create: (context) => getIt<RecordsBloc>()
+                ..add(const RecordsLoadFilters())
+                ..add(const RecordsInitialised())),
+          BlocProvider(
+            create: (context) => HomeBloc(
+              getIt<FhirRepository>(),
+              getIt<GetSourcesUseCase>(),
+              HomeLocalDataSourceImpl(),
+            )..add(const HomeInitialised()),
+          ),
+        ],
+        child: BlocListener<SyncBloc, SyncState>(
+          listener: (context, state) {
+            state.status.whenOrNull(
+              success: () {
+                context.read<HomeBloc>().add(const HomeInitialised());
+              },
             );
           },
+          child: BlocBuilder<UserProfileBloc, UserProfileState>(
+            builder: (context, state) {
+              return MaterialApp.router(
+                title: 'Health Wallet',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode:
+                    state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                routerConfig: _appRouter.config(
+                  navigatorObservers: () => [_appRouteObserver],
+                ),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                builder: (context, child) => child!,
+              );
+            },
+          ),
         ),
       ),
     );

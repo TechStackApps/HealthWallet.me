@@ -43,25 +43,31 @@ class AppLocalizationsEs extends AppLocalizations {
       'Administre de forma segura todos sus registros médicos con la comodidad moderna y la tranquilidad.';
 
   @override
-  String get onboardingRecordsTitle => 'Ver y administrar registros';
+  String get onboardingRecordsTitle => 'Sincronización';
 
   @override
-  String get onboardingRecordsSubtitle => 'Historial médico completo';
+  String get onboardingRecordsSubtitle => 'Tu salud, actualizada';
 
   @override
   String get onboardingRecordsDescription =>
-      'Acceda a todos sus registros médicos, recetas y datos de salud en una hermosa interfaz.';
+      'Un solo escaneo es todo lo que necesitas para mantener tus registros de salud actualizados.';
 
   @override
-  String get onboardingSyncTitle => 'Sincronizar de forma segura';
+  String get onboardingScanButton => 'Escanear';
 
   @override
-  String get onboardingSyncSubtitle =>
-      'Integración de proveedores de atención médica';
+  String get onboardingSyncTitle => 'Seguridad y Privacidad';
+
+  @override
+  String get onboardingSyncSubtitle => 'Tus Datos, Tu Control';
 
   @override
   String get onboardingSyncDescription =>
-      'Conéctese de forma segura con sus proveedores de atención médica utilizando tecnología encriptada y compatible con HIPAA.';
+      'Tus datos de salud se almacenan localmente en tu teléfono y nunca salen de tu dispositivo sin tu permiso.';
+
+  @override
+  String get onboardingBiometricText =>
+      'Agrega una capa extra de seguridad habilitando la autenticación biométrica.';
 
   @override
   String get homeHi => 'Hola, ';

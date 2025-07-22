@@ -1,13 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_filter_bloc.dart';
+import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/config/clinical_data_tags.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -45,9 +44,7 @@ class _HomeViewState extends State<HomeView> {
         return EditRecordsDialog(
           selectedResources: state.selectedResources,
           onSelectionChanged: (newSelection) {
-            context
-                .read<HomeBloc>()
-                .add(HomeEvent.filtersChanged(newSelection));
+            context.read<HomeBloc>().add(HomeFiltersChanged(newSelection));
           },
         );
       },
@@ -56,10 +53,13 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _onRefresh() async {
     // Trigger data refresh
-    context.read<HomeBloc>().add(const HomeEvent.initialised());
+    context.read<HomeBloc>().add(const HomeInitialised());
 
-    // Also check for sync token updates
+    // Check for sync token updates
     context.read<SyncBloc>().add(const SyncEvent.checkTokenStatus());
+
+    // Check connection validity
+    context.read<SyncBloc>().add(const SyncEvent.checkConnectionValidity());
 
     // Small delay to allow the refresh to complete
     await Future.delayed(const Duration(milliseconds: 500));
@@ -70,77 +70,117 @@ class _HomeViewState extends State<HomeView> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         final editMode = state.editMode ?? false;
-        return state.status.when(
-          initial: () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
-          loading: () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
-          failure: (error) => Scaffold(
-            body: Center(
-              child: Text(
-                'Error: $error',
-                style: TextStyle(color: context.colorScheme.error),
-              ),
-            ),
-          ),
-          success: () => Scaffold(
-            extendBody: true,
-            appBar: AppBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      style: context.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: context.colorScheme.onSurface,
+        // Only show spinner for the very first load
+        if (state.status.runtimeType == HomeStatus.initial().runtimeType) {
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
+        }
+        // Always show the dashboard, even if loading or failure
+        return Scaffold(
+          extendBody: true,
+          appBar: AppBar(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: context.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: context.colorScheme.onSurface,
+                    ),
+                    children: [
+                      TextSpan(text: context.l10n.homeHi),
+                      TextSpan(
+                        text: state.patient != null
+                            ? ((state.patient!.resourceJson['name'] as List?)
+                                    ?.first['given']
+                                    ?.first as String?) ??
+                                ''
+                            : 'SourceName',
+                        style: TextStyle(color: context.colorScheme.primary),
                       ),
-                      children: [
-                        TextSpan(text: context.l10n.homeHi),
-                        TextSpan(
-                          text: state.patient != null
-                              ? ((state.patient!.resourceJson['name'] as List?)
-                                      ?.first['given']
-                                      ?.first as String?) ??
-                                  ''
-                              : 'SourceName',
-                          style: TextStyle(color: context.colorScheme.primary),
+                    ],
+                  ),
+                ),
+                editMode
+                    ? TextButton(
+                        onPressed: () => context
+                            .read<HomeBloc>()
+                            .add(const HomeEditModeChanged(false)),
+                        child: const Text('Done'),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              // Trigger connection validity check
+                              context.read<SyncBloc>().add(
+                                  const SyncEvent.checkConnectionValidity());
+                              // Also refresh home data
+                              context
+                                  .read<HomeBloc>()
+                                  .add(const HomeInitialised());
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Assets.icons.renewSync.svg(
+                                width: 20,
+                                height: 20,
+                                colorFilter: ColorFilter.mode(
+                                  context.colorScheme.onSurface,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              PreferenceModal.show(context);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Assets.icons.settings.svg(),
+                            ),
+                          ),
+                        ],
+                      ),
+              ],
+            ),
+            backgroundColor: context.colorScheme.surface,
+            elevation: 0,
+            actions: const [],
+          ),
+          body: RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: Stack(
+              children: [
+                _buildDashboardContent(
+                  context,
+                  context.textTheme,
+                  context.colorScheme,
+                  state,
+                  editMode,
+                ),
+                if (state.status.runtimeType ==
+                    HomeStatus.failure(Exception()).runtimeType)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: MaterialBanner(
+                      content: Text('Error loading data.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => context
+                              .read<HomeBloc>()
+                              .add(const HomeInitialised()),
+                          child: const Text('Retry'),
                         ),
                       ],
                     ),
                   ),
-                  editMode
-                      ? TextButton(
-                          onPressed: () => context
-                              .read<HomeBloc>()
-                              .add(const HomeEvent.editModeChanged(false)),
-                          child: const Text('Done'),
-                        )
-                      : Row(
-                          children: [
-                            IconButton(
-                              icon: Assets.icons.settings.svg(),
-                              onPressed: () {
-                                PreferenceModal.show(context);
-                              },
-                            ),
-                          ],
-                        ),
-                ],
-              ),
-              backgroundColor: context.colorScheme.surface,
-              elevation: 0,
-              actions: const [],
-            ),
-            body: RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: _buildDashboardContent(
-                context,
-                context.textTheme,
-                context.colorScheme,
-                state,
-                editMode,
-              ),
+              ],
             ),
           ),
         );
@@ -186,14 +226,14 @@ class _HomeViewState extends State<HomeView> {
                 onReorder: (oldIndex, newIndex) {
                   context
                       .read<HomeBloc>()
-                      .add(HomeEvent.vitalsReordered(oldIndex, newIndex));
+                      .add(HomeVitalsReordered(oldIndex, newIndex));
                 },
                 onLongPressCard: () => context
                     .read<HomeBloc>()
-                    .add(const HomeEvent.editModeChanged(true)),
+                    .add(const HomeEditModeChanged(true)),
               ),
 
-              // Medical Records Section
+              // Medical Records Section with Source Dropdown
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -203,7 +243,8 @@ class _HomeViewState extends State<HomeView> {
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  if (!editMode)
+                  if (editMode)
+                    // Show "Edit Records" when in edit mode
                     InkWell(
                       onTap: () => _showEditRecordsDialog(state),
                       child: Container(
@@ -233,89 +274,85 @@ class _HomeViewState extends State<HomeView> {
                           ],
                         ),
                       ),
+                    )
+                  else if (state.sources.isNotEmpty)
+                    // Show source dropdown when not in edit mode
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          context.l10n.homeSource,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: Insets.small),
+                        Flexible(
+                          child: DropdownButton<String>(
+                            value: state.selectedSource,
+                            isExpanded: false,
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                context
+                                    .read<HomeBloc>()
+                                    .add(HomeSourceChanged(newValue));
+                              }
+                            },
+                            items: state.sources
+                                .where((source) => source.id != 'All')
+                                .map((source) {
+                              return DropdownMenuItem<String>(
+                                value: source.id,
+                                child: Container(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 150),
+                                  child: Text(
+                                    source.name?.isNotEmpty == true
+                                        ? source.name!
+                                        : source.id,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              );
+                            }).toList()
+                              ..insert(
+                                  0,
+                                  DropdownMenuItem<String>(
+                                    value: 'All',
+                                    child: Container(
+                                      constraints:
+                                          const BoxConstraints(maxWidth: 150),
+                                      child: Text(
+                                        context.l10n.homeAll,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  )),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
-              const SizedBox(height: Insets.smallNormal),
-
-              // Source filter dropdown
-              if (state.sources.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.only(bottom: Insets.small),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        context.l10n.homeSource,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      Flexible(
-                        child: DropdownButton<String>(
-                          value: state.selectedSource,
-                          isExpanded: false,
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              context
-                                  .read<HomeBloc>()
-                              .add(HomeEvent.sourceChanged(newValue));
-                            }
-                          },
-                          items: state.sources
-                              .where((source) => source.id != 'All')
-                              .map((source) {
-                            return DropdownMenuItem<String>(
-                              value: source.id,
-                              child: Container(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 150),
-                                child: Text(
-                                  source.name?.isNotEmpty == true
-                                      ? source.name!
-                                      : source.id,
-                                  overflow: TextOverflow.ellipsis,
-                                    ),
-                              ),
-                            );
-                          }).toList()
-                                ..insert(
-                                0,
-                                DropdownMenuItem<String>(
-                                  value: 'All',
-                                  child: Container(
-                                    constraints:
-                                        const BoxConstraints(maxWidth: 150),
-                                    child: Text(
-                                      context.l10n.homeAll,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                )),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               const SizedBox(height: Insets.smallNormal),
               MedicalRecordsSection(
                 overviewCards: filteredCards,
                 editMode: editMode,
                 onLongPressCard: () => context
                     .read<HomeBloc>()
-                    .add(const HomeEvent.editModeChanged(true)),
+                    .add(const HomeEditModeChanged(true)),
                 onReorder: (oldIndex, newIndex) {
                   context
                       .read<HomeBloc>()
-                      .add(HomeEvent.recordsReordered(oldIndex, newIndex));
+                      .add(HomeRecordsReordered(oldIndex, newIndex));
                 },
                 onTapCard: (card) {
                   final resourceType =
                       ClinicalDataTags.resourceTypeMap[card.title];
                   if (resourceType != null) {
                     context
-                        .read<RecordsFilterBloc>()
-                        .add(RecordsFilterEvent.toggleFilter(resourceType));
+                        .read<RecordsBloc>()
+                        .add(RecordsFilterToggled(resourceType));
                   }
                   widget.pageController.animateToPage(
                     1,
@@ -425,36 +462,45 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildSyncStatusIndicator(BuildContext context, SyncState syncState) {
-    return syncState.tokenStatus.when(
-      none: () => Container(
+    // Check connection validity first
+    if (syncState.connectionValid == null) {
+      // Still checking connection
+      return Container(
         padding: const EdgeInsets.symmetric(
           horizontal: Insets.extraSmall,
           vertical: 2,
         ),
         decoration: BoxDecoration(
-          color: AppColors.textSecondary.withAlpha(45),
+          color: Colors.amber.withAlpha(45),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.sync_disabled,
-              size: 12,
-              color: AppColors.textSecondary,
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+              ),
             ),
             const SizedBox(width: 4),
             Text(
-              'Not Synced',
+              'Checking...',
               style: context.textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
+                color: Colors.amber,
                 fontSize: 10,
               ),
             ),
           ],
         ),
-      ),
-      active: () => Container(
+      );
+    }
+
+    if (syncState.connectionValid == true) {
+      // Connection is valid - green
+      return Container(
         padding: const EdgeInsets.symmetric(
           horizontal: Insets.extraSmall,
           vertical: 2,
@@ -467,13 +513,13 @@ class _HomeViewState extends State<HomeView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.sync,
+              Icons.check_circle,
               size: 12,
               color: AppColors.success,
             ),
             const SizedBox(width: 4),
             Text(
-              'Synced',
+              'Connected',
               style: context.textTheme.bodySmall?.copyWith(
                 color: AppColors.success,
                 fontSize: 10,
@@ -481,62 +527,73 @@ class _HomeViewState extends State<HomeView> {
             ),
           ],
         ),
-      ),
-      expired: () => Container(
+      );
+    }
+
+    // Connection is not valid
+    // If token expired, show token expired warning
+    if (syncState.tokenStatus.maybeWhen(
+      expired: () => true,
+      orElse: () => false,
+    )) {
+      // Token expired - amber
+      return Container(
         padding: const EdgeInsets.symmetric(
           horizontal: Insets.extraSmall,
           vertical: 2,
         ),
         decoration: BoxDecoration(
-          color: AppColors.error.withAlpha(45),
+          color: Colors.amber.withAlpha(45),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.sync_problem,
+              Icons.warning,
               size: 12,
+              color: Colors.amber,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Token Expired',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: Colors.amber,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Server down or other connection issues - red
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Insets.extraSmall,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.error.withAlpha(45),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.cloud_off,
+            size: 12,
+            color: AppColors.error,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'No connection to server',
+            style: context.textTheme.bodySmall?.copyWith(
               color: AppColors.error,
+              fontSize: 10,
             ),
-            const SizedBox(width: 4),
-            Text(
-              'Expired',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: AppColors.error,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      ),
-      expiringSoon: () => Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Insets.extraSmall,
-          vertical: 2,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.warning.withAlpha(45),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.sync_problem,
-              size: 12,
-              color: AppColors.warning,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Expiring',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: AppColors.warning,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
