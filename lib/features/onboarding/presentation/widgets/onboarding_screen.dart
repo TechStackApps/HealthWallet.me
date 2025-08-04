@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/widgets/qr_scanner_widget.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/biometric_toggle_button.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final String title;
   final String subtitle;
   final String description;
-  final IconData icon;
-  final bool showScanButton;
+  final SvgGenImage image;
   final bool showBiometricToggle;
 
   const OnboardingScreen({
@@ -22,8 +24,7 @@ class OnboardingScreen extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.description,
-    required this.icon,
-    this.showScanButton = false,
+    required this.image,
     this.showBiometricToggle = false,
   });
 
@@ -159,42 +160,30 @@ class OnboardingScreen extends StatelessWidget {
 
         // Otherwise, show the normal onboarding content
         return Padding(
-          padding: const EdgeInsets.all(Insets.medium),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 100, color: context.theme.primaryColor),
-              const SizedBox(height: Insets.extraLarge),
+              image.svg(height: 250),
+              const SizedBox(height: 40),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: context.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyle.titleLarge,
               ),
-              const SizedBox(height: Insets.small),
+              const SizedBox(height: 20),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: context.textTheme.titleMedium?.copyWith(
-                  color: context.theme.primaryColor,
+                style: AppTextStyle.bodySmall.copyWith(
+                  color: AppColors.textPrimary.withValues(alpha: 0.7),
+                  height: 1.5,
+                  letterSpacing: -0.2,
                 ),
               ),
-              const SizedBox(height: Insets.medium),
+              const SizedBox(height: 16),
               _buildRichDescription(context, description),
-              if (showScanButton) ...[
-                const SizedBox(height: Insets.large),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    context
-                        .read<OnboardingBloc>()
-                        .add(const OnboardingScanQR());
-                  },
-                  icon: const Icon(Icons.qr_code_scanner),
-                  label: Text(context.l10n.onboardingScanButton),
-                ),
-              ],
               if (showBiometricToggle) ...[
-                const SizedBox(height: Insets.large),
+                const SizedBox(height: 16),
                 Text(
                   context.l10n.onboardingBiometricText,
                   textAlign: TextAlign.center,
@@ -202,32 +191,8 @@ class OnboardingScreen extends StatelessWidget {
                     color: Colors.grey[600],
                   ),
                 ),
-                const SizedBox(height: Insets.medium),
+                const SizedBox(height: 16),
                 const BiometricToggleButton(),
-                const SizedBox(height: Insets.large),
-                GestureDetector(
-                  onTap: () {
-                    context.appRouter.push(const PrivacyPolicyRoute());
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        context.l10n.privacyPolicy,
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: context.theme.primaryColor,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                      const SizedBox(width: Insets.small),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: context.theme.primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ],
           ),
@@ -259,15 +224,20 @@ class OnboardingScreen extends StatelessWidget {
         child: RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            style: context.textTheme.bodyLarge,
+            style: AppTextStyle.bodySmall.copyWith(
+              color: AppColors.textPrimary.withValues(alpha: 0.7),
+              height: 1.5,
+              letterSpacing: -0.2,
+            ),
             children: [
               TextSpan(text: beforeLink),
               TextSpan(
                 text: linkText,
-                style: context.textTheme.bodyLarge?.copyWith(
-                  color: context.theme.primaryColor,
-                  decoration: TextDecoration.none,
-                ),
+                style: AppTextStyle.bodySmall.copyWith(
+                    color: AppColors.textPrimary.withValues(alpha: 0.7),
+                    height: 1.5,
+                    letterSpacing: -0.2,
+                    decoration: TextDecoration.underline),
                 recognizer: TapGestureRecognizer()
                   ..onTap = () {
                     context.read<OnboardingBloc>().add(
@@ -286,7 +256,11 @@ class OnboardingScreen extends StatelessWidget {
       return Text(
         description,
         textAlign: TextAlign.center,
-        style: context.textTheme.bodyLarge,
+        style: AppTextStyle.bodySmall.copyWith(
+          color: AppColors.textPrimary.withValues(alpha: 0.7),
+          height: 1.5,
+          letterSpacing: -0.2,
+        ),
       );
     }
   }

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/presentation/widgets/reorderable_grid.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/core/config/clinical_data_tags.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/shaking_card.dart';
 
 class MedicalRecordsSection extends StatelessWidget {
-  final List<dynamic> overviewCards;
+  final List<OverviewCard> overviewCards;
   final bool editMode;
   final VoidCallback? onLongPressCard;
   final void Function(int oldIndex, int newIndex)? onReorder;
-  final void Function(dynamic card)? onTapCard;
+  final void Function(OverviewCard card)? onTapCard;
 
   const MedicalRecordsSection({
     super.key,
@@ -25,7 +26,7 @@ class MedicalRecordsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableGrid<dynamic>(
+    return ReorderableGrid<OverviewCard>(
       items: overviewCards,
       enabled: editMode,
       onReorder: onReorder ?? (a, b) {},
@@ -46,51 +47,9 @@ class MedicalRecordsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildOverviewCard(BuildContext context, dynamic card) {
+  Widget _buildOverviewCard(BuildContext context, OverviewCard card) {
     final TextTheme textTheme = context.textTheme;
-    Widget icon;
 
-    // Map card titles to their corresponding icons
-    switch (card.title) {
-      case ClinicalDataTags.allergy:
-        icon = Assets.icons.faceMask.svg();
-        break;
-      case ClinicalDataTags.medication:
-        icon = Assets.icons.medication.svg();
-        break;
-      case ClinicalDataTags.condition:
-        icon = Assets.icons.stethoscope.svg();
-        break;
-      case ClinicalDataTags.immunization:
-        icon = Assets.icons.shield.svg();
-        break;
-      case ClinicalDataTags.labResult:
-        icon = Assets.icons.lab.svg();
-        break;
-      case ClinicalDataTags.procedure:
-        icon = Assets.icons.briefcaseProcedures.svg();
-        break;
-      case ClinicalDataTags.goal:
-        icon = Assets.icons.improveRelevance.svg();
-        break;
-      case ClinicalDataTags.careTeam:
-        icon = Assets.icons.eventsTeam.svg();
-        break;
-      case ClinicalDataTags.clinicalNotes:
-        icon = Assets.icons.catalogNotes.svg();
-        break;
-      case ClinicalDataTags.files:
-        icon = Assets.icons.documentFile.svg();
-        break;
-      case ClinicalDataTags.facilities:
-        icon = Assets.icons.hospital.svg();
-        break;
-      case ClinicalDataTags.demographics:
-        icon = Assets.icons.identification.svg();
-        break;
-      default:
-        icon = const SizedBox.shrink();
-    }
     return Card(
       color: Theme.of(context).colorScheme.surface,
       child: Padding(
@@ -101,24 +60,21 @@ class MedicalRecordsSection extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 16, height: 16, child: icon),
+                SizedBox(
+                    width: 16, height: 16, child: card.category.icon.svg()),
                 const SizedBox(width: Insets.small),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      card.title,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      card.category.display,
+                      style: AppTextStyle.bodySmall.copyWith(
+                          color: AppColors.textPrimary.withValues(alpha: 0.6)),
                     ),
                     const SizedBox(height: Insets.small),
                     Text(
                       card.count,
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                      style: AppTextStyle.titleSmall,
                     ),
                   ],
                 ),

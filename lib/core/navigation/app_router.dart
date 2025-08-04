@@ -5,7 +5,7 @@ import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/onboarding/presentation/pages/auth_page.dart';
 import 'package:health_wallet/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:health_wallet/features/onboarding/presentation/pages/splash_page.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:health_wallet/features/records/presentation/pages/record_detail_page.dart';

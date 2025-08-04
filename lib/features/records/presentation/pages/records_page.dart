@@ -2,14 +2,15 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
 
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/core/utils/fhir_resource_utils.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
 import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
@@ -17,24 +18,25 @@ import 'package:health_wallet/features/records/presentation/pages/resource_detai
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:intl/intl.dart';
 
 @RoutePage()
 class RecordsPage extends StatelessWidget {
-  final String? filter;
+  final List<FhirType>? initFilters;
 
-  const RecordsPage({super.key, this.filter});
+  const RecordsPage({super.key, this.initFilters});
 
   @override
   Widget build(BuildContext context) {
     // Use the global RecordsBloc that's already provided in app.dart
-    return RecordsView(filter: filter);
+    return RecordsView(initFilters: initFilters);
   }
 }
 
 class RecordsView extends StatefulWidget {
-  final String? filter;
+  final List<FhirType>? initFilters;
 
-  const RecordsView({super.key, this.filter});
+  const RecordsView({super.key, this.initFilters});
 
   @override
   State<RecordsView> createState() => _RecordsViewState();
@@ -57,8 +59,10 @@ class _RecordsViewState extends State<RecordsView> {
     // Initialize the RecordsBloc with data
     context.read<RecordsBloc>().add(const RecordsInitialised());
 
-    if (widget.filter != null) {
-      context.read<RecordsBloc>().add(RecordsFilterToggled(widget.filter!));
+    if (widget.initFilters != null) {
+      context
+          .read<RecordsBloc>()
+          .add(RecordsFilterToggled(widget.initFilters!));
     }
   }
 
@@ -138,10 +142,7 @@ class _RecordsViewState extends State<RecordsView> {
           appBar: AppBar(
             title: Text(
               context.l10n.medicalRecords,
-              style: context.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: context.colorScheme.onSurface,
-              ),
+              style: AppTextStyle.titleMedium,
             ),
             backgroundColor: context.colorScheme.surface,
             actions: [
@@ -185,7 +186,8 @@ class _RecordsViewState extends State<RecordsView> {
             children: [
               // Search and filter section
               Padding(
-                padding: const EdgeInsets.all(Insets.normal),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Column(
                   children: [
                     // Search bar
@@ -194,15 +196,12 @@ class _RecordsViewState extends State<RecordsView> {
                       onSubmitted: (_) => FocusScope.of(context).unfocus(),
                       decoration: InputDecoration(
                         hintText: context.l10n.searchRecordsHint,
-                        hintStyle:
-                            const TextStyle(color: AppColors.textSecondary),
+                        hintStyle: AppTextStyle.labelLarge.copyWith(
+                          color: AppColors.textPrimary.withValues(alpha: 0.6),
+                        ),
                         prefixIcon: Padding(
-                          padding: const EdgeInsets.all(Insets.smallNormal),
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: Assets.icons.search.svg(),
-                          ),
+                          padding: const EdgeInsets.all(14),
+                          child: Assets.icons.search.svg(width: 16),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(100),
@@ -236,16 +235,16 @@ class _RecordsViewState extends State<RecordsView> {
                           children: state.activeFilters
                               .map(
                                 (filter) => FilterChip(
-                                  label: Text(getFhirResourceDisplay(filter)),
+                                  label: Text(filter.display),
                                   selected: true,
-                                  selectedColor: _getResourceTypeColor(filter)
-                                      .withAlpha(45),
+                                  selectedColor: AppColors.textPrimary
+                                      .withValues(alpha: 0.1),
                                   onSelected: (bool value) {},
                                   deleteIcon: const Icon(Icons.close, size: 16),
                                   onDeleted: () {
                                     context
                                         .read<RecordsBloc>()
-                                        .add(RecordsFilterToggled(filter));
+                                        .add(RecordsFilterToggled([filter]));
                                   },
                                 ),
                               )
@@ -294,11 +293,6 @@ class _RecordsViewState extends State<RecordsView> {
 
                     return ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.only(
-                        left: Insets.normal,
-                        right: Insets.normal,
-                        bottom: 100,
-                      ),
                       itemCount: timelineResources.length +
                           (state.hasMorePages ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -331,7 +325,7 @@ class _RecordsViewState extends State<RecordsView> {
 
   Widget _buildTimelineResourceEntry(
     BuildContext context, {
-    required TimelineResourceModel resource,
+    required IFhirResource resource,
     required int index,
     required bool isFirst,
     required bool isLast,
@@ -340,180 +334,135 @@ class _RecordsViewState extends State<RecordsView> {
     const double lineWidth = 2.0;
     const double timelineColumnWidth = 40.0;
 
+    FhirType recordType = resource.fhirType;
+
     return IntrinsicHeight(
-      key: ValueKey('timeline-${resource.resourceType}-${resource.id}-$index'),
-      child: Stack(
-        children: [
-          // Main content
-          Padding(
-            padding: const EdgeInsets.only(
-              left: timelineColumnWidth / 3.5 + dotSize / 2,
-              bottom: Insets.normal,
-            ),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(color: AppColors.border),
+      key: ValueKey('timeline-${resource.fhirType}-${resource.id}-$index'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Stack(
+          children: [
+            // Main content
+            Padding(
+              padding: const EdgeInsets.only(
+                bottom: Insets.normal,
               ),
-              margin: const EdgeInsets.only(right: Insets.normal),
-              child: Padding(
-                padding: const EdgeInsets.all(Insets.normal),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Resource type tag and date
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            context.read<RecordsBloc>().add(
-                                RecordsFilterToggled(resource.resourceType));
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: Insets.small,
-                              vertical: Insets.extraSmall,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  _getResourceTypeColor(resource.resourceType)
-                                      .withAlpha(45),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _getResourceTypeColor(
-                                    resource.resourceType),
-                                width: 1,
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.border),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(Insets.normal),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Resource type tag and date
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              context.read<RecordsBloc>().add(
+                                    RecordsFilterToggled([recordType]),
+                                  );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Insets.small,
+                                vertical: Insets.extraSmall,
                               ),
-                            ),
-                            child: Text(
-                              getFhirResourceDisplay(resource.resourceType),
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: _getResourceTypeColor(
-                                    resource.resourceType),
-                                fontWeight: FontWeight.w600,
+                              decoration: BoxDecoration(
+                                color: AppColors.textPrimary
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  recordType.icon.svg(width: 15),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    recordType.display,
+                                    style: AppTextStyle.labelSmall,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                        if (resource.formattedDate != null)
                           Text(
-                            resource.formattedDate!,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                            DateFormat.yMMMMd().format(resource.date),
+                            style: AppTextStyle.labelMedium,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: Insets.small),
-                    // Resource content
-                    if (resource.isEncounter && resource.encounterModel != null)
-                      EncounterCard(displayModel: resource.encounterModel!)
-                    else if (resource.isStandalone &&
-                        resource.resourceModel != null)
-                      UnifiedResourceCard(
-                        displayModel: resource.resourceModel!,
-                        isStandalone: true,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ResourceDetailPage(
-                                  resource: resource.resourceModel!),
-                            ),
-                          );
-                        },
-                      )
-                    else
-                      // Fallback for any resource that doesn't have proper models
-                      Text(
-                        resource.primaryDisplay,
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        ],
                       ),
-                  ],
+                      const SizedBox(height: Insets.small),
+                      // Resource content
+                      if (resource is Encounter)
+                        EncounterCard(encounter: resource!)
+                      else
+                        UnifiedResourceCard(
+                          resource: resource,
+                          isStandalone: true,
+                          onTap: () {
+                            // Navigator.of(context).push(
+                            //   MaterialPageRoute(
+                            //     builder: (context) => ResourceDetailPage(
+                            //         resource: resource.resourceModel!),
+                            //   ),
+                            // );
+                          },
+                        )
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          // Timeline line and dot
-          SizedBox(
-            width: timelineColumnWidth,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Upper line
-                Expanded(
-                  child: Container(
-                    width: lineWidth,
-                    color: !isFirst ? AppColors.primary : Colors.transparent,
-                  ),
-                ),
-                // Dot
-                Container(
-                  width: dotSize,
-                  height: dotSize,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: _getResourceTypeColor(resource.resourceType),
-                      width: 3,
+            // Timeline line and dot
+            Transform.translate(
+              offset: const Offset(-dotSize / 2, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Upper line
+                  Expanded(
+                    child: Container(
+                      width: lineWidth,
+                      color: !isFirst ? AppColors.primary : Colors.transparent,
                     ),
-                    shape: BoxShape.circle,
                   ),
-                ),
-                // Lower line
-                Expanded(
-                  child: Container(
-                    width: lineWidth,
-                    color: !isLast ? AppColors.primary : Colors.transparent,
+                  // Dot
+                  Container(
+                    width: dotSize,
+                    height: dotSize,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: AppColors.primary,
+                          width: 3,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            offset: const Offset(0, 1),
+                            color: AppColors.primary.withValues(alpha: 0.6),
+                            blurRadius: 3,
+                          )
+                        ]),
                   ),
-                ),
-              ],
+                  // Lower line
+                  Expanded(
+                    child: Container(
+                      width: lineWidth,
+                      color: !isLast ? AppColors.primary : Colors.transparent,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  Color _getResourceTypeColor(String resourceType) {
-    switch (resourceType.toLowerCase()) {
-      case 'encounter':
-        return Colors.blue;
-      case 'allergyintolerance':
-        return Colors.red;
-      case 'condition':
-        return Colors.orange;
-      case 'procedure':
-        return Colors.green;
-      case 'medicationrequest':
-        return Colors.purple;
-      case 'observation':
-        return Colors.teal;
-      case 'diagnosticreport':
-        return Colors.indigo;
-      case 'immunization':
-        return Colors.pink;
-      case 'careplan':
-        return Colors.brown;
-      case 'goal':
-        return Colors.amber;
-      case 'documentreference':
-        return Colors.cyan;
-      case 'media':
-        return Colors.deepOrange;
-      case 'location':
-        return Colors.lime;
-      case 'organization':
-        return Colors.deepPurple;
-      case 'practitioner':
-        return Colors.lightBlue;
-      case 'patient':
-        return Colors.lightGreen;
-      default:
-        return Colors.grey;
-    }
   }
 
   void _showFilterDialog(BuildContext context) {

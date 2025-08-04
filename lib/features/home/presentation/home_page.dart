@@ -1,13 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
-import 'package:health_wallet/core/config/clinical_data_tags.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/edit_records_dialog.dart';
@@ -42,7 +42,7 @@ class _HomeViewState extends State<HomeView> {
       context: context,
       builder: (context) {
         return EditRecordsDialog(
-          selectedResources: state.selectedResources,
+          selectedResources: state.selectedRecordTypes,
           onSelectionChanged: (newSelection) {
             context.read<HomeBloc>().add(HomeFiltersChanged(newSelection));
           },
@@ -84,15 +84,13 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: context.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: context.colorScheme.onSurface,
-                    ),
+                    style: AppTextStyle.titleMedium
+                        .copyWith(color: AppColors.textPrimary),
                     children: [
                       TextSpan(text: context.l10n.homeHi),
                       TextSpan(
                         text: state.patient != null
-                            ? ((state.patient!.resourceJson['name'] as List?)
+                            ? ((state.patient!.resourceRaw?['name'] as List?)
                                     ?.first['given']
                                     ?.first as String?) ??
                                 ''
@@ -196,7 +194,7 @@ class _HomeViewState extends State<HomeView> {
     bool editMode,
   ) {
     final filteredCards = state.overviewCards
-        .where((card) => state.selectedResources[card.title] ?? false)
+        .where((card) => state.selectedRecordTypes[card.category] ?? false)
         .toList();
     return CustomScrollView(
       slivers: [
@@ -205,19 +203,12 @@ class _HomeViewState extends State<HomeView> {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               // Sync Status Section
-              BlocBuilder<SyncBloc, SyncState>(
-                builder: (context, syncState) {
-                  return _buildSyncStatusSection(context, syncState);
-                },
-              ),
               const SizedBox(height: Insets.medium),
 
               // Vital Signs Section
               Text(
                 context.l10n.homeVitalSigns,
-                style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
+                style: AppTextStyle.bodyMedium,
               ),
               const SizedBox(height: Insets.smallNormal),
               VitalsSection(
@@ -237,11 +228,9 @@ class _HomeViewState extends State<HomeView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Medical Records',
-                    style: textTheme.titleSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
+                    style: AppTextStyle.bodyMedium,
                   ),
                   if (editMode)
                     // Show "Edit Records" when in edit mode
@@ -347,13 +336,10 @@ class _HomeViewState extends State<HomeView> {
                       .add(HomeRecordsReordered(oldIndex, newIndex));
                 },
                 onTapCard: (card) {
-                  final resourceType =
-                      ClinicalDataTags.resourceTypeMap[card.title];
-                  if (resourceType != null) {
-                    context
-                        .read<RecordsBloc>()
-                        .add(RecordsFilterToggled(resourceType));
-                  }
+                  context
+                      .read<RecordsBloc>()
+                      .add(RecordsFilterToggled(card.category.resourceTypes));
+
                   widget.pageController.animateToPage(
                     1,
                     duration: const Duration(milliseconds: 300),
@@ -361,7 +347,6 @@ class _HomeViewState extends State<HomeView> {
                   );
                 },
               ),
-              const SizedBox(height: Insets.medium),
               RecentRecordsSection(
                 recentRecords: state.recentRecords,
                 onViewAll: () {
@@ -377,224 +362,6 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSyncStatusSection(BuildContext context, SyncState syncState) {
-    final lastSync =
-        syncState.history.isNotEmpty ? syncState.history.first : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${context.l10n.homeLastSynced}${lastSync != null ? DateFormat.yMd().add_jm().format(lastSync) : context.l10n.homeNever}',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                if (syncState.currentToken != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Connected to ${syncState.currentToken!.serverName}',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            // Sync status indicator
-            _buildSyncStatusIndicator(context, syncState),
-          ],
-        ),
-
-        // Show warning if token is expired or expiring soon
-        if (syncState.currentToken != null &&
-            (syncState.currentToken!.isExpired ||
-                syncState.currentToken!.isExpiringSoon)) ...[
-          const SizedBox(height: Insets.small),
-          Container(
-            padding: const EdgeInsets.all(Insets.small),
-            decoration: BoxDecoration(
-              color: (syncState.currentToken!.isExpired
-                      ? AppColors.error
-                      : AppColors.warning)
-                  .withAlpha(45),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  syncState.currentToken!.isExpired
-                      ? Icons.error
-                      : Icons.warning,
-                  size: 16,
-                  color: syncState.currentToken!.isExpired
-                      ? AppColors.error
-                      : AppColors.warning,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    syncState.currentToken!.isExpired
-                        ? 'Sync token expired. Go to Profile to set up sync again.'
-                        : 'Sync token expires soon. Consider refreshing it in Profile.',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: syncState.currentToken!.isExpired
-                          ? AppColors.error
-                          : AppColors.warning,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSyncStatusIndicator(BuildContext context, SyncState syncState) {
-    // Check connection validity first
-    if (syncState.connectionValid == null) {
-      // Still checking connection
-      return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Insets.extraSmall,
-          vertical: 2,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.amber.withAlpha(45),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Checking...',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: Colors.amber,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (syncState.connectionValid == true) {
-      // Connection is valid - green
-      return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Insets.extraSmall,
-          vertical: 2,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.success.withAlpha(45),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle,
-              size: 12,
-              color: AppColors.success,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Connected',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: AppColors.success,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Connection is not valid
-    // If token expired, show token expired warning
-    if (syncState.tokenStatus.maybeWhen(
-      expired: () => true,
-      orElse: () => false,
-    )) {
-      // Token expired - amber
-      return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: Insets.extraSmall,
-          vertical: 2,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.amber.withAlpha(45),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.warning,
-              size: 12,
-              color: Colors.amber,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Token Expired',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: Colors.amber,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Server down or other connection issues - red
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Insets.extraSmall,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.error.withAlpha(45),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.cloud_off,
-            size: 12,
-            color: AppColors.error,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'No connection to server',
-            style: context.textTheme.bodySmall?.copyWith(
-              color: AppColors.error,
-              fontSize: 10,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

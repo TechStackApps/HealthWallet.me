@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
 import 'package:get_it/get_it.dart';
 
@@ -56,7 +56,7 @@ class SyncTokenServiceImpl implements SyncTokenService {
     _initializeTokenStream();
   }
 
-  FhirRepository get _fhirRepository => GetIt.instance<FhirRepository>();
+  SyncRepository get _syncRepository => GetIt.instance<SyncRepository>();
 
   void _initializeTokenStream() async {
     final currentToken = await getCurrentToken();
@@ -294,7 +294,7 @@ class SyncTokenServiceImpl implements SyncTokenService {
   @override
   Future<ConnectionStatus> checkConnectionValidity() async {
     try {
-      return await _fhirRepository.checkConnectionValidity();
+      return await _syncRepository.checkConnectionValidity();
     } catch (_) {
       return ConnectionStatus.serverDown;
     }

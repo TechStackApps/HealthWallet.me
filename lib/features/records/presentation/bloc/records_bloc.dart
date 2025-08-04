@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:health_wallet/features/records/data/repository/records_repository.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:injectable/injectable.dart';
@@ -29,32 +32,23 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     try {
       _recordsRepository.reset();
 
-      final allResources = await _recordsRepository.getTimelineResources(
-        resourceTypes: state.activeFilters.toList(),
+      Set<FhirType> activeFilters;
+      if (state.activeFilters.isEmpty) {
+        activeFilters = {FhirType.Encounter};
+      } else {
+        activeFilters = state.activeFilters;
+      }
+
+      final allResources = await _recordsRepository.getResources(
+        resourceTypes: activeFilters.toList(),
         sourceId: state.sourceId,
       );
-
-      final resourcesWithData = allResources.where((resource) {
-        if (resource.resourceType == 'Encounter') {
-          return true;
-        }
-        return resource.isStandalone;
-      }).toList();
-
-      final availableFilters =
-          await _recordsRepository.getAvailableResourceTypes();
-
-      final filtersWithData = availableFilters.where((filter) {
-        return allResources.any((resource) =>
-            resource.resourceType == filter &&
-            (resource.isStandalone || resource.resourceType == 'Encounter'));
-      }).toList();
 
       emit(
         state.copyWith(
           status: const RecordsStatus.success(),
-          resources: resourcesWithData,
-          availableFilters: filtersWithData,
+          resources: allResources,
+          availableFilters: FhirType.values,
           hasMorePages: _recordsRepository.hasMorePages,
         ),
       );
@@ -67,26 +61,27 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
       RecordsLoadMore event, Emitter<RecordsState> emit) async {
     if (!state.hasMorePages) return;
     try {
-      final resources = await _recordsRepository.getTimelineResources(
-        resourceTypes: state.activeFilters.toList(),
-        loadMore: true,
-        sourceId: state.sourceId,
-      );
+      //TODO: implement pagination
 
-      final filteredResources = resources.where((resource) {
-        if (resource.resourceType == 'Encounter') {
-          return true;
-        }
-        return resource.isStandalone;
-      }).toList();
+      // Set<FhirType> activeFilters;
+      // if (state.activeFilters.isEmpty) {
+      //   activeFilters = {FhirType.Encounter};
+      // } else {
+      //   activeFilters = state.activeFilters;
+      // }
 
-      emit(
-        state.copyWith(
-          status: const RecordsStatus.success(),
-          resources: List.from(state.resources)..addAll(filteredResources),
-          hasMorePages: _recordsRepository.hasMorePages,
-        ),
-      );
+      // final resources = await _recordsRepository.getResources(
+      //   resourceTypes: activeFilters.toList(),
+      //   sourceId: state.sourceId,
+      // );
+
+      // emit(
+      //   state.copyWith(
+      //     status: const RecordsStatus.success(),
+      //     resources: List.from(state.resources)..addAll(resources),
+      //     hasMorePages: _recordsRepository.hasMorePages,
+      //   ),
+      // );
     } catch (e) {
       emit(state.copyWith(status: RecordsStatus.failure(e)));
     }
@@ -106,23 +101,14 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
   void _onFilterToggled(
       RecordsFilterToggled event, Emitter<RecordsState> emit) {
-    final newActiveFilters = Set<String>.from(state.activeFilters);
-    if (newActiveFilters.contains(event.filter)) {
-      newActiveFilters.remove(event.filter);
-    } else {
-      newActiveFilters.add(event.filter);
-    }
-
-    emit(state.copyWith(activeFilters: newActiveFilters));
+    emit(state.copyWith(activeFilters: Set<FhirType>.from(event.filter)));
     add(const RecordsInitialised());
   }
 
   Future<void> _onLoadFilters(
       RecordsLoadFilters event, Emitter<RecordsState> emit) async {
     try {
-      final availableFilters =
-          await _recordsRepository.getAvailableResourceTypes();
-      emit(state.copyWith(availableFilters: availableFilters));
+      emit(state.copyWith(availableFilters: FhirType.values));
     } catch (e) {
       emit(state.copyWith(status: RecordsStatus.failure(e)));
     }
@@ -133,12 +119,9 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     emit(
         state.copyWith(recordDetailStatus: const RecordDetailStatus.loading()));
     try {
-      final resources = await _recordsRepository
-          .getRelatedResourcesForEncounter(event.recordId);
       emit(
         state.copyWith(
           recordDetailStatus: const RecordDetailStatus.success(),
-          relatedResources: resources,
         ),
       );
     } catch (e) {

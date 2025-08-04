@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
+import 'package:intl/intl.dart';
 
 part 'timeline_resource_model.freezed.dart';
 
@@ -67,7 +68,7 @@ extension TimelineResourceModelExtensions on TimelineResourceModel {
     if (date == null) return null;
     try {
       final dateTime = DateTime.parse(date!);
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+      return DateFormat.yMMMMd().format(dateTime);
     } catch (_) {
       return date;
     }

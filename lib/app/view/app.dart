@@ -7,12 +7,13 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
-import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 
@@ -44,9 +45,10 @@ class App extends StatelessWidget {
                 ..add(const RecordsInitialised())),
           BlocProvider(
             create: (context) => HomeBloc(
-              getIt<FhirRepository>(),
+              getIt<SyncRepository>(),
               getIt<GetSourcesUseCase>(),
               HomeLocalDataSourceImpl(),
+              getIt<RecordsRepository>(),
             )..add(const HomeInitialised()),
           ),
         ],

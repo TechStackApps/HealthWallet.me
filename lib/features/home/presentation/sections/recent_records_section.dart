@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 class RecentRecordsSection extends StatelessWidget {
-  final List<dynamic> recentRecords;
+  final List<IFhirResource> recentRecords;
   final VoidCallback? onViewAll;
   final void Function(dynamic record)? onTapRecord;
 
@@ -26,18 +28,13 @@ class RecentRecordsSection extends StatelessWidget {
           children: [
             Text(
               context.l10n.homeRecentRecords,
-              style: textTheme.titleSmall?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+              style: AppTextStyle.bodyMedium,
             ),
             TextButton(
               onPressed: onViewAll,
               child: Text(
                 context.l10n.homeViewAll,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyle.labelLarge,
               ),
             ),
           ],
@@ -49,16 +46,14 @@ class RecentRecordsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentRecordCard(BuildContext context, dynamic record) {
+  Widget _buildRecentRecordCard(BuildContext context, IFhirResource record) {
     final textTheme = context.textTheme;
     final colorScheme = context.colorScheme;
-    final resourceJson = record.resourceJson;
-    final title = resourceJson['code']?['text'] ??
-        resourceJson['vaccineCode']?['text'] ??
-        record.resourceType;
-    final doctor = resourceJson['recorder']?['display'] ?? context.l10n.homeNA;
-    final date = record.updatedAt.toString();
-    final tag = record.resourceType;
+    // final resourceRaw = record.resourceRaw;
+    final title = record.title;
+    // final doctor = resourceRaw['recorder']?['display'] ?? context.l10n.homeNA;
+    final date = record.date.toString();
+    final tag = record.fhirType.display;
     return GestureDetector(
       onTap: () => onTapRecord?.call(record),
       child: Card(
@@ -101,22 +96,22 @@ class RecentRecordsSection extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: Insets.extraSmall),
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 16,
-                    color: colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                  const SizedBox(width: Insets.extraSmall),
-                  Text(
-                    doctor,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Icon(
+              //       Icons.person_outline,
+              //       size: 16,
+              //       color: colorScheme.onSurface.withOpacity(0.7),
+              //     ),
+              //     const SizedBox(width: Insets.extraSmall),
+              //     Text(
+              //       doctor,
+              //       style: textTheme.bodyMedium?.copyWith(
+              //         color: colorScheme.onSurface.withOpacity(0.7),
+              //       ),
+              //     ),
+              //   ],
+              // ),
               const SizedBox(height: Insets.extraSmall),
               Row(
                 children: [

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -145,8 +146,7 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: Insets.extraSmall),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
+                style: AppTextStyle.labelSmall.copyWith(
                   color: isSelected
                       ? context.colorScheme.surface
                       : context.colorScheme.onSurface,

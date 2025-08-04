@@ -1,12 +1,13 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 
 part 'reference.freezed.dart';
 part 'reference.g.dart';
 
 @freezed
 abstract class Reference with _$Reference {
-  const factory Reference.resolved(FhirResource resource) = ResolvedReference;
+  const factory Reference.resolved(FhirResourceDto resource) =
+      ResolvedReference;
   const factory Reference.unresolved(String reference) = UnresolvedReference;
 
   factory Reference.fromJson(Map<String, dynamic> json) =>
@@ -20,7 +21,7 @@ class ReferenceConverter
   @override
   Reference fromJson(Map<String, dynamic> json) {
     if (json.containsKey('resourceType')) {
-      return Reference.resolved(FhirResource.fromJson(json));
+      return Reference.resolved(FhirResourceDto.fromJson(json));
     } else {
       return Reference.unresolved(json['reference'] as String);
     }

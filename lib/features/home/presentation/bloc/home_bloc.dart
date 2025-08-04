@@ -1,16 +1,18 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:health_wallet/core/config/clinical_data_tags.dart';
 import 'package:health_wallet/core/data/mock_data.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/domain/entities/recent_record.dart';
 import 'package:health_wallet/features/home/domain/entities/vital_sign.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
-import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 
@@ -19,13 +21,17 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  final FhirRepository _fhirRepository;
+  final SyncRepository _syncRepository;
+  final RecordsRepository _recordsRepository;
   final GetSourcesUseCase _getSourcesUseCase;
   final HomeLocalDataSource _homeLocalDataSource;
 
   HomeBloc(
-      this._fhirRepository, this._getSourcesUseCase, this._homeLocalDataSource)
-      : super(const HomeState()) {
+    this._syncRepository,
+    this._getSourcesUseCase,
+    this._homeLocalDataSource,
+    this._recordsRepository,
+  ) : super(const HomeState()) {
     on<HomeInitialised>(_onInitialised);
     on<HomeSourceChanged>(_onSourceChanged);
     on<HomeFiltersChanged>(_onFiltersChanged);
@@ -47,7 +53,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onFiltersChanged(
       HomeFiltersChanged event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(selectedResources: event.filters));
+    emit(state.copyWith(selectedRecordTypes: event.filters));
     await _loadData(emit);
   }
 
@@ -62,7 +68,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final card = cards.removeAt(event.oldIndex);
     cards.insert(event.newIndex, card);
     emit(state.copyWith(overviewCards: cards));
-    final cardTitles = cards.map((card) => card.title).toList();
+    final cardTitles =
+        cards.map((card) => card.category.display).toList();
     await _homeLocalDataSource.saveRecordsOrder(cardTitles);
   }
 
@@ -98,34 +105,32 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final sourceId =
         state.selectedSource == 'All' ? null : state.selectedSource;
     final List<OverviewCard> overviewCards = [];
-    final List<FhirResource> allEnabledResources = [];
-    for (var resourceName in state.selectedResources.keys) {
-      final resourceType = ClinicalDataTags.resourceTypeMap[resourceName];
-      if (resourceType != null) {
-        if (state.selectedResources[resourceName]!) {
-          final resources = await _fhirRepository.getResources(
-            resourceType: resourceType,
-            sourceId: sourceId,
-          );
-          allEnabledResources.addAll(resources);
-          overviewCards.add(
-            OverviewCard(
-              title: resourceName,
-              count: resources.length.toString(),
-            ),
-          );
-        } else {
-          overviewCards.add(
-            OverviewCard(
-              title: resourceName,
-              count: '0',
-            ),
-          );
-        }
+    final List<IFhirResource> allEnabledResources = [];
+    for (HomeRecordsCategory category in state.selectedRecordTypes.keys) {
+      if (state.selectedRecordTypes[category]!) {
+        final resources = await _recordsRepository.getResources(
+          resourceTypes: category.resourceTypes,
+          sourceId: sourceId,
+        );
+        allEnabledResources.addAll(resources);
+        overviewCards.add(
+          OverviewCard(
+            category: category,
+            count: resources.length.toString(),
+          ),
+        );
+      } else {
+        overviewCards.add(
+          OverviewCard(
+            category: category,
+            count: '0',
+          ),
+        );
       }
     }
-    allEnabledResources.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    final patientResource = await _fhirRepository.getResources(
+
+    allEnabledResources.sort((a, b) => b.date.compareTo(a.date));
+    final patientResource = await _syncRepository.getResources(
       resourceType: 'Patient',
       sourceId: sourceId,
     );
@@ -173,7 +178,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
     final cardsMap = <String, OverviewCard>{};
     for (final card in cards) {
-      cardsMap[card.title] = card;
+      cardsMap[card.category.display] = card;
     }
     final reorderedCards = <OverviewCard>[];
     for (final title in savedOrder) {
