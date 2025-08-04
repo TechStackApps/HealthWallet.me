@@ -16,7 +16,7 @@ class HomeSourceChanged extends HomeEvent with _$HomeSourceChanged {
 
 @freezed
 class HomeFiltersChanged extends HomeEvent with _$HomeFiltersChanged {
-  const factory HomeFiltersChanged(Map<String, bool> filters) =
+  const factory HomeFiltersChanged(Map<HomeRecordsCategory, bool> filters) =
       _HomeFiltersChanged;
 }
 

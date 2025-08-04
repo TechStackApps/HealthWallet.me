@@ -15,12 +15,10 @@ graph TD
         subgraph Presentation
             direction TB
             UI(Pages/Widgets) --> BLoC(State Management)
-            BLoC --> Mappers(Mappers)
-            Mappers --> ViewModels(View Models)
+            BLoC --> RepositoryInterface(Repository interface)
         end
         subgraph Domain
             direction TB
-            UseCase(Use Cases) --> RepositoryInterface(Repository Interface)
             RepositoryInterface --> Entities(Entities)
         end
         subgraph Data

@@ -39,25 +39,13 @@ class AppDatabase extends _$AppDatabase {
     await customStatement('PRAGMA cache_size=10000'); // Increase cache size
     await customStatement(
         'PRAGMA temp_store=MEMORY'); // Use memory for temp storage
-
-    // Create indexes for performance
-    await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_resource_type ON fhir_resource(resource_type)');
-    await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_updated_at ON fhir_resource(updated_at DESC)');
-    await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_source_id ON fhir_resource(source_id)');
-    await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_composite_type_date ON fhir_resource(resource_type, updated_at DESC)');
-    await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_favorite ON fhir_resource(is_favorite) WHERE is_favorite = 1');
   }
 
   Stream<List<Source>> watchSources() => select(sources).watch();
   Future<void> addSource(SourcesCompanion entry) => into(sources).insert(entry);
 
   /// Optimized method to get encounter with references using indexed queries
-  Future<List<FhirResourceData>> getEncounterWithReferences(
+  Future<List<FhirResourceLocalDto>> getEncounterWithReferences(
       String encounterId) {
     return customSelect(
       '''
@@ -76,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Get paginated resources by type with proper database-level pagination
-  Future<List<FhirResourceData>> getPaginatedResourcesByType(
+  Future<List<FhirResourceLocalDto>> getPaginatedResourcesByType(
     String resourceType, {
     int offset = 0,
     int limit = 20,

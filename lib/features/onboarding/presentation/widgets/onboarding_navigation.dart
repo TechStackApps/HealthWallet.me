@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingNavigation extends StatelessWidget {
@@ -20,41 +23,12 @@ class OnboardingNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
-      child: Row(
-        children: [
-          // Fixed width container for back button to prevent layout shifts
-          SizedBox(
-            width: 120,
-            child: currentPage != 0
-                ? TextButton.icon(
-                    onPressed: () {
-                      context
-                          .read<OnboardingBloc>()
-                          .add(const OnboardingPreviousPage());
-                      pageController.previousPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.ease,
-                      );
-                    },
-                    icon: const Icon(Icons.arrow_back),
-                    label: Text(context.l10n.onboardingBack),
-                  )
-                : null,
-          ),
-          // Centered dots with fixed positioning
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                3,
-                (index) => _buildDot(index, context, currentPage),
-              ),
-            ),
-          ),
-          // Fixed width container for next button
-          SizedBox(
-            width: 120,
-            child: ElevatedButton(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height / 5.2,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton(
               onPressed: () async {
                 if (currentPage == 2) {
                   final prefs = await SharedPreferences.getInstance();
@@ -74,26 +48,69 @@ class OnboardingNavigation extends StatelessWidget {
                   );
                 }
               },
-              child: Text(
-                currentPage == 2
-                    ? context.l10n.onboardingGetStarted
-                    : context.l10n.onboardingNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.all(12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(8)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    currentPage < 2 ? 'Continue' : 'Get started',
+                    style: AppTextStyle.buttonMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  if (currentPage < 2) const Icon(Icons.arrow_forward),
+                ],
               ),
             ),
-          ),
-        ],
+            if (currentPage == 2)
+              Padding(
+                padding: EdgeInsets.only(bottom: 24),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Text(
+                    'Privacy Policy',
+                    style: AppTextStyle.bodySmall.copyWith(
+                      color: AppColors.textPrimary.withValues(alpha: 0.7),
+                      decoration: TextDecoration.underline,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                3,
+                (index) => _buildDot(index, context, currentPage),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDot(int index, BuildContext context, int currentPage) {
-    return Container(
-      height: 10,
-      width: currentPage == index ? 25 : 10,
-      margin: const EdgeInsets.only(right: Insets.extraSmall),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: currentPage == index ? context.theme.primaryColor : Colors.grey,
+    return GestureDetector(
+      onTap: () => pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease,
+      ),
+      child: Container(
+        height: 12,
+        width: currentPage == index ? 24 : 12,
+        margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          color:
+              currentPage == index ? context.theme.primaryColor : Colors.white,
+        ),
       ),
     );
   }

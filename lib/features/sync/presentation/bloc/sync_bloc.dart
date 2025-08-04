@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
-import 'package:health_wallet/features/sync/domain/repository/fhir_repository.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
 import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
 import 'package:injectable/injectable.dart';
@@ -16,12 +16,12 @@ part 'sync_state.dart';
 
 @injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
-  final FhirRepository _fhirRepository;
+  final SyncRepository _syncRepository;
   final SyncTokenService _syncTokenService;
   final SharedPreferences _prefs;
 
   SyncBloc(
-    this._fhirRepository,
+    this._syncRepository,
     this._syncTokenService,
     this._prefs,
   ) : super(const SyncState()) {
@@ -41,7 +41,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   Future<void> _onSyncData(Emitter<SyncState> emit) async {
     emit(state.copyWith(status: const SyncStatus.loading()));
     try {
-      await _fhirRepository.syncData();
+      await _syncRepository.syncData();
       await _addSyncTimeToHistory();
       emit(state.copyWith(
         status: const SyncStatus.success(),
@@ -57,7 +57,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       String jsonData, Emitter<SyncState> emit) async {
     emit(state.copyWith(status: const SyncStatus.loading()));
     try {
-      await _fhirRepository.syncDataWithJson(jsonData);
+      await _syncRepository.syncDataWithJson(jsonData);
       await _addSyncTimeToHistory();
 
       // Check if this was a token setup and save it

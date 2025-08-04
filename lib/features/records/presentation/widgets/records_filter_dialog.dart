@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/core/utils/fhir_resource_utils.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 
 class RecordsFilterDialog extends StatelessWidget {
@@ -18,10 +17,10 @@ class RecordsFilterDialog extends StatelessWidget {
             children: state.availableFilters.map((filter) {
               final isSelected = state.activeFilters.contains(filter);
               return FilterChip(
-                label: Text(getFhirResourceDisplay(filter)),
+                label: Text(filter.display),
                 selected: isSelected,
                 onSelected: (selected) {
-                  context.read<RecordsBloc>().add(RecordsFilterToggled(filter));
+                  context.read<RecordsBloc>().add(RecordsFilterToggled([filter]));
                 },
               );
             }).toList(),

@@ -4,14 +4,13 @@ part of 'records_bloc.dart';
 class RecordsState with _$RecordsState {
   const factory RecordsState({
     @Default(RecordsStatus.initial()) RecordsStatus status,
-    @Default([]) List<TimelineResourceModel> resources,
-    @Default({}) Set<String> activeFilters,
-    @Default([]) List<String> availableFilters,
+    @Default([]) List<IFhirResource> resources,
+    @Default({}) Set<FhirType> activeFilters,
+    @Default([]) List<FhirType> availableFilters,
     String? sourceId,
     @Default(false) bool hasMorePages,
     @Default(RecordDetailStatus.initial())
     RecordDetailStatus recordDetailStatus,
-    @Default({}) Map<String, List<FhirResourceDisplayModel>> relatedResources,
   }) = _RecordsState;
 }
 

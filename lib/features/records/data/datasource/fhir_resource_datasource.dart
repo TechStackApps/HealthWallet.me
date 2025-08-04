@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
 
 /// Single datasource for all FHIR resource operations using Drift with optimizations
 class FhirResourceDatasource {
@@ -20,7 +21,7 @@ class FhirResourceDatasource {
           FhirResourceCompanion(
             id: Value(id),
             resourceType: Value(resourceType),
-            resource: Value(jsonEncode(resourceJson)),
+            resourceRaw: Value(jsonEncode(resourceJson)),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -39,7 +40,7 @@ class FhirResourceDatasource {
             .map((resource) => FhirResourceCompanion(
                   id: Value(resource['id'] ?? ''),
                   resourceType: Value(resourceType),
-                  resource: Value(jsonEncode(resource)),
+                  resourceRaw: Value(jsonEncode(resource)),
                   sourceId: Value(sourceId),
                 ))
             .toList(),
@@ -66,9 +67,9 @@ class FhirResourceDatasource {
       ..limit(1);
 
     final result = await query.getSingleOrNull();
-    if (result?.resource == null) return null;
+    if (result?.resourceRaw == null) return null;
 
-    final resource = jsonDecode(result!.resource) as Map<String, dynamic>;
+    final resource = jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
 
     // Cache the result
     _cacheResource(cacheKey, resource);
@@ -96,7 +97,7 @@ class FhirResourceDatasource {
       );
 
       return results
-          .map((row) => jsonDecode(row.resource) as Map<String, dynamic>)
+          .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
           .toList();
     }
 
@@ -111,14 +112,14 @@ class FhirResourceDatasource {
       query.where((tbl) => tbl.resourceType.equals(resourceType));
     }
 
-    query.orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+    query.orderBy([(t) => OrderingTerm.desc(t.date)]);
 
     final results = await query.get();
     print(
         'DEBUG: Found ${results.length} resources of type $resourceType with sourceId $sourceId');
 
     return results
-        .map((row) => jsonDecode(row.resource) as Map<String, dynamic>)
+        .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
         .toList();
   }
 
@@ -153,12 +154,12 @@ class FhirResourceDatasource {
         ..limit(1);
 
       final result = await query.getSingleOrNull();
-      if (result?.resource == null) {
+      if (result?.resourceRaw == null) {
         print('DEBUG: UUID not found: $uuid');
         return null;
       }
 
-      final resource = jsonDecode(result!.resource) as Map<String, dynamic>;
+      final resource = jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
       final resourceType = resource['resourceType'] as String? ?? 'Unknown';
 
       // Cache the result
@@ -201,7 +202,7 @@ class FhirResourceDatasource {
       String encounterId) async {
     final results = await db.getEncounterWithReferences(encounterId);
     return results
-        .map((row) => jsonDecode(row.resource) as Map<String, dynamic>)
+        .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
         .toList();
   }
 
@@ -269,5 +270,44 @@ class FhirResourceDatasource {
   void clearCache() {
     _resourceCache.clear();
     _cacheTimestamps.clear();
+  }
+
+  Future<List<FhirResourceLocalDto>> getResources({
+    required List<String> resourceTypes,
+    String? sourceId,
+    int? limit,
+    int? offset,
+  }) async {
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query =
+        db.select(db.fhirResource)..orderBy([(f) => OrderingTerm.desc(f.date)]);
+
+    if (sourceId != null) {
+      query.where((f) => f.sourceId.equals(sourceId));
+    }
+
+    if (resourceTypes.isNotEmpty) {
+      query.where((f) => f.resourceType.isIn(resourceTypes));
+    }
+
+    if (limit != null) {
+      query.limit(limit, offset: offset);
+    }
+    
+    return await query.get();
+  }
+
+  Future<List<FhirResourceLocalDto>> getResourcesByEncounterId({
+    required String encounterId,
+    String? sourceId,
+  }) async {
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query = db
+        .select(db.fhirResource)
+      ..where((f) => f.encounterId.equals(encounterId));
+
+    if (sourceId != null) {
+      query.where((f) => f.sourceId.equals(sourceId));
+    }
+
+    return await query.get();
   }
 }

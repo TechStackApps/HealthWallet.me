@@ -49,7 +49,7 @@ class FhirResourceDisplayModel {
     if (date == null) return null;
     try {
       final parsedDate = DateTime.parse(date!);
-      return DateFormat('MMM d, yyyy').format(parsedDate);
+      return DateFormat.yMMMMd().format(parsedDate);
     } catch (_) {
       return date;
     }

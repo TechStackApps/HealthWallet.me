@@ -23,12 +23,12 @@ class ProfileContent extends StatelessWidget {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, homeState) {
         final patient = homeState.patient;
-        final name = patient?.resourceJson['name'] as List?;
+        final name = patient?.resourceRaw?['name'] as List?;
         final firstName = name?.first['given']?.first ?? 'N/A';
         final lastName = name?.first['family'] ?? 'N/A';
-        final gender = patient?.resourceJson['gender'] ?? 'N/A';
-        final birthDate = patient?.resourceJson['birthDate'] != null
-            ? DateTime.parse(patient!.resourceJson['birthDate'])
+        final gender = patient?.resourceRaw?['gender'] ?? 'N/A';
+        final birthDate = patient?.resourceRaw?['birthDate'] != null
+            ? DateTime.parse(patient!.resourceRaw?['birthDate'])
             : null;
         final age = birthDate != null
             ? (DateTime.now().difference(birthDate).inDays / 365).floor()

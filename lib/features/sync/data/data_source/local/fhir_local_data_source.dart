@@ -2,18 +2,18 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/features/records/domain/entity/fhir_resource.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
+import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class FhirLocalDataSource {
-  Future<void> cacheFhirResources(List<FhirResource> fhirResources,
-      {required String sourceId});
-  Future<List<FhirResource>> getFhirResources({String? sourceId});
-  Future<List<FhirResource>> getEncounterWithReferences(String encounterId);
+  Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources);
+  Future<List<FhirResourceDto>> getFhirResources({String? sourceId});
+  Future<List<FhirResourceDto>> getEncounterWithReferences(String encounterId);
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
@@ -30,15 +30,16 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   FhirLocalDataSourceImpl(this._appDatabase, this._sharedPreferences);
 
   @override
-  Future<void> cacheFhirResources(List<FhirResource> fhirResources,
-      {required String sourceId}) async {
+  Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources) async {
     final resources = fhirResources.map((e) {
       return db.FhirResourceCompanion.insert(
-        id: e.id!,
-        resourceType: e.resourceType,
-        resource: jsonEncode(e.resourceJson),
-        sourceId: Value(sourceId),
-        updatedAt: Value(e.updatedAt),
+        id: e.resourceId ?? '',
+        sourceId: Value(e.sourceId),
+        resourceType: Value(e.resourceType),
+        resourceId: Value(e.resourceId),
+        title: Value(e.title),
+        date: Value(e.date),
+        resourceRaw: jsonEncode(e.resourceRaw),
       );
     }).toList();
     await _appDatabase.batch((batch) {
@@ -51,37 +52,31 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<List<FhirResource>> getFhirResources({String? sourceId}) async {
-    if (sourceId == null) {
-      final resources =
-          await _appDatabase.select(_appDatabase.fhirResource).get();
-      return resources
-          .map(
-            (e) => FhirResource(
-              id: e.id,
-              resourceType: e.resourceType,
-              resourceJson: jsonDecode(e.resource),
-              sourceId: e.sourceId,
-              updatedAt: e.updatedAt,
-            ),
-          )
-          .toList();
-    } else {
-      final resources = await (_appDatabase.select(_appDatabase.fhirResource)
-            ..where((tbl) => tbl.sourceId.equals(sourceId)))
-          .get();
-      return resources
-          .map(
-            (e) => FhirResource(
-              id: e.id,
-              resourceType: e.resourceType,
-              resourceJson: jsonDecode(e.resource),
-              sourceId: e.sourceId,
-              updatedAt: e.updatedAt,
-            ),
-          )
-          .toList();
+  Future<List<FhirResourceDto>> getFhirResources({String? sourceId}) async {
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query =
+        _appDatabase.select(_appDatabase.fhirResource);
+
+    if (sourceId != null) {
+      query.where((tbl) => tbl.sourceId.equals(sourceId));
     }
+
+    final resources = await query.get();
+
+    return resources
+        .map(
+          (e) => FhirResourceDto(
+            id: e.id,
+            sourceId: e.sourceId,
+            resourceType: e.resourceType,
+            resourceId: e.id,
+            title: e.title,
+            date: e.date,
+            resourceRaw: jsonDecode(e.resourceRaw),
+            encounterId: e.encounterId,
+            subjectId: e.subjectId,
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -137,18 +132,22 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<List<FhirResource>> getEncounterWithReferences(
+  Future<List<FhirResourceDto>> getEncounterWithReferences(
       String encounterId) async {
     final resources =
         await _appDatabase.getEncounterWithReferences(encounterId);
     return resources
         .map(
-          (e) => FhirResource(
+          (e) => FhirResourceDto(
             id: e.id,
-            resourceType: e.resourceType,
-            resourceJson: jsonDecode(e.resource),
             sourceId: e.sourceId,
-            updatedAt: e.updatedAt,
+            resourceType: e.resourceType,
+            resourceId: e.id,
+            title: e.title,
+            date: e.date,
+            resourceRaw: jsonDecode(e.resourceRaw),
+            encounterId: e.encounterId,
+            subjectId: e.subjectId,
           ),
         )
         .toList();

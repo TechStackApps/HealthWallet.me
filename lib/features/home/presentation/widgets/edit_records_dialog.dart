@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:health_wallet/core/config/clinical_data_tags.dart';
+import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 
 class EditRecordsDialog extends StatefulWidget {
-  final Map<String, bool> selectedResources;
-  final Function(Map<String, bool>) onSelectionChanged;
+  final Map<HomeRecordsCategory, bool> selectedResources;
+  final Function(Map<HomeRecordsCategory, bool>) onSelectionChanged;
 
   const EditRecordsDialog({
     super.key,
@@ -16,7 +16,7 @@ class EditRecordsDialog extends StatefulWidget {
 }
 
 class _EditRecordsDialogState extends State<EditRecordsDialog> {
-  late Map<String, bool> _tempSelectedResources;
+  late Map<HomeRecordsCategory, bool> _tempSelectedResources;
 
   @override
   void initState() {
@@ -31,13 +31,13 @@ class _EditRecordsDialogState extends State<EditRecordsDialog> {
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ClinicalDataTags.resourceTypeMap.keys.map((resource) {
+          children: HomeRecordsCategory.values.map((category) {
             return CheckboxListTile(
-              title: Text(resource),
-              value: _tempSelectedResources[resource] ?? false,
+              title: Text(category.display),
+              value: _tempSelectedResources[category] ?? false,
               onChanged: (bool? value) {
                 setState(() {
-                  _tempSelectedResources[resource] = value!;
+                  _tempSelectedResources[category] = value!;
                 });
               },
             );
