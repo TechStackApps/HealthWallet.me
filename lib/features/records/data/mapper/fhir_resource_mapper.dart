@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:fhir_r4/fhir_r4.dart' as fhir;
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:injectable/injectable.dart';
@@ -6,6 +8,16 @@ import 'package:injectable/injectable.dart';
 @injectable
 class FhirResourceMapper {
   const FhirResourceMapper();
+
+  fhir.Resource _parseFhirResource(FhirResourceLocalDto data) {
+    try {
+      final resourceJson = jsonDecode(data.resourceRaw);
+      return fhir.Resource.fromJson(resourceJson);
+    } catch (e) {
+      print('Warning: Failed to parse FHIR resource ${data.resourceType}: $e');
+      rethrow;
+    }
+  }
 
   IFhirResource mapResourceFromLocalData(FhirResourceLocalDto data) {
     switch (data.resourceType) {
@@ -97,7 +109,7 @@ class FhirResourceMapper {
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
         );
-      case "Media": 
+      case "Media":
         return Media(
           id: data.id,
           sourceId: data.sourceId ?? '',
@@ -106,20 +118,60 @@ class FhirResourceMapper {
           date: data.date ?? DateTime.now(),
         );
       case "Medication":
+        final fhirMedication = _parseFhirResource(data) as fhir.Medication;
         return Medication(
           id: data.id,
           sourceId: data.sourceId ?? '',
           resourceId: data.resourceId ?? '',
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
+          text: fhirMedication.text,
+          identifier: fhirMedication.identifier,
+          code: fhirMedication.code,
+          status: fhirMedication.status,
+          manufacturer: fhirMedication.manufacturer,
+          form: fhirMedication.form,
+          amount: fhirMedication.amount,
+          ingredient: fhirMedication.ingredient,
+          batch: fhirMedication.batch,
         );
       case "MedicationAdministration":
+        final fhirMedicationAdministration =
+            _parseFhirResource(data) as fhir.MedicationAdministration;
         return MedicationAdministration(
           id: data.id,
           sourceId: data.sourceId ?? '',
           resourceId: data.resourceId ?? '',
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
+          text: fhirMedicationAdministration.text,
+          identifier: fhirMedicationAdministration.identifier,
+          instantiates: fhirMedicationAdministration.instantiates
+              ?.map((e) =>
+                  fhir.Reference(reference: fhir.FhirString(e.toString())))
+              .toList(),
+          partOf: fhirMedicationAdministration.partOf != null
+              ? fhir.Reference(
+                  reference: fhir.FhirString(
+                      fhirMedicationAdministration.partOf!.toString()))
+              : null,
+          status: fhirMedicationAdministration.status,
+          statusReason: fhirMedicationAdministration.statusReason,
+          category: fhirMedicationAdministration.category,
+          medicationX: fhirMedicationAdministration.medicationX,
+          subject: fhirMedicationAdministration.subject,
+          context: fhirMedicationAdministration.context,
+          supportingInformation:
+              fhirMedicationAdministration.supportingInformation,
+          effectiveX: fhirMedicationAdministration.effectiveX,
+          performer: fhirMedicationAdministration.performer,
+          reasonCode: fhirMedicationAdministration.reasonCode,
+          reasonReference: fhirMedicationAdministration.reasonReference,
+          request: fhirMedicationAdministration.request,
+          device: fhirMedicationAdministration.device,
+          note: fhirMedicationAdministration.note,
+          dosage: fhirMedicationAdministration.dosage,
+          eventHistory: fhirMedicationAdministration.eventHistory,
         );
       case "MedicationDispense":
         return MedicationDispense(
