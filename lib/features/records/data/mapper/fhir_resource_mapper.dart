@@ -146,15 +146,8 @@ class FhirResourceMapper {
           date: data.date ?? DateTime.now(),
           text: fhirMedicationAdministration.text,
           identifier: fhirMedicationAdministration.identifier,
-          instantiates: fhirMedicationAdministration.instantiates
-              ?.map((e) =>
-                  fhir.Reference(reference: fhir.FhirString(e.toString())))
-              .toList(),
-          partOf: fhirMedicationAdministration.partOf != null
-              ? fhir.Reference(
-                  reference: fhir.FhirString(
-                      fhirMedicationAdministration.partOf!.toString()))
-              : null,
+          instantiates: fhirMedicationAdministration.instantiates,
+          partOf: fhirMedicationAdministration.partOf,
           status: fhirMedicationAdministration.status,
           statusReason: fhirMedicationAdministration.statusReason,
           category: fhirMedicationAdministration.category,
@@ -174,28 +167,108 @@ class FhirResourceMapper {
           eventHistory: fhirMedicationAdministration.eventHistory,
         );
       case "MedicationDispense":
+        final fhirMedicationDispense =
+            _parseFhirResource(data) as fhir.MedicationDispense;
         return MedicationDispense(
           id: data.id,
           sourceId: data.sourceId ?? '',
           resourceId: data.resourceId ?? '',
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
+          text: fhirMedicationDispense.text,
+          identifier: fhirMedicationDispense.identifier,
+          partOf: fhirMedicationDispense.partOf,
+          statusReason: fhirMedicationDispense.statusReasonX,
+          category: fhirMedicationDispense.category,
+          medicationX: fhirMedicationDispense.medicationX,
+          subject: fhirMedicationDispense.subject,
+          context: fhirMedicationDispense.context,
+          supportingInformation: fhirMedicationDispense.supportingInformation,
+          performer: fhirMedicationDispense.performer,
+          location: fhirMedicationDispense.location,
+          authorizingPrescription:
+              fhirMedicationDispense.authorizingPrescription,
+          type: fhirMedicationDispense.type,
+          whenPrepared: fhirMedicationDispense.whenPrepared,
+          whenHandedOver: fhirMedicationDispense.whenHandedOver,
+          destination: fhirMedicationDispense.destination,
+          receiver: fhirMedicationDispense.receiver,
+          note: fhirMedicationDispense.note,
+          dosageInstruction: fhirMedicationDispense.dosageInstruction,
+          substitution: fhirMedicationDispense.substitution,
+          detectedIssue: fhirMedicationDispense.detectedIssue,
+          eventHistory: fhirMedicationDispense.eventHistory,
         );
       case "MedicationRequest":
+        final fhirMedicationRequest =
+            _parseFhirResource(data) as fhir.MedicationRequest;
         return MedicationRequest(
           id: data.id,
           sourceId: data.sourceId ?? '',
           resourceId: data.resourceId ?? '',
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
+          text: fhirMedicationRequest.text,
+          identifier: fhirMedicationRequest.identifier,
+          status: fhirMedicationRequest.status,
+          statusReason: fhirMedicationRequest.statusReason,
+          intent: fhirMedicationRequest.intent,
+          category: fhirMedicationRequest.category,
+          priority: fhirMedicationRequest.priority,
+          doNotPerform: fhirMedicationRequest.doNotPerform,
+          reportedX: fhirMedicationRequest.reportedX,
+          medicationX: fhirMedicationRequest.medicationX,
+          subject: fhirMedicationRequest.subject,
+          encounter: fhirMedicationRequest.encounter,
+          supportingInformation: fhirMedicationRequest.supportingInformation,
+          authoredOn: fhirMedicationRequest.authoredOn,
+          requester: fhirMedicationRequest.requester,
+          performer: fhirMedicationRequest.performer,
+          performerType: fhirMedicationRequest.performerType,
+          recorder: fhirMedicationRequest.recorder,
+          reasonCode: fhirMedicationRequest.reasonCode,
+          reasonReference: fhirMedicationRequest.reasonReference,
+          instantiatesCanonical: fhirMedicationRequest.instantiatesCanonical,
+          instantiatesUri: fhirMedicationRequest.instantiatesUri,
+          basedOn: fhirMedicationRequest.basedOn,
+          groupIdentifier: fhirMedicationRequest.groupIdentifier,
+          courseOfTherapyType: fhirMedicationRequest.courseOfTherapyType,
+          insurance: fhirMedicationRequest.insurance,
+          note: fhirMedicationRequest.note,
+          dosageInstruction: fhirMedicationRequest.dosageInstruction,
+          dispenseRequest: fhirMedicationRequest.dispenseRequest,
+          substitution: fhirMedicationRequest.substitution,
+          priorPrescription: fhirMedicationRequest.priorPrescription,
+          detectedIssue: fhirMedicationRequest.detectedIssue,
+          eventHistory: fhirMedicationRequest.eventHistory,
         );
       case "MedicationStatement":
+        final fhirMedicationStatement =
+            _parseFhirResource(data) as fhir.MedicationStatement;
         return MedicationStatement(
           id: data.id,
           sourceId: data.sourceId ?? '',
           resourceId: data.resourceId ?? '',
           title: data.title ?? '',
           date: data.date ?? DateTime.now(),
+          text: fhirMedicationStatement.text,
+          identifier: fhirMedicationStatement.identifier,
+          basedOn: fhirMedicationStatement.basedOn,
+          partOf: fhirMedicationStatement.partOf,
+          status: fhirMedicationStatement.status,
+          statusReason: fhirMedicationStatement.statusReason,
+          category: fhirMedicationStatement.category,
+          medicationX: fhirMedicationStatement.medicationX,
+          subject: fhirMedicationStatement.subject,
+          context: fhirMedicationStatement.context,
+          effectiveX: fhirMedicationStatement.effectiveX,
+          dateAsserted: fhirMedicationStatement.dateAsserted,
+          informationSource: fhirMedicationStatement.informationSource,
+          derivedFrom: fhirMedicationStatement.derivedFrom,
+          reasonCode: fhirMedicationStatement.reasonCode,
+          reasonReference: fhirMedicationStatement.reasonReference,
+          note: fhirMedicationStatement.note,
+          dosage: fhirMedicationStatement.dosage,
         );
       case "Observation":
         return Observation(
