@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
+import 'package:health_wallet/core/data/local/app_database.dart';
 
 part 'general_resource.freezed.dart';
 
@@ -12,9 +13,19 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
-    required DateTime date,
+    DateTime? date,
   }) = _GeneralResource;
 
   @override
   FhirType get fhirType => FhirType.GeneralResource;
+
+  factory GeneralResource.fromLocalData(FhirResourceLocalDto data) {
+    return GeneralResource(
+      id: data.id,
+      sourceId: data.sourceId ?? '',
+      resourceId: data.resourceId ?? '',
+      title: data.title ?? '',
+      date: data.date,
+    );
+  }
 }

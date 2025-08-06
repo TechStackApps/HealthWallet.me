@@ -71,6 +71,14 @@ enum HomeRecordsCategory {
   procedures(
     display: "Procedures",
     resourceTypes: [FhirType.Procedure, FhirType.ServiceRequest],
+  ),
+  healthInsurance(
+    display: "Health Insurance",
+    resourceTypes: [
+      FhirType.Claim,
+      FhirType.ExplanationOfBenefit,
+      FhirType.Coverage
+    ],
   );
 
   const HomeRecordsCategory(
@@ -105,6 +113,8 @@ enum HomeRecordsCategory {
         return Assets.icons.hospital;
       case HomeRecordsCategory.demographics:
         return Assets.icons.identification;
+      case HomeRecordsCategory.healthInsurance:
+        return Assets.icons.hospital;
     }
   }
 }

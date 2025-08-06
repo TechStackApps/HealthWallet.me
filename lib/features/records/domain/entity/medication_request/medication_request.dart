@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
+import 'package:health_wallet/core/data/local/app_database.dart';
 
 part 'medication_request.freezed.dart';
 
@@ -13,7 +16,7 @@ class MedicationRequest with _$MedicationRequest implements IFhirResource {
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
-    required DateTime date,
+    DateTime? date,
     Narrative? text,
     List<Identifier>? identifier,
     MedicationrequestStatus? status,
@@ -51,4 +54,51 @@ class MedicationRequest with _$MedicationRequest implements IFhirResource {
 
   @override
   FhirType get fhirType => FhirType.MedicationRequest;
+
+  factory MedicationRequest.fromLocalData(FhirResourceLocalDto data) {
+    final resourceJson = jsonDecode(data.resourceRaw);
+    final fhirMedicationRequest =
+        fhir_r4.MedicationRequest.fromJson(resourceJson);
+
+    return MedicationRequest(
+      id: data.id,
+      sourceId: data.sourceId ?? '',
+      resourceId: data.resourceId ?? '',
+      title: data.title ?? '',
+      date: data.date,
+      text: fhirMedicationRequest.text,
+      identifier: fhirMedicationRequest.identifier,
+      status: fhirMedicationRequest.status,
+      statusReason: fhirMedicationRequest.statusReason,
+      intent: fhirMedicationRequest.intent,
+      category: fhirMedicationRequest.category,
+      priority: fhirMedicationRequest.priority,
+      doNotPerform: fhirMedicationRequest.doNotPerform,
+      reportedX: fhirMedicationRequest.reportedX,
+      medicationX: fhirMedicationRequest.medicationX,
+      subject: fhirMedicationRequest.subject,
+      encounter: fhirMedicationRequest.encounter,
+      supportingInformation: fhirMedicationRequest.supportingInformation,
+      authoredOn: fhirMedicationRequest.authoredOn,
+      requester: fhirMedicationRequest.requester,
+      performer: fhirMedicationRequest.performer,
+      performerType: fhirMedicationRequest.performerType,
+      recorder: fhirMedicationRequest.recorder,
+      reasonCode: fhirMedicationRequest.reasonCode,
+      reasonReference: fhirMedicationRequest.reasonReference,
+      instantiatesCanonical: fhirMedicationRequest.instantiatesCanonical,
+      instantiatesUri: fhirMedicationRequest.instantiatesUri,
+      basedOn: fhirMedicationRequest.basedOn,
+      groupIdentifier: fhirMedicationRequest.groupIdentifier,
+      courseOfTherapyType: fhirMedicationRequest.courseOfTherapyType,
+      insurance: fhirMedicationRequest.insurance,
+      note: fhirMedicationRequest.note,
+      dosageInstruction: fhirMedicationRequest.dosageInstruction,
+      dispenseRequest: fhirMedicationRequest.dispenseRequest,
+      substitution: fhirMedicationRequest.substitution,
+      priorPrescription: fhirMedicationRequest.priorPrescription,
+      detectedIssue: fhirMedicationRequest.detectedIssue,
+      eventHistory: fhirMedicationRequest.eventHistory,
+    );
+  }
 }

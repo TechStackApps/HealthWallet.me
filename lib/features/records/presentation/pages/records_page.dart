@@ -7,13 +7,10 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
-import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
-
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
-import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
 
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -128,8 +125,7 @@ class _RecordsViewState extends State<RecordsView> {
           listener: (context, state) {
             final selectedSourceId =
                 state.selectedSource == 'All' ? null : state.selectedSource;
-            print(
-                'DEBUG: HomeBloc selectedSource changed to: ${state.selectedSource}, mapped to: ${selectedSourceId}');
+
             context
                 .read<RecordsBloc>()
                 .add(RecordsSourceChanged(selectedSourceId));
@@ -261,7 +257,12 @@ class _RecordsViewState extends State<RecordsView> {
                   builder: (context, state) {
                     if (state.status == RecordsStatus.loading() &&
                         state.resources.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 4,
+                          color: Colors.red,
+                        ),
+                      );
                     }
 
                     if (state.status == RecordsStatus.failure(Exception())) {
@@ -299,7 +300,12 @@ class _RecordsViewState extends State<RecordsView> {
                         if (index == timelineResources.length) {
                           return const Padding(
                             padding: EdgeInsets.all(16.0),
-                            child: Center(child: CircularProgressIndicator()),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 4,
+                                color: Colors.red,
+                              ),
+                            ),
                           );
                         }
 
@@ -332,7 +338,6 @@ class _RecordsViewState extends State<RecordsView> {
   }) {
     const double dotSize = 16.0;
     const double lineWidth = 2.0;
-    const double timelineColumnWidth = 40.0;
 
     FhirType recordType = resource.fhirType;
 
@@ -389,20 +394,20 @@ class _RecordsViewState extends State<RecordsView> {
                               ),
                             ),
                           ),
-                          Text(
-                            DateFormat.yMMMMd().format(resource.date),
-                            style: AppTextStyle.labelMedium,
-                          ),
+                          if (resource.date != null)
+                            Text(
+                              DateFormat.yMMMMd().format(resource.date!),
+                              style: AppTextStyle.labelMedium,
+                            ),
                         ],
                       ),
                       const SizedBox(height: Insets.small),
-                      // Resource content
-                      if (resource is Encounter)
-                        EncounterCard(encounter: resource!)
+                      // Resource content - Simple approach
+                      if (resource.fhirType == FhirType.Encounter)
+                        EncounterCard(encounter: resource as Encounter)
                       else
                         UnifiedResourceCard(
                           resource: resource,
-                          isStandalone: true,
                           onTap: () {
                             // Navigator.of(context).push(
                             //   MaterialPageRoute(
@@ -411,7 +416,7 @@ class _RecordsViewState extends State<RecordsView> {
                             //   ),
                             // );
                           },
-                        )
+                        ),
                     ],
                   ),
                 ),
