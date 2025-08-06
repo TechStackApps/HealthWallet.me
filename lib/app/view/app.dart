@@ -41,11 +41,9 @@ class App extends StatelessWidget {
           ),
           BlocProvider(
               create: (context) => getIt<RecordsBloc>()
-                ..add(const RecordsLoadFilters())
                 ..add(const RecordsInitialised())),
           BlocProvider(
             create: (context) => HomeBloc(
-              getIt<SyncRepository>(),
               getIt<GetSourcesUseCase>(),
               HomeLocalDataSourceImpl(),
               getIt<RecordsRepository>(),

@@ -55,32 +55,12 @@ class Procedure with _$Procedure implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirProcedure = fhir_r4.Procedure.fromJson(resourceJson);
 
-    // Extract performed date from FHIR data
-    DateTime? performedDate;
-    if (fhirProcedure.performedX != null) {
-      try {
-        // Handle different performedX types
-        final performedX = fhirProcedure.performedX;
-        if (performedX is fhir_r4.FhirDateTime) {
-          performedDate = DateTime.parse(performedX.toString());
-        } else if (performedX is fhir_r4.Period) {
-          final period = performedX as fhir_r4.Period;
-          if (period.start != null) {
-            performedDate = DateTime.parse(period.start!.toString());
-          }
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        performedDate = data.date;
-      }
-    }
-
     return Procedure(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: performedDate,
+      date: data.date,
       text: fhirProcedure.text,
       identifier: fhirProcedure.identifier,
       instantiatesCanonical: fhirProcedure.instantiatesCanonical,

@@ -5,14 +5,12 @@ class RecordsState with _$RecordsState {
   const factory RecordsState({
     @Default(RecordsStatus.initial()) RecordsStatus status,
     @Default([]) List<IFhirResource> resources,
-    @Default({}) Set<FhirType> activeFilters,
-    @Default([]) List<FhirType> availableFilters,
+    @Default([]) List<FhirType> activeFilters,
     String? sourceId,
     @Default(false) bool hasMorePages,
     @Default(RecordDetailStatus.initial())
     RecordDetailStatus recordDetailStatus,
-    @Default({}) Map<String, String> resolvedReferences,
-    @Default({}) Map<String, List<FhirResourceDisplayModel>> relatedResources,
+    @Default([]) List<IFhirResource> relatedResources,
   }) = _RecordsState;
 }
 

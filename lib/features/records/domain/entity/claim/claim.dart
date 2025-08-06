@@ -53,17 +53,12 @@ class Claim with _$Claim implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirClaim = fhir_r4.Claim.fromJson(resourceJson);
 
-    // ✅ REFACTORED: Use centralized date extraction utility
-    final createdDate =
-        FhirDateExtractor.extractFromFhirDateTime(fhirClaim.created) ??
-            data.date;
-
     return Claim(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: createdDate,
+      date: data.date,
       text: fhirClaim.text,
       identifier: fhirClaim.identifier,
       status: fhirClaim.status,

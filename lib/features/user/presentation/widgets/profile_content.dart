@@ -5,6 +5,7 @@ import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
 import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/theme_toggle_button.dart';
 import 'package:health_wallet/features/user/presentation/widgets/biometric_toggle_button.dart';
@@ -23,13 +24,11 @@ class ProfileContent extends StatelessWidget {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, homeState) {
         final patient = homeState.patient;
-        final name = patient?.resourceRaw?['name'] as List?;
-        final firstName = name?.first['given']?.first ?? 'N/A';
-        final lastName = name?.first['family'] ?? 'N/A';
-        final gender = patient?.resourceRaw?['gender'] ?? 'N/A';
-        final birthDate = patient?.resourceRaw?['birthDate'] != null
-            ? DateTime.parse(patient!.resourceRaw?['birthDate'])
-            : null;
+        final name = patient?.name;
+        final firstName = name?.first.given?.first.valueString ?? 'N/A';
+        final lastName = name?.first.family?.valueString ?? 'N/A';
+        final gender = patient?.gender?.display?.valueString ?? 'N/A';
+        final birthDate = FhirDateExtractor.extractFromFhirDateTime(patient?.birthDate);
         final age = birthDate != null
             ? (DateTime.now().difference(birthDate).inDays / 365).floor()
             : 'N/A';

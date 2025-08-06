@@ -1,68 +1,6 @@
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/features/records/domain/factory/base_entity_display_factory.dart';
 
-/// Utility class for extracting common FHIR field patterns
-/// Reduces code duplication across entity display factories
-///
-/// ## Optimization Approach
-///
-/// This class extracts the 4 most common patterns that were duplicated across
-/// 30+ entity display factories:
-///
-/// 1. **Status Extraction** (Duplicated ~20 times)
-///    - Pattern: `entity.status?.toString()`
-///    - Usage: `FhirFieldExtractor.extractStatus(entity.status)`
-///
-/// 2. **CodeableConcept Extraction** (Duplicated ~15 times)
-///    - Pattern: `BaseEntityDisplayFactory.extractCodeableConceptTextNullable(field)`
-///    - Usage: `FhirFieldExtractor.extractCodeableConceptText(entity.field)`
-///
-/// 3. **Reference Display Extraction** (Duplicated ~12 times)
-///    - Pattern: `entity.field?.display?.toString()`
-///    - Usage: `FhirFieldExtractor.extractReferenceDisplay(entity.field)`
-///
-/// 4. **Date Extraction** (Duplicated ~8 times)
-///    - Pattern: `entity.dateField?.toString()`
-///    - Usage: `FhirFieldExtractor.extractDate(entity.dateField)`
-///
-/// ## Benefits
-///
-/// - ✅ **Reduced Duplication**: ~200-300 lines of duplicated code eliminated
-/// - ✅ **Maintained Flexibility**: Resource-specific logic preserved where needed
-/// - ✅ **Full Field Access**: UI can still access all fields easily
-/// - ✅ **Type Safety**: FHIR R4 type safety maintained
-/// - ✅ **Maintainability**: Easy to add new resources and modify patterns
-///
-/// ## Usage Example
-///
-/// ```dart
-/// class PatientEntityDisplayFactory extends BaseEntityDisplayFactory {
-///   @override
-///   List<String> buildAdditionalInfo(IFhirResource entity) {
-///     final patient = entity as Patient;
-///     final additionalInfo = <String>[];
-///
-///     // ✅ USE: Common pattern for status extraction
-///     final status = FhirFieldExtractor.extractStatus(patient.active);
-///     if (status != null) {
-///       additionalInfo.add('Status: ${status == 'true' ? 'Active' : 'Inactive'}');
-///     }
-///
-///     // ✅ KEEP: Resource-specific logic for birth date
-///     if (patient.birthDate != null) {
-///       additionalInfo.add('Birth: ${patient.birthDate}');
-///     }
-///
-///     // ✅ USE: Common pattern for CodeableConcept extraction
-///     final maritalText = FhirFieldExtractor.extractCodeableConceptText(patient.maritalStatus);
-///     if (maritalText != null) {
-///       additionalInfo.add('Marital: $maritalText');
-///     }
-///
-///     return additionalInfo;
-///   }
-/// }
-/// ```
 class FhirFieldExtractor {
   /// Extract status from any status field
   /// Pattern: entity.status?.toString()

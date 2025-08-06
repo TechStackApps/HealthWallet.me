@@ -6,9 +6,6 @@ import 'package:health_wallet/features/sync/domain/entities/connection_status.da
 abstract class SyncRepository {
   Future<void> syncData();
   Future<void> syncDataWithJson(String jsonData);
-  Future<List<FhirResourceDto>> getResources(
-      {String? resourceType, String? sourceId});
-  Future<List<FhirResourceDto>> getEncounterWithReferences(String encounterId);
   Future<List<entity.Source>> getSources();
   Future<void> checkConnection(String token);
   Future<ConnectionStatus> checkConnectionValidity();

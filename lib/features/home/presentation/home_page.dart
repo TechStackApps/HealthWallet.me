@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/domain/factory/base_entity_display_factory.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -89,12 +90,7 @@ class _HomeViewState extends State<HomeView> {
                     children: [
                       TextSpan(text: context.l10n.homeHi),
                       TextSpan(
-                        text: state.patient != null
-                            ? ((state.patient!.resourceRaw?['name'] as List?)
-                                    ?.first['given']
-                                    ?.first as String?) ??
-                                ''
-                            : 'SourceName',
+                        text: BaseEntityDisplayFactory.extractHumanName(state.patient?.name?[0]),
                         style: TextStyle(color: context.colorScheme.primary),
                       ),
                     ],
@@ -338,7 +334,7 @@ class _HomeViewState extends State<HomeView> {
                 onTapCard: (card) {
                   context
                       .read<RecordsBloc>()
-                      .add(RecordsFilterToggled(card.category.resourceTypes));
+                      .add(RecordsFiltersApplied(card.category.resourceTypes));
 
                   widget.pageController.animateToPage(
                     1,
