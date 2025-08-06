@@ -23,6 +23,7 @@ class HomeState with _$HomeState {
       HomeRecordsCategory.files: true,
       HomeRecordsCategory.facilities: true,
       HomeRecordsCategory.demographics: true,
+      HomeRecordsCategory.healthInsurance: true,
     })
     Map<HomeRecordsCategory, bool> selectedRecordTypes,
     FhirResourceDto? patient,

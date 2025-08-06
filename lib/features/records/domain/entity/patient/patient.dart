@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
+import 'package:health_wallet/core/data/local/app_database.dart';
 
 part 'patient.freezed.dart';
 
@@ -12,9 +16,71 @@ class Patient with _$Patient implements IFhirResource {
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
-    required DateTime date,
+    DateTime? date,
+    Narrative? text,
+    List<Identifier>? identifier,
+    FhirBoolean? active,
+    List<HumanName>? name,
+    List<ContactPoint>? telecom,
+    AdministrativeGender? gender,
+    FhirDate? birthDate,
+    DeceasedXPatient? deceasedX,
+    List<Address>? address,
+    CodeableConcept? maritalStatus,
+    MultipleBirthXPatient? multipleBirthX,
+    List<Attachment>? photo,
+    List<PatientContact>? contact,
+    List<PatientCommunication>? communication,
+    List<Reference>? generalPractitioner,
+    Reference? managingOrganization,
+    List<PatientLink>? link,
   }) = _Patient;
 
   @override
   FhirType get fhirType => FhirType.Patient;
+
+  factory Patient.fromLocalData(FhirResourceLocalDto data) {
+    final resourceJson = jsonDecode(data.resourceRaw);
+    final fhirPatient = fhir_r4.Patient.fromJson(resourceJson);
+
+    // Extract birth date from FHIR data
+    DateTime? birthDate;
+    if (fhirPatient.birthDate != null) {
+      try {
+        // Handle FhirDate type properly
+        final birthDateStr = fhirPatient.birthDate!.toString();
+        if (birthDateStr.isNotEmpty) {
+          birthDate = DateTime.parse(birthDateStr);
+        }
+      } catch (e) {
+        // If parsing fails, use the date from DTO or null
+        birthDate = data.date;
+      }
+    }
+
+    return Patient(
+      id: data.id,
+      sourceId: data.sourceId ?? '',
+      resourceId: data.resourceId ?? '',
+      title: data.title ?? '',
+      date: birthDate,
+      text: fhirPatient.text,
+      identifier: fhirPatient.identifier,
+      active: fhirPatient.active,
+      name: fhirPatient.name,
+      telecom: fhirPatient.telecom,
+      gender: fhirPatient.gender,
+      birthDate: fhirPatient.birthDate,
+      deceasedX: fhirPatient.deceasedX,
+      address: fhirPatient.address,
+      maritalStatus: fhirPatient.maritalStatus,
+      multipleBirthX: fhirPatient.multipleBirthX,
+      photo: fhirPatient.photo,
+      contact: fhirPatient.contact,
+      communication: fhirPatient.communication,
+      generalPractitioner: fhirPatient.generalPractitioner,
+      managingOrganization: fhirPatient.managingOrganization,
+      link: fhirPatient.link,
+    );
+  }
 }

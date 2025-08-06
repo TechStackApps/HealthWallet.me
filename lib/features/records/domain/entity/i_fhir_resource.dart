@@ -9,7 +9,7 @@ abstract class IFhirResource {
   FhirType get fhirType;
   String get resourceId;
   String get title;
-  DateTime get date;
+  DateTime? get date;
 }
 
 enum FhirType {
@@ -17,10 +17,13 @@ enum FhirType {
   AllergyIntolerance("Allergy"),
   Binary("Binary"),
   CareTeam("Care Team"),
+  Claim("Claim"),
   Condition("Condition"),
+  Coverage("Coverage"),
   DiagnosticReport("Diagnostic Report"),
   DocumentReference("Document"),
   Encounter("Encounter"),
+  ExplanationOfBenefit("Explanation of Benefit"),
   Goal("Goal"),
   Immunization("Immunization"),
   Location("Location"),

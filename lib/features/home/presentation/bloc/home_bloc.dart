@@ -68,8 +68,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final card = cards.removeAt(event.oldIndex);
     cards.insert(event.newIndex, card);
     emit(state.copyWith(overviewCards: cards));
-    final cardTitles =
-        cards.map((card) => card.category.display).toList();
+    final cardTitles = cards.map((card) => card.category.display).toList();
     await _homeLocalDataSource.saveRecordsOrder(cardTitles);
   }
 
@@ -108,7 +107,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final List<IFhirResource> allEnabledResources = [];
     for (HomeRecordsCategory category in state.selectedRecordTypes.keys) {
       if (state.selectedRecordTypes[category]!) {
-        final resources = await _recordsRepository.getResources(
+        final resources = await _recordsRepository.getAllResources(
           resourceTypes: category.resourceTypes,
           sourceId: sourceId,
         );
@@ -129,7 +128,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-    allEnabledResources.sort((a, b) => b.date.compareTo(a.date));
+    // Sort by date (newest first) with null-safe comparison
+    allEnabledResources.sort((a, b) {
+      // If both dates are null, they're equal
+      if (a.date == null && b.date == null) return 0;
+      // If a.date is null, put it at the end
+      if (a.date == null) return 1;
+      // If b.date is null, put it at the end
+      if (b.date == null) return -1;
+      // Both dates exist, compare normally
+      return b.date!.compareTo(a.date!);
+    });
     final patientResource = await _syncRepository.getResources(
       resourceType: 'Patient',
       sourceId: sourceId,

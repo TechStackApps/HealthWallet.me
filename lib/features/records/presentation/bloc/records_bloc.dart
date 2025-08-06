@@ -1,10 +1,8 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
-import 'package:health_wallet/features/records/presentation/models/timeline_resource_model.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:injectable/injectable.dart';
 
@@ -24,6 +22,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     on<RecordsFilterToggled>(_onFilterToggled);
     on<RecordsLoadFilters>(_onLoadFilters);
     on<RecordDetailLoaded>(_onRecordDetailLoaded);
+    on<ReferenceResolved>(_onReferenceResolved);
   }
 
   Future<void> _onInitialised(
@@ -34,22 +33,44 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
 
       Set<FhirType> activeFilters;
       if (state.activeFilters.isEmpty) {
-        activeFilters = {FhirType.Encounter};
+        // Load all resource types when no filters are active
+        activeFilters = FhirType.values.toSet();
       } else {
         activeFilters = state.activeFilters;
       }
 
-      final allResources = await _recordsRepository.getResources(
-        resourceTypes: activeFilters.toList(),
-        sourceId: state.sourceId,
-      );
+      const limit = 20; // Page size
+      logger.d('🔍 Loading resources with filters: $activeFilters');
+
+      // Use getAllResources when filtering (from home page) to show all resources
+      // Use getResources when no filters (timeline view) to show only standalone resources
+      final allResources = state.activeFilters.isEmpty
+          ? await _recordsRepository.getResources(
+              resourceTypes: activeFilters.toList(),
+              sourceId: state.sourceId,
+              limit: limit,
+              offset: 0,
+            )
+          : await _recordsRepository.getAllResources(
+              resourceTypes: activeFilters.toList(),
+              sourceId: state.sourceId,
+              limit: limit,
+              offset: 0,
+            );
+
+      logger.d('📦 Loaded ${allResources.length} resources');
+      logger.d(
+          '📋 Resource types: ${allResources.map((r) => r.fhirType).toList()}');
+
+      // If we got fewer resources than the limit, we've reached the end
+      final hasMore = allResources.length == limit;
 
       emit(
         state.copyWith(
           status: const RecordsStatus.success(),
           resources: allResources,
           availableFilters: FhirType.values,
-          hasMorePages: _recordsRepository.hasMorePages,
+          hasMorePages: hasMore,
         ),
       );
     } catch (e) {
@@ -60,28 +81,46 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   Future<void> _onLoadMore(
       RecordsLoadMore event, Emitter<RecordsState> emit) async {
     if (!state.hasMorePages) return;
+
     try {
-      //TODO: implement pagination
+      Set<FhirType> activeFilters;
+      if (state.activeFilters.isEmpty) {
+        // Load all resource types when no filters are active
+        activeFilters = FhirType.values.toSet();
+      } else {
+        activeFilters = state.activeFilters;
+      }
 
-      // Set<FhirType> activeFilters;
-      // if (state.activeFilters.isEmpty) {
-      //   activeFilters = {FhirType.Encounter};
-      // } else {
-      //   activeFilters = state.activeFilters;
-      // }
+      // Calculate the offset based on current resources count
+      final offset = state.resources.length;
+      const limit = 20; // Page size
 
-      // final resources = await _recordsRepository.getResources(
-      //   resourceTypes: activeFilters.toList(),
-      //   sourceId: state.sourceId,
-      // );
+      // Use getAllResources when filtering (from home page) to show all resources
+      // Use getResources when no filters (timeline view) to show only standalone resources
+      final resources = state.activeFilters.isEmpty
+          ? await _recordsRepository.getResources(
+              resourceTypes: activeFilters.toList(),
+              sourceId: state.sourceId,
+              limit: limit,
+              offset: offset,
+            )
+          : await _recordsRepository.getAllResources(
+              resourceTypes: activeFilters.toList(),
+              sourceId: state.sourceId,
+              limit: limit,
+              offset: offset,
+            );
 
-      // emit(
-      //   state.copyWith(
-      //     status: const RecordsStatus.success(),
-      //     resources: List.from(state.resources)..addAll(resources),
-      //     hasMorePages: _recordsRepository.hasMorePages,
-      //   ),
-      // );
+      // If we got fewer resources than the limit, we've reached the end
+      final hasMore = resources.length == limit;
+
+      emit(
+        state.copyWith(
+          status: const RecordsStatus.success(),
+          resources: List.from(state.resources)..addAll(resources),
+          hasMorePages: hasMore,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: RecordsStatus.failure(e)));
     }
@@ -119,15 +158,34 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     emit(
         state.copyWith(recordDetailStatus: const RecordDetailStatus.loading()));
     try {
+      // Load related resources for the encounter
+      final relatedResources = await _recordsRepository
+          .getRelatedResourcesForEncounter(event.recordId);
+
       emit(
         state.copyWith(
           recordDetailStatus: const RecordDetailStatus.success(),
+          relatedResources: relatedResources,
         ),
       );
     } catch (e) {
       emit(state.copyWith(
         recordDetailStatus: RecordDetailStatus.failure(e),
       ));
+    }
+  }
+
+  Future<void> _onReferenceResolved(
+      ReferenceResolved event, Emitter<RecordsState> emit) async {
+    try {
+      // Store the resolved reference in the state
+      final resolvedReferences =
+          Map<String, String>.from(state.resolvedReferences);
+      resolvedReferences[event.reference] = event.displayName;
+
+      emit(state.copyWith(resolvedReferences: resolvedReferences));
+    } catch (e) {
+      // Handle error silently for reference resolution
     }
   }
 }
