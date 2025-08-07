@@ -36,8 +36,7 @@ class UserDataUpdatedFromSync extends UserEvent with _$UserDataUpdatedFromSync {
   const factory UserDataUpdatedFromSync() = _UserDataUpdatedFromSync;
 }
 
-class UserNameUpdated extends UserEvent {
-  const UserNameUpdated(this.name);
-
-  final String name;
+@freezed
+class UserNameUpdated extends UserEvent with _$UserNameUpdated {
+  const factory UserNameUpdated(String name) = _UserNameUpdated;
 }

@@ -57,8 +57,7 @@ class App extends StatelessWidget {
             state.status.whenOrNull(
               success: () {
                 context.read<HomeBloc>().add(const HomeInitialised());
-                // Trigger user fetch when sync is successful
-                context.read<UserBloc>().add(const UserInitialised());
+                context.read<UserBloc>().add(const UserDataUpdatedFromSync());
               },
             );
           },
