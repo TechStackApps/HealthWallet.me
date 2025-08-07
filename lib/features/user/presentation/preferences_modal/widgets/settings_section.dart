@@ -6,11 +6,11 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
-import 'package:health_wallet/features/user/presentation/widgets/theme_toggle_button.dart';
-import 'package:health_wallet/features/user/presentation/widgets/biometric_toggle_button.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/theme_toggle_button.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/biometric_toggle_button.dart';
 
-class PreferenceSettingsSection extends StatelessWidget {
-  const PreferenceSettingsSection({super.key});
+class SettingsSection extends StatelessWidget {
+  const SettingsSection({super.key});
 
   @override
   Widget build(BuildContext context) {

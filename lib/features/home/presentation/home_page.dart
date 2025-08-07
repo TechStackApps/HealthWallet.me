@@ -4,9 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
-import 'package:intl/intl.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -15,7 +14,6 @@ import 'package:health_wallet/features/home/presentation/sections/vitals_section
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {

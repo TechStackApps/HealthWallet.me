@@ -29,6 +29,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserBiometricAuthToggled>(_onBiometricAuthToggled);
     on<UserPatientsLoaded>(_onPatientsLoaded);
     on<UserPatientReorder>(_onPatientReorder);
+    on<UserDataUpdatedFromSync>(_onUserDataUpdatedFromSync);
+    on<UserNameUpdated>(_onUserNameUpdated);
   }
 
   Future<void> _onInitialised(
@@ -53,7 +55,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         user = await _userRepository.getCurrentUser(
             fetchFromNetwork: fetchFromNetwork);
       } catch (e) {
-        // If no user exists in local storage, create a default user with system theme
         final systemTheme =
             WidgetsBinding.instance.platformDispatcher.platformBrightness;
         final isSystemDarkMode = systemTheme == Brightness.dark;
@@ -62,7 +63,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           isDarkMode: isSystemDarkMode,
         );
 
-        // Save the default user to local storage
         await _userRepository.updateUser(user);
       }
 
@@ -83,7 +83,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         expandedPatientIds: expandedIds,
       ));
     } catch (e) {
-      // If everything fails, create a default user with system theme
       final systemTheme =
           WidgetsBinding.instance.platformDispatcher.platformBrightness;
       final isSystemDarkMode = systemTheme == Brightness.dark;
@@ -186,12 +185,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         patients: patientList,
         expandedPatientIds: expandedIds,
       ));
-    } catch (e) {
-      // Keep existing state on failure
-    }
+    } catch (e) {}
   }
 
-  void _onPatientReorder(
+  Future<void> _onPatientReorder(
     UserPatientReorder event,
     Emitter<UserState> emit,
   ) async {
@@ -219,7 +216,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         collapsingPatientId: collapsingPatientId,
       ));
 
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 560));
 
       currentExpandedIds.clear();
       emit(state.copyWith(
@@ -227,7 +224,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         collapsingPatientId: '',
       ));
 
-      await Future.delayed(const Duration(milliseconds: 1200));
+      await Future.delayed(const Duration(milliseconds: 840));
     }
 
     emit(state.copyWith(
@@ -236,7 +233,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       swappingToPatientId: event.patientId,
     ));
 
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 140));
 
     currentPatients.remove(selectedPatient);
     currentPatients.insert(0, selectedPatient);
@@ -247,7 +244,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       swappingToPatientId: '',
     ));
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 560));
 
     currentExpandedIds.add(event.patientId);
     emit(state.copyWith(
@@ -256,13 +253,13 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       expandingPatientId: event.patientId,
     ));
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 840));
 
     emit(state.copyWith(
       expandingPatientId: '',
     ));
 
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 140));
 
     emit(state.copyWith(
       animationPhase: PatientAnimationPhase.none,
@@ -272,5 +269,31 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       swappingFromPatientId: '',
       swappingToPatientId: '',
     ));
+  }
+
+  Future<void> _onUserNameUpdated(
+    UserNameUpdated event,
+    Emitter<UserState> emit,
+  ) async {
+    final updatedUser = state.user.copyWith(
+      name: event.name,
+    );
+
+    emit(
+      state.copyWith(status: const UserStatus.success(), user: updatedUser),
+    );
+
+    try {
+      await _userRepository.updateUser(updatedUser);
+    } catch (e) {
+      emit(state.copyWith(status: UserStatus.failure(e)));
+    }
+  }
+
+  Future<void> _onUserDataUpdatedFromSync(
+    UserDataUpdatedFromSync event,
+    Emitter<UserState> emit,
+  ) async {
+    await _getCurrentUser(false, emit);
   }
 }

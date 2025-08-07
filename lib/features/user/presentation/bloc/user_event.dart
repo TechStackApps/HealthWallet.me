@@ -30,3 +30,14 @@ class UserPatientsLoaded extends UserEvent with _$UserPatientsLoaded {
 class UserPatientReorder extends UserEvent with _$UserPatientReorder {
   const factory UserPatientReorder(String patientId) = _UserPatientReorder;
 }
+
+@freezed
+class UserDataUpdatedFromSync extends UserEvent with _$UserDataUpdatedFromSync {
+  const factory UserDataUpdatedFromSync() = _UserDataUpdatedFromSync;
+}
+
+class UserNameUpdated extends UserEvent {
+  const UserNameUpdated(this.name);
+
+  final String name;
+}

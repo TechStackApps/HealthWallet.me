@@ -7,19 +7,17 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
-import 'package:health_wallet/features/user/presentation/widgets/animated_reorderable_list.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/animated_reorderable_list.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
-/// PreferencePatientSection widget that displays a list of patients.
-class PreferencePatientSection extends StatefulWidget {
-  const PreferencePatientSection({super.key});
+class PatientSection extends StatefulWidget {
+  const PatientSection({super.key});
 
   @override
-  State<PreferencePatientSection> createState() =>
-      _PreferencePatientSectionState();
+  State<PatientSection> createState() => _PatientSectionState();
 }
 
-class _PreferencePatientSectionState extends State<PreferencePatientSection> {
+class _PatientSectionState extends State<PatientSection> {
   final _patientFactory = PatientEntityDisplayFactory();
 
   @override
@@ -95,13 +93,10 @@ class _PreferencePatientSectionState extends State<PreferencePatientSection> {
               if (patients.isNotEmpty) ...[
                 AnimatedReorderableList<Patient>(
                   items: patients,
-                  itemKey: (patient) => patient.id,
-                  isBeingMoved: (patient) =>
-                      state.animationPhase == PatientAnimationPhase.swapping &&
-                      state.swappingFromPatientId == patient.id,
-                  cardHeight: 120.0,
-                  spacing: Insets.small,
-                  itemBuilder: (context, patient, index) {
+                  itemIdExtractor: (patient) => patient.id,
+                  // itemHeight: 120.0,
+                  itemSpacing: Insets.small,
+                  itemBuilder: (context, patient, index, isBeingMoved) {
                     final isAnimating = state.animatingPatientId == patient.id;
                     final isCollapsing =
                         state.collapsingPatientId == patient.id;
@@ -201,7 +196,6 @@ class _UnifiedPatientCard extends StatelessWidget {
         color: _getCardColor(context),
         border: Border.all(color: _getBorderColor(context)),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: _getBoxShadow(context),
       ),
       child: Column(
         children: [
@@ -332,9 +326,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              // Edit patient details
-                            },
+                            onPressed: () {},
                             icon: Assets.icons.edit.svg(
                               width: 16,
                               height: 16,
@@ -396,48 +388,6 @@ class _UnifiedPatientCard extends StatelessWidget {
     }
     if (isAnimating) return AppColors.primary.withValues(alpha: 0.5);
     return borderColor;
-  }
-
-  List<BoxShadow> _getBoxShadow(BuildContext context) {
-    if (isCollapsing) return [];
-    if (isExpanding) {
-      return [
-        BoxShadow(
-          color: AppColors.primary.withValues(alpha: 0.05),
-          blurRadius: 4,
-          offset: const Offset(0, 1),
-        ),
-      ];
-    }
-    if (context
-        .read<UserBloc>()
-        .state
-        .expandedPatientIds
-        .contains(patient.id)) {
-      return [
-        BoxShadow(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ];
-    }
-    if (isAnimating) {
-      return [
-        BoxShadow(
-          color: AppColors.primary.withValues(alpha: 0.2),
-          blurRadius: 8,
-          offset: const Offset(0, 1),
-        ),
-      ];
-    }
-    return [
-      BoxShadow(
-        color: borderColor.withValues(alpha: 0.1),
-        blurRadius: 4,
-        offset: const Offset(0, 1),
-      ),
-    ];
   }
 
   double _getRotationTurns(BuildContext context) {

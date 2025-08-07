@@ -2,14 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_header.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_user_section.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_patient_section.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_sync_section.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_settings_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/user_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/patient_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/sync_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/settings_section.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 
 class PreferenceModal extends StatelessWidget {
   const PreferenceModal({super.key});
@@ -48,7 +49,35 @@ class PreferenceModal extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const PreferenceHeader(),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Insets.normal,
+                vertical: Insets.small,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Preferences',
+                    style: AppTextStyle.bodyMedium,
+                  ),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: IconButton(
+                      icon: Assets.icons.close.svg(),
+                      onPressed: () {
+                        context.popDialog();
+                      },
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Divider(
               height: 1,
               color: borderColor,
@@ -58,13 +87,13 @@ class PreferenceModal extends StatelessWidget {
                 child: Column(
                   children: [
                     SizedBox(height: Insets.normal),
-                    PreferenceUserSection(),
+                    UserSection(),
                     SizedBox(height: Insets.medium),
-                    PreferencePatientSection(),
+                    PatientSection(),
                     SizedBox(height: Insets.medium),
-                    PreferenceSyncSection(),
+                    SyncSection(),
                     SizedBox(height: Insets.medium),
-                    PreferenceSettingsSection(),
+                    SettingsSection(),
                     SizedBox(height: Insets.normal),
                   ],
                 ),

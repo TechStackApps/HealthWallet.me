@@ -8,8 +8,8 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
-class PreferenceSyncSection extends StatelessWidget {
-  const PreferenceSyncSection({super.key});
+class SyncSection extends StatelessWidget {
+  const SyncSection({super.key});
 
   @override
   Widget build(BuildContext context) {
