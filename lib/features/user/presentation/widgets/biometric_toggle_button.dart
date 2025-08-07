@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 
 class BiometricToggleButton extends StatelessWidget {
   const BiometricToggleButton({super.key});
@@ -11,15 +11,16 @@ class BiometricToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = context.colorScheme;
+    final borderColor = context.theme.dividerColor;
 
-    return BlocBuilder<UserProfileBloc, UserProfileState>(
+    return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
         final isBiometricEnabled = state.isBiometricAuthEnabled;
 
         return GestureDetector(
           onTap: () {
-            context.read<UserProfileBloc>().add(
-                  UserProfileEvent.biometricAuthToggled(!isBiometricEnabled),
+            context.read<UserBloc>().add(
+                  UserBiometricAuthToggled(!isBiometricEnabled),
                 );
           },
           child: AnimatedContainer(
@@ -30,7 +31,7 @@ class BiometricToggleButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -99,13 +99,60 @@ class PatientEntityDisplayFactory extends BaseEntityDisplayFactory {
       }
     }
 
-    // ✅ USE: Common pattern for reference display
-    final generalPractitioner = FhirFieldExtractor.extractReferenceDisplay(
-        patient.generalPractitioner?.firstOrNull);
-    if (generalPractitioner != null) {
-      additionalInfo.add('General Practitioner: $generalPractitioner');
-    }
-
     return additionalInfo;
+  }
+
+  /// Extract patient ID from identifiers or fallback to resource ID
+  String extractPatientId(Patient patient) {
+    if (patient.identifier?.isNotEmpty == true) {
+      for (final identifier in patient.identifier!) {
+        if (identifier.value != null) {
+          return identifier.value!.toString();
+        }
+      }
+    }
+    return patient.id;
+  }
+
+  /// Calculate patient age from birth date
+  String extractPatientAge(Patient patient) {
+    if (patient.birthDate == null) return 'N/A';
+
+    try {
+      final birthDateStr = patient.birthDate!.toString();
+      if (birthDateStr.isEmpty) return 'N/A';
+
+      final birthDate = DateTime.parse(birthDateStr);
+      final now = DateTime.now();
+      final age = now.year - birthDate.year;
+
+      if (now.month < birthDate.month ||
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        return '${age - 1} years';
+      }
+
+      return '$age years';
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+  /// Extract patient gender
+  String extractPatientGender(Patient patient) {
+    final gender = FhirFieldExtractor.extractStatus(patient.gender);
+    return gender ?? 'N/A';
+  }
+
+  /// Extract blood type (placeholder - would need observation query)
+  String extractBloodType(Patient patient) {
+    // Blood type is typically stored in Observation resources with specific LOINC codes
+    // Common blood type LOINC codes:
+    // - 883-9: ABO group [Type] in Blood
+    // - 884-7: Rh [Type] in Blood
+    // - 34532-2: ABO and Rh group [Type] in Blood
+
+    // This would require querying observations through the repository layer
+    // For now, return placeholder
+    return 'N/A';
   }
 }

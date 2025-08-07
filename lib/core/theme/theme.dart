@@ -44,38 +44,38 @@ class AppTheme {
 
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: AppColors.textPrimary,
+    scaffoldBackgroundColor: AppColors.backgroundDark,
     fontFamily: 'Matter',
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
-      onPrimary: AppColors.background,
+      onPrimary: AppColors.backgroundDark,
       secondary: AppColors.secondary,
-      onSecondary: AppColors.background,
+      onSecondary: AppColors.backgroundDark,
       error: AppColors.error,
-      onError: AppColors.background,
-      surface: AppColors.textPrimary, // Card background
-      onSurface: AppColors.background,
+      onError: AppColors.backgroundDark,
+      surface: AppColors.surfaceDark, // Card background
+      onSurface: AppColors.textPrimaryDark,
     ),
     textTheme: ThemeData.dark().textTheme.apply(
           fontFamily: 'Matter',
-          bodyColor: AppColors.background,
-          displayColor: AppColors.background,
+          bodyColor: AppColors.textPrimaryDark,
+          displayColor: AppColors.textPrimaryDark,
         ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.textPrimary,
-      foregroundColor: AppColors.background,
+      backgroundColor: AppColors.surfaceDark,
+      foregroundColor: AppColors.textPrimaryDark,
       elevation: 0,
     ),
     cardTheme: CardThemeData(
-      color: AppColors.textPrimary,
+      color: AppColors.surfaceDark,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: const BorderSide(color: AppColors.border, width: 1.0),
+        side: const BorderSide(color: AppColors.borderDark, width: 1.0),
       ),
       elevation: 0,
       margin: EdgeInsets.zero,
     ),
-    dividerColor: AppColors.border,
+    dividerColor: AppColors.borderDark,
   );
 }

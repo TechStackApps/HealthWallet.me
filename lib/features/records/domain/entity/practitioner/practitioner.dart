@@ -16,6 +16,7 @@ class Practitioner with _$Practitioner implements IFhirResource {
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
+    DateTime? date,
     Narrative? text,
     List<Identifier>? identifier,
     FhirBoolean? active,
@@ -24,7 +25,6 @@ class Practitioner with _$Practitioner implements IFhirResource {
     List<Address>? address,
     AdministrativeGender? gender,
     FhirDate? birthDate,
-    List<Attachment>? photo,
     List<PractitionerQualification>? qualification,
     List<CodeableConcept>? communication,
   }) = _Practitioner;
@@ -41,6 +41,7 @@ class Practitioner with _$Practitioner implements IFhirResource {
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
+      date: data.date,
       text: fhirPractitioner.text,
       identifier: fhirPractitioner.identifier,
       active: fhirPractitioner.active,
@@ -49,7 +50,6 @@ class Practitioner with _$Practitioner implements IFhirResource {
       address: fhirPractitioner.address,
       gender: fhirPractitioner.gender,
       birthDate: fhirPractitioner.birthDate,
-      photo: fhirPractitioner.photo,
       qualification: fhirPractitioner.qualification,
       communication: fhirPractitioner.communication,
     );

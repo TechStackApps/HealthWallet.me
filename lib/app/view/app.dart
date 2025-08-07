@@ -10,7 +10,7 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
-import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
@@ -33,8 +33,8 @@ class App extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-              create: (context) => getIt<UserProfileBloc>()
-                ..add(const UserProfileEvent.initialised())),
+              create: (context) =>
+                  getIt<UserBloc>()..add(const UserInitialised())),
           BlocProvider(
             create: (context) => getIt<SyncBloc>()
               ..add(const SyncEvent.checkConnectionValidity()),
@@ -57,10 +57,12 @@ class App extends StatelessWidget {
             state.status.whenOrNull(
               success: () {
                 context.read<HomeBloc>().add(const HomeInitialised());
+                // Trigger user fetch when sync is successful
+                context.read<UserBloc>().add(const UserInitialised());
               },
             );
           },
-          child: BlocBuilder<UserProfileBloc, UserProfileState>(
+          child: BlocBuilder<UserBloc, UserState>(
             builder: (context, state) {
               return MaterialApp.router(
                 title: 'Health Wallet',
