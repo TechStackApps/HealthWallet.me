@@ -1,5 +1,6 @@
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
+import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 
 abstract class RecordsRepository {
   Future<List<IFhirResource>> getResources({
@@ -25,4 +26,15 @@ abstract class RecordsRepository {
   Future<List<RecordAttachment>> getRecordAttachments(String resourceId);
 
   Future<int> deleteRecordAttachment(RecordAttachment attachment);
+
+  Future<int> addRecordNote({
+    required String resourceId,
+    required String content,
+  });
+
+  Future<List<RecordNote>> getRecordNotes(String resourceId);
+
+  Future<int> editRecordNote(RecordNote note);
+
+  Future<int> deleteRecordNote(RecordNote note);
 }

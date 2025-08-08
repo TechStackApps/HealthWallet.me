@@ -42,7 +42,8 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
       child: BlocBuilder<RecordAttachmentsBloc, RecordAttachmentsState>(
         builder: (context, state) {
           return ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height/1.5),
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height / 1.5),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +52,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                   const Center(
                     child: CircularProgressIndicator(),
                   )
-                else
+                else ...[
                   Container(
                     padding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -77,60 +78,61 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                       ],
                     ),
                   ),
-                if (state.attachments.isEmpty)
-                  const Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: Text(
-                        "This record has no files attached",
-                        style: AppTextStyle.labelLarge,
+                  if (state.attachments.isEmpty)
+                    const Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(
+                        child: Text(
+                          "This record has no files attached",
+                          style: AppTextStyle.labelLarge,
+                        ),
+                      ),
+                    )
+                  else
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: [
+                            ...state.attachments.map(
+                                (attachment) => _buildAttachmentRow(attachment))
+                          ],
+                        ),
                       ),
                     ),
-                  )
-                else
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: ListView(
-                        shrinkWrap: true,
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadiusGeometry.circular(6)),
+                      ),
+                      onPressed: () async {
+                        FilePickerResult? result =
+                            await FilePicker.platform.pickFiles();
+                        if (result == null) return;
+
+                        File selectedFile = File(result.files.first.path!);
+
+                        _bloc.add(RecordAttachmentsFileAttached(selectedFile));
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ...state.attachments.map(
-                              (attachment) => _buildAttachmentRow(attachment))
+                          Assets.icons.attachment
+                              .svg(width: 16, color: Colors.white),
+                          const SizedBox(width: 4),
+                          const Text("Attach file",
+                              style: AppTextStyle.buttonMedium),
                         ],
                       ),
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.circular(6)),
-                    ),
-                    onPressed: () async {
-                      FilePickerResult? result =
-                          await FilePicker.platform.pickFiles();
-                      if (result == null) return;
-
-                      File selectedFile = File(result.files.first.path!);
-
-                      _bloc.add(RecordAttachmentsFileAttached(selectedFile));
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Assets.icons.attachment
-                            .svg(width: 16, color: Colors.white),
-                        const SizedBox(width: 4),
-                        const Text("Attach file",
-                            style: AppTextStyle.buttonMedium),
-                      ],
-                    ),
-                  ),
-                ),
+                ]
               ],
             ),
           );

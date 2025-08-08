@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:health_wallet/core/data/local/app_database.steps.dart';
 import 'package:health_wallet/features/records/data/datasource/tables/record_attachments.dart';
+import 'package:health_wallet/features/records/data/datasource/tables/record_notes.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/source_table.dart';
 import 'package:path/path.dart' as p;
@@ -11,12 +12,12 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [FhirResource, Sources, RecordAttachments])
+@DriftDatabase(tables: [FhirResource, Sources, RecordAttachments, RecordNotes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 2; // Increment for database optimization
+  int get schemaVersion => 3; // Increment for database optimization
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -25,12 +26,12 @@ class AppDatabase extends _$AppDatabase {
           // Create custom indexes after table creation
           await _createOptimizationIndexes();
         },
-        onUpgrade: stepByStep(
-          from1To2: (m, schema) async {
-            _createOptimizationIndexes();
-            m.createTable(schema.recordAttachments);
-          },
-        ),
+        onUpgrade: stepByStep(from1To2: (m, schema) async {
+          _createOptimizationIndexes();
+          m.createTable(schema.recordAttachments);
+        }, from2To3: (m, schema) async {
+          m.createTable(schema.recordNotes);
+        }),
       );
 
   /// Create performance optimization indexes
