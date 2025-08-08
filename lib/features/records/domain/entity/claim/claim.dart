@@ -12,7 +12,7 @@ part 'claim.freezed.dart';
 class Claim with _$Claim implements IFhirResource {
   const Claim._();
 
-  factory Claim({
+  const factory Claim({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

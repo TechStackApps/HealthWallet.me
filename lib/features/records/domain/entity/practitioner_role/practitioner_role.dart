@@ -11,7 +11,7 @@ part 'practitioner_role.freezed.dart';
 class PractitionerRole with _$PractitionerRole implements IFhirResource {
   const PractitionerRole._();
 
-  factory PractitionerRole({
+  const factory PractitionerRole({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

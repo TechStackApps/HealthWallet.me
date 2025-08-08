@@ -11,7 +11,7 @@ part 'goal.freezed.dart';
 class Goal with _$Goal implements IFhirResource {
   const Goal._();
 
-  factory Goal({
+  const factory Goal({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

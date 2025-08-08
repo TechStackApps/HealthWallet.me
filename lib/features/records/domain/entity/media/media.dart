@@ -11,7 +11,7 @@ part 'media.freezed.dart';
 class Media with _$Media implements IFhirResource {
   const Media._();
 
-  factory Media({
+  const factory Media({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

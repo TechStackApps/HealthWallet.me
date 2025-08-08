@@ -8,7 +8,7 @@ part 'general_resource.freezed.dart';
 class GeneralResource with _$GeneralResource implements IFhirResource {
   const GeneralResource._();
 
-  factory GeneralResource({
+  const factory GeneralResource({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

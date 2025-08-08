@@ -11,7 +11,7 @@ part 'location.freezed.dart';
 class Location with _$Location implements IFhirResource {
   const Location._();
 
-  factory Location({
+  const factory Location({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

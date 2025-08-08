@@ -12,7 +12,7 @@ part 'observation.freezed.dart';
 class Observation with _$Observation implements IFhirResource {
   const Observation._();
 
-  factory Observation({
+  const factory Observation({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

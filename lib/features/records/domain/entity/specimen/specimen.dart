@@ -11,7 +11,7 @@ part 'specimen.freezed.dart';
 class Specimen with _$Specimen implements IFhirResource {
   const Specimen._();
 
-  factory Specimen({
+  const factory Specimen({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

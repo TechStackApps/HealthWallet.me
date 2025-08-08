@@ -1,14 +1,8 @@
-import 'dart:convert';
-import 'dart:developer';
 import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
-import 'package:health_wallet/features/records/domain/utils/encounter_relation_checker.dart';
-import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
-import 'package:health_wallet/features/records/domain/factory/display_factory_manager.dart';
-import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:injectable/injectable.dart';
 
 @Injectable(as: RecordsRepository)
@@ -51,18 +45,34 @@ class RecordsRepositoryImpl implements RecordsRepository {
   }
 
   @override
-  Future<Map<String, dynamic>?> resolveReference(String reference) async {
-    return await _datasource.resolveReference(reference);
+  Future<IFhirResource?> resolveReference(String reference) async {
+    FhirResourceLocalDto? localDto =
+        await _datasource.resolveReference(reference);
+    if (localDto == null) return null;
+    return IFhirResource.fromLocalDto(localDto);
   }
 
   @override
-  Future<String?> getReferenceDisplayName(String reference) async {
-    final resolved = await resolveReference(reference);
-    if (resolved == null) return null;
+  Future<int> addRecordAttachment({
+    required String resourceId,
+    required String filePath,
+  }) async {
+    return _datasource.addRecordAttachment(
+      resourceId: resourceId,
+      filePath: filePath,
+    );
+  }
 
-    // Extract display name from resolved resource
-    return resolved['name']?.toString() ??
-        resolved['title']?.toString() ??
-        reference;
+  @override
+  Future<List<RecordAttachment>> getRecordAttachments(String resourceId) async {
+    List<RecordAttachmentDto> dtos =
+        await _datasource.getRecordAttachments(resourceId);
+
+    return dtos.map(RecordAttachment.fromDto).toList();
+  }
+
+  @override
+  Future<int> deleteRecordAttachment(RecordAttachment attachment) async {
+    return _datasource.deleteRecordAttachment(attachment.id);
   }
 }

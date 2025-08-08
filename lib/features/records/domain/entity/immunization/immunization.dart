@@ -11,7 +11,7 @@ part 'immunization.freezed.dart';
 class Immunization with _$Immunization implements IFhirResource {
   const Immunization._();
 
-  factory Immunization({
+  const factory Immunization({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

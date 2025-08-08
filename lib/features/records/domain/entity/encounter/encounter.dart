@@ -12,7 +12,7 @@ part 'encounter.freezed.dart';
 class Encounter with _$Encounter implements IFhirResource {
   const Encounter._();
 
-  factory Encounter({
+  const factory Encounter({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

@@ -1,5 +1,5 @@
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
+import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 
 abstract class RecordsRepository {
   Future<List<IFhirResource>> getResources({
@@ -15,8 +15,14 @@ abstract class RecordsRepository {
   });
 
   /// Resolve a FHIR reference to get the actual resource data
-  Future<Map<String, dynamic>?> resolveReference(String reference);
+  Future<IFhirResource?> resolveReference(String reference);
 
-  /// Get display name for a reference (e.g., "Dr. John Smith" for Practitioner)
-  Future<String?> getReferenceDisplayName(String reference);
+  Future<int> addRecordAttachment({
+    required String resourceId,
+    required String filePath,
+  });
+
+  Future<List<RecordAttachment>> getRecordAttachments(String resourceId);
+
+  Future<int> deleteRecordAttachment(RecordAttachment attachment);
 }

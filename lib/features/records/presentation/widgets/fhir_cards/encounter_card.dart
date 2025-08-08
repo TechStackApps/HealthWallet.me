@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
@@ -7,6 +10,7 @@ import 'package:health_wallet/features/records/presentation/bloc/records_bloc.da
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/features/records/presentation/widgets/record_attachments/record_attachments_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -60,6 +64,9 @@ class _EncounterCardState extends State<EncounterCard> {
 
   Widget _buildMainEncounterInfo(BuildContext context) {
     final encounter = widget.encounter as Encounter;
+    String? participant =
+        encounter.participant?[0].individual?.display?.valueString;
+    String? serviceProvider = encounter.serviceProvider?.display?.valueString;
 
     return InkWell(
       onTap: () {
@@ -76,33 +83,12 @@ class _EncounterCardState extends State<EncounterCard> {
         children: [
           // Encounter type and status
           Text(
-            _getEncounterTitle(encounter),
+            encounter.title,
             style: AppTextStyle.bodyMedium.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
-
-          // Date
-          if (encounter.date != null) ...[
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(encounter.date!),
-                  style: AppTextStyle.labelLarge.copyWith(
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
 
           // Practitioner info
           if (encounter.participant?.isNotEmpty == true) ...[
@@ -112,7 +98,7 @@ class _EncounterCardState extends State<EncounterCard> {
                 const SizedBox(width: Insets.smaller),
                 Expanded(
                   child: Text(
-                    _getParticipantNames(encounter),
+                    participant ?? 'Participant',
                     style: AppTextStyle.labelLarge.copyWith(
                       color: AppColors.primary,
                     ),
@@ -131,7 +117,7 @@ class _EncounterCardState extends State<EncounterCard> {
                 const SizedBox(width: Insets.smaller),
                 Expanded(
                   child: Text(
-                    _getServiceProviderName(encounter),
+                    serviceProvider ?? 'Service provider',
                     style: AppTextStyle.labelLarge.copyWith(
                       color: AppColors.primary,
                     ),
@@ -243,10 +229,8 @@ class _EncounterCardState extends State<EncounterCard> {
                 ),
                 const SizedBox(width: Insets.normal),
                 InkWell(
-                  onTap: () {
-                    // TODO: Implement attachment functionality
-                    print('Attachment tapped');
-                  },
+                  onTap: () => showRecordActionDialog(
+                      RecordAttachmentsWidget(resource: widget.encounter)),
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
@@ -355,92 +339,104 @@ class _EncounterCardState extends State<EncounterCard> {
     );
   }
 
-  // Helper methods for extracting FHIR R4 data
-  String _getEncounterTitle(Encounter encounter) {
-    // Use the title field directly if available
-    if (encounter.title.isNotEmpty) {
-      return encounter.title;
-    }
+  void showRecordActionDialog(Widget child) => showDialog(
+        context: context,
+        builder: (context) => BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadiusGeometry.circular(12),
+            ),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+            child: child,
+          ),
+        ),
+      );
 
-    // Fallback to encounter type or status
-    if (encounter.type?.isNotEmpty == true) {
-      final firstType = encounter.type!.first;
-      return firstType.text?.valueString ??
-          firstType.coding?.firstOrNull?.display?.valueString ??
-          'Encounter';
-    }
+  // // Helper methods for extracting FHIR R4 data
+  // String _getEncounterTitle(Encounter encounter) {
+  //   // Use the title field directly if available
+  //   if (encounter.title.isNotEmpty) {
+  //     return encounter.title;
+  //   }
 
-    return 'Encounter';
-  }
+  //   // Fallback to encounter type or status
+  //   if (encounter.type?.isNotEmpty == true) {
+  //     final firstType = encounter.type!.first;
+  //     return firstType.text?.valueString ??
+  //         firstType.coding?.firstOrNull?.display?.valueString ??
+  //         'Encounter';
+  //   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
+  //   return 'Encounter';
+  // }
 
-  String _getParticipantNames(Encounter encounter) {
-    if (encounter.participant?.isEmpty ?? true) {
-      return 'No participants';
-    }
+  // String _getParticipantNames(Encounter encounter) {
+  //   if (encounter.participant?.isEmpty ?? true) {
+  //     return 'No participants';
+  //   }
 
-    // Get the first participant's name (most common case)
-    final firstParticipant = encounter.participant!.first;
-    if (firstParticipant.individual?.reference?.valueString != null) {
-      final reference = firstParticipant.individual!.reference!.valueString!;
+  //   // Get the first participant's name (most common case)
+  //   final firstParticipant = encounter.participant!.first;
+  //   if (firstParticipant.individual?.reference?.valueString != null) {
+  //     final reference = firstParticipant.individual!.reference!.valueString!;
+  //     log("A");
+  //     // Check if we already resolved this reference
+  //     if (_resolvedNames.containsKey(reference)) {
+  //       log("B");
+  //       return _resolvedNames[reference]!;
+  //     } else {
+  //       // Resolve the reference asynchronously
+  //       _resolveReference(reference);
+  //       log("C");
+  //       // Show fallback while resolving
+  //       if (reference.contains('/')) {
+  //         log("D");
+  //         final parts = reference.split('/');
+  //         return parts.length >= 2 ? parts[parts.length - 2] : 'Participant';
+  //       }
+  //       return 'Practitioner';
+  //     }
+  //   }
 
-      // Check if we already resolved this reference
-      if (_resolvedNames.containsKey(reference)) {
-        return _resolvedNames[reference]!;
-      } else {
-        // Resolve the reference asynchronously
-        _resolveReference(reference);
+  //   return 'No participants';
+  // }
 
-        // Show fallback while resolving
-        if (reference.contains('/')) {
-          final parts = reference.split('/');
-          return parts.length >= 2 ? parts[parts.length - 2] : 'Participant';
-        }
-        return 'Practitioner';
-      }
-    }
+  // String _getServiceProviderName(Encounter encounter) {
+  //   if (encounter.serviceProvider?.reference?.valueString != null) {
+  //     final reference = encounter.serviceProvider!.reference!.valueString!;
 
-    return 'No participants';
-  }
+  //     // Check if we already resolved this reference
+  //     if (_resolvedNames.containsKey(reference)) {
+  //       return _resolvedNames[reference]!;
+  //     } else {
+  //       // Resolve the reference asynchronously
+  //       _resolveReference(reference);
 
-  String _getServiceProviderName(Encounter encounter) {
-    if (encounter.serviceProvider?.reference?.valueString != null) {
-      final reference = encounter.serviceProvider!.reference!.valueString!;
+  //       // Show fallback while resolving
+  //       if (reference.contains('/')) {
+  //         final parts = reference.split('/');
+  //         return parts.length >= 2 ? parts[parts.length - 2] : 'Organization';
+  //       }
+  //       return 'Organization';
+  //     }
+  //   }
+  //   return 'No organization';
+  // }
 
-      // Check if we already resolved this reference
-      if (_resolvedNames.containsKey(reference)) {
-        return _resolvedNames[reference]!;
-      } else {
-        // Resolve the reference asynchronously
-        _resolveReference(reference);
+  // Future<void> _resolveReference(String reference) async {
+  //   try {
+  //     // Get the repository through dependency injection
+  //     final repository = GetIt.instance<RecordsRepository>();
+  //     final displayName = await repository.getReferenceDisplayName(reference);
 
-        // Show fallback while resolving
-        if (reference.contains('/')) {
-          final parts = reference.split('/');
-          return parts.length >= 2 ? parts[parts.length - 2] : 'Organization';
-        }
-        return 'Organization';
-      }
-    }
-    return 'No organization';
-  }
-
-  Future<void> _resolveReference(String reference) async {
-    try {
-      // Get the repository through dependency injection
-      final repository = GetIt.instance<RecordsRepository>();
-      final displayName = await repository.getReferenceDisplayName(reference);
-
-      if (displayName != null && mounted) {
-        setState(() {
-          _resolvedNames[reference] = displayName;
-        });
-      }
-    } catch (e) {
-      // Handle error silently
-    }
-  }
+  //     if (displayName != null && mounted) {
+  //       setState(() {
+  //         _resolvedNames[reference] = displayName;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     // Handle error silently
+  //   }
+  // }
 }

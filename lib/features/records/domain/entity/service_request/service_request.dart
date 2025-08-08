@@ -11,7 +11,7 @@ part 'service_request.freezed.dart';
 class ServiceRequest with _$ServiceRequest implements IFhirResource {
   const ServiceRequest._();
 
-  factory ServiceRequest({
+  const factory ServiceRequest({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

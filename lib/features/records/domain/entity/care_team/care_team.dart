@@ -11,7 +11,7 @@ part 'care_team.freezed.dart';
 class CareTeam with _$CareTeam implements IFhirResource {
   const CareTeam._();
 
-  factory CareTeam({
+  const factory CareTeam({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

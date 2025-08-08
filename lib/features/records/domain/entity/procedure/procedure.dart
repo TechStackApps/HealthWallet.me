@@ -11,7 +11,7 @@ part 'procedure.freezed.dart';
 class Procedure with _$Procedure implements IFhirResource {
   const Procedure._();
 
-  factory Procedure({
+  const factory Procedure({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

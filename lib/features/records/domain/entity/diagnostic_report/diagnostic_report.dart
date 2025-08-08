@@ -11,7 +11,7 @@ part 'diagnostic_report.freezed.dart';
 class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
   const DiagnosticReport._();
 
-  factory DiagnosticReport({
+  const factory DiagnosticReport({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

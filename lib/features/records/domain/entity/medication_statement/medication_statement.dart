@@ -11,7 +11,7 @@ part 'medication_statement.freezed.dart';
 class MedicationStatement with _$MedicationStatement implements IFhirResource {
   const MedicationStatement._();
 
-  factory MedicationStatement({
+  const factory MedicationStatement({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

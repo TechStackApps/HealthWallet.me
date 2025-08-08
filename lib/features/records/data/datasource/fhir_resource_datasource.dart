@@ -29,7 +29,7 @@ class FhirResourceDatasource {
     if (limit != null) {
       query.limit(limit, offset: offset);
     }
-    
+
     return await query.get();
   }
 
@@ -49,21 +49,16 @@ class FhirResourceDatasource {
   }
 
   /// Resolve a FHIR reference (e.g., "Patient/123" or "urn:uuid:...")
-  Future<Map<String, dynamic>?> resolveReference(String reference) async {
+  Future<FhirResourceLocalDto?> resolveReference(String reference) async {
     // Handle urn:uuid: references
     if (reference.startsWith('urn:uuid:')) {
       final uuid = reference.substring(9); // Remove "urn:uuid:"
 
       final query = db.select(db.fhirResource)
-        ..where((tbl) => tbl.id.equals(uuid))
+        ..where((tbl) => tbl.resourceId.equals(uuid))
         ..limit(1);
 
-      final result = await query.getSingleOrNull();
-      if (result?.resourceRaw == null) {
-        return null;
-      }
-
-      return jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
+      return await query.getSingleOrNull();
     }
 
     // Handle ResourceType/id references
@@ -71,17 +66,38 @@ class FhirResourceDatasource {
     if (parts.length == 2) {
       final query = db.select(db.fhirResource)
         ..where((tbl) =>
-            tbl.resourceType.equals(parts[0]) & tbl.id.equals(parts[1]))
+            tbl.resourceType.equals(parts[0]) & tbl.resourceId.equals(parts[1]))
         ..limit(1);
 
-      final result = await query.getSingleOrNull();
-      if (result?.resourceRaw == null) {
-        return null;
-      }
-
-      return jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
+      return await query.getSingleOrNull();
     }
 
     return null;
+  }
+
+  Future<int> addRecordAttachment({
+    required String resourceId,
+    required String filePath,
+  }) async {
+    return db.recordAttachments
+        .insertOnConflictUpdate(RecordAttachmentsCompanion.insert(
+      resourceId: resourceId,
+      filePath: filePath,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  Future<List<RecordAttachmentDto>> getRecordAttachments(
+      String resourceId) async {
+    return await (db.select(db.recordAttachments)
+          ..where((f) => f.resourceId.equals(resourceId))
+          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
+        .get();
+  }
+
+  Future<int> deleteRecordAttachment(int attachmentId) async {
+    return (db.delete(db.recordAttachments)
+          ..where((f) => f.id.equals(attachmentId)))
+        .go();
   }
 }
