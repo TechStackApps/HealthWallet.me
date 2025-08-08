@@ -2,23 +2,19 @@ import 'dart:convert';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
 
-/// Single datasource for all FHIR resource operations using Drift with optimizations
 class FhirResourceDatasource {
   final AppDatabase db;
 
   FhirResourceDatasource(this.db);
 
-  /// Get all resources of a specific type with pagination support
   Future<List<Map<String, dynamic>>> getAllResources(
     String resourceType, {
     int? limit,
     int? offset,
     String? sourceId,
   }) async {
-    // Handle 'all' resource type - get all resources regardless of type
     if (resourceType == 'all') {
       if (limit != null && offset != null) {
-        // Use custom query for pagination with 'all' resources
         final query = db.select(db.fhirResource);
 
         if (sourceId != null) {
@@ -29,15 +25,21 @@ class FhirResourceDatasource {
 
         final results = await query.get();
 
-        // Apply pagination manually
         final paginatedResults = results.skip(offset).take(limit).toList();
 
-        return paginatedResults
-            .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-            .toList();
+        return paginatedResults.map((row) {
+          final resourceData =
+              jsonDecode(row.resourceRaw) as Map<String, dynamic>;
+          // Add database metadata to the resource data
+          resourceData['sourceId'] = row.sourceId;
+          resourceData['resourceId'] = row.resourceId;
+          resourceData['title'] = row.title;
+          resourceData['date'] = row.date?.toIso8601String();
+          resourceData['encounterId'] = row.encounterId;
+          return resourceData;
+        }).toList();
       }
 
-      // For non-paginated queries, get all resources
       final query = db.select(db.fhirResource);
 
       if (sourceId != null) {
@@ -48,51 +50,47 @@ class FhirResourceDatasource {
 
       final results = await query.get();
 
-      return results
-          .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-          .toList();
-    }
-
-    // Handle specific resource type
-    if (limit != null && offset != null) {
-      // Use optimized pagination method
-      final results = await db.getPaginatedResourcesByType(
-        resourceType,
-        limit: limit,
-        offset: offset,
-        sourceId: sourceId,
-      );
-
-      return results
-          .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-          .toList();
-    }
-
-    // For non-paginated queries, combine the where conditions properly
-    final query = db.select(db.fhirResource);
-
-    if (sourceId != null) {
-      query.where((tbl) =>
-          tbl.resourceType.equals(resourceType) &
-          tbl.sourceId.equals(sourceId));
+      return results.map((row) {
+        final resourceData =
+            jsonDecode(row.resourceRaw) as Map<String, dynamic>;
+        // Add database metadata to the resource data
+        resourceData['sourceId'] = row.sourceId;
+        resourceData['resourceId'] = row.resourceId;
+        resourceData['title'] = row.title;
+        resourceData['date'] = row.date?.toIso8601String();
+        resourceData['encounterId'] = row.encounterId;
+        return resourceData;
+      }).toList();
     } else {
+      // Handle specific resource type (like 'Patient')
+      final query = db.select(db.fhirResource);
       query.where((tbl) => tbl.resourceType.equals(resourceType));
+
+      if (sourceId != null) {
+        query.where((tbl) => tbl.sourceId.equals(sourceId));
+      }
+
+      query.orderBy([(t) => OrderingTerm.desc(t.date)]);
+
+      final results = await query.get();
+
+      return results.map((row) {
+        final resourceData =
+            jsonDecode(row.resourceRaw) as Map<String, dynamic>;
+        // Add database metadata to the resource data
+        resourceData['sourceId'] = row.sourceId;
+        resourceData['resourceId'] = row.resourceId;
+        resourceData['title'] = row.title;
+        resourceData['date'] = row.date?.toIso8601String();
+        resourceData['encounterId'] = row.encounterId;
+        return resourceData;
+      }).toList();
     }
-
-    query.orderBy([(t) => OrderingTerm.desc(t.date)]);
-
-    final results = await query.get();
-
-    return results
-        .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-        .toList();
   }
 
-  /// Resolve a FHIR reference (e.g., "Patient/123" or "urn:uuid:...")
   Future<Map<String, dynamic>?> resolveReference(String reference) async {
-    // Handle urn:uuid: references
     if (reference.startsWith('urn:uuid:')) {
-      final uuid = reference.substring(9); // Remove "urn:uuid:"
+      final uuid = reference.substring(9);
 
       final query = db.select(db.fhirResource)
         ..where((tbl) => tbl.id.equals(uuid))
@@ -106,7 +104,6 @@ class FhirResourceDatasource {
       return jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
     }
 
-    // Handle ResourceType/id references
     final parts = reference.split('/');
     if (parts.length == 2) {
       final query = db.select(db.fhirResource)

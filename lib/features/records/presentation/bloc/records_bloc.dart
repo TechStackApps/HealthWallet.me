@@ -19,6 +19,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     on<RecordsLoadMore>(_onLoadMore);
     on<RecordsFilterChanged>(_onFilterChanged);
     on<RecordsSourceChanged>(_onSourceChanged);
+
     on<RecordsFilterToggled>(_onFilterToggled);
     on<RecordsLoadFilters>(_onLoadFilters);
     on<RecordDetailLoaded>(_onRecordDetailLoaded);

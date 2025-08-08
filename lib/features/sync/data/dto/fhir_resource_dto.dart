@@ -19,11 +19,11 @@ class FhirResourceDto with _$FhirResourceDto {
     @JsonKey(name: "sort_date", fromJson: dateTimeFromJson) DateTime? date,
     @JsonKey(name: "resource_raw") Map<String, dynamic>? resourceRaw,
     String? encounterId,
-    String? subjectId,
   }) = _FhirResourceDto;
 
-  factory FhirResourceDto.fromJson(Map<String, dynamic> json) =>
-      _$FhirResourceDtoFromJson(json);
+  factory FhirResourceDto.fromJson(Map<String, dynamic> json) {
+    return _$FhirResourceDtoFromJson(json);
+  }
 
   FhirResourceDto populateEncounterIdFromRaw() {
     String? encounterId = extractReferenceId("encounter");
@@ -33,24 +33,51 @@ class FhirResourceDto with _$FhirResourceDto {
     return copyWith(encounterId: encounterId);
   }
 
-  FhirResourceDto populateSubjectIdFromRaw() {
-    String? subjectId = extractReferenceId("subject");
-
-    if (subjectId == null) return this;
-
-    return copyWith(subjectId: subjectId);
-  }
-
   String? extractReferenceId(String key) {
     if (!(resourceRaw?.containsKey(key) ?? false)) return null;
 
-    Reference reference = Reference.fromJson(resourceRaw![key]);
-    String? refString = reference.reference?.valueString;
-    if (refString == null) return null;
+    try {
+      Reference reference = Reference.fromJson(resourceRaw![key]);
+      String? refString = reference.reference?.valueString;
+      if (refString == null) return null;
 
-    List<String> splitString = refString.split(":");
-    if (splitString.length < 3) return null;
+      return _extractIdFromReferenceString(refString);
+    } catch (e) {
+      return null;
+    }
+  }
 
-    return splitString[2];
+  String? _extractIdFromReferenceString(String refString) {
+    if (refString.startsWith('urn:uuid:')) {
+      return refString.substring(9);
+    }
+
+    if (refString.contains('/')) {
+      final parts = refString.split('/');
+      if (parts.length == 2) {
+        return parts[1];
+      }
+    }
+
+    if (refString.startsWith('#')) {
+      return refString.substring(1);
+    }
+
+    if (refString.startsWith('http')) {
+      final uri = Uri.parse(refString);
+      final pathSegments = uri.pathSegments;
+      if (pathSegments.length >= 2) {
+        return pathSegments[pathSegments.length - 1];
+      }
+    }
+
+    if (refString.contains('/') && !refString.startsWith('http')) {
+      final parts = refString.split('/');
+      if (parts.length >= 2) {
+        return parts.last;
+      }
+    }
+
+    return refString;
   }
 }

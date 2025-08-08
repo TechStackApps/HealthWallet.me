@@ -7,9 +7,11 @@ class AppLogger {
     printer: PrefixPrinter(
       PrettyPrinter(
         methodCount: 0,
-        errorMethodCount: 5,
-        lineLength: 50,
+        errorMethodCount: 3,
+        lineLength: 80,
         colors: false,
+        printEmojis: false,
+        printTime: false,
       ),
     ),
   );

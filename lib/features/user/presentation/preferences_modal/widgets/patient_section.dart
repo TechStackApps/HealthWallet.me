@@ -94,7 +94,6 @@ class _PatientSectionState extends State<PatientSection> {
                 AnimatedReorderableList<Patient>(
                   items: patients,
                   itemIdExtractor: (patient) => patient.id,
-                  // itemHeight: 120.0,
                   itemSpacing: Insets.small,
                   itemBuilder: (context, patient, index, isBeingMoved) {
                     final isAnimating = state.animatingPatientId == patient.id;

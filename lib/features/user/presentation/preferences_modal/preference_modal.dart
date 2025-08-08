@@ -68,7 +68,12 @@ class PreferenceModal extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: IconButton(
-                      icon: Assets.icons.close.svg(),
+                      icon: Assets.icons.close.svg(
+                        colorFilter: ColorFilter.mode(
+                          context.colorScheme.onSurface,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                       onPressed: () {
                         context.popDialog();
                       },

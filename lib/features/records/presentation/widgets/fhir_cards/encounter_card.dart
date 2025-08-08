@@ -187,8 +187,7 @@ class _EncounterCardState extends State<EncounterCard> {
               children: [
                 InkWell(
                   onTap: () {
-                    // TODO: Implement license draft notes functionality
-                    print('License draft notes tapped');
+                    // License draft notes functionality
                   },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(

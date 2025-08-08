@@ -8,6 +8,8 @@ class UserState with _$UserState {
     @Default(false) bool isBiometricAuthEnabled,
     @Default([]) List<Patient> patients,
     @Default({}) Set<String> expandedPatientIds,
+    String? selectedPatientId,
+    String? selectedPatientSourceId,
     @Default('') String animatingPatientId,
     @Default('') String collapsingPatientId,
     @Default('') String expandingPatientId,

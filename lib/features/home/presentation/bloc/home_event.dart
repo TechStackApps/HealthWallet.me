@@ -36,3 +36,9 @@ class HomeVitalsReordered extends HomeEvent with _$HomeVitalsReordered {
   const factory HomeVitalsReordered(int oldIndex, int newIndex) =
       _HomeVitalsReordered;
 }
+
+@freezed
+class HomePatientSelected extends HomeEvent with _$HomePatientSelected {
+  const factory HomePatientSelected(
+      String? patientSourceId, String? patientName) = _HomePatientSelected;
+}

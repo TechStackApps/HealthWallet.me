@@ -16,6 +16,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:intl/intl.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 
 @RoutePage()
 class RecordsPage extends StatelessWidget {
@@ -144,8 +145,7 @@ class _RecordsViewState extends State<RecordsView> {
             actions: [
               IconButton(
                 onPressed: () {
-                  // TODO: Implement share functionality
-                  print('Share button pressed');
+                  // Share functionality
                 },
                 icon: Assets.icons.share.svg(
                   colorFilter: ColorFilter.mode(

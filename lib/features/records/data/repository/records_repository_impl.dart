@@ -115,7 +115,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
     }
   }
 
-  /// Get resources with pagination and filtering
+  /// Get resources for timeline display (encounters and standalone resources)
   @override
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
@@ -126,22 +126,17 @@ class RecordsRepositoryImpl implements RecordsRepository {
     final actualLimit = limit ?? 20;
     final actualOffset = offset ?? 0;
 
-    logger.d(
-        'RecordsRepository: Getting resources - types: $resourceTypes, limit: $actualLimit, offset: $actualOffset');
-
     try {
-      // Get all resources from datasource
-      final rawResources = await _datasource.getAllResources('all');
-      logger.d(
-          'RecordsRepository: Got ${rawResources.length} resources from datasource');
+      final rawResources = await _datasource.getAllResources(
+        'all',
+        limit: actualLimit,
+        offset: actualOffset,
+        sourceId: sourceId,
+      );
 
-      // Convert to entities using direct entity creation
       final allEntities =
           rawResources.map((data) => createEntityFromMap(data)).toList();
-      logger.d(
-          'RecordsRepository: Mapped to ${allEntities.length} IFhirResource objects');
 
-      // Filter by resource types if specified
       List<IFhirResource> filteredEntities = allEntities;
       if (resourceTypes.isNotEmpty) {
         filteredEntities = allEntities
@@ -149,42 +144,28 @@ class RecordsRepositoryImpl implements RecordsRepository {
             .toList();
       }
 
-      // Filter by source ID if specified
       if (sourceId != null) {
         filteredEntities = filteredEntities
             .where((entity) => entity.sourceId == sourceId)
             .toList();
       }
 
-      // Filter out encounter-related resources, keep only encounters and standalone resources
-      logger.d('🔍 Before filtering: ${filteredEntities.length} resources');
       final timelineResources = filteredEntities.where((entity) {
         final shouldDisplay =
             EncounterRelationChecker.shouldDisplayInTimeline(entity);
-        logger.d(
-            '🔍 Resource ${entity.fhirType} (${entity.id}): shouldDisplay = $shouldDisplay');
         return shouldDisplay;
       }).toList();
-      logger.d('🔍 After filtering: ${timelineResources.length} resources');
 
-      // Sort by date (newest first) with null-safe comparison
       timelineResources.sort((a, b) {
-        // If both dates are null, they're equal
         if (a.date == null && b.date == null) return 0;
-        // If a.date is null, put it at the end
         if (a.date == null) return 1;
-        // If b.date is null, put it at the end
         if (b.date == null) return -1;
-        // Both dates exist, compare normally
         return b.date!.compareTo(a.date!);
       });
 
-      // Apply pagination
       final paginatedResources =
           timelineResources.skip(actualOffset).take(actualLimit).toList();
 
-      logger.d(
-          'RecordsRepository: Returning ${paginatedResources.length} resources');
       return paginatedResources;
     } catch (e, stack) {
       logger.e('RecordsRepository: Error getting resources', e, stack);
@@ -203,22 +184,23 @@ class RecordsRepositoryImpl implements RecordsRepository {
     final actualLimit = limit ?? 20;
     final actualOffset = offset ?? 0;
 
-    logger.d(
-        'RecordsRepository: Getting ALL resources - types: $resourceTypes, limit: $actualLimit, offset: $actualOffset');
-
     try {
-      // Get all resources from datasource
-      final rawResources = await _datasource.getAllResources('all');
-      logger.d(
-          'RecordsRepository: Got ${rawResources.length} resources from datasource');
+      // If we have specific resource types, query for the first one specifically
+      // This ensures we get the right resources from the database
+      final resourceTypeToQuery = resourceTypes.isNotEmpty
+          ? resourceTypes.first.toString().split('.').last
+          : 'all';
 
-      // Convert to entities using direct entity creation
+      final rawResources = await _datasource.getAllResources(
+        resourceTypeToQuery,
+        limit: actualLimit,
+        offset: actualOffset,
+        sourceId: sourceId,
+      );
+
       final allEntities =
           rawResources.map((data) => createEntityFromMap(data)).toList();
-      logger.d(
-          'RecordsRepository: Mapped to ${allEntities.length} IFhirResource objects');
 
-      // Filter by resource types if specified
       List<IFhirResource> filteredEntities = allEntities;
       if (resourceTypes.isNotEmpty) {
         filteredEntities = allEntities
@@ -226,31 +208,22 @@ class RecordsRepositoryImpl implements RecordsRepository {
             .toList();
       }
 
-      // Filter by source ID if specified
       if (sourceId != null) {
         filteredEntities = filteredEntities
             .where((entity) => entity.sourceId == sourceId)
             .toList();
       }
 
-      // Sort by date (newest first) with null-safe comparison
       filteredEntities.sort((a, b) {
-        // If both dates are null, they're equal
         if (a.date == null && b.date == null) return 0;
-        // If a.date is null, put it at the end
         if (a.date == null) return 1;
-        // If b.date is null, put it at the end
         if (b.date == null) return -1;
-        // Both dates exist, compare normally
         return b.date!.compareTo(a.date!);
       });
 
-      // Apply pagination
       final paginatedResources =
           filteredEntities.skip(actualOffset).take(actualLimit).toList();
 
-      logger.d(
-          'RecordsRepository: Returning ${paginatedResources.length} ALL resources');
       return paginatedResources;
     } catch (e, stack) {
       logger.e('RecordsRepository: Error getting ALL resources', e, stack);
@@ -312,12 +285,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
   @override
   Future<String?> getReferenceDisplayName(String reference) async {
-    final resolved = await resolveReference(reference);
-    if (resolved == null) return null;
-
-    // Extract display name from resolved resource
-    return resolved['name']?.toString() ??
-        resolved['title']?.toString() ??
-        reference;
+    return null;
   }
 }

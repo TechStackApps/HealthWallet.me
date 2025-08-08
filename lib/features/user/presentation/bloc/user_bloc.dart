@@ -8,6 +8,7 @@ import 'package:health_wallet/features/records/domain/repository/records_reposit
 import 'package:health_wallet/features/user/domain/entity/user.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'user_bloc.freezed.dart';
 part 'user_event.dart';
@@ -18,6 +19,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository _userRepository;
   final BiometricAuthService _biometricAuthService;
   final RecordsRepository _recordsRepository;
+  static const String _selectedPatientIdKey = 'selected_patient_id';
+  static const String _selectedPatientSourceIdKey =
+      'selected_patient_source_id';
 
   UserBloc(
     this._userRepository,
@@ -31,6 +35,19 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserPatientReorder>(_onPatientReorder);
     on<UserDataUpdatedFromSync>(_onUserDataUpdatedFromSync);
     on<UserNameUpdated>(_onUserNameUpdated);
+  }
+
+  Future<void> _saveSelectedPatient(String patientId, String sourceId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedPatientIdKey, patientId);
+    await prefs.setString(_selectedPatientSourceIdKey, sourceId);
+  }
+
+  Future<Map<String, String?>> _loadSelectedPatient() async {
+    final prefs = await SharedPreferences.getInstance();
+    final patientId = prefs.getString(_selectedPatientIdKey);
+    final sourceId = prefs.getString(_selectedPatientSourceIdKey);
+    return {'patientId': patientId, 'sourceId': sourceId};
   }
 
   Future<void> _onInitialised(
@@ -72,8 +89,35 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       final patientList = patients.whereType<Patient>().toList();
-      final expandedIds =
-          patientList.isNotEmpty ? {patientList.first.id} : <String>{};
+
+      final savedPatientData = await _loadSelectedPatient();
+      final savedPatientId = savedPatientData['patientId'];
+      final savedSourceId = savedPatientData['sourceId'];
+
+      Set<String> expandedIds;
+      String? selectedPatientId;
+      String? selectedPatientSourceId;
+
+      if (savedPatientId != null &&
+          patientList.any((p) => p.id == savedPatientId)) {
+        final savedPatient =
+            patientList.firstWhere((p) => p.id == savedPatientId);
+        expandedIds = {savedPatient.id};
+        selectedPatientId = savedPatient.id;
+        selectedPatientSourceId = savedPatient.sourceId;
+
+        if (patientList.first.id != savedPatient.id) {
+          patientList.remove(savedPatient);
+          patientList.insert(0, savedPatient);
+        }
+      } else {
+        expandedIds =
+            patientList.isNotEmpty ? {patientList.first.id} : <String>{};
+        if (patientList.isNotEmpty) {
+          selectedPatientId = patientList.first.id;
+          selectedPatientSourceId = patientList.first.sourceId;
+        }
+      }
 
       emit(state.copyWith(
         status: const UserStatus.success(),
@@ -81,6 +125,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         isBiometricAuthEnabled: isBiometricAuthEnabled,
         patients: patientList,
         expandedPatientIds: expandedIds,
+        selectedPatientId: selectedPatientId,
+        selectedPatientSourceId: selectedPatientSourceId,
       ));
     } catch (e) {
       final systemTheme =
@@ -176,14 +222,37 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       );
 
       final patientList = patients.whereType<Patient>().toList();
-      final expandedIds =
-          state.expandedPatientIds.isEmpty && patientList.isNotEmpty
-              ? {patientList.first.id}
-              : state.expandedPatientIds;
+
+      Set<String> expandedIds;
+      String? selectedPatientId = state.selectedPatientId;
+      String? selectedPatientSourceId = state.selectedPatientSourceId;
+
+      if (selectedPatientId != null &&
+          patientList.any((p) => p.id == selectedPatientId)) {
+        final selectedPatient =
+            patientList.firstWhere((p) => p.id == selectedPatientId);
+        expandedIds = {selectedPatient.id};
+
+        if (patientList.first.id != selectedPatient.id) {
+          patientList.remove(selectedPatient);
+          patientList.insert(0, selectedPatient);
+        }
+      } else {
+        expandedIds = state.expandedPatientIds.isEmpty && patientList.isNotEmpty
+            ? {patientList.first.id}
+            : state.expandedPatientIds;
+
+        if (patientList.isNotEmpty && selectedPatientId == null) {
+          selectedPatientId = patientList.first.id;
+          selectedPatientSourceId = patientList.first.sourceId;
+        }
+      }
 
       emit(state.copyWith(
         patients: patientList,
         expandedPatientIds: expandedIds,
+        selectedPatientId: selectedPatientId,
+        selectedPatientSourceId: selectedPatientSourceId,
       ));
     } catch (e) {}
   }
@@ -240,9 +309,13 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     emit(state.copyWith(
       patients: currentPatients,
+      selectedPatientId: selectedPatient.id,
+      selectedPatientSourceId: selectedPatient.sourceId,
       swappingFromPatientId: '',
       swappingToPatientId: '',
     ));
+
+    await _saveSelectedPatient(selectedPatient.id, selectedPatient.sourceId);
 
     await Future.delayed(const Duration(milliseconds: 560));
 

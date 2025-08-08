@@ -9,7 +9,7 @@ abstract class SyncRepository {
   Future<List<FhirResourceDto>> getResources(
       {String? resourceType, String? sourceId});
   Future<List<FhirResourceDto>> getEncounterWithReferences(String encounterId);
-  Future<List<entity.Source>> getSources();
+  Future<List<entity.Source>> getSources({String? patientId});
   Future<void> checkConnection(String token);
   Future<ConnectionStatus> checkConnectionValidity();
 }

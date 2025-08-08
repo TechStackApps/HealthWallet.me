@@ -27,6 +27,7 @@ class HomeState with _$HomeState {
     })
     Map<HomeRecordsCategory, bool> selectedRecordTypes,
     FhirResourceDto? patient,
+    String? selectedPatientName,
     String? errorMessage,
     @Default(false) bool editMode,
   }) = _HomeState;

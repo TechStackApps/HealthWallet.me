@@ -10,11 +10,13 @@ import 'package:health_wallet/features/home/domain/entities/recent_record.dart';
 import 'package:health_wallet/features/home/domain/entities/vital_sign.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 import 'package:health_wallet/core/utils/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'home_bloc.freezed.dart';
 part 'home_event.dart';
@@ -25,24 +27,32 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final RecordsRepository _recordsRepository;
   final GetSourcesUseCase _getSourcesUseCase;
   final HomeLocalDataSource _homeLocalDataSource;
+  final PatientEntityDisplayFactory _patientFactory;
 
   HomeBloc(
     this._syncRepository,
     this._getSourcesUseCase,
     this._homeLocalDataSource,
     this._recordsRepository,
-  ) : super(const HomeState()) {
+  )   : _patientFactory = PatientEntityDisplayFactory(),
+        super(const HomeState()) {
     on<HomeInitialised>(_onInitialised);
     on<HomeSourceChanged>(_onSourceChanged);
     on<HomeFiltersChanged>(_onFiltersChanged);
     on<HomeEditModeChanged>(_onEditModeChanged);
     on<HomeRecordsReordered>(_onRecordsReordered);
     on<HomeVitalsReordered>(_onVitalsReordered);
+    on<HomePatientSelected>(_onPatientSelected);
   }
 
   Future<void> _onInitialised(
       HomeInitialised event, Emitter<HomeState> emit) async {
-    await _loadData(emit);
+    // Load the selected patient sourceId from SharedPreferences on initialization
+    final prefs = await SharedPreferences.getInstance();
+    final selectedPatientSourceId =
+        prefs.getString('selected_patient_source_id');
+
+    await _loadData(emit, initialPatientSourceId: selectedPatientSourceId);
   }
 
   Future<void> _onSourceChanged(
@@ -82,11 +92,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     await _homeLocalDataSource.saveVitalsOrder(vitalTitles);
   }
 
-  Future<void> _loadData(Emitter<HomeState> emit) async {
+  Future<void> _onPatientSelected(
+      HomePatientSelected event, Emitter<HomeState> emit) async {
+    // Update the state with the new patient selection
+    final updatedState = state.copyWith(
+      selectedPatientName: event.patientName,
+    );
+    emit(updatedState);
+
+    // Reload data with the new patient sourceId filter
+    await _loadDataInternal(emit, patientSourceId: event.patientSourceId);
+  }
+
+  Future<void> _loadData(Emitter<HomeState> emit,
+      {String? initialPatientSourceId}) async {
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
       await Future.any([
-        _loadDataInternal(emit),
+        _loadDataInternal(emit, patientSourceId: initialPatientSourceId),
         Future.delayed(const Duration(seconds: 10), () {
           throw Exception('Data load timed out');
         }),
@@ -96,21 +119,30 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
   }
 
-  Future<void> _loadDataInternal(Emitter<HomeState> emit) async {
-    final sources = await _getSourcesUseCase();
+  Future<void> _loadDataInternal(Emitter<HomeState> emit,
+      {String? patientSourceId}) async {
+    final sources = await _getSourcesUseCase(patientId: patientSourceId);
     if (sources.where((s) => s.id == 'All').isEmpty) {
       sources.insert(0, const Source(id: 'All', name: 'All'));
     }
-    final sourceId =
-        state.selectedSource == 'All' ? null : state.selectedSource;
+
+    String? sourceId;
+    if (patientSourceId != null) {
+      sourceId = patientSourceId;
+    } else if (state.selectedSource != 'All') {
+      sourceId = state.selectedSource;
+    }
+
     final List<OverviewCard> overviewCards = [];
     final List<IFhirResource> allEnabledResources = [];
+
     for (HomeRecordsCategory category in state.selectedRecordTypes.keys) {
       if (state.selectedRecordTypes[category]!) {
         final resources = await _recordsRepository.getAllResources(
           resourceTypes: category.resourceTypes,
           sourceId: sourceId,
         );
+
         allEnabledResources.addAll(resources);
         overviewCards.add(
           OverviewCard(
@@ -128,15 +160,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-    // Sort by date (newest first) with null-safe comparison
     allEnabledResources.sort((a, b) {
-      // If both dates are null, they're equal
       if (a.date == null && b.date == null) return 0;
-      // If a.date is null, put it at the end
       if (a.date == null) return 1;
-      // If b.date is null, put it at the end
       if (b.date == null) return -1;
-      // Both dates exist, compare normally
       return b.date!.compareTo(a.date!);
     });
     final patientResource = await _syncRepository.getResources(

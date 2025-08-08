@@ -138,16 +138,16 @@ class SyncRepositoryImpl implements SyncRepository {
         final populatedEntries = bundle.entry
             .map(
               (entry) => entry.copyWith(
-                resource: entry.resource
-                    .populateEncounterIdFromRaw()
-                    .populateSubjectIdFromRaw(),
+                resource: entry.resource.populateEncounterIdFromRaw(),
               ),
             )
             .toList();
         FhirBundle newBundle = bundle.copyWith(entry: populatedEntries);
 
-        _fhirLocalDataSource.cacheFhirResources(
-            newBundle.entry.map((entry) => entry.resource).toList());
+        final resourcesToCache =
+            newBundle.entry.map((entry) => entry.resource).toList();
+
+        _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
 
         await _fetchAndUpdateUserInfo(tempApiService);
 
@@ -371,7 +371,6 @@ class SyncRepositoryImpl implements SyncRepository {
   @override
   Future<List<FhirResourceDto>> getResources(
       {String? resourceType, String? sourceId}) async {
-    logger.d('Getting resources of type: $resourceType for source: $sourceId');
     final datasource = FhirResourceDatasource(getIt<AppDatabase>());
 
     if (resourceType != null) {
@@ -379,7 +378,6 @@ class SyncRepositoryImpl implements SyncRepository {
         resourceType,
         sourceId: sourceId,
       );
-      logger.d('Found ${resources.length} resources');
       // Convert to old FhirResource format for compatibility
       return resources
           .map((resource) => FhirResourceDto(
@@ -396,8 +394,8 @@ class SyncRepositoryImpl implements SyncRepository {
   }
 
   @override
-  Future<List<entity.Source>> getSources() async {
-    final sources = await _fhirLocalDataSource.getSources();
+  Future<List<entity.Source>> getSources({String? patientId}) async {
+    final sources = await _fhirLocalDataSource.getSources(patientId: patientId);
     return sources
         .map(
           (e) => entity.Source(
