@@ -11,6 +11,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_attachments/record_attachments_widget.dart';
+import 'package:health_wallet/features/records/presentation/widgets/record_notes/record_notes_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -215,9 +216,8 @@ class _EncounterCardState extends State<EncounterCard> {
             Row(
               children: [
                 InkWell(
-                  onTap: () {
-                    // License draft notes functionality
-                  },
+                  onTap: () => showRecordActionDialog(
+                      RecordNotesWidget(resource: widget.encounter)),
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.all(6),

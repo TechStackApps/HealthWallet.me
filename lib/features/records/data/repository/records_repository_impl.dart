@@ -2,6 +2,7 @@ import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
+import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -74,5 +75,30 @@ class RecordsRepositoryImpl implements RecordsRepository {
   @override
   Future<int> deleteRecordAttachment(RecordAttachment attachment) async {
     return _datasource.deleteRecordAttachment(attachment.id);
+  }
+
+  @override
+  Future<int> addRecordNote({
+    required String resourceId,
+    required String content,
+  }) async {
+    return _datasource.addRecordNote(resourceId: resourceId, content: content);
+  }
+
+  @override
+  Future<List<RecordNote>> getRecordNotes(String resourceId) async {
+    List<RecordNoteDto> dtos = await _datasource.getRecordNotes(resourceId);
+
+    return dtos.map(RecordNote.fromDto).toList();
+  }
+
+  @override
+  Future<int> editRecordNote(RecordNote note) async {
+    return _datasource.updateRecordNote(id: note.id, content: note.content);
+  }
+
+  @override
+  Future<int> deleteRecordNote(RecordNote note) async {
+    return _datasource.deleteRecordNote(note.id);
   }
 }

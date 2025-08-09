@@ -87,15 +87,42 @@ class FhirResourceDatasource {
 
   Future<List<RecordAttachmentDto>> getRecordAttachments(
       String resourceId) async {
-    return await (db.select(db.recordAttachments)
+    return (db.select(db.recordAttachments)
           ..where((f) => f.resourceId.equals(resourceId))
           ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
         .get();
   }
 
-  Future<int> deleteRecordAttachment(int attachmentId) async {
-    return (db.delete(db.recordAttachments)
-          ..where((f) => f.id.equals(attachmentId)))
+  Future<int> deleteRecordAttachment(int id) async {
+    return (db.delete(db.recordAttachments)..where((f) => f.id.equals(id)))
         .go();
+  }
+
+  Future<int> addRecordNote({
+    required String resourceId,
+    required String content,
+  }) async {
+    return db.recordNotes.insertOnConflictUpdate(RecordNotesCompanion.insert(
+      resourceId: resourceId,
+      content: content,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  Future<List<RecordNoteDto>> getRecordNotes(String resourceId) async {
+    return (db.select(db.recordNotes)
+          ..where((f) => f.resourceId.equals(resourceId))
+          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
+        .get();
+  }
+
+  Future<int> updateRecordNote(
+      {required int id, required String content}) async {
+    return (db.update(db.recordNotes)..where((f) => f.id.equals(id)))
+        .write(RecordNotesCompanion(content: Value(content)));
+  }
+
+  Future<int> deleteRecordNote(int id) async {
+    return (db.delete(db.recordNotes)..where((f) => f.id.equals(id))).go();
   }
 }
