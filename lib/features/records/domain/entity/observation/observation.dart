@@ -12,7 +12,7 @@ part 'observation.freezed.dart';
 class Observation with _$Observation implements IFhirResource {
   const Observation._();
 
-  factory Observation({
+  const factory Observation({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -52,19 +52,12 @@ class Observation with _$Observation implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirObservation = fhir_r4.Observation.fromJson(resourceJson);
 
-    // ✅ REFACTORED: Use centralized date extraction utility
-    final effectiveDate = FhirDateExtractor.extractWithFallback(
-      primary: fhirObservation.effectiveX,
-      secondary: fhirObservation.issued,
-      fallback: data.date,
-    );
-
     return Observation(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: effectiveDate,
+      date: data.date,
       text: fhirObservation.text,
       identifier: fhirObservation.identifier,
       basedOn: fhirObservation.basedOn,

@@ -26,7 +26,7 @@ class HomeState with _$HomeState {
       HomeRecordsCategory.healthInsurance: true,
     })
     Map<HomeRecordsCategory, bool> selectedRecordTypes,
-    FhirResourceDto? patient,
+    Patient? patient,
     String? selectedPatientName,
     String? errorMessage,
     @Default(false) bool editMode,

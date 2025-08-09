@@ -13,34 +13,23 @@ class RecordsLoadMore extends RecordsEvent with _$RecordsLoadMore {
 }
 
 @freezed
-class RecordsFilterChanged extends RecordsEvent with _$RecordsFilterChanged {
-  const factory RecordsFilterChanged(Set<FhirType> newFilters) =
-      _RecordsFilterChanged;
-}
-
-@freezed
 class RecordsSourceChanged extends RecordsEvent with _$RecordsSourceChanged {
   const factory RecordsSourceChanged(String? sourceId) = _RecordsSourceChanged;
 }
 
 @freezed
-class RecordsFilterToggled extends RecordsEvent with _$RecordsFilterToggled {
-  const factory RecordsFilterToggled(List<FhirType> filter) =
-      _RecordsFilterToggled;
+class RecordsFiltersApplied extends RecordsEvent with _$RecordsFiltersApplied {
+  const factory RecordsFiltersApplied(List<FhirType> filters) =
+      _RecordsFiltersApplied;
 }
 
 @freezed
-class RecordsLoadFilters extends RecordsEvent with _$RecordsLoadFilters {
-  const factory RecordsLoadFilters() = _RecordsLoadFilters;
+class RecordsFilterRemoved extends RecordsEvent with _$RecordsFilterRemoved {
+  const factory RecordsFilterRemoved(FhirType filter) =
+      _RecordsFilterRemoved;
 }
 
 @freezed
 class RecordDetailLoaded extends RecordsEvent with _$RecordDetailLoaded {
   const factory RecordDetailLoaded(String recordId) = _RecordDetailLoaded;
-}
-
-@freezed
-class ReferenceResolved extends RecordsEvent with _$ReferenceResolved {
-  const factory ReferenceResolved(String reference, String displayName) =
-      _ReferenceResolved;
 }

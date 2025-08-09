@@ -11,7 +11,7 @@ part 'medication.freezed.dart';
 class Medication with _$Medication implements IFhirResource {
   const Medication._();
 
-  factory Medication({
+  const factory Medication({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

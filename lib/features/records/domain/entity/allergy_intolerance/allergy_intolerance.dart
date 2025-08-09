@@ -11,7 +11,7 @@ part 'allergy_intolerance.freezed.dart';
 class AllergyIntolerance with _$AllergyIntolerance implements IFhirResource {
   const AllergyIntolerance._();
 
-  factory AllergyIntolerance({
+  const factory AllergyIntolerance({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

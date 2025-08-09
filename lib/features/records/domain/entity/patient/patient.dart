@@ -11,7 +11,7 @@ part 'patient.freezed.dart';
 class Patient with _$Patient implements IFhirResource {
   const Patient._();
 
-  factory Patient({
+  const factory Patient({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -43,27 +43,12 @@ class Patient with _$Patient implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirPatient = fhir_r4.Patient.fromJson(resourceJson);
 
-    // Extract birth date from FHIR data
-    DateTime? birthDate;
-    if (fhirPatient.birthDate != null) {
-      try {
-        // Handle FhirDate type properly
-        final birthDateStr = fhirPatient.birthDate!.toString();
-        if (birthDateStr.isNotEmpty) {
-          birthDate = DateTime.parse(birthDateStr);
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        birthDate = data.date;
-      }
-    }
-
     return Patient(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: birthDate,
+      date: data.date,
       text: fhirPatient.text,
       identifier: fhirPatient.identifier,
       active: fhirPatient.active,

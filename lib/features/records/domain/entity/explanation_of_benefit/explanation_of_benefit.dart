@@ -13,7 +13,7 @@ class ExplanationOfBenefit
     implements IFhirResource {
   const ExplanationOfBenefit._();
 
-  factory ExplanationOfBenefit({
+  const factory ExplanationOfBenefit({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

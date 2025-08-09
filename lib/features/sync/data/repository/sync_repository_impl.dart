@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:fhir_r4/fhir_r4.dart' hide BundleEntry;
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_local_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
-import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
@@ -12,9 +13,6 @@ import 'package:health_wallet/features/sync/domain/services/sync_token_service.d
 import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
 import 'package:health_wallet/features/sync/domain/exceptions/sync_exception.dart';
 import 'package:injectable/injectable.dart';
-import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
 import 'package:health_wallet/features/user/data/mapper/user_mapper.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
@@ -81,11 +79,6 @@ class SyncRepositoryImpl implements SyncRepository {
         logger.d('Port: ${token.port}');
 
         await _sync(token.token, token.address, token.port);
-      } else if (decodedData is Map<String, dynamic> &&
-          decodedData.containsKey('resourceType') &&
-          decodedData['resourceType'] == 'Bundle') {
-        logger.d('Processing direct FHIR Bundle data');
-        await _processFhirBundle(decodedData, 'manual-import');
       } else {
         throw Exception(
             'Invalid JSON format. Expected either server connection data (token, port) or FHIR Bundle (resourceType: Bundle)');
@@ -135,13 +128,16 @@ class SyncRepositoryImpl implements SyncRepository {
           bundle = await tempApiService.syncData();
         }
 
-        final populatedEntries = bundle.entry
-            .map(
-              (entry) => entry.copyWith(
-                resource: entry.resource.populateEncounterIdFromRaw(),
-              ),
-            )
-            .toList();
+        final populatedEntries = bundle.entry.map(
+          (entry) {
+            BundleEntry populatedEntry = entry.copyWith(
+              resource: entry.resource
+                  .populateEncounterIdFromRaw()
+                  .populateSubjectIdFromRaw(),
+            );
+            return populatedEntry;
+          },
+        ).toList();
         FhirBundle newBundle = bundle.copyWith(entry: populatedEntries);
 
         final resourcesToCache =
@@ -263,139 +259,9 @@ class SyncRepositoryImpl implements SyncRepository {
     }
   }
 
-  Future<void> _processFhirBundle(
-      Map<String, dynamic> responseData, String sourceId) async {
-    // logger.d('Raw FHIR bundle: $responseData');
-
-    // final bundle = FhirBundle.fromJson(responseData);
-    // final resources = bundle.entry.map((e) => e.resource).toList();
-
-    // // Check if we already have data from this source at this timestamp
-    // final existingData = await _checkForExistingData(sourceId, responseData);
-    // if (existingData) {
-    //   logger.d('Skipping duplicate data from source: $newSourceId');
-    //   return;
-    // }
-
-    // // Use RecordsRepository for proper FHIR Bundle import
-    // final recordsRepository = getIt.get<RecordsRepository>();
-
-    // logger.d('--- Using RecordsRepository for FHIR Bundle import ---');
-    // final importSummary = await recordsRepository.importFhirBundle(
-    //     jsonEncode(responseData), newSourceId);
-    // logger.d('Import summary: $importSummary');
-
-    // // Process sources and metadata
-    // final sources = <entity.Source>[];
-    // final sourceIds = <String>{};
-
-    // // Create source for this import
-    // if (!sourceIds.contains(newSourceId)) {
-    //   sources.add(entity.Source(
-    //     id: newSourceId,
-    //     name: newSourceId == 'manual-import' ? 'Manual Import' : sourceName,
-    //     logo: null,
-    //   ));
-    //   sourceIds.add(newSourceId);
-    // }
-
-    // // Also extract any sources from resource metadata if present
-    // for (final resource in resources) {
-    //   final resourceSourceId = resource.sourceId;
-    //   if (resourceSourceId != null && !sourceIds.contains(resourceSourceId)) {
-    //     sources.add(entity.Source(
-    //       id: resourceSourceId,
-    //       name: resource.resourceJson['source_name'] ?? resourceSourceId,
-    //       logo: resource.resourceJson['logo'] as String?,
-    //     ));
-    //     sourceIds.add(resourceSourceId);
-    //   }
-    // }
-
-    // logger.d('--- Extracted sources ---');
-    // logger.d(sources);
-
-    // // Cache sources (metadata) only if we have new ones
-    // if (sources.isNotEmpty) {
-    //   await _fhirLocalDataSource.cacheSources(sources);
-    // }
-
-    // logger.d(
-    //     '--- Bundle processing completed successfully with ${importSummary.values.fold(0, (a, b) => a + b)} resources ---');
-  }
-
-  Future<bool> _checkForExistingData(
-      String sourceId, Map<String, dynamic> bundleData) async {
-    try {
-      // Check if we have a recent timestamp for this source
-      final lastSyncTimestamp =
-          await _fhirLocalDataSource.getLastSyncTimestamp();
-
-      if (lastSyncTimestamp != null) {
-        final lastSync = DateTime.parse(lastSyncTimestamp);
-        final now = DateTime.now();
-
-        // If last sync was less than 5 minutes ago, consider it recent
-        if (now.difference(lastSync).inMinutes < 5) {
-          logger.d('Recent sync detected, checking for duplicate data');
-
-          // Get existing sources
-          final existingSources = await _fhirLocalDataSource.getSources();
-          final hasSourceAlready = existingSources.any((s) => s.id == sourceId);
-
-          if (hasSourceAlready) {
-            // Check if the bundle has the same number of resources
-            final bundleTotal = bundleData['total'] as int? ?? 0;
-            if (bundleTotal == 0) {
-              logger.d('Empty bundle detected, skipping duplicate check');
-              return false;
-            }
-
-            // Additional check: compare bundle entry count with existing data
-            final bundleEntries = bundleData['entry'] as List<dynamic>? ?? [];
-            if (bundleEntries.isEmpty) {
-              logger.d('No bundle entries, likely duplicate');
-              return true;
-            }
-          }
-        }
-      }
-
-      return false;
-    } catch (e) {
-      logger.e('Error checking for existing data: $e');
-      return false; // If we can't check, proceed with import
-    }
-  }
-
   @override
-  Future<List<FhirResourceDto>> getResources(
-      {String? resourceType, String? sourceId}) async {
-    final datasource = FhirResourceDatasource(getIt<AppDatabase>());
-
-    if (resourceType != null) {
-      final resources = await datasource.getAllResources(
-        resourceType,
-        sourceId: sourceId,
-      );
-      // Convert to old FhirResource format for compatibility
-      return resources
-          .map((resource) => FhirResourceDto(
-                resourceId: resource['id'] as String?,
-                resourceType: resource['resourceType'] as String,
-                resourceRaw: resource,
-                sourceId: sourceId,
-              ))
-          .toList();
-    }
-
-    // If no resourceType specified, return empty list
-    return [];
-  }
-
-  @override
-  Future<List<entity.Source>> getSources({String? patientId}) async {
-    final sources = await _fhirLocalDataSource.getSources(patientId: patientId);
+  Future<List<entity.Source>> getSources() async {
+    final sources = await _fhirLocalDataSource.getSources();
     return sources
         .map(
           (e) => entity.Source(
@@ -405,11 +271,6 @@ class SyncRepositoryImpl implements SyncRepository {
           ),
         )
         .toList();
-  }
-
-  @override
-  Future<List<FhirResourceDto>> getEncounterWithReferences(String encounterId) {
-    return _fhirLocalDataSource.getEncounterWithReferences(encounterId);
   }
 
   @override

@@ -11,7 +11,7 @@ part 'diagnostic_report.freezed.dart';
 class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
   const DiagnosticReport._();
 
-  factory DiagnosticReport({
+  const factory DiagnosticReport({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -46,41 +46,12 @@ class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
     final fhirDiagnosticReport =
         fhir_r4.DiagnosticReport.fromJson(resourceJson);
 
-    // Extract effective date from FHIR data
-    DateTime? effectiveDate;
-    if (fhirDiagnosticReport.effectiveX != null) {
-      try {
-        // Handle different effectiveX types
-        final effectiveX = fhirDiagnosticReport.effectiveX;
-        if (effectiveX is fhir_r4.FhirDateTime) {
-          effectiveDate = DateTime.parse(effectiveX.toString());
-        } else if (effectiveX is fhir_r4.Period) {
-          final period = effectiveX as fhir_r4.Period;
-          if (period.start != null) {
-            effectiveDate = DateTime.parse(period.start!.toString());
-          }
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        effectiveDate = data.date;
-      }
-    }
-
-    // Fallback to issued date if no effective date
-    if (effectiveDate == null && fhirDiagnosticReport.issued != null) {
-      try {
-        effectiveDate = DateTime.parse(fhirDiagnosticReport.issued!.toString());
-      } catch (e) {
-        effectiveDate = data.date;
-      }
-    }
-
     return DiagnosticReport(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: effectiveDate,
+      date: data.date,
       text: fhirDiagnosticReport.text,
       identifier: fhirDiagnosticReport.identifier,
       basedOn: fhirDiagnosticReport.basedOn,

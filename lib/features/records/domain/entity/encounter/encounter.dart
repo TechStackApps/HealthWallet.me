@@ -12,7 +12,7 @@ part 'encounter.freezed.dart';
 class Encounter with _$Encounter implements IFhirResource {
   const Encounter._();
 
-  factory Encounter({
+  const factory Encounter({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -51,16 +51,12 @@ class Encounter with _$Encounter implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
 
-    // ✅ REFACTORED: Use centralized date extraction utility
-    final encounterDate =
-        FhirDateExtractor.extractFromPeriod(fhirEncounter.period) ?? data.date;
-
     return Encounter(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: encounterDate,
+      date: data.date,
       text: fhirEncounter.text,
       identifier: fhirEncounter.identifier,
       status: fhirEncounter.status,

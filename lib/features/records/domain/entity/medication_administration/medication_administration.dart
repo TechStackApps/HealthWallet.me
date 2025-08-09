@@ -13,7 +13,7 @@ class MedicationAdministration
     implements IFhirResource {
   const MedicationAdministration._();
 
-  factory MedicationAdministration({
+  const factory MedicationAdministration({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

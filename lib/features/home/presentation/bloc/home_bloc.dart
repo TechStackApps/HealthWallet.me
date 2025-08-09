@@ -23,14 +23,12 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  final SyncRepository _syncRepository;
   final RecordsRepository _recordsRepository;
   final GetSourcesUseCase _getSourcesUseCase;
   final HomeLocalDataSource _homeLocalDataSource;
   final PatientEntityDisplayFactory _patientFactory;
 
   HomeBloc(
-    this._syncRepository,
     this._getSourcesUseCase,
     this._homeLocalDataSource,
     this._recordsRepository,
@@ -138,7 +136,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     for (HomeRecordsCategory category in state.selectedRecordTypes.keys) {
       if (state.selectedRecordTypes[category]!) {
-        final resources = await _recordsRepository.getAllResources(
+        final resources = await _recordsRepository.getResources(
           resourceTypes: category.resourceTypes,
           sourceId: sourceId,
         );
@@ -166,8 +164,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (b.date == null) return -1;
       return b.date!.compareTo(a.date!);
     });
-    final patientResource = await _syncRepository.getResources(
-      resourceType: 'Patient',
+    final patientResources = await _recordsRepository.getResources(
+      resourceTypes: [FhirType.Patient],
       sourceId: sourceId,
     );
     final vitals = List.of(MockData.vitalSigns);
@@ -181,7 +179,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         overviewCards: reorderedOverviewCards,
         recentRecords: allEnabledResources.take(3).toList(),
         sources: sources,
-        patient: patientResource.isNotEmpty ? patientResource.first : null,
+        patient: patientResources.isNotEmpty ? patientResources.first as Patient : null,
       ),
     );
   }

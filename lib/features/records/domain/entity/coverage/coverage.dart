@@ -11,7 +11,7 @@ part 'coverage.freezed.dart';
 class Coverage with _$Coverage implements IFhirResource {
   const Coverage._();
 
-  factory Coverage({
+  const factory Coverage({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

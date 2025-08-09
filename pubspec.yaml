@@ -55,6 +55,9 @@ dependencies:
   reorderable_grid_view: ^2.2.8
   url_launcher: ^6.2.5
   fhir_r4: ^0.4.2
+  file_picker: ^10.2.1
+  path: ^1.9.1
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:

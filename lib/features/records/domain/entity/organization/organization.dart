@@ -11,7 +11,7 @@ part 'organization.freezed.dart';
 class Organization with _$Organization implements IFhirResource {
   const Organization._();
 
-  factory Organization({
+  const factory Organization({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

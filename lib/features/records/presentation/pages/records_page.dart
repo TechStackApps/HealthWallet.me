@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +8,7 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
-import 'package:health_wallet/features/records/presentation/widgets/records_filter_dialog.dart';
+import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
@@ -60,7 +61,7 @@ class _RecordsViewState extends State<RecordsView> {
     if (widget.initFilters != null) {
       context
           .read<RecordsBloc>()
-          .add(RecordsFilterToggled(widget.initFilters!));
+          .add(RecordsFiltersApplied(widget.initFilters!));
     }
   }
 
@@ -154,16 +155,31 @@ class _RecordsViewState extends State<RecordsView> {
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  _showFilterDialog(context);
+              BlocBuilder<RecordsBloc, RecordsState>(
+                builder: (context, state) {
+                  return IconButton(
+                    onPressed: () async {
+                      showModalBottomSheet(
+                        context: context,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        builder: (context) => RecordsFilterBottomSheet(
+                          activeFilters: state.activeFilters,
+                          onApply: (filters) => context
+                              .read<RecordsBloc>()
+                              .add(RecordsFiltersApplied(filters)),
+                        ),
+                        isScrollControlled: true,
+                      );
+                    },
+                    icon: Assets.icons.filter.svg(
+                      colorFilter: ColorFilter.mode(
+                        context.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  );
                 },
-                icon: Assets.icons.filter.svg(
-                  colorFilter: ColorFilter.mode(
-                    context.colorScheme.onSurface,
-                    BlendMode.srcIn,
-                  ),
-                ),
               ),
             ],
             elevation: 0,
@@ -185,6 +201,7 @@ class _RecordsViewState extends State<RecordsView> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Search bar
                     TextField(
@@ -228,20 +245,39 @@ class _RecordsViewState extends State<RecordsView> {
                         }
                         return Wrap(
                           spacing: 8.0,
+                          runSpacing: 8,
                           children: state.activeFilters
                               .map(
-                                (filter) => FilterChip(
-                                  label: Text(filter.display),
-                                  selected: true,
-                                  selectedColor: AppColors.textPrimary
-                                      .withValues(alpha: 0.1),
-                                  onSelected: (bool value) {},
-                                  deleteIcon: const Icon(Icons.close, size: 16),
-                                  onDeleted: () {
-                                    context
-                                        .read<RecordsBloc>()
-                                        .add(RecordsFilterToggled([filter]));
-                                  },
+                                (filter) => GestureDetector(
+                                  onTap: () => context
+                                      .read<RecordsBloc>()
+                                      .add(RecordsFilterRemoved(filter)),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 4, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          filter.display,
+                                          style: AppTextStyle.labelSmall
+                                              .copyWith(
+                                                  color: AppColors.primary),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.close,
+                                          color: AppColors.primary,
+                                          size: 12,
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -254,9 +290,10 @@ class _RecordsViewState extends State<RecordsView> {
               // Records list
               Expanded(
                 child: BlocBuilder<RecordsBloc, RecordsState>(
+                  buildWhen: (previous, current) =>
+                      previous.status != current.status,
                   builder: (context, state) {
-                    if (state.status == RecordsStatus.loading() &&
-                        state.resources.isEmpty) {
+                    if (state.status == const RecordsStatus.loading()) {
                       return const Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 4,
@@ -369,7 +406,7 @@ class _RecordsViewState extends State<RecordsView> {
                           GestureDetector(
                             onTap: () {
                               context.read<RecordsBloc>().add(
-                                    RecordsFilterToggled([recordType]),
+                                    RecordsFiltersApplied([recordType]),
                                   );
                             },
                             child: Container(
@@ -467,13 +504,6 @@ class _RecordsViewState extends State<RecordsView> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showFilterDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const RecordsFilterDialog(),
     );
   }
 }

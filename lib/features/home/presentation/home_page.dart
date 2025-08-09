@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/records/domain/factory/base_entity_display_factory.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -117,6 +118,19 @@ class _HomeViewState extends State<HomeView> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                RichText(
+                  text: TextSpan(
+                    style: AppTextStyle.titleMedium
+                        .copyWith(color: AppColors.textPrimary),
+                    children: [
+                      TextSpan(text: context.l10n.homeHi),
+                      TextSpan(
+                        text: BaseEntityDisplayFactory.extractHumanName(state.patient?.name?[0]),
+                        style: TextStyle(color: context.colorScheme.primary),
+                      ),
+                    ],
+                  ),
+                ),
                 BlocBuilder<UserBloc, UserState>(
                   builder: (context, userState) {
                     return RichText(
@@ -131,7 +145,7 @@ class _HomeViewState extends State<HomeView> {
                                 ? userState.user.name
                                 : 'User',
                             style:
-                                TextStyle(color: context.colorScheme.primary),
+                            TextStyle(color: context.colorScheme.primary),
                           ),
                         ],
                       ),
@@ -373,31 +387,27 @@ class _HomeViewState extends State<HomeView> {
                               );
                             },
                           ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: Insets.smallNormal),
-                    MedicalRecordsSection(
-                      overviewCards: filteredCards,
-                      editMode: editMode,
-                      onLongPressCard: () => context
-                          .read<HomeBloc>()
-                          .add(const HomeEditModeChanged(true)),
-                      onReorder: (oldIndex, newIndex) {
-                        context
-                            .read<HomeBloc>()
-                            .add(HomeRecordsReordered(oldIndex, newIndex));
-                      },
-                      onTapCard: (card) {
-                        context.read<RecordsBloc>().add(
-                            RecordsFilterToggled(card.category.resourceTypes));
-
-                        widget.pageController.animateToPage(
-                          1,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.ease,
-                        );
-                      },
-                    ),
+                ],
+              ),
+              const SizedBox(height: Insets.smallNormal),
+              MedicalRecordsSection(
+                overviewCards: filteredCards,
+                editMode: editMode,
+                onLongPressCard: () => context
+                    .read<HomeBloc>()
+                    .add(const HomeEditModeChanged(true)),
+                onReorder: (oldIndex, newIndex) {
+                  context
+                      .read<HomeBloc>()
+                      .add(HomeRecordsReordered(oldIndex, newIndex));
+                },
+                onTapCard: (card) {
+                  context
+                      .read<RecordsBloc>()
+                      .add(RecordsFiltersApplied(card.category.resourceTypes));
 
                     const SizedBox(height: Insets.large),
 

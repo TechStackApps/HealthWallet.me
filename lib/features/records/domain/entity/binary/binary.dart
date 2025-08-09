@@ -11,7 +11,7 @@ part 'binary.freezed.dart';
 class Binary with _$Binary implements IFhirResource {
   const Binary._();
 
-  factory Binary({
+  const factory Binary({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

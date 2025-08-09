@@ -11,7 +11,7 @@ part 'condition.freezed.dart';
 class Condition with _$Condition implements IFhirResource {
   const Condition._();
 
-  factory Condition({
+  const factory Condition({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

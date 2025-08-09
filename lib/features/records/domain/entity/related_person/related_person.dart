@@ -11,7 +11,7 @@ part 'related_person.freezed.dart';
 class RelatedPerson with _$RelatedPerson implements IFhirResource {
   const RelatedPerson._();
 
-  factory RelatedPerson({
+  const factory RelatedPerson({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,

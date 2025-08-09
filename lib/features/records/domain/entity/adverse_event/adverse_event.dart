@@ -11,7 +11,7 @@ part 'adverse_event.freezed.dart';
 class AdverseEvent with _$AdverseEvent implements IFhirResource {
   const AdverseEvent._();
 
-  factory AdverseEvent({
+  const factory AdverseEvent({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
