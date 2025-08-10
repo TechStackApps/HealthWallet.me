@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/factory/display_factory_manager.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
-import 'package:health_wallet/core/utils/logger.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
 
 /// Unified card for displaying any FHIR resource type
 /// Works directly with IFhirResource entities using EntityDisplayConverter
@@ -18,10 +18,6 @@ class UnifiedResourceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    logger.d('🔄 Using UnifiedResourceCard for: ${resource.fhirType}');
-    logger.d(
-        '📅 UnifiedResourceCard date for ${resource.fhirType}: ${resource.date}');
-
     // Special handling for Encounter - should use EncounterCard
     if (resource.fhirType == FhirType.Encounter) {
       return EncounterCard(
@@ -75,7 +71,7 @@ class UnifiedResourceCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _formatDate(resource.date!),
+                    DateFormatUtils.humanReadable(resource.date!),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                         ),
@@ -89,7 +85,5 @@ class UnifiedResourceCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
+  // Removed local date formatter in favor of DateFormatUtils
 }

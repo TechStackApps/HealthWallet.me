@@ -6,13 +6,19 @@ part 'reference.g.dart';
 
 @freezed
 abstract class Reference with _$Reference {
-  const factory Reference.resolved(FhirResourceDto resource) =
-      ResolvedReference;
+  const factory Reference.resolved(
+      @JsonKey(toJson: _resourceToJson, fromJson: _resourceFromJson)
+      FhirResourceDto resource) = ResolvedReference;
   const factory Reference.unresolved(String reference) = UnresolvedReference;
 
   factory Reference.fromJson(Map<String, dynamic> json) =>
       _$ReferenceFromJson(json);
 }
+
+Map<String, dynamic> _resourceToJson(FhirResourceDto resource) =>
+    resource.toJson();
+FhirResourceDto _resourceFromJson(Map<String, dynamic> json) =>
+    FhirResourceDto.fromJson(json);
 
 class ReferenceConverter
     implements JsonConverter<Reference, Map<String, dynamic>> {

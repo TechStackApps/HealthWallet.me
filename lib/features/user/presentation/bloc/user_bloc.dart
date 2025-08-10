@@ -83,7 +83,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         await _userRepository.updateUser(user);
       }
 
-      final patients = await _recordsRepository.getAllResources(
+      final patients = await _recordsRepository.getResources(
         resourceTypes: [FhirType.Patient],
         limit: 10,
       );
@@ -92,7 +92,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
       final savedPatientData = await _loadSelectedPatient();
       final savedPatientId = savedPatientData['patientId'];
-      final savedSourceId = savedPatientData['sourceId'];
 
       Set<String> expandedIds;
       String? selectedPatientId;
@@ -216,7 +215,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     try {
-      final patients = await _recordsRepository.getAllResources(
+      final patients = await _recordsRepository.getResources(
         resourceTypes: [FhirType.Patient],
         limit: 10,
       );

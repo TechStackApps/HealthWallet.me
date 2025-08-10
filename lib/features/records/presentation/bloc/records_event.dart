@@ -25,8 +25,7 @@ class RecordsFiltersApplied extends RecordsEvent with _$RecordsFiltersApplied {
 
 @freezed
 class RecordsFilterRemoved extends RecordsEvent with _$RecordsFilterRemoved {
-  const factory RecordsFilterRemoved(FhirType filter) =
-      _RecordsFilterRemoved;
+  const factory RecordsFilterRemoved(FhirType filter) = _RecordsFilterRemoved;
 }
 
 @freezed

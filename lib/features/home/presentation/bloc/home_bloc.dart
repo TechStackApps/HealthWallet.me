@@ -1,21 +1,16 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/data/mock_data.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
-import 'package:health_wallet/features/home/domain/entities/recent_record.dart';
 import 'package:health_wallet/features/home/domain/entities/vital_sign.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
-import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
-import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'home_bloc.freezed.dart';
@@ -45,24 +40,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onInitialised(
       HomeInitialised event, Emitter<HomeState> emit) async {
-    // Load the selected patient sourceId from SharedPreferences on initialization
     final prefs = await SharedPreferences.getInstance();
     final selectedPatientSourceId =
         prefs.getString('selected_patient_source_id');
+
+    if (selectedPatientSourceId != null) {
+      emit(state.copyWith(selectedSource: selectedPatientSourceId));
+    }
 
     await _loadData(emit, initialPatientSourceId: selectedPatientSourceId);
   }
 
   Future<void> _onSourceChanged(
       HomeSourceChanged event, Emitter<HomeState> emit) async {
+    // Only emit the source change, don't reload data here
+    // The RecordsPage BlocListener will handle the data reload
     emit(state.copyWith(selectedSource: event.source));
-    await _loadData(emit);
   }
 
   Future<void> _onFiltersChanged(
       HomeFiltersChanged event, Emitter<HomeState> emit) async {
+    // Only emit the filter change, don't reload data here
+    // The RecordsPage BlocListener will handle the data reload
     emit(state.copyWith(selectedRecordTypes: event.filters));
-    await _loadData(emit);
   }
 
   Future<void> _onEditModeChanged(
@@ -92,12 +92,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onPatientSelected(
       HomePatientSelected event, Emitter<HomeState> emit) async {
-    // Update the state with the new patient selection
     final updatedState = state.copyWith(
       selectedPatientName: event.patientName,
+      selectedSource: event.patientSourceId ?? 'All',
     );
     emit(updatedState);
-
     // Reload data with the new patient sourceId filter
     await _loadDataInternal(emit, patientSourceId: event.patientSourceId);
   }
@@ -112,16 +111,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           throw Exception('Data load timed out');
         }),
       ]);
-    } catch (e, st) {
+    } catch (e) {
       emit(state.copyWith(status: HomeStatus.failure(e)));
     }
   }
 
   Future<void> _loadDataInternal(Emitter<HomeState> emit,
       {String? patientSourceId}) async {
-    final sources = await _getSourcesUseCase(patientId: patientSourceId);
-    if (sources.where((s) => s.id == 'All').isEmpty) {
-      sources.insert(0, const Source(id: 'All', name: 'All'));
+    // Update selectedSource if patientSourceId is provided
+    String? updatedSelectedSource = state.selectedSource;
+    if (patientSourceId != null) {
+      updatedSelectedSource = patientSourceId;
+    }
+
+    List<Source> sources = [];
+    if (patientSourceId != null) {
+      final allSources = await _getSourcesUseCase();
+      final patientSource = allSources.firstWhere(
+        (s) => s.id == patientSourceId,
+        orElse: () => Source(id: patientSourceId, name: patientSourceId),
+      );
+      sources = [patientSource];
+    } else {
+      sources = await _getSourcesUseCase();
     }
 
     String? sourceId;
@@ -172,16 +184,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final reorderedVitals = await _applyVitalSignsOrder(vitals);
     final reorderedOverviewCards =
         await _applyOverviewCardsOrder(overviewCards);
-    emit(
-      state.copyWith(
-        status: const HomeStatus.success(),
-        vitalSigns: reorderedVitals,
-        overviewCards: reorderedOverviewCards,
-        recentRecords: allEnabledResources.take(3).toList(),
-        sources: sources,
-        patient: patientResources.isNotEmpty ? patientResources.first as Patient : null,
-      ),
+    final finalState = state.copyWith(
+      status: const HomeStatus.success(),
+      vitalSigns: reorderedVitals,
+      overviewCards: reorderedOverviewCards,
+      recentRecords: allEnabledResources.take(3).toList(),
+      sources: sources,
+      patient: patientResources.isNotEmpty
+          ? patientResources.first as Patient
+          : null,
+      // Use the updated selectedSource if it was changed during this operation
+      selectedSource: updatedSelectedSource,
     );
+
+    emit(finalState);
   }
 
   Future<List<VitalSign>> _applyVitalSignsOrder(List<VitalSign> vitals) async {

@@ -51,7 +51,6 @@ class Location with _$Location implements IFhirResource {
       title: data.title ?? '',
       date: data.date,
       text: fhirLocation.text,
-      date: data.date,
       identifier: fhirLocation.identifier,
       status: fhirLocation.status,
       operationalStatus: fhirLocation.operationalStatus,

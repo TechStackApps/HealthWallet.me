@@ -39,9 +39,7 @@ class App extends StatelessWidget {
             create: (context) => getIt<SyncBloc>()
               ..add(const SyncEvent.checkConnectionValidity()),
           ),
-          BlocProvider(
-              create: (context) => getIt<RecordsBloc>()
-                ..add(const RecordsInitialised())),
+          BlocProvider(create: (context) => getIt<RecordsBloc>()),
           BlocProvider(
             create: (context) => HomeBloc(
               getIt<GetSourcesUseCase>(),

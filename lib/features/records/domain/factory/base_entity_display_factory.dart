@@ -1,4 +1,5 @@
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 
 /// Base class for all entity display factories
@@ -60,37 +61,63 @@ abstract class BaseEntityDisplayFactory {
   // ===== UTILITY METHODS =====
 
   /// Extract text from CodeableConcept with default fallback
-  static String extractCodeableConceptText(
-      dynamic codeableConcept, String defaultText) {
-    if (codeableConcept == null) return defaultText;
+  static String extractCodeableConceptText(dynamic value, String defaultText) {
+    if (value == null) return defaultText;
 
-    // Try text field first
-    final text = codeableConcept.text?.toString();
-    if (text != null && text.isNotEmpty) return text;
-
-    // Try first coding display
-    final coding = codeableConcept.coding;
-    if (coding?.isNotEmpty == true) {
-      final display = coding!.first.display?.toString();
+    // Handle Coding directly
+    if (value is fhir_r4.Coding) {
+      final display = value.display?.toString();
       if (display != null && display.isNotEmpty) return display;
+      return defaultText;
+    }
+
+    // Handle CodeableConcept (prefer text, then first coding.display)
+    try {
+      final text = (value as dynamic).text?.toString();
+      if (text != null && text.isNotEmpty) return text;
+
+      final coding = (value as dynamic).coding;
+      if (coding is List && coding.isNotEmpty) {
+        final first = coding.first;
+        if (first is fhir_r4.Coding) {
+          final display = first.display?.toString();
+          if (display != null && display.isNotEmpty) return display;
+        } else {
+          final display = (first as dynamic).display?.toString();
+          if (display != null && display.isNotEmpty) return display;
+        }
+      }
+    } catch (_) {
+      // fall through to default
     }
 
     return defaultText;
   }
 
   /// Extract text from CodeableConcept with nullable return
-  static String? extractCodeableConceptTextNullable(dynamic codeableConcept) {
-    if (codeableConcept == null) return null;
+  static String? extractCodeableConceptTextNullable(dynamic value) {
+    if (value == null) return null;
 
-    // Try text field first
-    final text = codeableConcept.text?.toString();
-    if (text != null && text.isNotEmpty) return text;
+    // Handle Coding directly
+    if (value is fhir_r4.Coding) {
+      return value.display?.toString();
+    }
 
-    // Try first coding display
-    final coding = codeableConcept.coding;
-    if (coding?.isNotEmpty == true) {
-      final display = coding!.first.display?.toString();
-      if (display != null && display.isNotEmpty) return display;
+    // Handle CodeableConcept (prefer text, then first coding.display)
+    try {
+      final text = (value as dynamic).text?.toString();
+      if (text != null && text.isNotEmpty) return text;
+
+      final coding = (value as dynamic).coding;
+      if (coding is List && coding.isNotEmpty) {
+        final first = coding.first;
+        if (first is fhir_r4.Coding) {
+          return first.display?.toString();
+        }
+        return (first as dynamic).display?.toString();
+      }
+    } catch (_) {
+      // ignore and return null
     }
 
     return null;

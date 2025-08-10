@@ -3,6 +3,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/records/domain/factory/display_factory_manager.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class RecentRecordsSection extends StatelessWidget {
@@ -29,9 +30,13 @@ class RecentRecordsSection extends StatelessWidget {
   }
 
   Widget _buildRecentRecordCard(BuildContext context, IFhirResource record) {
-    final title = record.title;
-    final date = record.date.toString();
+    final displayModel =
+        DisplayFactoryManager.instance.buildDisplayModel(record);
+    final title = displayModel.primaryDisplay;
+    final date = displayModel.formattedDate ?? 'Unknown date';
     final tag = record.fhirType.display;
+    final statusText = (displayModel.status ?? '').trim();
+    final clinician = _extractClinician(displayModel.additionalInfo);
 
     // Get icon based on resource type
     Widget icon;
@@ -125,12 +130,15 @@ class RecentRecordsSection extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    'Completed',
-                    style: AppTextStyle.labelMedium.copyWith(
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
+                  if (statusText.isNotEmpty)
+                    Text(
+                      statusText,
+                      style: AppTextStyle.labelMedium.copyWith(
+                        color: context.colorScheme.onSurface,
+                      ),
+                    )
+                  else
+                    const SizedBox.shrink(),
                 ],
               ),
               const SizedBox(height: 8),
@@ -144,25 +152,28 @@ class RecentRecordsSection extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Assets.icons.user.svg(
-                        width: 16,
-                        height: 16,
-                        colorFilter: ColorFilter.mode(
-                          context.colorScheme.onSurface.withOpacity(0.6),
-                          BlendMode.srcIn,
+                  if (clinician != null && clinician.isNotEmpty)
+                    Row(
+                      children: [
+                        Assets.icons.user.svg(
+                          width: 16,
+                          height: 16,
+                          colorFilter: ColorFilter.mode(
+                            context.colorScheme.onSurface.withOpacity(0.6),
+                            BlendMode.srcIn,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Dr. Sarah Johnson',
-                        style: AppTextStyle.labelLarge.copyWith(
-                          color: context.colorScheme.primary,
+                        const SizedBox(width: 6),
+                        Text(
+                          clinician,
+                          style: AppTextStyle.labelLarge.copyWith(
+                            color: context.colorScheme.primary,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    )
+                  else
+                    const SizedBox.shrink(),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -191,4 +202,42 @@ class RecentRecordsSection extends StatelessWidget {
       ),
     );
   }
+}
+
+String? _extractClinician(List<String> additionalInfo) {
+  // Prefer specific performer/participant info if present
+  final performer = additionalInfo.firstWhere(
+    (line) => line.startsWith('Performer: '),
+    orElse: () => '',
+  );
+  if (performer.isNotEmpty) {
+    return performer.replaceFirst('Performer: ', '').trim();
+  }
+
+  final participant = additionalInfo.firstWhere(
+    (line) => line.startsWith('Participant: '),
+    orElse: () => '',
+  );
+  if (participant.isNotEmpty) {
+    return participant.replaceFirst('Participant: ', '').trim();
+  }
+
+  final performers = additionalInfo.firstWhere(
+    (line) => line.startsWith('Performers: '),
+    orElse: () => '',
+  );
+  if (performers.isNotEmpty) {
+    return performers.replaceFirst('Performers: ', '').trim();
+  }
+
+  // Fall back to service provider if that is meaningful
+  final serviceProvider = additionalInfo.firstWhere(
+    (line) => line.startsWith('Service Provider: '),
+    orElse: () => '',
+  );
+  if (serviceProvider.isNotEmpty) {
+    return serviceProvider.replaceFirst('Service Provider: ', '').trim();
+  }
+
+  return null;
 }

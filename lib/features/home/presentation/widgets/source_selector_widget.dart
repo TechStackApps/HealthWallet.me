@@ -20,10 +20,13 @@ class SourceSelectorWidget extends StatelessWidget {
     final textTheme = context.textTheme;
     final colorScheme = context.colorScheme;
 
-    final actualSources =
+    // Get all sources for the current patient (filter out any 'All' placeholder)
+    final patientSources =
         sources.where((source) => source.id != 'All').toList();
 
-    if (actualSources.length == 1) {
+    if (patientSources.isEmpty) {
+      return const SizedBox.shrink();
+    } else if (patientSources.length == 1) {
       return Container(
         constraints: const BoxConstraints(maxWidth: 200),
         child: Row(
@@ -37,7 +40,9 @@ class SourceSelectorWidget extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                actualSources.first.id,
+                patientSources.first.name?.isNotEmpty == true
+                    ? patientSources.first.name!
+                    : patientSources.first.id,
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
@@ -49,7 +54,9 @@ class SourceSelectorWidget extends StatelessWidget {
           ],
         ),
       );
-    } else if (actualSources.length > 1) {
+    } else {
+      // Multiple sources per patient - show dropdown with "All" option
+      // (This case won't happen for your patients since they each have only 1 source)
       return Container(
         constraints: const BoxConstraints(maxWidth: 250),
         child: Row(
@@ -64,7 +71,7 @@ class SourceSelectorWidget extends StatelessWidget {
             const SizedBox(width: Insets.small),
             Expanded(
               child: DropdownButton<String>(
-                value: selectedSource,
+                value: selectedSource ?? 'All', // Default to 'All' if not set
                 isExpanded: true,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
@@ -72,11 +79,14 @@ class SourceSelectorWidget extends StatelessWidget {
                   }
                 },
                 items: () {
-                  final sourceItems = actualSources.map((source) {
+                  // Create dropdown items for each source
+                  final sourceItems = patientSources.map((source) {
                     return DropdownMenuItem<String>(
                       value: source.id,
                       child: Text(
-                        source.id,
+                        source.name?.isNotEmpty == true
+                            ? source.name!
+                            : source.id,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: textTheme.bodySmall,
@@ -84,6 +94,7 @@ class SourceSelectorWidget extends StatelessWidget {
                     );
                   }).toList();
 
+                  // Add "All" option at the top
                   sourceItems.insert(
                     0,
                     DropdownMenuItem<String>(
@@ -104,8 +115,6 @@ class SourceSelectorWidget extends StatelessWidget {
           ],
         ),
       );
-    } else {
-      return const SizedBox.shrink();
     }
   }
 }

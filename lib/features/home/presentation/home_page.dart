@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/domain/factory/base_entity_display_factory.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -14,7 +13,6 @@ import 'package:health_wallet/features/home/presentation/widgets/edit_records_di
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
 
@@ -97,7 +95,8 @@ class _HomeViewState extends State<HomeView> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         final editMode = state.editMode;
-        if (state.status.runtimeType == HomeStatus.initial().runtimeType) {
+        if (state.status.runtimeType ==
+            const HomeStatus.initial().runtimeType) {
           return Scaffold(
             backgroundColor: context.colorScheme.surface,
             body: Center(
@@ -118,19 +117,6 @@ class _HomeViewState extends State<HomeView> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                RichText(
-                  text: TextSpan(
-                    style: AppTextStyle.titleMedium
-                        .copyWith(color: AppColors.textPrimary),
-                    children: [
-                      TextSpan(text: context.l10n.homeHi),
-                      TextSpan(
-                        text: BaseEntityDisplayFactory.extractHumanName(state.patient?.name?[0]),
-                        style: TextStyle(color: context.colorScheme.primary),
-                      ),
-                    ],
-                  ),
-                ),
                 BlocBuilder<UserBloc, UserState>(
                   builder: (context, userState) {
                     return RichText(
@@ -145,7 +131,7 @@ class _HomeViewState extends State<HomeView> {
                                 ? userState.user.name
                                 : 'User',
                             style:
-                            TextStyle(color: context.colorScheme.primary),
+                                TextStyle(color: context.colorScheme.primary),
                           ),
                         ],
                       ),
@@ -278,6 +264,8 @@ class _HomeViewState extends State<HomeView> {
                   ? _patientFactory.extractPrimaryDisplay(selectedPatient)
                   : 'No patient selected';
 
+              // Removed debug logs
+
               return Text(
                 'Patient: $selectedPatientName',
                 style: AppTextStyle.bodyMedium.copyWith(
@@ -304,6 +292,9 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
                     const SizedBox(height: Insets.smallNormal),
+
+                    // Removed debug logs
+
                     VitalsSection(
                       vitals: state.vitalSigns,
                       editMode: editMode,
@@ -362,17 +353,13 @@ class _HomeViewState extends State<HomeView> {
                             ),
                           )
                         else if (state.sources.isNotEmpty)
-                          Builder(
-                            builder: (context) {
-                              return SourceSelectorWidget(
-                                sources: state.sources,
-                                selectedSource: state.selectedSource,
-                                onSourceChanged: (String newSource) {
-                                  context
-                                      .read<HomeBloc>()
-                                      .add(HomeSourceChanged(newSource));
-                                },
-                              );
+                          SourceSelectorWidget(
+                            sources: state.sources,
+                            selectedSource: state.selectedSource,
+                            onSourceChanged: (String newSource) {
+                              context
+                                  .read<HomeBloc>()
+                                  .add(HomeSourceChanged(newSource));
                             },
                           )
                         else
@@ -387,29 +374,40 @@ class _HomeViewState extends State<HomeView> {
                               );
                             },
                           ),
-                        ),
                       ],
                     ),
-                ],
-              ),
-              const SizedBox(height: Insets.smallNormal),
-              MedicalRecordsSection(
-                overviewCards: filteredCards,
-                editMode: editMode,
-                onLongPressCard: () => context
-                    .read<HomeBloc>()
-                    .add(const HomeEditModeChanged(true)),
-                onReorder: (oldIndex, newIndex) {
-                  context
-                      .read<HomeBloc>()
-                      .add(HomeRecordsReordered(oldIndex, newIndex));
-                },
-                onTapCard: (card) {
-                  context
-                      .read<RecordsBloc>()
-                      .add(RecordsFiltersApplied(card.category.resourceTypes));
+
+                    const SizedBox(height: Insets.smallNormal),
+
+                    // Removed debug logs
+
+                    // Medical Records Section
+                    MedicalRecordsSection(
+                      overviewCards: filteredCards,
+                      editMode: editMode,
+                      onLongPressCard: () => context
+                          .read<HomeBloc>()
+                          .add(const HomeEditModeChanged(true)),
+                      onReorder: (oldIndex, newIndex) {
+                        context
+                            .read<HomeBloc>()
+                            .add(HomeRecordsReordered(oldIndex, newIndex));
+                      },
+                      onTapCard: (card) {
+                        context.read<RecordsBloc>().add(
+                            RecordsFiltersApplied(card.category.resourceTypes));
+
+                        widget.pageController.animateToPage(
+                          1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.ease,
+                        );
+                      },
+                    ),
 
                     const SizedBox(height: Insets.large),
+
+                    // Removed debug logs
 
                     // Recent Records Section
                     Row(

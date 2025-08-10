@@ -8,7 +8,7 @@ class GetSourcesUseCase {
 
   GetSourcesUseCase(this._syncRepository);
 
-  Future<List<Source>> call({String? patientId}) {
-    return _syncRepository.getSources(patientId: patientId);
+  Future<List<Source>> call() {
+    return _syncRepository.getSources();
   }
 }

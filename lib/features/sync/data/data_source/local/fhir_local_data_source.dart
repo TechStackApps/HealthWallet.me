@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
+
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:injectable/injectable.dart';
@@ -102,7 +102,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
     final results = await query.get();
     final uniqueSourceIds = results
         .map((row) => row.sourceId)
-        .where((sourceId) => sourceId != null && sourceId!.isNotEmpty)
+        .where((sourceId) => sourceId != null && sourceId.isNotEmpty)
         .cast<String>()
         .toSet()
         .toList();
