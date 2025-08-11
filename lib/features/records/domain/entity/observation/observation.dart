@@ -5,6 +5,10 @@ import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'observation.freezed.dart';
 
@@ -84,5 +88,79 @@ class Observation with _$Observation implements IFhirResource {
       derivedFrom: fhirObservation.derivedFrom,
       component: fhirObservation.component,
     );
+  }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(code);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final valueDisplay = FhirFieldExtractor.extractObservationValue(valueX);
+    if (valueDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.drop,
+        info: valueDisplay,
+      ));
+    }
+
+    if (component != null && component!.isNotEmpty) {
+      final componentValues = component!
+          .map((component) =>
+              FhirFieldExtractor.extractObservationValue(component.valueX))
+          .toList();
+
+      final componentValuesDisplay =
+          FhirFieldExtractor.joinNullable(componentValues, ", ");
+
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.drop,
+        info: componentValuesDisplay!,
+      ));
+    }
+
+    final categoryDisplay =
+        FhirFieldExtractor.extractFirstCodeableConceptFromArray(category);
+    if (categoryDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: categoryDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      specimen?.reference?.valueString,
+      device?.reference?.valueString,
+      ...?basedOn?.map((reference) => reference.reference?.valueString),
+      ...?partOf?.map((reference) => reference.reference?.valueString),
+      ...?focus?.map((reference) => reference.reference?.valueString),
+      ...?performer?.map((reference) => reference.reference?.valueString),
+      ...?hasMember?.map((reference) => reference.reference?.valueString),
+      ...?derivedFrom?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
   }
 }

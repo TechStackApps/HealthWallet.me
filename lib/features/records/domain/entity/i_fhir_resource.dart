@@ -3,6 +3,7 @@
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 abstract class IFhirResource {
@@ -83,6 +84,10 @@ abstract class IFhirResource {
         );
     }
   }
+
+  String get displayTitle;
+  List<RecordInfoLine> get additionalInfo;
+  List<String?> get resourceReferences;
 }
 
 enum FhirType {

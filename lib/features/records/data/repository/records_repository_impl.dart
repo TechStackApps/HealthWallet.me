@@ -46,6 +46,22 @@ class RecordsRepositoryImpl implements RecordsRepository {
   }
 
   @override
+  Future<List<IFhirResource>> getRelatedResources({
+    required IFhirResource resource,
+  }) async {
+    List<IFhirResource> resources = [];
+
+    for (String? reference in resource.resourceReferences) {
+      IFhirResource? resource = await resolveReference(reference!);
+      if (resource == null) continue;
+
+      resources.add(resource);
+    }
+
+    return resources;
+  }
+
+  @override
   Future<IFhirResource?> resolveReference(String reference) async {
     FhirResourceLocalDto? localDto =
         await _datasource.resolveReference(reference);

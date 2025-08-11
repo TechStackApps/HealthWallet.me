@@ -10,8 +10,7 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
-import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/encounter_card.dart';
+import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
 
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -439,21 +438,8 @@ class _RecordsViewState extends State<RecordsView> {
                         ],
                       ),
                       const SizedBox(height: Insets.small),
-                      // Resource content - Simple approach
-                      if (resource.fhirType == FhirType.Encounter)
-                        EncounterCard(encounter: resource as Encounter)
-                      else
-                        UnifiedResourceCard(
-                          resource: resource,
-                          onTap: () {
-                            // Navigator.of(context).push(
-                            //   MaterialPageRoute(
-                            //     builder: (context) => ResourceDetailPage(
-                            //         resource: resource.resourceModel!),
-                            //   ),
-                            // );
-                          },
-                        ),
+
+                      ResourceCard(resource: resource)
                     ],
                   ),
                 ),

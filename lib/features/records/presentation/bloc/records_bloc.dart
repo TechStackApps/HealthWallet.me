@@ -110,9 +110,13 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     emit(
         state.copyWith(recordDetailStatus: const RecordDetailStatus.loading()));
     try {
-      // Load related resources for the encounter
-      final relatedResources = await _recordsRepository
-          .getRelatedResourcesForEncounter(encounterId: event.recordId);
+      final relatedResources = event.resource.fhirType == FhirType.Encounter
+          ? await _recordsRepository.getRelatedResourcesForEncounter(
+              encounterId: event.resource.resourceId)
+          : await _recordsRepository.getRelatedResources(
+              resource: event.resource);
+
+      log(relatedResources.toString());
 
       emit(
         state.copyWith(

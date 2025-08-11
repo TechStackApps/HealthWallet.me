@@ -15,6 +15,10 @@ abstract class RecordsRepository {
     String? sourceId,
   });
 
+  Future<List<IFhirResource>> getRelatedResources({
+    required IFhirResource resource,
+  });
+
   /// Resolve a FHIR reference to get the actual resource data
   Future<IFhirResource?> resolveReference(String reference);
 

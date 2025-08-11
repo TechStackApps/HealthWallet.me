@@ -4,6 +4,9 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'care_team.freezed.dart';
 
@@ -61,5 +64,66 @@ class CareTeam with _$CareTeam implements IFhirResource {
       telecom: fhirCareTeam.telecom,
       note: fhirCareTeam.note,
     );
+  }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final careTeamName = name?.toString();
+    if (careTeamName != null && careTeamName.isNotEmpty) return careTeamName;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final organizationDisplay =
+        managingOrganization?.firstOrNull?.display?.valueString;
+    if (organizationDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.hospital,
+        info: organizationDisplay,
+      ));
+    }
+
+    final members =
+        participant?.map((participant) => participant.member).toList();
+    if (members != null) {
+      final doctor = members.firstWhere(
+          (member) => member?.display?.startsWith("Dr.") ?? false,
+          orElse: () => null);
+
+      if (doctor?.display?.valueString != null) {
+        infoLines.add(RecordInfoLine(
+          icon: Assets.icons.user,
+          info: doctor!.display!.valueString!,
+        ));
+      }
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      ...?reasonReference?.map((reference) => reference.reference?.valueString),
+      ...?managingOrganization
+          ?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
   }
 }

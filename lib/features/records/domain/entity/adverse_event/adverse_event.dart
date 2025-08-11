@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'adverse_event.freezed.dart';
 
@@ -75,5 +79,66 @@ class AdverseEvent with _$AdverseEvent implements IFhirResource {
       referenceDocument: fhirAdverseEvent.referenceDocument,
       study: fhirAdverseEvent.study,
     );
+  }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(event);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final categoryDisplay =
+        FhirFieldExtractor.extractFirstCodeableConceptFromArray(category);
+    if (categoryDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.timeline,
+        info: categoryDisplay,
+      ));
+    }
+
+    final severityDisplay =
+        FhirFieldExtractor.extractCodeableConceptText(severity);
+    if (severityDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.warning,
+        info: "Severity: $severityDisplay",
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      location?.reference?.valueString,
+      recorder?.reference?.valueString,
+      ...?resultingCondition
+          ?.map((reference) => reference.reference?.valueString),
+      ...?subjectMedicalHistory
+          ?.map((reference) => reference.reference?.valueString),
+      ...?referenceDocument
+          ?.map((reference) => reference.reference?.valueString),
+      ...?study?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
   }
 }
