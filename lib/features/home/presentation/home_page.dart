@@ -9,15 +9,17 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/features/home/presentation/widgets/edit_records_dialog.dart';
+import 'package:health_wallet/features/home/presentation/widgets/filter_home_dialog.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
+// Removed separate dialogs in favor of FilterHomeDialog
 
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
+import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
@@ -66,10 +68,40 @@ class _HomeViewState extends State<HomeView> {
     showDialog(
       context: context,
       builder: (context) {
-        return EditRecordsDialog(
-          selectedResources: state.selectedRecordTypes,
-          onSelectionChanged: (newSelection) {
-            context.read<HomeBloc>().add(HomeFiltersChanged(newSelection));
+        return FilterHomeDialog(
+          type: FilterHomeType.records,
+          selectedRecords: state.selectedRecordTypes,
+          orderedRecords: state.overviewCards
+              .map((c) => c.category)
+              .toList(growable: false),
+          onRecordsSaved: (newSelection) {
+            context.read<HomeBloc>().add(
+                  HomeRecordsFiltersChanged(newSelection),
+                );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditVitalsDialog(HomeState state) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final displayedOrder = state.patientVitals
+            .map((v) => PatientVitalTypeX.fromTitle(v.title))
+            .whereType<PatientVitalType>()
+            .toList(growable: false);
+        final remaining = state.selectedVitals.keys
+            .where((k) => !displayedOrder.contains(k))
+            .toList(growable: false);
+        final orderedVitals = [...displayedOrder, ...remaining];
+        return FilterHomeDialog(
+          type: FilterHomeType.vitals,
+          selectedVitals: state.selectedVitals,
+          orderedVitals: orderedVitals,
+          onVitalsSaved: (updated) {
+            context.read<HomeBloc>().add(HomeVitalsFiltersChanged(updated));
           },
         );
       },
@@ -192,7 +224,7 @@ class _HomeViewState extends State<HomeView> {
                     child: MaterialBanner(
                       backgroundColor: context.colorScheme.errorContainer,
                       content: Text(
-                        'Error loading data.',
+                        state.errorMessage ?? 'Error loading data.',
                         style: TextStyle(
                             color: context.colorScheme.onErrorContainer),
                       ),
@@ -285,18 +317,54 @@ class _HomeViewState extends State<HomeView> {
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: Insets.medium),
                     // Vital Signs Section
-                    Text(
-                      context.l10n.homeVitalSigns,
-                      style: AppTextStyle.bodyMedium.copyWith(
-                        color: context.colorScheme.onSurface,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          context.l10n.homeVitalSigns,
+                          style: AppTextStyle.bodyMedium.copyWith(
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                        if (editMode)
+                          InkWell(
+                            onTap: () => _showEditVitalsDialog(state),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Insets.small,
+                                vertical: Insets.extraSmall,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withAlpha(45),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.filter_alt,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Filter Vitals',
+                                    style: AppTextStyle.bodySmall.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: Insets.smallNormal),
 
                     // Removed debug logs
 
                     VitalsSection(
-                      vitals: state.vitalSigns,
+                      vitals: state.patientVitals,
                       editMode: editMode,
                       onReorder: (oldIndex, newIndex) {
                         context
@@ -343,7 +411,7 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Edit Records',
+                                    'Filter Records',
                                     style: AppTextStyle.bodySmall.copyWith(
                                       color: colorScheme.primary,
                                     ),
@@ -379,8 +447,6 @@ class _HomeViewState extends State<HomeView> {
 
                     const SizedBox(height: Insets.smallNormal),
 
-                    // Removed debug logs
-
                     // Medical Records Section
                     MedicalRecordsSection(
                       overviewCards: filteredCards,
@@ -406,8 +472,6 @@ class _HomeViewState extends State<HomeView> {
                     ),
 
                     const SizedBox(height: Insets.large),
-
-                    // Removed debug logs
 
                     // Recent Records Section
                     Row(

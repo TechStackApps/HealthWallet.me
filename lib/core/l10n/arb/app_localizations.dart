@@ -235,7 +235,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeVitalSigns.
   ///
   /// In en, this message translates to:
-  /// **'Vital Signs'**
+  /// **'Vitals'**
   String get homeVitalSigns;
 
   /// No description provided for @homeOverview.

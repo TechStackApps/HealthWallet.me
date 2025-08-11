@@ -29,7 +29,7 @@ class VitalsSection extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.8,
+      childAspectRatio: 1.9,
       itemBuilder: (context, vital, index) => GestureDetector(
         onLongPress: onLongPressCard,
         child: _buildVitalSignCard(context, vital),
@@ -136,6 +136,8 @@ class VitalsSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: context.colorScheme.onSurface,
                     ),
@@ -148,10 +150,14 @@ class VitalsSection extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  value,
-                  style: AppTextStyle.titleSmall.copyWith(
-                    color: context.colorScheme.onSurface,
+                Flexible(
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.titleSmall.copyWith(
+                      color: context.colorScheme.onSurface,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),

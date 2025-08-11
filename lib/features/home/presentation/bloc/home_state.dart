@@ -4,7 +4,7 @@ part of 'home_bloc.dart';
 class HomeState with _$HomeState {
   const factory HomeState({
     @Default(HomeStatus.initial()) HomeStatus status,
-    @Default([]) List<VitalSign> vitalSigns,
+    @Default([]) List<PatientVital> patientVitals,
     @Default([]) List<OverviewCard> overviewCards,
     @Default([]) List<IFhirResource> recentRecords,
     @Default([]) List<Source> sources,
@@ -26,6 +26,18 @@ class HomeState with _$HomeState {
       HomeRecordsCategory.healthInsurance: true,
     })
     Map<HomeRecordsCategory, bool> selectedRecordTypes,
+    @Default({
+      PatientVitalType.heartRate: true,
+      PatientVitalType.bloodPressure: true,
+      PatientVitalType.temperature: true,
+      PatientVitalType.bloodOxygen: true,
+      PatientVitalType.respiratoryRate: false,
+      PatientVitalType.weight: false,
+      PatientVitalType.height: false,
+      PatientVitalType.bmi: false,
+      PatientVitalType.bloodGlucose: false,
+    })
+    Map<PatientVitalType, bool> selectedVitals,
     Patient? patient,
     String? selectedPatientName,
     String? errorMessage,
