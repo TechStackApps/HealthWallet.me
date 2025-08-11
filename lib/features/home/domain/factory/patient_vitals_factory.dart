@@ -19,19 +19,31 @@ class PatientVitalFactory {
       final List<PatientVital> extracted =
           _extractVitalSignsFromObservation(resource);
       for (final vital in extracted) {
-        final String key = vital.title;
+        final String normalizedTitle = _normalizeTitle(vital.title);
+        final PatientVital normalizedVital = (normalizedTitle == vital.title)
+            ? vital
+            : PatientVital(
+                title: normalizedTitle,
+                value: vital.value,
+                unit: vital.unit,
+                status: vital.status,
+                observationId: vital.observationId,
+                effectiveDate: vital.effectiveDate,
+                category: vital.category,
+              );
+        final String key = normalizedTitle;
         final PatientVital? existing = latestByTitle[key];
         if (existing == null) {
-          latestByTitle[key] = vital;
+          latestByTitle[key] = normalizedVital;
           continue;
         }
         final DateTime? existingDate = existing.effectiveDate;
-        final DateTime? newDate = vital.effectiveDate;
+        final DateTime? newDate = normalizedVital.effectiveDate;
         if (existingDate == null && newDate != null) {
-          latestByTitle[key] = vital;
+          latestByTitle[key] = normalizedVital;
         } else if (existingDate != null && newDate != null) {
           if (newDate.isAfter(existingDate)) {
-            latestByTitle[key] = vital;
+            latestByTitle[key] = normalizedVital;
           }
         }
       }
@@ -76,6 +88,46 @@ class PatientVitalFactory {
     ];
 
     return ordered;
+  }
+
+  String _normalizeTitle(String title) {
+    final t = title.trim().toLowerCase();
+    if (t == 'body height' || t == 'height')
+      return PatientVitalType.height.title;
+    if (t == 'body weight' || t == 'weight')
+      return PatientVitalType.weight.title;
+    if (t == 'body mass index' || t == 'bmi' || t == 'body mass index (bmi)') {
+      return PatientVitalType.bmi.title;
+    }
+    if (t == 'oxygen saturation' ||
+        t == 'oxygen saturation in arterial blood' ||
+        t == 'spo2' ||
+        t == 'pulse oximetry' ||
+        t == 'oximetry') {
+      return PatientVitalType.bloodOxygen.title;
+    }
+    if (t == 'body temperature' || t == 'temperature') {
+      return PatientVitalType.temperature.title;
+    }
+    if (t == 'heart rate' || t == 'pulse rate' || t == 'pulse') {
+      return PatientVitalType.heartRate.title;
+    }
+    if (t == 'respiratory rate') {
+      return PatientVitalType.respiratoryRate.title;
+    }
+    if (t == 'systolic blood pressure') {
+      return PatientVitalType.systolicBloodPressure.title;
+    }
+    if (t == 'diastolic blood pressure') {
+      return PatientVitalType.diastolicBloodPressure.title;
+    }
+    if (t == 'blood pressure') {
+      return PatientVitalType.bloodPressure.title;
+    }
+    if (t == 'blood glucose' || t == 'glucose') {
+      return PatientVitalType.bloodGlucose.title;
+    }
+    return title;
   }
 
   List<PatientVital> _extractVitalSignsFromObservation(
