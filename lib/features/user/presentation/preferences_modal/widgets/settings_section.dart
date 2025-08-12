@@ -14,22 +14,20 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final borderColor = context.theme.dividerColor; // Not used currently
-
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
           child: Column(
             children: [
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Theme',
                     style: AppTextStyle.bodySmall,
                   ),
-                  const ThemeToggleButton(),
+                  ThemeToggleButton(),
                 ],
               ),
               const SizedBox(height: Insets.medium),
