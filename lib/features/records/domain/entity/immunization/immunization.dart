@@ -141,4 +141,7 @@ class Immunization with _$Immunization implements IFhirResource {
       ...?reasonReference?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

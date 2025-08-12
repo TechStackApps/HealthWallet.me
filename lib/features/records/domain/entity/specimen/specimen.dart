@@ -109,4 +109,7 @@ class Specimen with _$Specimen implements IFhirResource {
       ...?request?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

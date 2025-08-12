@@ -88,6 +88,7 @@ abstract class IFhirResource {
   String get displayTitle;
   List<RecordInfoLine> get additionalInfo;
   List<String?> get resourceReferences;
+  String get statusDisplay;
 }
 
 enum FhirType {

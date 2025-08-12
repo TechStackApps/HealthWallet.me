@@ -109,4 +109,8 @@ class RelatedPerson with _$RelatedPerson implements IFhirResource {
       patient?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay =>
+      active?.valueBoolean == true ? 'Active' : 'Inactive';
 }

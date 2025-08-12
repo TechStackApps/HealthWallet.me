@@ -107,4 +107,8 @@ class Practitioner with _$Practitioner implements IFhirResource {
 
   @override
   List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay =>
+      active?.valueBoolean == true ? 'Active' : 'Inactive';
 }

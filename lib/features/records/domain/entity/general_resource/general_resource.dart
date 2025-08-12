@@ -38,4 +38,7 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
 
   @override
   List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay => '';
 }

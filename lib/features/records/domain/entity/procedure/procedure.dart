@@ -148,4 +148,7 @@ class Procedure with _$Procedure implements IFhirResource {
       ...?usedReference?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

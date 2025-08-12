@@ -130,4 +130,7 @@ class ExplanationOfBenefit
       claim?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status ?? '';
 }

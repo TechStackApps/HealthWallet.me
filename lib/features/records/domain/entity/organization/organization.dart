@@ -105,4 +105,8 @@ class Organization with _$Organization implements IFhirResource {
       ...?endpoint?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay =>
+      active?.valueBoolean == true ? 'Active' : 'Inactive';
 }

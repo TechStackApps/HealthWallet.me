@@ -132,6 +132,11 @@ class Encounter with _$Encounter implements IFhirResource {
     return infoLines;
   }
 
+  // Encounter is a special case, we get the related resources from the records
+  // that have their encounter id referenced directly in the db
   @override
   List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }
