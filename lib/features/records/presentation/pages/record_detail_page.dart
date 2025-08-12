@@ -135,20 +135,21 @@ class RecordDetailsPage extends StatelessWidget {
   }
 
   Widget _buildEncounterDetails(BuildContext context, Encounter encounter) {
-    return InkWell(
-      onTap: () => context.router.push(RecordDetailsRoute(resource: encounter)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Encounter details", style: AppTextStyle.buttonSmall),
-          const SizedBox(height: 4),
-          _buildRelatedResourceInfo(encounter),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Divider(color: AppColors.textPrimary.withValues(alpha: 0.1)),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Encounter details", style: AppTextStyle.buttonSmall),
+        const SizedBox(height: 4),
+        InkWell(
+          onTap: () =>
+              context.router.push(RecordDetailsRoute(resource: encounter)),
+          child: _buildRelatedResourceInfo(encounter),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Divider(color: AppColors.textPrimary.withValues(alpha: 0.1)),
+        ),
+      ],
     );
   }
 
