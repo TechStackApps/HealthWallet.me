@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'organization.freezed.dart';
 
@@ -11,11 +15,12 @@ part 'organization.freezed.dart';
 class Organization with _$Organization implements IFhirResource {
   const Organization._();
 
-  factory Organization({
+  const factory Organization({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
+    DateTime? date,
     Narrative? text,
     List<Identifier>? identifier,
     FhirBoolean? active,
@@ -41,6 +46,7 @@ class Organization with _$Organization implements IFhirResource {
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
+      date: data.date,
       text: fhirOrganization.text,
       identifier: fhirOrganization.identifier,
       active: fhirOrganization.active,
@@ -54,4 +60,53 @@ class Organization with _$Organization implements IFhirResource {
       endpoint: fhirOrganization.endpoint,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final organizationName = name?.toString();
+    if (organizationName != null && organizationName.isNotEmpty) {
+      return organizationName;
+    }
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final addressDisplay =
+        FhirFieldExtractor.formatAddress(address?.firstOrNull);
+    if (addressDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.identification,
+        info: addressDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      partOf?.reference?.valueString,
+      ...?endpoint?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay =>
+      active?.valueBoolean == true ? 'Active' : 'Inactive';
 }

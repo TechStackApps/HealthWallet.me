@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
 
 part 'general_resource.freezed.dart';
 
@@ -8,7 +9,7 @@ part 'general_resource.freezed.dart';
 class GeneralResource with _$GeneralResource implements IFhirResource {
   const GeneralResource._();
 
-  factory GeneralResource({
+  const factory GeneralResource({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -28,4 +29,16 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
       date: data.date,
     );
   }
+
+  @override
+  String get displayTitle => "Resource";
+
+  @override
+  List<RecordInfoLine> get additionalInfo => [];
+
+  @override
+  List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay => '';
 }

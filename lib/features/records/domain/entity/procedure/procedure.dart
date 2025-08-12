@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'procedure.freezed.dart';
 
@@ -11,7 +15,7 @@ part 'procedure.freezed.dart';
 class Procedure with _$Procedure implements IFhirResource {
   const Procedure._();
 
-  factory Procedure({
+  const factory Procedure({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -55,32 +59,12 @@ class Procedure with _$Procedure implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirProcedure = fhir_r4.Procedure.fromJson(resourceJson);
 
-    // Extract performed date from FHIR data
-    DateTime? performedDate;
-    if (fhirProcedure.performedX != null) {
-      try {
-        // Handle different performedX types
-        final performedX = fhirProcedure.performedX;
-        if (performedX is fhir_r4.FhirDateTime) {
-          performedDate = DateTime.parse(performedX.toString());
-        } else if (performedX is fhir_r4.Period) {
-          final period = performedX as fhir_r4.Period;
-          if (period.start != null) {
-            performedDate = DateTime.parse(period.start!.toString());
-          }
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        performedDate = data.date;
-      }
-    }
-
     return Procedure(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: performedDate,
+      date: data.date,
       text: fhirProcedure.text,
       identifier: fhirProcedure.identifier,
       instantiatesCanonical: fhirProcedure.instantiatesCanonical,
@@ -112,4 +96,59 @@ class Procedure with _$Procedure implements IFhirResource {
       usedCode: fhirProcedure.usedCode,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(code);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final performerDisplay = performer?.firstOrNull?.actor.display?.valueString;
+    if (performerDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.user,
+        info: performerDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      recorder?.reference?.valueString,
+      asserter?.reference?.valueString,
+      location?.reference?.valueString,
+      ...?basedOn?.map((reference) => reference.reference?.valueString),
+      ...?partOf?.map((reference) => reference.reference?.valueString),
+      ...?reasonReference?.map((reference) => reference.reference?.valueString),
+      ...?report?.map((reference) => reference.reference?.valueString),
+      ...?complicationDetail
+          ?.map((reference) => reference.reference?.valueString),
+      ...?usedReference?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

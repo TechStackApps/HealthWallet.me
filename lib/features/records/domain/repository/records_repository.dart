@@ -1,34 +1,44 @@
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
+import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
+import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 
 abstract class RecordsRepository {
-  void reset();
-
-  Future<Map<String, List<FhirResourceDisplayModel>>>
-      getRelatedResourcesForEncounter(
-    String encounterId,
-  );
-
-  bool get hasMorePages;
-
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
     String? sourceId,
-    int? limit,
-    int? offset,
+    int limit = 20,
+    int offset = 0,
   });
 
-  /// Get all resources without encounter filtering (for home page counts)
-  Future<List<IFhirResource>> getAllResources({
-    List<FhirType> resourceTypes = const [],
+  Future<List<IFhirResource>> getRelatedResourcesForEncounter({
+    required String encounterId,
     String? sourceId,
-    int? limit,
-    int? offset,
+  });
+
+  Future<List<IFhirResource>> getRelatedResources({
+    required IFhirResource resource,
   });
 
   /// Resolve a FHIR reference to get the actual resource data
-  Future<Map<String, dynamic>?> resolveReference(String reference);
+  Future<IFhirResource?> resolveReference(String reference);
 
-  /// Get display name for a reference (e.g., "Dr. John Smith" for Practitioner)
-  Future<String?> getReferenceDisplayName(String reference);
+  Future<int> addRecordAttachment({
+    required String resourceId,
+    required String filePath,
+  });
+
+  Future<List<RecordAttachment>> getRecordAttachments(String resourceId);
+
+  Future<int> deleteRecordAttachment(RecordAttachment attachment);
+
+  Future<int> addRecordNote({
+    required String resourceId,
+    required String content,
+  });
+
+  Future<List<RecordNote>> getRecordNotes(String resourceId);
+
+  Future<int> editRecordNote(RecordNote note);
+
+  Future<int> deleteRecordNote(RecordNote note);
 }

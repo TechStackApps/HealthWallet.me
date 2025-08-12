@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'claim.freezed.dart';
 
@@ -12,7 +17,7 @@ part 'claim.freezed.dart';
 class Claim with _$Claim implements IFhirResource {
   const Claim._();
 
-  factory Claim({
+  const factory Claim({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -53,17 +58,12 @@ class Claim with _$Claim implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirClaim = fhir_r4.Claim.fromJson(resourceJson);
 
-    // ✅ REFACTORED: Use centralized date extraction utility
-    final createdDate =
-        FhirDateExtractor.extractFromFhirDateTime(fhirClaim.created) ??
-            data.date;
-
     return Claim(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: createdDate,
+      date: data.date,
       text: fhirClaim.text,
       identifier: fhirClaim.identifier,
       status: fhirClaim.status,
@@ -92,4 +92,62 @@ class Claim with _$Claim implements IFhirResource {
       total: fhirClaim.total,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(type);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final providerDisplay = provider?.display?.valueString;
+    if (providerDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.hospital,
+        info: providerDisplay,
+      ));
+    }
+
+    final coverageDisplay =
+        insurance?.firstOrNull?.coverage.display?.valueString;
+    if (coverageDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: coverageDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      patient?.reference?.valueString,
+      enterer?.reference?.valueString,
+      insurer?.reference?.valueString,
+      provider?.reference?.valueString,
+      referral?.reference?.valueString,
+      facility?.reference?.valueString,
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

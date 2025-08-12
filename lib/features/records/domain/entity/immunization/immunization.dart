@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'immunization.freezed.dart';
 
@@ -11,7 +15,7 @@ part 'immunization.freezed.dart';
 class Immunization with _$Immunization implements IFhirResource {
   const Immunization._();
 
-  factory Immunization({
+  const factory Immunization({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -55,32 +59,12 @@ class Immunization with _$Immunization implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirImmunization = fhir_r4.Immunization.fromJson(resourceJson);
 
-    // Extract occurrence date from FHIR data
-    DateTime? occurrenceDate;
-    if (fhirImmunization.occurrenceX != null) {
-      try {
-        // Handle different occurrenceX types
-        final occurrenceX = fhirImmunization.occurrenceX;
-        if (occurrenceX is fhir_r4.FhirDateTime) {
-          occurrenceDate = DateTime.parse(occurrenceX.toString());
-        } else if (occurrenceX is fhir_r4.Period) {
-          final period = occurrenceX as fhir_r4.Period;
-          if (period.start != null) {
-            occurrenceDate = DateTime.parse(period.start!.toString());
-          }
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        occurrenceDate = data.date;
-      }
-    }
-
     return Immunization(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: occurrenceDate,
+      date: data.date,
       text: fhirImmunization.text,
       identifier: fhirImmunization.identifier,
       status: fhirImmunization.status,
@@ -111,4 +95,53 @@ class Immunization with _$Immunization implements IFhirResource {
       protocolApplied: fhirImmunization.protocolApplied,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText =
+        FhirFieldExtractor.extractCodeableConceptText(vaccineCode);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final statusDisplay = status?.valueString;
+    if (statusDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: "Status: $statusDisplay",
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      patient?.reference?.valueString,
+      encounter?.reference?.valueString,
+      location?.reference?.valueString,
+      manufacturer?.reference?.valueString,
+      ...?reasonReference?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

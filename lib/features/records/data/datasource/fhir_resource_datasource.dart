@@ -1,127 +1,128 @@
 import 'dart:convert';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
 
-/// Single datasource for all FHIR resource operations using Drift with optimizations
 class FhirResourceDatasource {
   final AppDatabase db;
 
   FhirResourceDatasource(this.db);
 
-  /// Get all resources of a specific type with pagination support
-  Future<List<Map<String, dynamic>>> getAllResources(
-    String resourceType, {
+  Future<List<FhirResourceLocalDto>> getResources({
+    required List<String> resourceTypes,
+    String? sourceId,
     int? limit,
     int? offset,
-    String? sourceId,
   }) async {
-    // Handle 'all' resource type - get all resources regardless of type
-    if (resourceType == 'all') {
-      if (limit != null && offset != null) {
-        // Use custom query for pagination with 'all' resources
-        final query = db.select(db.fhirResource);
-
-        if (sourceId != null) {
-          query.where((tbl) => tbl.sourceId.equals(sourceId));
-        }
-
-        query.orderBy([(t) => OrderingTerm.desc(t.date)]);
-
-        final results = await query.get();
-
-        // Apply pagination manually
-        final paginatedResults = results.skip(offset).take(limit).toList();
-
-        return paginatedResults
-            .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-            .toList();
-      }
-
-      // For non-paginated queries, get all resources
-      final query = db.select(db.fhirResource);
-
-      if (sourceId != null) {
-        query.where((tbl) => tbl.sourceId.equals(sourceId));
-      }
-
-      query.orderBy([(t) => OrderingTerm.desc(t.date)]);
-
-      final results = await query.get();
-
-      return results
-          .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-          .toList();
-    }
-
-    // Handle specific resource type
-    if (limit != null && offset != null) {
-      // Use optimized pagination method
-      final results = await db.getPaginatedResourcesByType(
-        resourceType,
-        limit: limit,
-        offset: offset,
-        sourceId: sourceId,
-      );
-
-      return results
-          .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-          .toList();
-    }
-
-    // For non-paginated queries, combine the where conditions properly
-    final query = db.select(db.fhirResource);
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query =
+        db.select(db.fhirResource)..orderBy([(f) => OrderingTerm.desc(f.date)]);
 
     if (sourceId != null) {
-      query.where((tbl) =>
-          tbl.resourceType.equals(resourceType) &
-          tbl.sourceId.equals(sourceId));
-    } else {
-      query.where((tbl) => tbl.resourceType.equals(resourceType));
+      query.where((f) => f.sourceId.equals(sourceId));
     }
 
-    query.orderBy([(t) => OrderingTerm.desc(t.date)]);
+    if (resourceTypes.isNotEmpty) {
+      query.where((f) => f.resourceType.isIn(resourceTypes));
+    }
 
-    final results = await query.get();
+    if (limit != null) {
+      query.limit(limit, offset: offset);
+    }
 
-    return results
-        .map((row) => jsonDecode(row.resourceRaw) as Map<String, dynamic>)
-        .toList();
+    return await query.get();
+  }
+
+  Future<List<FhirResourceLocalDto>> getResourcesByEncounterId({
+    required String encounterId,
+    String? sourceId,
+  }) async {
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query = db
+        .select(db.fhirResource)
+      ..where((f) => f.encounterId.equals(encounterId));
+
+    if (sourceId != null) {
+      query.where((f) => f.sourceId.equals(sourceId));
+    }
+
+    return await query.get();
   }
 
   /// Resolve a FHIR reference (e.g., "Patient/123" or "urn:uuid:...")
-  Future<Map<String, dynamic>?> resolveReference(String reference) async {
+  Future<FhirResourceLocalDto?> resolveReference(String reference) async {
     // Handle urn:uuid: references
     if (reference.startsWith('urn:uuid:')) {
-      final uuid = reference.substring(9); // Remove "urn:uuid:"
+      final uuid = reference.substring(9);
 
       final query = db.select(db.fhirResource)
-        ..where((tbl) => tbl.id.equals(uuid))
+        ..where((tbl) => tbl.resourceId.equals(uuid))
         ..limit(1);
 
-      final result = await query.getSingleOrNull();
-      if (result?.resourceRaw == null) {
-        return null;
-      }
-
-      return jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
+      return await query.getSingleOrNull();
     }
 
-    // Handle ResourceType/id references
     final parts = reference.split('/');
     if (parts.length == 2) {
       final query = db.select(db.fhirResource)
         ..where((tbl) =>
-            tbl.resourceType.equals(parts[0]) & tbl.id.equals(parts[1]))
+            tbl.resourceType.equals(parts[0]) & tbl.resourceId.equals(parts[1]))
         ..limit(1);
 
-      final result = await query.getSingleOrNull();
-      if (result?.resourceRaw == null) {
-        return null;
-      }
-
-      return jsonDecode(result!.resourceRaw) as Map<String, dynamic>;
+      return await query.getSingleOrNull();
     }
 
     return null;
+  }
+
+  Future<int> addRecordAttachment({
+    required String resourceId,
+    required String filePath,
+  }) async {
+    return db.recordAttachments
+        .insertOnConflictUpdate(RecordAttachmentsCompanion.insert(
+      resourceId: resourceId,
+      filePath: filePath,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  Future<List<RecordAttachmentDto>> getRecordAttachments(
+      String resourceId) async {
+    return (db.select(db.recordAttachments)
+          ..where((f) => f.resourceId.equals(resourceId))
+          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
+        .get();
+  }
+
+  Future<int> deleteRecordAttachment(int id) async {
+    return (db.delete(db.recordAttachments)..where((f) => f.id.equals(id)))
+        .go();
+  }
+
+  Future<int> addRecordNote({
+    required String resourceId,
+    required String content,
+  }) async {
+    return db.recordNotes.insertOnConflictUpdate(RecordNotesCompanion.insert(
+      resourceId: resourceId,
+      content: content,
+      timestamp: DateTime.now(),
+    ));
+  }
+
+  Future<List<RecordNoteDto>> getRecordNotes(String resourceId) async {
+    return (db.select(db.recordNotes)
+          ..where((f) => f.resourceId.equals(resourceId))
+          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
+        .get();
+  }
+
+  Future<int> updateRecordNote(
+      {required int id, required String content}) async {
+    return (db.update(db.recordNotes)..where((f) => f.id.equals(id)))
+        .write(RecordNotesCompanion(content: Value(content)));
+  }
+
+  Future<int> deleteRecordNote(int id) async {
+    return (db.delete(db.recordNotes)..where((f) => f.id.equals(id))).go();
   }
 }

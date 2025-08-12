@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'medication_dispense.freezed.dart';
 
@@ -11,7 +15,7 @@ part 'medication_dispense.freezed.dart';
 class MedicationDispense with _$MedicationDispense implements IFhirResource {
   const MedicationDispense._();
 
-  factory MedicationDispense({
+  const factory MedicationDispense({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -83,4 +87,69 @@ class MedicationDispense with _$MedicationDispense implements IFhirResource {
       eventHistory: fhirMedicationDispense.eventHistory,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(type);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final categoryDisplay =
+        FhirFieldExtractor.extractCodeableConceptText(category);
+    if (categoryDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: categoryDisplay,
+      ));
+    }
+
+    final medicationDisplay = FhirFieldExtractor.extractCodeableConceptText(
+        medicationX?.isAs<CodeableConcept>());
+    if (medicationDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.medication,
+        info: medicationDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      context?.reference?.valueString,
+      location?.reference?.valueString,
+      destination?.reference?.valueString,
+      ...?partOf?.map((reference) => reference.reference?.valueString),
+      ...?supportingInformation
+          ?.map((reference) => reference.reference?.valueString),
+      ...?authorizingPrescription
+          ?.map((reference) => reference.reference?.valueString),
+      ...?receiver?.map((reference) => reference.reference?.valueString),
+      ...?detectedIssue?.map((reference) => reference.reference?.valueString),
+      ...?eventHistory?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => '';
 }

@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'service_request.freezed.dart';
 
@@ -11,11 +15,12 @@ part 'service_request.freezed.dart';
 class ServiceRequest with _$ServiceRequest implements IFhirResource {
   const ServiceRequest._();
 
-  factory ServiceRequest({
+  const factory ServiceRequest({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
     @Default('') String title,
+    DateTime? date,
     Narrative? text,
     List<Identifier>? identifier,
     List<FhirCanonical>? instantiatesCanonical,
@@ -64,6 +69,7 @@ class ServiceRequest with _$ServiceRequest implements IFhirResource {
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
+      date: data.date,
       text: fhirServiceRequest.text,
       identifier: fhirServiceRequest.identifier,
       instantiatesCanonical: fhirServiceRequest.instantiatesCanonical,
@@ -100,4 +106,68 @@ class ServiceRequest with _$ServiceRequest implements IFhirResource {
       relevantHistory: fhirServiceRequest.relevantHistory,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(code);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final statusDisplay = status?.valueString;
+    if (statusDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: "Status: $statusDisplay",
+      ));
+    }
+
+    final intentDisplay = intent?.valueString;
+    if (intentDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: "Intent: $intentDisplay",
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      requester?.reference?.valueString,
+      ...?basedOn?.map((reference) => reference.reference?.valueString),
+      ...?replaces?.map((reference) => reference.reference?.valueString),
+      ...?performer?.map((reference) => reference.reference?.valueString),
+      ...?locationReference
+          ?.map((reference) => reference.reference?.valueString),
+      ...?reasonReference?.map((reference) => reference.reference?.valueString),
+      ...?insurance?.map((reference) => reference.reference?.valueString),
+      ...?supportingInfo?.map((reference) => reference.reference?.valueString),
+      ...?specimen?.map((reference) => reference.reference?.valueString),
+      ...?relevantHistory?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

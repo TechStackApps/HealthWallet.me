@@ -1,84 +1,30 @@
+import 'package:health_wallet/features/records/domain/entity/observation/observation.dart';
+import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
-import 'package:health_wallet/features/records/domain/factory/base_entity_display_factory.dart';
+import 'package:health_wallet/features/records/domain/utils/vital_codes.dart';
 
-/// Utility class for extracting common FHIR field patterns
-/// Reduces code duplication across entity display factories
-///
-/// ## Optimization Approach
-///
-/// This class extracts the 4 most common patterns that were duplicated across
-/// 30+ entity display factories:
-///
-/// 1. **Status Extraction** (Duplicated ~20 times)
-///    - Pattern: `entity.status?.toString()`
-///    - Usage: `FhirFieldExtractor.extractStatus(entity.status)`
-///
-/// 2. **CodeableConcept Extraction** (Duplicated ~15 times)
-///    - Pattern: `BaseEntityDisplayFactory.extractCodeableConceptTextNullable(field)`
-///    - Usage: `FhirFieldExtractor.extractCodeableConceptText(entity.field)`
-///
-/// 3. **Reference Display Extraction** (Duplicated ~12 times)
-///    - Pattern: `entity.field?.display?.toString()`
-///    - Usage: `FhirFieldExtractor.extractReferenceDisplay(entity.field)`
-///
-/// 4. **Date Extraction** (Duplicated ~8 times)
-///    - Pattern: `entity.dateField?.toString()`
-///    - Usage: `FhirFieldExtractor.extractDate(entity.dateField)`
-///
-/// ## Benefits
-///
-/// - ✅ **Reduced Duplication**: ~200-300 lines of duplicated code eliminated
-/// - ✅ **Maintained Flexibility**: Resource-specific logic preserved where needed
-/// - ✅ **Full Field Access**: UI can still access all fields easily
-/// - ✅ **Type Safety**: FHIR R4 type safety maintained
-/// - ✅ **Maintainability**: Easy to add new resources and modify patterns
-///
-/// ## Usage Example
-///
-/// ```dart
-/// class PatientEntityDisplayFactory extends BaseEntityDisplayFactory {
-///   @override
-///   List<String> buildAdditionalInfo(IFhirResource entity) {
-///     final patient = entity as Patient;
-///     final additionalInfo = <String>[];
-///
-///     // ✅ USE: Common pattern for status extraction
-///     final status = FhirFieldExtractor.extractStatus(patient.active);
-///     if (status != null) {
-///       additionalInfo.add('Status: ${status == 'true' ? 'Active' : 'Inactive'}');
-///     }
-///
-///     // ✅ KEEP: Resource-specific logic for birth date
-///     if (patient.birthDate != null) {
-///       additionalInfo.add('Birth: ${patient.birthDate}');
-///     }
-///
-///     // ✅ USE: Common pattern for CodeableConcept extraction
-///     final maritalText = FhirFieldExtractor.extractCodeableConceptText(patient.maritalStatus);
-///     if (maritalText != null) {
-///       additionalInfo.add('Marital: $maritalText');
-///     }
-///
-///     return additionalInfo;
-///   }
-/// }
-/// ```
 class FhirFieldExtractor {
-  /// Extract status from any status field
-  /// Pattern: entity.status?.toString()
   static String? extractStatus(dynamic status) {
     return status?.toString();
   }
 
-  /// Extract CodeableConcept text
-  /// Pattern: BaseEntityDisplayFactory.extractCodeableConceptTextNullable(field)
   static String? extractCodeableConceptText(dynamic codeableConcept) {
-    return BaseEntityDisplayFactory.extractCodeableConceptTextNullable(
-        codeableConcept);
+    if (codeableConcept == null) return null;
+
+    // Try text field first
+    final text = codeableConcept.text?.toString();
+    if (text != null && text.isNotEmpty) return text;
+
+    // Try first coding display
+    final coding = codeableConcept.coding;
+    if (coding?.isNotEmpty == true) {
+      final display = coding!.first.display?.toString();
+      if (display != null && display.isNotEmpty) return display;
+    }
+
+    return null;
   }
 
-  /// Extract Reference display
-  /// Pattern: entity.field?.display?.toString()
   static String? extractReferenceDisplay(dynamic reference) {
     if (reference is fhir_r4.Reference) {
       return reference.display?.toString();
@@ -86,57 +32,63 @@ class FhirFieldExtractor {
     return null;
   }
 
-  /// Extract date from any date field
-  /// Pattern: entity.dateField?.toString()
   static String? extractDate(dynamic date) {
     return date?.toString();
   }
 
-  /// Extract first CodeableConcept from array
-  /// Pattern: BaseEntityDisplayFactory.extractFirstCodeableConceptFromArray(field)
   static String? extractFirstCodeableConceptFromArray(
       List<dynamic>? codeableConceptArray) {
-    return BaseEntityDisplayFactory.extractFirstCodeableConceptFromArray(
-        codeableConceptArray);
+    if (codeableConceptArray == null || codeableConceptArray.isEmpty) {
+      return null;
+    }
+
+    final firstConcept = codeableConceptArray.first;
+    return extractCodeableConceptText(firstConcept);
   }
 
-  /// Extract HumanName
-  /// Pattern: BaseEntityDisplayFactory.extractHumanName(field)
   static String? extractHumanName(dynamic name) {
-    return BaseEntityDisplayFactory.extractHumanName(name);
+    if (name == null) return null;
+
+    final given = name.given?.map((g) => g.toString()).join(' ') ?? '';
+    final family = name.family?.toString() ?? '';
+    final prefix = name.prefix?.map((p) => p.toString()).join(' ') ?? '';
+
+    final title = prefix.isNotEmpty ? '$prefix ' : '';
+
+    if (given.isNotEmpty && family.isNotEmpty) {
+      return '$title$given $family';
+    } else if (given.isNotEmpty) {
+      return '$title$given';
+    } else if (family.isNotEmpty) {
+      return '$title$family';
+    }
+
+    return null;
   }
 
-  /// Extract first HumanName from array
-  /// Pattern: BaseEntityDisplayFactory.extractHumanName(field.first)
   static String? extractFirstHumanNameFromArray(List<dynamic>? nameArray) {
     if (nameArray != null &&
         nameArray.isNotEmpty &&
         nameArray.first is fhir_r4.HumanName) {
-      return BaseEntityDisplayFactory.extractHumanName(nameArray.first);
+      return extractHumanName(nameArray.first);
     }
     return null;
   }
 
-  /// Join non-null values with separator
-  /// Pattern: BaseEntityDisplayFactory.joinNonNull([value1, value2], ' • ')
-  static String? joinNonNull(List<String?> values, String separator) {
-    return BaseEntityDisplayFactory.joinNonNull(values, separator);
+  static String? joinNullable(List<String?> values, String separator) {
+    final nonNullStrings =
+        values.where((s) => s != null && s.isNotEmpty).toList();
+    return nonNullStrings.isEmpty ? null : nonNullStrings.join(separator);
   }
 
-  /// Format address components
-  /// Pattern: joinNonNull([city, state, country], ', ')
-  static String? formatAddress(dynamic address) {
-    if (address is fhir_r4.Address) {
-      final city = address.city?.toString();
-      final state = address.state?.toString();
-      final country = address.country?.toString();
-      return joinNonNull([city, state, country], ', ');
-    }
-    return null;
+  static String? formatAddress(fhir_r4.Address? address) {
+    if (address == null) return null;
+    final city = address.city?.toString();
+    final state = address.state?.toString();
+    final country = address.country?.toString();
+    return joinNullable([city, state, country], ', ');
   }
 
-  /// Extract multiple reference displays from array
-  /// Pattern: references.where((r) => r.display != null).map((r) => r.display!).join(', ')
   static String? extractMultipleReferenceDisplays(List<dynamic>? references) {
     if (references == null || references.isEmpty) return null;
 
@@ -146,5 +98,337 @@ class FhirFieldExtractor {
         .join(', ');
 
     return displays.isNotEmpty ? displays : null;
+  }
+
+  static String? extractObservationValue(dynamic valueX) {
+    final valueQuantity = valueX?.isAs<fhir_r4.Quantity>();
+    if (valueQuantity != null) {
+      return "${valueQuantity.value?.valueDouble?.toStringAsFixed(2)} ${valueQuantity.unit}";
+    }
+
+    final valueCodeableConcept = valueX?.isAs<fhir_r4.CodeableConcept>();
+    if (valueCodeableConcept != null) {
+      return extractCodeableConceptText(valueCodeableConcept);
+    }
+
+    final valueString = valueX?.isAs<fhir_r4.FhirString>();
+    if (valueString != null) {
+      return valueString.valueString;
+    }
+
+    final valueBoolean = valueX?.isAs<fhir_r4.FhirBoolean>();
+    if (valueBoolean != null) {
+      return valueBoolean.valueString;
+    }
+
+    final valueInteger = valueX?.isAs<fhir_r4.FhirInteger>();
+    if (valueInteger != null) {
+      return valueInteger.valueString;
+    }
+
+    final valueRange = valueX?.isAs<fhir_r4.Range>();
+    if (valueRange != null) {
+      return "${valueRange.low?.value?.valueDouble?.toStringAsFixed(2)} - ${valueRange.high?.value?.valueDouble?.toStringAsFixed(2)}";
+    }
+
+    final valueRatio = valueX?.isAs<fhir_r4.Ratio>();
+    if (valueRatio != null) {
+      return "${valueRatio.numerator?.value?.valueDouble?.toStringAsFixed(2)} / ${valueRatio.denominator?.value?.valueDouble?.toStringAsFixed(2)}";
+    }
+
+    final valueTime = valueX?.isAs<fhir_r4.FhirTime>();
+    if (valueTime != null) {
+      return valueTime.valueString;
+    }
+
+    final valueDateTime = valueX?.isAs<fhir_r4.FhirDateTime>();
+    if (valueDateTime != null) {
+      return valueDateTime.valueString;
+    }
+
+    final valuePeriod = valueX?.isAs<fhir_r4.Period>();
+    if (valuePeriod != null) {
+      return "${valuePeriod.start} - ${valuePeriod.end}";
+    }
+
+    return null;
+  }
+
+  // Vital sign specific methods
+  static bool isVitalSign(Observation observation) {
+    final primaryCoding = observation.code?.coding;
+    if (primaryCoding != null && primaryCoding.isNotEmpty) {
+      for (final coding in primaryCoding) {
+        if (coding.code != null && isVitalLoinc(coding.code.toString())) {
+          return true;
+        }
+      }
+    }
+
+    if (observation.component != null) {
+      for (final component in observation.component!) {
+        final compCoding = component.code.coding;
+        if (compCoding != null) {
+          for (final coding in compCoding) {
+            if (coding.code != null && isVitalLoinc(coding.code.toString())) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static String extractVitalSignTitle(Observation observation) {
+    if (observation.code?.text != null) {
+      return observation.code!.text.toString();
+    }
+
+    if (observation.code?.coding != null &&
+        observation.code!.coding!.isNotEmpty) {
+      final coding = observation.code!.coding!.first;
+      if (coding.display != null) {
+        return coding.display.toString();
+      }
+      if (coding.code != null) {
+        return _mapLoincCodeToTitle(coding.code.toString());
+      }
+    }
+
+    return 'Vital Sign';
+  }
+
+  static String extractVitalSignValue(Observation observation) {
+    final valueX = observation.valueX;
+
+    if (valueX is fhir_r4.Quantity) {
+      final code = observation.code?.coding?.isNotEmpty == true
+          ? observation.code!.coding!.first.code?.toString()
+          : null;
+      return _formatQuantityValueByCode(code, valueX);
+    } else if (valueX is fhir_r4.FhirString) {
+      return valueX.toString();
+    } else if (valueX is fhir_r4.FhirInteger) {
+      return valueX.toString();
+    } else if (valueX is fhir_r4.FhirDecimal) {
+      return _formatDecimal(valueX.toString());
+    } else if (valueX is fhir_r4.CodeableConcept) {
+      return valueX.text?.toString() ?? 'N/A';
+    }
+
+    return 'N/A';
+  }
+
+  static String extractVitalSignUnit(Observation observation) {
+    final valueX = observation.valueX;
+
+    if (valueX is fhir_r4.Quantity) {
+      return valueX.unit?.toString() ?? '';
+    }
+
+    if (observation.code?.coding != null &&
+        observation.code!.coding!.isNotEmpty) {
+      final coding = observation.code!.coding!.first;
+      if (coding.code != null) {
+        return _mapLoincCodeToUnit(coding.code.toString());
+      }
+    }
+
+    return '';
+  }
+
+  static String extractVitalSignStatus(Observation observation) {
+    if (observation.interpretation != null &&
+        observation.interpretation!.isNotEmpty) {
+      final interpretation = observation.interpretation!.first;
+      if (interpretation.coding != null && interpretation.coding!.isNotEmpty) {
+        final coding = interpretation.coding!.first;
+        if (coding.code != null) {
+          return _mapInterpretationCodeToStatus(coding.code.toString());
+        }
+      }
+    }
+
+    if (observation.referenceRange != null &&
+        observation.referenceRange!.isNotEmpty) {
+      return 'Normal';
+    }
+
+    return 'Unknown';
+  }
+
+  // ===== PRIVATE HELPER METHODS =====
+
+  static String _mapLoincCodeToTitle(String code) {
+    switch (code) {
+      case kLoincHeartRate:
+        return 'Heart Rate';
+      case kLoincBloodPressurePanel:
+        return 'Blood Pressure';
+      case kLoincTemperature:
+        return 'Temperature';
+      case kLoincBloodOxygen:
+      case kLoincBloodOxygenPulseOx:
+        return 'Blood Oxygen';
+      case kLoincWeight:
+        return 'Weight';
+      case kLoincHeight:
+        return 'Height';
+      case kLoincBmi:
+        return 'BMI';
+      case kLoincSystolic:
+        return 'Systolic Blood Pressure';
+      case kLoincDiastolic:
+        return 'Diastolic Blood Pressure';
+      case kLoincRespiratoryRate:
+        return 'Respiratory Rate';
+      case kLoincBloodGlucose:
+        return 'Blood Glucose';
+      default:
+        return 'Vital Sign';
+    }
+  }
+
+  static String _mapLoincCodeToUnit(String code) {
+    switch (code) {
+      case kLoincHeartRate:
+        return 'BPM';
+      case kLoincBloodPressurePanel:
+        return 'mmHg';
+      case kLoincTemperature:
+        return '°F';
+      case kLoincBloodOxygen:
+        return '%';
+      case kLoincWeight:
+        return 'kg';
+      case kLoincHeight:
+        return 'cm';
+      case kLoincBmi:
+        return 'kg/m²';
+      case kLoincSystolic:
+        return 'mmHg';
+      case kLoincDiastolic:
+        return 'mmHg';
+      case kLoincRespiratoryRate:
+        return '/min';
+      case kLoincBloodGlucose:
+        return 'mg/dL';
+      default:
+        return '';
+    }
+  }
+
+  // Map FHIR interpretation codes to status
+  static String _mapInterpretationCodeToStatus(String code) {
+    switch (code) {
+      case 'H':
+        return 'High';
+      case 'L':
+        return 'Low';
+      case 'N':
+        return 'Normal';
+      case 'A':
+        return 'Abnormal';
+      case 'AA':
+        return 'Critically Abnormal';
+      case 'HH':
+        return 'Critically High';
+      case 'LL':
+        return 'Critically Low';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  static String _formatQuantityValueByCode(String? code, fhir_r4.Quantity quantity) {
+    final String? raw = quantity.value?.toString();
+    if (raw == null) return 'N/A';
+    final double? num = double.tryParse(raw);
+    if (num == null) return raw;
+
+    int decimals = 1;
+    switch (code) {
+      case '8867-4': // Heart Rate
+      case '8480-6': // Systolic BP
+      case '8462-4': // Diastolic BP
+      case '2708-6': // SpO2
+        decimals = 0;
+        break;
+      case '8310-5': // Temperature
+      case '29463-7': // Weight
+      case '39156-5': // BMI
+        decimals = 1;
+        break;
+      case '8302-2': // Height
+        decimals = 0;
+        break;
+      default:
+        decimals = num.abs() >= 100 ? 0 : 1;
+    }
+    return decimals == 0
+        ? num.round().toString()
+        : num.toStringAsFixed(decimals);
+  }
+
+  static String _formatDecimal(String s) {
+    final d = double.tryParse(s);
+    if (d == null) return s;
+    return d.abs() >= 100 ? d.round().toString() : d.toStringAsFixed(1);
+  }
+
+  /// Extract patient ID from identifiers or fallback to resource ID
+  static String extractPatientId(Patient patient) {
+    if (patient.identifier?.isNotEmpty == true) {
+      for (final identifier in patient.identifier!) {
+        if (identifier.value != null) {
+          return identifier.value!.toString();
+        }
+      }
+    }
+    return patient.id;
+  }
+
+  /// Calculate patient age from birth date
+  static String extractPatientAge(Patient patient) {
+    if (patient.birthDate == null) return 'N/A';
+
+    try {
+      final birthDateStr = patient.birthDate!.toString();
+      if (birthDateStr.isEmpty) return 'N/A';
+
+      final birthDate = DateTime.parse(birthDateStr);
+      final now = DateTime.now();
+      final age = now.year - birthDate.year;
+
+      if (now.month < birthDate.month ||
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        return '${age - 1} years';
+      }
+
+      return '$age years';
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+  /// Extract patient gender
+  static String extractPatientGender(Patient patient) {
+    final gender = FhirFieldExtractor.extractStatus(patient.gender);
+    return gender ?? 'N/A';
+  }
+
+  /// Extract blood type (placeholder - would need observation query)
+  static String extractBloodType(Patient patient) {
+    // Blood type is typically stored in Observation resources with specific LOINC codes
+    // Common blood type LOINC codes:
+    // - 883-9: ABO group [Type] in Blood
+    // - 884-7: Rh [Type] in Blood
+    // - 34532-2: ABO and Rh group [Type] in Blood
+
+    // This would require querying observations through the repository layer
+    // For now, return placeholder
+    return 'N/A';
   }
 }

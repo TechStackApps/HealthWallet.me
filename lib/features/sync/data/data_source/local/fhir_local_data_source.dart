@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
+
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:injectable/injectable.dart';
@@ -12,13 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class FhirLocalDataSource {
   Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources);
-  Future<List<FhirResourceDto>> getFhirResources({String? sourceId});
-  Future<List<FhirResourceDto>> getEncounterWithReferences(String encounterId);
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
   Future<void> cacheSources(List<entity.Source> sources);
-  Future<List<entity.Source>> getSources();
+  Future<List<entity.Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
 }
 
@@ -40,6 +38,8 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
         title: Value(e.title),
         date: Value(e.date),
         resourceRaw: jsonEncode(e.resourceRaw),
+        encounterId: Value(e.encounterId),
+        subjectId: Value(e.subjectId),
       );
     }).toList();
     await _appDatabase.batch((batch) {
@@ -49,34 +49,6 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
         mode: InsertMode.insertOrReplace,
       );
     });
-  }
-
-  @override
-  Future<List<FhirResourceDto>> getFhirResources({String? sourceId}) async {
-    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> query =
-        _appDatabase.select(_appDatabase.fhirResource);
-
-    if (sourceId != null) {
-      query.where((tbl) => tbl.sourceId.equals(sourceId));
-    }
-
-    final resources = await query.get();
-
-    return resources
-        .map(
-          (e) => FhirResourceDto(
-            id: e.id,
-            sourceId: e.sourceId,
-            resourceType: e.resourceType,
-            resourceId: e.id,
-            title: e.title,
-            date: e.date,
-            resourceRaw: jsonDecode(e.resourceRaw),
-            encounterId: e.encounterId,
-            subjectId: e.subjectId,
-          ),
-        )
-        .toList();
   }
 
   @override
@@ -118,36 +90,29 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<List<entity.Source>> getSources() async {
-    final sources = await _appDatabase.select(_appDatabase.sources).get();
-    return sources
-        .map(
-          (e) => entity.Source(
-            id: e.id,
-            name: e.name,
-            logo: e.logo,
-          ),
-        )
-        .toList();
-  }
+  Future<List<entity.Source>> getSources({String? patientId}) async {
+    final query = _appDatabase.select(_appDatabase.fhirResource);
 
-  @override
-  Future<List<FhirResourceDto>> getEncounterWithReferences(
-      String encounterId) async {
-    final resources =
-        await _appDatabase.getEncounterWithReferences(encounterId);
-    return resources
+    if (patientId != null) {
+      query.where((tbl) => tbl.sourceId.equals(patientId));
+    } else {
+      query.where((tbl) => tbl.sourceId.isNotNull());
+    }
+
+    final results = await query.get();
+    final uniqueSourceIds = results
+        .map((row) => row.sourceId)
+        .where((sourceId) => sourceId != null && sourceId.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    return uniqueSourceIds
         .map(
-          (e) => FhirResourceDto(
-            id: e.id,
-            sourceId: e.sourceId,
-            resourceType: e.resourceType,
-            resourceId: e.id,
-            title: e.title,
-            date: e.date,
-            resourceRaw: jsonDecode(e.resourceRaw),
-            encounterId: e.encounterId,
-            subjectId: e.subjectId,
+          (sourceId) => entity.Source(
+            id: sourceId,
+            name: sourceId,
+            logo: null,
           ),
         )
         .toList();

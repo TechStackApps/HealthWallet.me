@@ -2,8 +2,13 @@ import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
+import 'package:health_wallet/core/utils/performance_monitor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'diagnostic_report.freezed.dart';
 
@@ -11,7 +16,7 @@ part 'diagnostic_report.freezed.dart';
 class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
   const DiagnosticReport._();
 
-  factory DiagnosticReport({
+  const factory DiagnosticReport({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -46,41 +51,12 @@ class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
     final fhirDiagnosticReport =
         fhir_r4.DiagnosticReport.fromJson(resourceJson);
 
-    // Extract effective date from FHIR data
-    DateTime? effectiveDate;
-    if (fhirDiagnosticReport.effectiveX != null) {
-      try {
-        // Handle different effectiveX types
-        final effectiveX = fhirDiagnosticReport.effectiveX;
-        if (effectiveX is fhir_r4.FhirDateTime) {
-          effectiveDate = DateTime.parse(effectiveX.toString());
-        } else if (effectiveX is fhir_r4.Period) {
-          final period = effectiveX as fhir_r4.Period;
-          if (period.start != null) {
-            effectiveDate = DateTime.parse(period.start!.toString());
-          }
-        }
-      } catch (e) {
-        // If parsing fails, use the date from DTO or null
-        effectiveDate = data.date;
-      }
-    }
-
-    // Fallback to issued date if no effective date
-    if (effectiveDate == null && fhirDiagnosticReport.issued != null) {
-      try {
-        effectiveDate = DateTime.parse(fhirDiagnosticReport.issued!.toString());
-      } catch (e) {
-        effectiveDate = data.date;
-      }
-    }
-
     return DiagnosticReport(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: effectiveDate,
+      date: data.date,
       text: fhirDiagnosticReport.text,
       identifier: fhirDiagnosticReport.identifier,
       basedOn: fhirDiagnosticReport.basedOn,
@@ -102,4 +78,65 @@ class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
       presentedForm: fhirDiagnosticReport.presentedForm,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(code);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final categoryDisplay =
+        FhirFieldExtractor.extractFirstCodeableConceptFromArray(category);
+    if (categoryDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.information,
+        info: categoryDisplay,
+      ));
+    }
+
+    final performerDisplay = performer?.firstOrNull?.display?.valueString;
+    if (performerDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.user,
+        info: performerDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      ...?basedOn?.map((reference) => reference.reference?.valueString),
+      ...?performer?.map((reference) => reference.reference?.valueString),
+      ...?resultsInterpreter
+          ?.map((reference) => reference.reference?.valueString),
+      ...?specimen?.map((reference) => reference.reference?.valueString),
+      ...?result?.map((reference) => reference.reference?.valueString),
+      ...?imagingStudy?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
+  }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

@@ -1,430 +1,211 @@
-import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
-import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/unified_resource_card.dart';
-import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
-import 'package:intl/intl.dart';
 
-// TODO: refactor this to take all resource types and change UI
 @RoutePage()
-class RecordDetailPage extends StatelessWidget {
+class RecordDetailsPage extends StatelessWidget {
   final IFhirResource resource;
 
-  const RecordDetailPage({
+  const RecordDetailsPage({
     super.key,
     required this.resource,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Placeholder();
-    // return BlocProvider(
-    //   create: (context) =>
-    //       getIt<RecordsBloc>()..add(RecordDetailLoaded(resource.resourceId)),
-    //   child: Scaffold(
-    //     appBar: AppBar(
-    //       title: const Text('Encounter Details'),
-    //       backgroundColor: context.colorScheme.surface,
-    //       elevation: 0,
-    //       actions: [
-    //         IconButton(
-    //           icon: const Icon(Icons.share),
-    //           onPressed: () {
-    //             // TODO: Implement sharing functionality
-    //           },
-    //         ),
-    //       ],
-    //     ),
-    //     body: SingleChildScrollView(
-    //       padding: const EdgeInsets.all(Insets.normal),
-    //       child: Column(
-    //         crossAxisAlignment: CrossAxisAlignment.start,
-    //         children: [
-    //           // Header card
-    //           _buildHeaderCard(context),
+    return BlocProvider(
+      create: (context) =>
+          getIt<RecordsBloc>()..add(RecordDetailLoaded(resource)),
+      child: BlocBuilder<RecordsBloc, RecordsState>(
+        builder: (context, state) {
+          IFhirResource? encounter = state.relatedResources.firstWhere(
+            (resource) => resource.fhirType == FhirType.Encounter,
+            orElse: () => const GeneralResource(),
+          );
 
-    //           const SizedBox(height: Insets.normal),
-
-    //           // Main content
-    //           _buildMainContent(context),
-
-    //           const SizedBox(height: Insets.normal),
-
-    //           // Related resources section
-    //           _buildRelatedResourcesSection(context),
-
-    //           const SizedBox(height: Insets.normal),
-
-    //           // Raw data (for debugging/technical users)
-    //           _buildRawDataSection(context),
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Record Details',
+                style: AppTextStyle.titleMedium,
+              ),
+              centerTitle: false,
+              backgroundColor: context.colorScheme.surface,
+              leading: IconButton(
+                onPressed: () => context.router.maybePop(),
+                icon: const Icon(Icons.arrow_back),
+              ),
+              elevation: 0,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    // TODO: Implement sharing functionality
+                  },
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(Insets.normal),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderCard(context),
+                  const SizedBox(height: 20),
+                  if (resource.fhirType != FhirType.Encounter &&
+                      encounter.fhirType == FhirType.Encounter)
+                    _buildEncounterDetails(context, encounter as Encounter),
+                  if (state.relatedResources.isNotEmpty)
+                    _buildRelatedResourcesSection(
+                        context, state.relatedResources),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
-  // Widget _buildHeaderCard(BuildContext context) {
-  //   return Card(
-  //     elevation: 2,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(Insets.normal),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           // Resource type badge
-  //           Container(
-  //             padding: const EdgeInsets.symmetric(
-  //               horizontal: Insets.small,
-  //               vertical: Insets.extraSmall,
-  //             ),
-  //             decoration: BoxDecoration(
-  //               color: Colors.blue.withAlpha(45),
-  //               borderRadius: BorderRadius.circular(16),
-  //               border: Border.all(color: Colors.blue, width: 1),
-  //             ),
-  //             child: Row(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 const Icon(
-  //                   Icons.local_hospital,
-  //                   size: 16,
-  //                   color: Colors.blue,
-  //                 ),
-  //                 const SizedBox(width: Insets.extraSmall),
-  //                 Text(
-  //                   'Encounter',
-  //                   style: context.textTheme.bodyMedium?.copyWith(
-  //                     color: Colors.blue,
-  //                     fontWeight: FontWeight.w600,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
+  Widget _buildHeaderCard(BuildContext context) {
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.textPrimary.withValues(alpha: 0.1)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Insets.small,
+              vertical: Insets.extraSmall,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.textPrimary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                resource.fhirType.icon.svg(width: 15),
+                const SizedBox(width: 4),
+                Text(
+                  resource.fhirType.display,
+                  style: AppTextStyle.labelSmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(resource.displayTitle, style: AppTextStyle.bodyMedium),
+          ...resource.additionalInfo.map((infoLine) => Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      infoLine.icon
+                          .svg(width: 16, color: AppColors.textPrimary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          infoLine.info,
+                          style: AppTextStyle.labelLarge
+                              .copyWith(color: AppColors.textPrimary),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              )),
+        ],
+      ),
+    );
+  }
 
-  //           const SizedBox(height: Insets.normal),
+  Widget _buildEncounterDetails(BuildContext context, Encounter encounter) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Encounter details", style: AppTextStyle.buttonSmall),
+        const SizedBox(height: 4),
+        InkWell(
+          onTap: () =>
+              context.router.push(RecordDetailsRoute(resource: encounter)),
+          child: _buildRelatedResourceInfo(encounter),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Divider(color: AppColors.textPrimary.withValues(alpha: 0.1)),
+        ),
+      ],
+    );
+  }
 
-  //           // Encounter type
-  //           Text(
-  //             encounter.encounterType,
-  //             style: context.textTheme.headlineSmall?.copyWith(
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
+  Widget _buildRelatedResourcesSection(
+      BuildContext context, List<IFhirResource> resources) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Related resources", style: AppTextStyle.buttonSmall),
+        const SizedBox(height: 16),
+        ...resources.map((resource) => InkWell(
+              onTap: () =>
+                  context.router.push(RecordDetailsRoute(resource: resource)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(resource.displayTitle, style: AppTextStyle.labelLarge),
+                  _buildRelatedResourceInfo(resource),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ))
+      ],
+    );
+  }
 
-  //           // Patient name
-  //           const SizedBox(height: Insets.small),
-  //           Text(
-  //             encounter.patientDisplay,
-  //             style: context.textTheme.bodyLarge?.copyWith(
-  //               color: AppColors.textSecondary,
-  //             ),
-  //           ),
-
-  //           // Date/time
-  //           if (encounter.formattedStartDate != null) ...[
-  //             const SizedBox(height: Insets.small),
-  //             Row(
-  //               children: [
-  //                 Icon(
-  //                   Icons.access_time,
-  //                   size: 16,
-  //                   color: context.colorScheme.onSurface.withOpacity(0.6),
-  //                 ),
-  //                 const SizedBox(width: Insets.extraSmall),
-  //                 Text(
-  //                   encounter.formattedStartDate!,
-  //                   style: context.textTheme.bodyMedium?.copyWith(
-  //                     color: AppColors.textSecondary,
-  //                   ),
-  //                 ),
-  //                 if (encounter.endDate != null) ...[
-  //                   const Text(' - '),
-  //                   Text(
-  //                     _formatDate(encounter.endDate!),
-  //                     style: context.textTheme.bodyMedium?.copyWith(
-  //                       color: AppColors.textSecondary,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ],
-  //             ),
-  //           ],
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildMainContent(BuildContext context) {
-  //   return Card(
-  //     elevation: 1,
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(Insets.normal),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Text(
-  //             'Encounter Details',
-  //             style: context.textTheme.titleMedium?.copyWith(
-  //               fontWeight: FontWeight.bold,
-  //             ),
-  //           ),
-
-  //           const SizedBox(height: Insets.normal),
-
-  //           // Practitioners
-  //           if (encounter.practitionerNames.isNotEmpty) ...[
-  //             _buildInfoRow(
-  //               context,
-  //               'Practitioners',
-  //               encounter.practitionerNames.join(', '),
-  //               Icons.person,
-  //             ),
-  //             const SizedBox(height: Insets.small),
-  //           ],
-
-  //           // Organization
-  //           if (encounter.organizationName.isNotEmpty) ...[
-  //             _buildInfoRow(
-  //               context,
-  //               'Organization',
-  //               encounter.organizationName,
-  //               Icons.business,
-  //             ),
-  //             const SizedBox(height: Insets.small),
-  //           ],
-
-  //           // Locations
-  //           if (encounter.locationNames.isNotEmpty) ...[
-  //             _buildInfoRow(
-  //               context,
-  //               'Locations',
-  //               encounter.locationNames.join(', '),
-  //               Icons.location_on,
-  //             ),
-  //           ],
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildInfoRow(
-  //     BuildContext context, String label, String value, IconData icon) {
-  //   return Row(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Icon(
-  //         icon,
-  //         size: 16,
-  //         color: context.colorScheme.onSurface.withOpacity(0.6),
-  //       ),
-  //       const SizedBox(width: Insets.extraSmall),
-  //       Text(
-  //         '$label: ',
-  //         style: context.textTheme.bodyMedium?.copyWith(
-  //           fontWeight: FontWeight.w600,
-  //         ),
-  //       ),
-  //       Expanded(
-  //         child: Text(
-  //           value,
-  //           style: context.textTheme.bodyMedium?.copyWith(
-  //             color: AppColors.textSecondary,
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildRelatedResourcesSection(BuildContext context) {
-  //   return BlocBuilder<RecordsBloc, RecordsState>(
-  //     builder: (context, state) {
-  //       if (state.recordDetailStatus == RecordDetailStatus.loading()) {
-  //         return const Center(child: CircularProgressIndicator());
-  //       }
-
-  //       if (state.relatedResources.isEmpty) {
-  //         return const SizedBox(); // No related resources to show
-  //       }
-
-  //       final relatedResources = state.relatedResources;
-
-  //       return Card(
-  //         elevation: 1,
-  //         child: Padding(
-  //           padding: const EdgeInsets.all(Insets.normal),
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               Text(
-  //                 'Related Resources',
-  //                 style: context.textTheme.titleMedium?.copyWith(
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //               const SizedBox(height: Insets.normal),
-  //               ...relatedResources.entries.map((entry) {
-  //                 final resourceType = entry.key;
-  //                 final resources = entry.value;
-
-  //                 return Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     // Resource type header
-  //                     Padding(
-  //                       padding:
-  //                           const EdgeInsets.symmetric(vertical: Insets.small),
-  //                       child: Text(
-  //                         '$resourceType (${resources.length})',
-  //                         style: context.textTheme.titleSmall?.copyWith(
-  //                           fontWeight: FontWeight.w600,
-  //                           color: _getResourceTypeColor(resourceType),
-  //                         ),
-  //                       ),
-  //                     ),
-
-  //                     // Resource list
-  //                     ...resources.map((resource) {
-  //                       return Padding(
-  //                         padding: const EdgeInsets.only(bottom: Insets.small),
-  //                         child: UnifiedResourceCard(
-  //                           resource: resource,
-  //                           isStandalone: false,
-  //                           onTap: () {
-  //                             // Navigate to resource detail page
-  //                             Navigator.of(context).push(
-  //                               MaterialPageRoute(
-  //                                 builder: (context) =>
-  //                                     ResourceDetailPage(resource: resource),
-  //                               ),
-  //                             );
-  //                           },
-  //                         ),
-  //                       );
-  //                     }),
-  //                   ],
-  //                 );
-  //               }),
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  // Widget _buildRawDataSection(BuildContext context) {
-  //   return Card(
-  //     elevation: 1,
-  //     child: Theme(
-  //       data: Theme.of(context).copyWith(
-  //         dividerColor: Colors.transparent,
-  //       ),
-  //       child: ExpansionTile(
-  //         title: Text(
-  //           'Raw Data',
-  //           style: context.textTheme.titleMedium?.copyWith(
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //         subtitle: Text(
-  //           'Technical details (JSON)',
-  //           style: context.textTheme.bodySmall?.copyWith(
-  //             color: AppColors.textSecondary,
-  //           ),
-  //         ),
-  //         children: [
-  //           Padding(
-  //             padding: const EdgeInsets.all(Insets.normal),
-  //             child: Container(
-  //               width: double.infinity,
-  //               padding: const EdgeInsets.all(Insets.normal),
-  //               decoration: BoxDecoration(
-  //                 color: context.colorScheme.surface,
-  //                 borderRadius: BorderRadius.circular(8),
-  //                 border: Border.all(
-  //                   color: context.colorScheme.outline.withOpacity(0.3),
-  //                 ),
-  //               ),
-  //               child: SelectableText(
-  //                 _formatJson(encounter.rawEncounter),
-  //                 style: context.textTheme.bodySmall?.copyWith(
-  //                   fontFamily: 'monospace',
-  //                   color: AppColors.textSecondary,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // String _formatJson(Map<String, dynamic> json) {
-  //   try {
-  //     const encoder = JsonEncoder.withIndent('  ');
-  //     return encoder.convert(json);
-  //   } catch (e) {
-  //     return json.toString();
-  //   }
-  // }
-
-  // String _formatDate(String dateString) {
-  //   try {
-  //     final date = DateTime.parse(dateString);
-  //     return DateFormat('MMM d, yyyy').format(date);
-  //   } catch (_) {
-  //     return dateString;
-  //   }
-  // }
-
-  // Color _getResourceTypeColor(String resourceType) {
-  //   switch (resourceType.toLowerCase()) {
-  //     case 'allergyintolerance':
-  //       return Colors.red;
-  //     case 'condition':
-  //       return Colors.orange;
-  //     case 'procedure':
-  //       return Colors.green;
-  //     case 'medicationrequest':
-  //       return Colors.purple;
-  //     case 'observation':
-  //       return Colors.teal;
-  //     case 'diagnosticreport':
-  //       return Colors.indigo;
-  //     case 'immunization':
-  //       return Colors.pink;
-  //     case 'careplan':
-  //       return Colors.brown;
-  //     case 'goal':
-  //       return Colors.amber;
-  //     case 'documentreference':
-  //       return Colors.cyan;
-  //     case 'media':
-  //       return Colors.deepOrange;
-  //     case 'location':
-  //       return Colors.lime;
-  //     case 'organization':
-  //       return Colors.deepPurple;
-  //     case 'practitioner':
-  //       return Colors.lightBlue;
-  //     case 'patient':
-  //       return Colors.lightGreen;
-  //     default:
-  //       return Colors.grey;
-  //   }
-  // }
+  Widget _buildRelatedResourceInfo(IFhirResource resource) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: resource.additionalInfo
+          .take(2)
+          .map(
+            (infoLine) => Column(
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    infoLine.icon.svg(
+                        width: 16,
+                        color: AppColors.textPrimary.withValues(alpha: 0.6)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        infoLine.info,
+                        style: AppTextStyle.labelLarge.copyWith(
+                            color:
+                                AppColors.textPrimary.withValues(alpha: 0.6)),
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
+          )
+          .toList(),
+    );
+  }
 }

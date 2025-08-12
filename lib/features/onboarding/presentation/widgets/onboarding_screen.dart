@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
@@ -9,7 +8,7 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/widgets/qr_scanner_widget.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
-import 'package:health_wallet/features/user/presentation/widgets/biometric_toggle_button.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/biometric_toggle_button.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class OnboardingScreen extends StatelessWidget {

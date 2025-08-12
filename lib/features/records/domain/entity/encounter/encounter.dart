@@ -5,6 +5,10 @@ import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'encounter.freezed.dart';
 
@@ -12,7 +16,7 @@ part 'encounter.freezed.dart';
 class Encounter with _$Encounter implements IFhirResource {
   const Encounter._();
 
-  factory Encounter({
+  const factory Encounter({
     @Default('') String id,
     @Default('') String sourceId,
     @Default('') String resourceId,
@@ -51,16 +55,12 @@ class Encounter with _$Encounter implements IFhirResource {
     final resourceJson = jsonDecode(data.resourceRaw);
     final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
 
-    // ✅ REFACTORED: Use centralized date extraction utility
-    final encounterDate =
-        FhirDateExtractor.extractFromPeriod(fhirEncounter.period) ?? data.date;
-
     return Encounter(
       id: data.id,
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      date: encounterDate,
+      date: data.date,
       text: fhirEncounter.text,
       identifier: fhirEncounter.identifier,
       status: fhirEncounter.status,
@@ -87,4 +87,56 @@ class Encounter with _$Encounter implements IFhirResource {
       partOf: fhirEncounter.partOf,
     );
   }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText =
+        FhirFieldExtractor.extractFirstCodeableConceptFromArray(type);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final participantDisplay =
+        participant?.firstOrNull?.individual?.display?.valueString;
+    if (participantDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.user,
+        info: participantDisplay,
+      ));
+    }
+
+    final serviceProviderDisplay = serviceProvider?.display?.valueString;
+    if (serviceProviderDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.hospital,
+        info: serviceProviderDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  // Encounter is a special case, we get the related resources from the records
+  // that have their encounter id referenced directly in the db
+  @override
+  List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

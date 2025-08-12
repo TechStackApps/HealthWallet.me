@@ -31,4 +31,11 @@ class AppColors {
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color border = Color.fromRGBO(30, 30, 30, 0.1);
+
+  // Dark theme colors
+  static const Color backgroundDark = Color(0xFF1E1E1E);
+  static const Color surfaceDark = Color(0xFF1E1E1E);
+  static const Color borderDark = Color.fromRGBO(255, 255, 255, 0.1);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textSecondaryDark = Color.fromRGBO(255, 255, 255, 0.6);
 }
