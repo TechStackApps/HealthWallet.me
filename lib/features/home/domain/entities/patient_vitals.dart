@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/records/domain/entity/observation/observation.dart';
-import 'package:health_wallet/features/records/domain/factory/entity_factories/observation_entity_display_factory.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 
 enum PatientVitalType {
   heartRate,
@@ -85,7 +85,6 @@ class PatientVital {
   final String status;
   final String? observationId;
   final DateTime? effectiveDate;
-  final String? category;
 
   const PatientVital({
     this.icon,
@@ -95,18 +94,14 @@ class PatientVital {
     required this.status,
     this.observationId,
     this.effectiveDate,
-    this.category,
   });
 
   factory PatientVital.fromObservation(Observation observation) {
-    final factory = ObservationEntityDisplayFactory();
-
-    final title = factory.extractVitalSignTitle(observation);
-    final value = factory.extractVitalSignValue(observation);
-    final unit = factory.extractVitalSignUnit(observation);
-    final status = factory.extractVitalSignStatus(observation);
+    final title = FhirFieldExtractor.extractVitalSignTitle(observation);
+    final value = FhirFieldExtractor.extractVitalSignValue(observation);
+    final unit = FhirFieldExtractor.extractVitalSignUnit(observation);
+    final status = FhirFieldExtractor.extractVitalSignStatus(observation);
     final effectiveDate = observation.date;
-    final category = factory.extractCategory(observation);
 
     return PatientVital(
       title: title,
@@ -115,7 +110,6 @@ class PatientVital {
       status: status,
       observationId: observation.id,
       effectiveDate: effectiveDate,
-      category: category,
     );
   }
 }

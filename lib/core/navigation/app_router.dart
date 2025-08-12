@@ -9,7 +9,6 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/models/encounter_display_model.dart';
 import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:health_wallet/features/records/presentation/pages/record_detail_page.dart';
-import 'package:health_wallet/features/records/presentation/pages/resource_detail_page.dart';
 import 'package:health_wallet/features/user/presentation/pages/privacy_policy_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/features/sync/presentation/sync_page.dart';
@@ -31,6 +30,7 @@ class AppRouter extends _$AppRouter {
             AutoRoute(page: RecordsRoute.page),
           ],
         ),
+        AutoRoute(page: RecordDetailsRoute.page),
         AutoRoute(page: SyncRoute.page),
         AutoRoute(page: AuthRoute.page),
         AutoRoute(page: PrivacyPolicyRoute.page),

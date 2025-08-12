@@ -7,7 +7,6 @@ import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
-import 'package:health_wallet/features/records/domain/factory/entity_factories/observation_entity_display_factory.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,16 +21,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetSourcesUseCase _getSourcesUseCase;
   final HomeLocalDataSource _homeLocalDataSource;
   // Keep for future extensibility in Home; currently vitals are built via VitalSignsFactory.
-  final ObservationEntityDisplayFactory
-      _observationFactory; // ignore: unused_field
   final PatientVitalFactory _patientVitalFactory = PatientVitalFactory();
 
   HomeBloc(
     this._getSourcesUseCase,
     this._homeLocalDataSource,
     this._recordsRepository,
-  )   : _observationFactory = ObservationEntityDisplayFactory(),
-        super(HomeState()) {
+  ) : super(HomeState()) {
     on<HomeInitialised>(_onInitialised);
     on<HomeSourceChanged>(_onSourceChanged);
     on<HomeRecordsFiltersChanged>(_onRecordsFiltersChanged);

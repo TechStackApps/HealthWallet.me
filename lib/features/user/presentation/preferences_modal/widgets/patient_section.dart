@@ -5,7 +5,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
-import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/animated_reorderable_list.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -18,8 +18,6 @@ class PatientSection extends StatefulWidget {
 }
 
 class _PatientSectionState extends State<PatientSection> {
-  final _patientFactory = PatientEntityDisplayFactory();
-
   @override
   void initState() {
     super.initState();
@@ -109,7 +107,6 @@ class _PatientSectionState extends State<PatientSection> {
                       child: _UnifiedPatientCard(
                         patient: patient,
                         index: index,
-                        patientFactory: _patientFactory,
                         borderColor: borderColor,
                         iconColor: iconColor,
                         textColor: textColor,
@@ -160,7 +157,6 @@ class _PatientSectionState extends State<PatientSection> {
 class _UnifiedPatientCard extends StatelessWidget {
   final Patient patient;
   final int index;
-  final PatientEntityDisplayFactory patientFactory;
   final Color borderColor;
   final Color iconColor;
   final Color textColor;
@@ -171,7 +167,6 @@ class _UnifiedPatientCard extends StatelessWidget {
   const _UnifiedPatientCard({
     required this.patient,
     required this.index,
-    required this.patientFactory,
     required this.borderColor,
     required this.iconColor,
     required this.textColor,
@@ -217,7 +212,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                   ),
                   const SizedBox(width: Insets.small),
                   Text(
-                    patientFactory.extractPrimaryDisplay(patient),
+                    patient.displayTitle,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: textColor,
                     ),
@@ -265,7 +260,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                                   BlendMode.srcIn,
                                 ),
                               ),
-                              'ID: ${patientFactory.extractPatientId(patient)}',
+                              'ID: ${FhirFieldExtractor.extractPatientId(patient)}',
                             ),
                             _buildPatientInfoRow(
                               context,
@@ -277,7 +272,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                                   BlendMode.srcIn,
                                 ),
                               ),
-                              'Age: ${patientFactory.extractPatientAge(patient)}',
+                              'Age: ${FhirFieldExtractor.extractPatientAge(patient)}',
                             ),
                           ],
                         ),
@@ -299,7 +294,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                                   BlendMode.srcIn,
                                 ),
                               ),
-                              'Gender: ${patientFactory.extractPatientGender(patient)}',
+                              'Gender: ${FhirFieldExtractor.extractPatientGender(patient)}',
                             ),
                             _buildPatientInfoRow(
                               context,
@@ -311,7 +306,7 @@ class _UnifiedPatientCard extends StatelessWidget {
                                   BlendMode.srcIn,
                                 ),
                               ),
-                              'Blood type: ${patientFactory.extractBloodType(patient)}',
+                              'Blood type: ${FhirFieldExtractor.extractBloodType(patient)}',
                             ),
                           ],
                         ),

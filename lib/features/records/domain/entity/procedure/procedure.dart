@@ -4,6 +4,10 @@ import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:intl/intl.dart';
 
 part 'procedure.freezed.dart';
 
@@ -91,5 +95,57 @@ class Procedure with _$Procedure implements IFhirResource {
       usedReference: fhirProcedure.usedReference,
       usedCode: fhirProcedure.usedCode,
     );
+  }
+
+  @override
+  String get displayTitle {
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final displayText = FhirFieldExtractor.extractCodeableConceptText(code);
+    if (displayText != null) return displayText;
+
+    return fhirType.display;
+  }
+
+  @override
+  List<RecordInfoLine> get additionalInfo {
+    List<RecordInfoLine> infoLines = [];
+
+    final performerDisplay = performer?.firstOrNull?.actor.display?.valueString;
+    if (performerDisplay != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.user,
+        info: performerDisplay,
+      ));
+    }
+
+    if (date != null) {
+      infoLines.add(RecordInfoLine(
+        icon: Assets.icons.calendar,
+        info: DateFormat.yMMMMd().format(date!),
+      ));
+    }
+
+    return infoLines;
+  }
+
+  @override
+  List<String?> get resourceReferences {
+    return {
+      subject?.reference?.valueString,
+      encounter?.reference?.valueString,
+      recorder?.reference?.valueString,
+      asserter?.reference?.valueString,
+      location?.reference?.valueString,
+      ...?basedOn?.map((reference) => reference.reference?.valueString),
+      ...?partOf?.map((reference) => reference.reference?.valueString),
+      ...?reasonReference?.map((reference) => reference.reference?.valueString),
+      ...?report?.map((reference) => reference.reference?.valueString),
+      ...?complicationDetail
+          ?.map((reference) => reference.reference?.valueString),
+      ...?usedReference?.map((reference) => reference.reference?.valueString),
+    }.where((reference) => reference != null).toList();
   }
 }

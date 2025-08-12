@@ -4,7 +4,8 @@ class DateFormatUtils {
   DateFormatUtils._();
 
   // Human-friendly date like "September 12, 2024"
-  static String humanReadable(DateTime dateTime) {
+  static String humanReadable(DateTime? dateTime) {
+    if (dateTime == null) return '';
     return DateFormat.yMMMMd().format(dateTime);
   }
 

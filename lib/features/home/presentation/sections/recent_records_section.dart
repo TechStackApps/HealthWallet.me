@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/factory/display_factory_manager.dart';
+import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class RecentRecordsSection extends StatelessWidget {
@@ -30,13 +31,8 @@ class RecentRecordsSection extends StatelessWidget {
   }
 
   Widget _buildRecentRecordCard(BuildContext context, IFhirResource record) {
-    final displayModel =
-        DisplayFactoryManager.instance.buildDisplayModel(record);
-    final title = displayModel.primaryDisplay;
-    final date = displayModel.formattedDate ?? 'Unknown date';
     final tag = record.fhirType.display;
-    final statusText = (displayModel.status ?? '').trim();
-    final clinician = _extractClinician(displayModel.additionalInfo);
+    RecordInfoLine? infoLine = record.additionalInfo.firstOrNull;
 
     // Get icon based on resource type
     Widget icon;
@@ -143,7 +139,7 @@ class RecentRecordsSection extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                title,
+                record.displayTitle,
                 style: AppTextStyle.bodyMedium.copyWith(
                   color: context.colorScheme.onSurface,
                 ),
@@ -152,10 +148,10 @@ class RecentRecordsSection extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (clinician != null && clinician.isNotEmpty)
+                  if (infoLine != null)
                     Row(
                       children: [
-                        Assets.icons.user.svg(
+                        infoLine.icon.svg(
                           width: 16,
                           height: 16,
                           colorFilter: ColorFilter.mode(
@@ -165,7 +161,7 @@ class RecentRecordsSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          clinician,
+                          infoLine.info,
                           style: AppTextStyle.labelLarge.copyWith(
                             color: context.colorScheme.primary,
                           ),
@@ -187,7 +183,7 @@ class RecentRecordsSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        date,
+                        DateFormatUtils.humanReadable(record.date),
                         style: AppTextStyle.labelLarge.copyWith(
                           color: context.colorScheme.primary,
                         ),

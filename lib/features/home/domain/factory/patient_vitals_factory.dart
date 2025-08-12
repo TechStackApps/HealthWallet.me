@@ -1,14 +1,11 @@
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/observation/observation.dart';
-import 'package:health_wallet/features/records/domain/factory/entity_factories/observation_entity_display_factory.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 
 class PatientVitalFactory {
-  PatientVitalFactory()
-      : _observationFactory = ObservationEntityDisplayFactory();
-
-  final ObservationEntityDisplayFactory _observationFactory;
+  PatientVitalFactory();
 
   List<PatientVital> buildFromResources(List<IFhirResource> resources) {
     final Map<String, PatientVital> latestByTitle = <String, PatientVital>{};
@@ -29,7 +26,6 @@ class PatientVitalFactory {
                 status: vital.status,
                 observationId: vital.observationId,
                 effectiveDate: vital.effectiveDate,
-                category: vital.category,
               );
         final String key = normalizedTitle;
         final PatientVital? existing = latestByTitle[key];
@@ -74,7 +70,6 @@ class PatientVitalFactory {
           status: 'Unknown',
           observationId: null,
           effectiveDate: null,
-          category: 'vital-signs',
         ),
       );
     }
@@ -167,17 +162,16 @@ class PatientVitalFactory {
                 title: title,
                 value: value,
                 unit: unit,
-                status: _observationFactory.extractVitalSignStatus(observation),
+                status: FhirFieldExtractor.extractVitalSignStatus(observation),
                 observationId: observation.id,
                 effectiveDate: observation.date,
-                category: _observationFactory.extractCategory(observation),
               ),
             );
           }
         }
       }
     } else {
-      if (_observationFactory.isVitalSign(observation)) {
+      if (FhirFieldExtractor.isVitalSign(observation)) {
         vitals.add(PatientVital.fromObservation(observation));
       }
     }
@@ -220,7 +214,6 @@ class PatientVitalFactory {
       status: combinedStatus,
       observationId: null,
       effectiveDate: latestDate,
-      category: 'vital-signs',
     );
 
     latestByTitle

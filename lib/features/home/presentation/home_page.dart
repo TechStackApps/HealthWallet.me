@@ -14,8 +14,6 @@ import 'package:health_wallet/features/home/presentation/sections/vitals_section
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
-import 'package:health_wallet/features/records/domain/factory/entity_factories/patient_entity_display_factory.dart';
-// Removed separate dialogs in favor of FilterHomeDialog
 
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
@@ -62,8 +60,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final _patientFactory = PatientEntityDisplayFactory();
-
   void _showEditRecordsDialog(HomeState state) {
     showDialog(
       context: context,
@@ -293,7 +289,7 @@ class _HomeViewState extends State<HomeView> {
               }
 
               final selectedPatientName = selectedPatient != null
-                  ? _patientFactory.extractPrimaryDisplay(selectedPatient)
+                  ? selectedPatient.displayTitle
                   : 'No patient selected';
 
               // Removed debug logs
