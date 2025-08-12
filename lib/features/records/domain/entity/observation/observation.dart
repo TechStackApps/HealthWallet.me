@@ -163,4 +163,7 @@ class Observation with _$Observation implements IFhirResource {
       ...?derivedFrom?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

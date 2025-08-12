@@ -7,7 +7,7 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/services/biometric_auth_service.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/logger.dart';
-import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
@@ -34,9 +34,7 @@ class _AuthPageState extends State<AuthPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('hasSeenOnboarding', true);
         await prefs.setBool('isBiometricAuthEnabled', true);
-        context
-            .read<UserProfileBloc>()
-            .add(const UserProfileBiometricAuthToggled(true));
+        context.read<UserBloc>().add(const UserBiometricAuthToggled(true));
         context.appRouter.replace(const DashboardRoute());
       }
     } else {

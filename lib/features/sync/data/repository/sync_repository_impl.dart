@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:fhir_r4/fhir_r4.dart' hide BundleEntry;
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_local_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
@@ -13,17 +14,21 @@ import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
 import 'package:health_wallet/features/sync/domain/exceptions/sync_exception.dart';
 import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
+import 'package:health_wallet/features/user/data/mapper/user_mapper.dart';
+import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 
 @Injectable(as: SyncRepository)
 class SyncRepositoryImpl implements SyncRepository {
   final FhirApiService _fhirApiService;
   final FhirLocalDataSource _fhirLocalDataSource;
   final SyncTokenService _syncTokenService;
+  final UserRepository _userRepository;
 
   SyncRepositoryImpl(
     this._fhirApiService,
     this._fhirLocalDataSource,
     this._syncTokenService,
+    this._userRepository,
   );
 
   @override
@@ -135,14 +140,21 @@ class SyncRepositoryImpl implements SyncRepository {
         ).toList();
         FhirBundle newBundle = bundle.copyWith(entry: populatedEntries);
 
-        _fhirLocalDataSource.cacheFhirResources(
-            newBundle.entry.map((entry) => entry.resource).toList());
+        final resourcesToCache =
+            newBundle.entry.map((entry) => entry.resource).toList();
+
+        _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+
+        await _fetchAndUpdateUserInfo(tempApiService);
+
+        await _fhirLocalDataSource
+            .setLastSyncTimestamp(DateTime.now().toIso8601String());
+        return;
       } on DioException catch (e, s) {
         logger.e('⛔ Error during sync with $serverAddress: ${e.message}', e, s);
         lastException =
             SyncException(_getUserFriendlyErrorMessage(e, serverAddress), e);
 
-        // Continue to next address if this one failed
         continue;
       } catch (e, s) {
         logger.e('⛔ Error in syncData with $serverAddress: $e', e, s);
@@ -157,6 +169,17 @@ class SyncRepositoryImpl implements SyncRepository {
     }
 
     throw Exception('All server addresses failed to connect');
+  }
+
+  Future<void> _fetchAndUpdateUserInfo(FhirApiService apiService) async {
+    try {
+      final userDto = await apiService.fetchCurrentUser();
+      final user = UserMapper.fromDto(userDto);
+
+      await _userRepository.updateUser(user);
+    } catch (e, s) {
+      logger.e('⚠️ Failed to fetch user information: $e', e, s);
+    }
   }
 
   Future<void> _validateServerConnection(

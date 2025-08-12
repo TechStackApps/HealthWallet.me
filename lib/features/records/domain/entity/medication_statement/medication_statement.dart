@@ -131,4 +131,7 @@ class MedicationStatement with _$MedicationStatement implements IFhirResource {
       ...?reasonReference?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

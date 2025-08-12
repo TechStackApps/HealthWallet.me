@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
+
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:injectable/injectable.dart';
@@ -16,7 +16,7 @@ abstract class FhirLocalDataSource {
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
   Future<void> cacheSources(List<entity.Source> sources);
-  Future<List<entity.Source>> getSources();
+  Future<List<entity.Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
 }
 
@@ -90,14 +90,29 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<List<entity.Source>> getSources() async {
-    final sources = await _appDatabase.select(_appDatabase.sources).get();
-    return sources
+  Future<List<entity.Source>> getSources({String? patientId}) async {
+    final query = _appDatabase.select(_appDatabase.fhirResource);
+
+    if (patientId != null) {
+      query.where((tbl) => tbl.sourceId.equals(patientId));
+    } else {
+      query.where((tbl) => tbl.sourceId.isNotNull());
+    }
+
+    final results = await query.get();
+    final uniqueSourceIds = results
+        .map((row) => row.sourceId)
+        .where((sourceId) => sourceId != null && sourceId.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    return uniqueSourceIds
         .map(
-          (e) => entity.Source(
-            id: e.id,
-            name: e.name,
-            logo: e.logo,
+          (sourceId) => entity.Source(
+            id: sourceId,
+            name: sourceId,
+            logo: null,
           ),
         )
         .toList();

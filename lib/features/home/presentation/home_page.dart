@@ -3,20 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
-import 'package:health_wallet/features/user/presentation/widgets/preference_modal.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
-import 'package:intl/intl.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/features/home/presentation/widgets/edit_records_dialog.dart';
+import 'package:health_wallet/features/home/presentation/widgets/filter_home_dialog.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+
+import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
+import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
@@ -25,7 +26,28 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HomeView(pageController: pageController);
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<UserBloc, UserState>(
+          listenWhen: (previous, current) {
+            // Only listen when patient selection changes, not on theme changes
+            return previous.selectedPatientSourceId !=
+                    current.selectedPatientSourceId ||
+                previous.selectedPatientId != current.selectedPatientId;
+          },
+          listener: (context, userState) {
+            // Notify HomeBloc about the patient selection change using sourceId
+            if (userState.selectedPatientSourceId != null) {
+              context.read<HomeBloc>().add(HomePatientSelected(
+                    userState.selectedPatientSourceId,
+                    null, // HomeBloc will extract the name
+                  ));
+            }
+          },
+        ),
+      ],
+      child: HomeView(pageController: pageController),
+    );
   }
 }
 
@@ -42,10 +64,40 @@ class _HomeViewState extends State<HomeView> {
     showDialog(
       context: context,
       builder: (context) {
-        return EditRecordsDialog(
-          selectedResources: state.selectedRecordTypes,
-          onSelectionChanged: (newSelection) {
-            context.read<HomeBloc>().add(HomeFiltersChanged(newSelection));
+        return FilterHomeDialog(
+          type: FilterHomeType.records,
+          selectedRecords: state.selectedRecordTypes,
+          orderedRecords: state.overviewCards
+              .map((c) => c.category)
+              .toList(growable: false),
+          onRecordsSaved: (newSelection) {
+            context.read<HomeBloc>().add(
+                  HomeRecordsFiltersChanged(newSelection),
+                );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditVitalsDialog(HomeState state) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final displayedOrder = state.patientVitals
+            .map((v) => PatientVitalTypeX.fromTitle(v.title))
+            .whereType<PatientVitalType>()
+            .toList(growable: false);
+        final remaining = state.selectedVitals.keys
+            .where((k) => !displayedOrder.contains(k))
+            .toList(growable: false);
+        final orderedVitals = [...displayedOrder, ...remaining];
+        return FilterHomeDialog(
+          type: FilterHomeType.vitals,
+          selectedVitals: state.selectedVitals,
+          orderedVitals: orderedVitals,
+          onVitalsSaved: (updated) {
+            context.read<HomeBloc>().add(HomeVitalsFiltersChanged(updated));
           },
         );
       },
@@ -70,83 +122,86 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        final editMode = state.editMode ?? false;
-        // Only show spinner for the very first load
-        if (state.status.runtimeType == HomeStatus.initial().runtimeType) {
-          return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
+        final editMode = state.editMode;
+        if (state.status.runtimeType ==
+            const HomeStatus.initial().runtimeType) {
+          return Scaffold(
+            backgroundColor: context.colorScheme.surface,
+            body: Center(
+              child: CircularProgressIndicator(
+                color: context.colorScheme.primary,
+              ),
+            ),
+          );
         }
-        // Always show the dashboard, even if loading or failure
         return Scaffold(
+          backgroundColor: context.colorScheme.surface,
           extendBody: true,
           appBar: AppBar(
+            backgroundColor: context.colorScheme.surface,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                RichText(
-                  text: TextSpan(
-                    style: AppTextStyle.titleMedium
-                        .copyWith(color: AppColors.textPrimary),
-                    children: [
-                      TextSpan(text: context.l10n.homeHi),
-                      TextSpan(
-                        text: FhirFieldExtractor.extractHumanName(state.patient?.name?[0]),
-                        style: TextStyle(color: context.colorScheme.primary),
+                BlocBuilder<UserBloc, UserState>(
+                  builder: (context, userState) {
+                    return RichText(
+                      text: TextSpan(
+                        style: AppTextStyle.titleMedium.copyWith(
+                          color: context.colorScheme.onSurface,
+                        ),
+                        children: [
+                          TextSpan(text: context.l10n.homeHi),
+                          TextSpan(
+                            text: userState.user.name.isNotEmpty
+                                ? userState.user.name
+                                : 'User',
+                            style:
+                                TextStyle(color: context.colorScheme.primary),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 editMode
                     ? TextButton(
                         onPressed: () => context
                             .read<HomeBloc>()
                             .add(const HomeEditModeChanged(false)),
+                        style: TextButton.styleFrom(
+                          foregroundColor: context.colorScheme.primary,
+                        ),
                         child: const Text('Done'),
                       )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              // Trigger connection validity check
-                              context.read<SyncBloc>().add(
-                                  const SyncEvent.checkConnectionValidity());
-                              // Also refresh home data
-                              context
-                                  .read<HomeBloc>()
-                                  .add(const HomeInitialised());
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Assets.icons.renewSync.svg(
-                                width: 20,
-                                height: 20,
-                                colorFilter: ColorFilter.mode(
-                                  context.colorScheme.onSurface,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
+                    : Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: IconButton(
+                          icon: Assets.icons.settings.svg(
+                            colorFilter: ColorFilter.mode(
+                              context.colorScheme.onSurface,
+                              BlendMode.srcIn,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              PreferenceModal.show(context);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Assets.icons.settings.svg(),
-                            ),
-                          ),
-                        ],
+                          onPressed: () {
+                            PreferenceModal.show(context);
+                          },
+                          padding: EdgeInsets.zero,
+                        ),
                       ),
               ],
             ),
-            backgroundColor: context.colorScheme.surface,
-            elevation: 0,
             actions: const [],
           ),
           body: RefreshIndicator(
             onRefresh: _onRefresh,
+            color: context.colorScheme.primary,
             child: Stack(
               children: [
                 _buildDashboardContent(
@@ -163,13 +218,22 @@ class _HomeViewState extends State<HomeView> {
                     left: 0,
                     right: 0,
                     child: MaterialBanner(
-                      content: Text('Error loading data.'),
+                      backgroundColor: context.colorScheme.errorContainer,
+                      content: Text(
+                        state.errorMessage ?? 'Error loading data.',
+                        style: TextStyle(
+                            color: context.colorScheme.onErrorContainer),
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => context
                               .read<HomeBloc>()
                               .add(const HomeInitialised()),
-                          child: const Text('Retry'),
+                          child: Text(
+                            'Retry',
+                            style:
+                                TextStyle(color: context.colorScheme.primary),
+                          ),
                         ),
                       ],
                     ),
@@ -192,169 +256,268 @@ class _HomeViewState extends State<HomeView> {
     final filteredCards = state.overviewCards
         .where((card) => state.selectedRecordTypes[card.category] ?? false)
         .toList();
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              // Sync Status Section
-              const SizedBox(height: Insets.medium),
 
-              // Vital Signs Section
-              Text(
-                context.l10n.homeVitalSigns,
-                style: AppTextStyle.bodyMedium,
-              ),
-              const SizedBox(height: Insets.smallNormal),
-              VitalsSection(
-                vitals: state.vitalSigns,
-                editMode: editMode,
-                onReorder: (oldIndex, newIndex) {
-                  context
-                      .read<HomeBloc>()
-                      .add(HomeVitalsReordered(oldIndex, newIndex));
-                },
-                onLongPressCard: () => context
-                    .read<HomeBloc>()
-                    .add(const HomeEditModeChanged(true)),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Patient Info Section
+        Container(
+          color: context.colorScheme.surface,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Insets.normal,
+            vertical: Insets.small,
+          ),
+          child: BlocBuilder<UserBloc, UserState>(
+            builder: (context, userState) {
+              Patient? selectedPatient;
+              if (userState.selectedPatientId != null) {
+                try {
+                  selectedPatient = userState.patients.firstWhere(
+                    (p) => p.id == userState.selectedPatientId,
+                  );
+                } catch (e) {
+                  // If selected patient not found, use first patient if available
+                  selectedPatient = userState.patients.isNotEmpty
+                      ? userState.patients.first
+                      : null;
+                }
+              } else {
+                // If no selected patient ID, use first patient if available
+                selectedPatient = userState.patients.isNotEmpty
+                    ? userState.patients.first
+                    : null;
+              }
 
-              // Medical Records Section with Source Dropdown
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Medical Records',
-                    style: AppTextStyle.bodyMedium,
-                  ),
-                  if (editMode)
-                    // Show "Edit Records" when in edit mode
-                    InkWell(
-                      onTap: () => _showEditRecordsDialog(state),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Insets.small,
-                          vertical: Insets.extraSmall,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withAlpha(45),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.edit,
-                              size: 14,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Edit Records',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else if (state.sources.isNotEmpty)
-                    // Show source dropdown when not in edit mode
+              final selectedPatientName = selectedPatient != null
+                  ? selectedPatient.displayTitle
+                  : 'No patient selected';
+
+              // Removed debug logs
+
+              return Text(
+                'Patient: $selectedPatientName',
+                style: AppTextStyle.bodyMedium.copyWith(
+                  color: context.colorScheme.onSurface,
+                ),
+              );
+            },
+          ),
+        ),
+        // Main Content
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: Insets.medium),
+                    // Vital Signs Section
                     Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          context.l10n.homeSource,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface,
+                          context.l10n.homeVitalSigns,
+                          style: AppTextStyle.bodyMedium.copyWith(
+                            color: context.colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(width: Insets.small),
-                        Flexible(
-                          child: DropdownButton<String>(
-                            value: state.selectedSource,
-                            isExpanded: false,
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                context
-                                    .read<HomeBloc>()
-                                    .add(HomeSourceChanged(newValue));
-                              }
-                            },
-                            items: state.sources
-                                .where((source) => source.id != 'All')
-                                .map((source) {
-                              return DropdownMenuItem<String>(
-                                value: source.id,
-                                child: Container(
-                                  constraints:
-                                      const BoxConstraints(maxWidth: 150),
-                                  child: Text(
-                                    source.name?.isNotEmpty == true
-                                        ? source.name!
-                                        : source.id,
-                                    overflow: TextOverflow.ellipsis,
+                        if (editMode)
+                          InkWell(
+                            onTap: () => _showEditVitalsDialog(state),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Insets.small,
+                                vertical: Insets.extraSmall,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withAlpha(45),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.filter_alt,
+                                    size: 14,
+                                    color: colorScheme.primary,
                                   ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Filter Vitals',
+                                    style: AppTextStyle.bodySmall.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: Insets.smallNormal),
+
+                    // Removed debug logs
+
+                    VitalsSection(
+                      vitals: state.patientVitals,
+                      editMode: editMode,
+                      onReorder: (oldIndex, newIndex) {
+                        context
+                            .read<HomeBloc>()
+                            .add(HomeVitalsReordered(oldIndex, newIndex));
+                      },
+                      onLongPressCard: () => context
+                          .read<HomeBloc>()
+                          .add(const HomeEditModeChanged(true)),
+                    ),
+
+                    const SizedBox(height: Insets.large),
+
+                    // Medical Records Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Overview',
+                          style: AppTextStyle.bodyMedium.copyWith(
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                        if (editMode)
+                          // Show "Edit Records" when in edit mode
+                          InkWell(
+                            onTap: () => _showEditRecordsDialog(state),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Insets.small,
+                                vertical: Insets.extraSmall,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary.withAlpha(45),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    size: 14,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Filter Records',
+                                    style: AppTextStyle.bodySmall.copyWith(
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (state.sources.isNotEmpty)
+                          SourceSelectorWidget(
+                            sources: state.sources,
+                            selectedSource: state.selectedSource,
+                            onSourceChanged: (String newSource) {
+                              context
+                                  .read<HomeBloc>()
+                                  .add(HomeSourceChanged(newSource));
+                            },
+                          )
+                        else
+                          Builder(
+                            builder: (context) {
+                              return Text(
+                                'No sources available',
+                                style: AppTextStyle.bodySmall.copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withOpacity(0.6),
                                 ),
                               );
-                            }).toList()
-                              ..insert(
-                                  0,
-                                  DropdownMenuItem<String>(
-                                    value: 'All',
-                                    child: Container(
-                                      constraints:
-                                          const BoxConstraints(maxWidth: 150),
-                                      child: Text(
-                                        context.l10n.homeAll,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  )),
+                            },
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: Insets.smallNormal),
+
+                    // Medical Records Section
+                    MedicalRecordsSection(
+                      overviewCards: filteredCards,
+                      editMode: editMode,
+                      onLongPressCard: () => context
+                          .read<HomeBloc>()
+                          .add(const HomeEditModeChanged(true)),
+                      onReorder: (oldIndex, newIndex) {
+                        context
+                            .read<HomeBloc>()
+                            .add(HomeRecordsReordered(oldIndex, newIndex));
+                      },
+                      onTapCard: (card) {
+                        context.read<RecordsBloc>().add(
+                            RecordsFiltersApplied(card.category.resourceTypes));
+
+                        widget.pageController.animateToPage(
+                          1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.ease,
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: Insets.large),
+
+                    // Recent Records Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Recent records',
+                          style: AppTextStyle.bodyMedium.copyWith(
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            widget.pageController.animateToPage(
+                              1,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: context.colorScheme.primary,
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'View all',
+                            style: AppTextStyle.labelLarge.copyWith(
+                              color: context.colorScheme.primary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                ],
+                    const SizedBox(height: Insets.smallNormal),
+                    RecentRecordsSection(
+                      recentRecords: state.recentRecords,
+                      onViewAll: () {
+                        widget.pageController.animateToPage(
+                          1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.ease,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 116),
+                  ]),
+                ),
               ),
-              const SizedBox(height: Insets.smallNormal),
-              MedicalRecordsSection(
-                overviewCards: filteredCards,
-                editMode: editMode,
-                onLongPressCard: () => context
-                    .read<HomeBloc>()
-                    .add(const HomeEditModeChanged(true)),
-                onReorder: (oldIndex, newIndex) {
-                  context
-                      .read<HomeBloc>()
-                      .add(HomeRecordsReordered(oldIndex, newIndex));
-                },
-                onTapCard: (card) {
-                  context
-                      .read<RecordsBloc>()
-                      .add(RecordsFiltersApplied(card.category.resourceTypes));
-
-                  widget.pageController.animateToPage(
-                    1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.ease,
-                  );
-                },
-              ),
-              RecentRecordsSection(
-                recentRecords: state.recentRecords,
-                onViewAll: () {
-                  widget.pageController.animateToPage(
-                    1,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.ease,
-                  );
-                },
-              ),
-              const SizedBox(height: 116),
-            ]),
+            ],
           ),
         ),
       ],

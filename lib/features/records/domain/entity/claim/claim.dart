@@ -147,4 +147,7 @@ class Claim with _$Claim implements IFhirResource {
       facility?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

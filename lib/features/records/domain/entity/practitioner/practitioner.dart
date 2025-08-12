@@ -29,7 +29,6 @@ class Practitioner with _$Practitioner implements IFhirResource {
     List<Address>? address,
     AdministrativeGender? gender,
     FhirDate? birthDate,
-    List<Attachment>? photo,
     List<PractitionerQualification>? qualification,
     List<CodeableConcept>? communication,
   }) = _Practitioner;
@@ -55,7 +54,6 @@ class Practitioner with _$Practitioner implements IFhirResource {
       address: fhirPractitioner.address,
       gender: fhirPractitioner.gender,
       birthDate: fhirPractitioner.birthDate,
-      photo: fhirPractitioner.photo,
       qualification: fhirPractitioner.qualification,
       communication: fhirPractitioner.communication,
     );
@@ -109,4 +107,8 @@ class Practitioner with _$Practitioner implements IFhirResource {
 
   @override
   List<String> get resourceReferences => [];
+
+  @override
+  String get statusDisplay =>
+      active?.valueBoolean == true ? 'Active' : 'Inactive';
 }

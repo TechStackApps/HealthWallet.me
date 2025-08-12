@@ -105,4 +105,7 @@ class Medication with _$Medication implements IFhirResource {
       manufacturer?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

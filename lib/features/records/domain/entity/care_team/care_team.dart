@@ -126,4 +126,7 @@ class CareTeam with _$CareTeam implements IFhirResource {
           ?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

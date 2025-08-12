@@ -126,4 +126,7 @@ class DocumentReference with _$DocumentReference implements IFhirResource {
       ...?author?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

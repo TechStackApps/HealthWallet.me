@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
+import 'package:health_wallet/features/user/data/dto/user_dto.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -36,5 +37,18 @@ class FhirApiService {
 
   Future<Response<Map<String, dynamic>>> ping() async {
     return _dio.get('/secure/ping');
+  }
+
+  /// Fetch current user information from the sync server
+  Future<UserDto> fetchCurrentUser() async {
+    final response = await _dio.get('/secure/account/me');
+
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      final userData = response.data['data'] as Map<String, dynamic>;
+      return UserDto.fromJson(userData);
+    } else {
+      throw Exception(
+          'Failed to fetch user: ${response.data['error'] ?? 'Unknown error'}');
+    }
   }
 }

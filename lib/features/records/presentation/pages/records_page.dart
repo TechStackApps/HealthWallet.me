@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,11 +49,12 @@ class _RecordsViewState extends State<RecordsView> {
   void initState() {
     super.initState();
 
-    // Set up scroll listener for pagination and scroll to top button
     _scrollController.addListener(_onScroll);
 
-    // Initialize the RecordsBloc with data
-    context.read<RecordsBloc>().add(const RecordsInitialised());
+    final selected = context.read<HomeBloc>().state.selectedSource;
+    final selectedSourceId = selected == 'All' ? null : selected;
+    // Optional: init diagnostics (removed noisy logs)
+    context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
 
     if (widget.initFilters != null) {
       context
@@ -144,8 +144,7 @@ class _RecordsViewState extends State<RecordsView> {
             actions: [
               IconButton(
                 onPressed: () {
-                  // TODO: Implement share functionality
-                  print('Share button pressed');
+                  // Share functionality
                 },
                 icon: Assets.icons.share.svg(
                   colorFilter: ColorFilter.mode(

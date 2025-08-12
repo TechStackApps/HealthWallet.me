@@ -48,10 +48,15 @@ class MedicalRecordsSection extends StatelessWidget {
   }
 
   Widget _buildOverviewCard(BuildContext context, OverviewCard card) {
-    final TextTheme textTheme = context.textTheme;
-
-    return Card(
-      color: Theme.of(context).colorScheme.surface,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: context.theme.dividerColor,
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(Insets.normal),
         child: Column(
@@ -61,22 +66,35 @@ class MedicalRecordsSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                    width: 16, height: 16, child: card.category.icon.svg()),
+                  width: 16,
+                  height: 16,
+                  child: card.category.icon.svg(
+                    colorFilter: ColorFilter.mode(
+                      context.colorScheme.onSurface,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: Insets.small),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      card.category.display,
-                      style: AppTextStyle.bodySmall.copyWith(
-                          color: AppColors.textPrimary.withValues(alpha: 0.6)),
-                    ),
-                    const SizedBox(height: Insets.small),
-                    Text(
-                      card.count,
-                      style: AppTextStyle.titleSmall,
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.category.display,
+                        style: AppTextStyle.bodySmall.copyWith(
+                          color: context.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                      const SizedBox(height: Insets.small),
+                      Text(
+                        card.count,
+                        style: AppTextStyle.titleSmall.copyWith(
+                          color: context.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

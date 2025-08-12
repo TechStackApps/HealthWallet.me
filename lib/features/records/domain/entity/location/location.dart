@@ -52,8 +52,8 @@ class Location with _$Location implements IFhirResource {
       sourceId: data.sourceId ?? '',
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
-      text: fhirLocation.text,
       date: data.date,
+      text: fhirLocation.text,
       identifier: fhirLocation.identifier,
       status: fhirLocation.status,
       operationalStatus: fhirLocation.operationalStatus,
@@ -124,4 +124,7 @@ class Location with _$Location implements IFhirResource {
       ...?endpoint?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

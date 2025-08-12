@@ -80,7 +80,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNever => 'Never';
 
   @override
-  String get homeVitalSigns => 'Vital Signs';
+  String get homeVitalSigns => 'Vitals';
 
   @override
   String get homeOverview => 'Medical Records';

@@ -1,11 +1,7 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
-import 'package:health_wallet/features/records/presentation/models/fhir_resource_display_model.dart';
 import 'package:injectable/injectable.dart';
 
 part 'records_event.dart';
@@ -71,12 +67,23 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     await _loadResources(emit, offset: state.resources.length);
   }
 
-  void _onSourceChanged(
+  Future<void> _onSourceChanged(
     RecordsSourceChanged event,
     Emitter<RecordsState> emit,
-  ) {
-    emit(state.copyWith(sourceId: event.sourceId));
-    add(const RecordsInitialised());
+  ) async {
+    var nextState = state.copyWith(
+      sourceId: event.sourceId,
+      resources: [],
+      hasMorePages: true,
+    );
+
+    if (nextState.activeFilters.isEmpty) {
+      nextState = nextState.copyWith(activeFilters: [FhirType.Encounter]);
+    }
+
+    emit(nextState);
+
+    await _loadResources(emit);
   }
 
   void _onFiltersApplied(
@@ -115,8 +122,6 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
               encounterId: event.resource.resourceId)
           : await _recordsRepository.getRelatedResources(
               resource: event.resource);
-
-      log(relatedResources.toString());
 
       emit(
         state.copyWith(

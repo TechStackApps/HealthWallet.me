@@ -141,4 +141,7 @@ class AdverseEvent with _$AdverseEvent implements IFhirResource {
       ...?study?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => actuality?.valueString ?? '';
 }

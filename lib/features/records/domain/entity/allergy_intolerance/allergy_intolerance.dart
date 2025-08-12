@@ -123,4 +123,8 @@ class AllergyIntolerance with _$AllergyIntolerance implements IFhirResource {
       asserter?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay =>
+      FhirFieldExtractor.extractCodeableConceptText(clinicalStatus) ?? '';
 }

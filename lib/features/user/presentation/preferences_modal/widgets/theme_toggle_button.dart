@@ -3,24 +3,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/features/user/presentation/user_profile/bloc/user_profile_bloc.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 
-class BiometricToggleButton extends StatelessWidget {
-  const BiometricToggleButton({super.key});
+class ThemeToggleButton extends StatelessWidget {
+  const ThemeToggleButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = context.colorScheme;
+    final borderColor = context.theme.dividerColor;
+    final iconColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
 
-    return BlocBuilder<UserProfileBloc, UserProfileState>(
+    return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
-        final isBiometricEnabled = state.isBiometricAuthEnabled;
-
+        final isDarkMode = state.user.isDarkMode;
         return GestureDetector(
           onTap: () {
-            context.read<UserProfileBloc>().add(
-                  UserProfileEvent.biometricAuthToggled(!isBiometricEnabled),
-                );
+            context.read<UserBloc>().add(const UserThemeToggled());
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
@@ -30,7 +31,7 @@ class BiometricToggleButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -39,19 +40,17 @@ class BiometricToggleButton extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     decoration: BoxDecoration(
-                      color: !isBiometricEnabled
-                          ? colorScheme.primary
-                          : Colors.transparent,
+                      color:
+                          !isDarkMode ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(
-                      child: Text(
-                        'OFF',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: !isBiometricEnabled
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                      child: Assets.icons.sun.svg(
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          !isDarkMode ? Colors.white : iconColor,
+                          BlendMode.srcIn,
                         ),
                       ),
                     ),
@@ -61,19 +60,17 @@ class BiometricToggleButton extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     decoration: BoxDecoration(
-                      color: isBiometricEnabled
-                          ? colorScheme.primary
-                          : Colors.transparent,
+                      color:
+                          isDarkMode ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(
-                      child: Text(
-                        'ON',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: isBiometricEnabled
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                      child: Assets.icons.moon.svg(
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          isDarkMode ? Colors.white : iconColor,
+                          BlendMode.srcIn,
                         ),
                       ),
                     ),

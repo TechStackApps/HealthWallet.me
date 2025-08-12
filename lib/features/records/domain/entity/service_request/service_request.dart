@@ -167,4 +167,7 @@ class ServiceRequest with _$ServiceRequest implements IFhirResource {
       ...?relevantHistory?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

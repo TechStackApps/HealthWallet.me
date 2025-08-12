@@ -7,6 +7,10 @@ abstract class HomeLocalDataSource {
   Future<List<String>?> getVitalsOrder();
   Future<void> saveRecordsOrder(List<String> recordsOrder);
   Future<List<String>?> getRecordsOrder();
+  Future<void> saveVitalsVisibility(Map<String, bool> visibility);
+  Future<Map<String, bool>?> getVitalsVisibility();
+  Future<void> saveRecordsVisibility(Map<String, bool> visibility);
+  Future<Map<String, bool>?> getRecordsVisibility();
   Future<void> clearPreferences();
 }
 
@@ -44,6 +48,50 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
   }
 
   @override
+  Future<void> saveVitalsVisibility(Map<String, bool> visibility) async {
+    final prefs = await _prefs;
+    final jsonString = jsonEncode(visibility);
+    await prefs.setString(SharedPrefsConstants.vitalsVisibility, jsonString);
+  }
+
+  @override
+  Future<void> saveRecordsVisibility(Map<String, bool> visibility) async {
+    final prefs = await _prefs;
+    final jsonString = jsonEncode(visibility);
+    await prefs.setString(SharedPrefsConstants.recordsVisibility, jsonString);
+  }
+
+  @override
+  Future<Map<String, bool>?> getRecordsVisibility() async {
+    final prefs = await _prefs;
+    final jsonString = prefs.getString(SharedPrefsConstants.recordsVisibility);
+    if (jsonString != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((k, v) => MapEntry(k, v == true));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<Map<String, bool>?> getVitalsVisibility() async {
+    final prefs = await _prefs;
+    final jsonString = prefs.getString(SharedPrefsConstants.vitalsVisibility);
+    if (jsonString != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(jsonString);
+        return decoded.map((k, v) => MapEntry(k, v == true));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<List<String>?> getRecordsOrder() async {
     final prefs = await _prefs;
     final jsonString = prefs.getString(SharedPrefsConstants.recordsOrder);
@@ -63,5 +111,7 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
     final prefs = await _prefs;
     await prefs.remove(SharedPrefsConstants.vitalsOrder);
     await prefs.remove(SharedPrefsConstants.recordsOrder);
+    await prefs.remove(SharedPrefsConstants.vitalsVisibility);
+    await prefs.remove(SharedPrefsConstants.recordsVisibility);
   }
 }

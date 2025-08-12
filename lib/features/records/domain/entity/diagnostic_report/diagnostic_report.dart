@@ -136,4 +136,7 @@ class DiagnosticReport with _$DiagnosticReport implements IFhirResource {
       ...?imagingStudy?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => status?.valueString ?? '';
 }

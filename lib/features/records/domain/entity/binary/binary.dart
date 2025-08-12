@@ -84,4 +84,7 @@ class Binary with _$Binary implements IFhirResource {
       securityContext?.reference?.valueString,
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => '';
 }

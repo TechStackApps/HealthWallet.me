@@ -1,4 +1,7 @@
+import 'package:health_wallet/features/records/domain/entity/observation/observation.dart';
+import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:health_wallet/features/records/domain/utils/vital_codes.dart';
 
 class FhirFieldExtractor {
   static String? extractStatus(dynamic status) {
@@ -149,5 +152,283 @@ class FhirFieldExtractor {
     }
 
     return null;
+  }
+
+  // Vital sign specific methods
+  static bool isVitalSign(Observation observation) {
+    final primaryCoding = observation.code?.coding;
+    if (primaryCoding != null && primaryCoding.isNotEmpty) {
+      for (final coding in primaryCoding) {
+        if (coding.code != null && isVitalLoinc(coding.code.toString())) {
+          return true;
+        }
+      }
+    }
+
+    if (observation.component != null) {
+      for (final component in observation.component!) {
+        final compCoding = component.code.coding;
+        if (compCoding != null) {
+          for (final coding in compCoding) {
+            if (coding.code != null && isVitalLoinc(coding.code.toString())) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static String extractVitalSignTitle(Observation observation) {
+    if (observation.code?.text != null) {
+      return observation.code!.text.toString();
+    }
+
+    if (observation.code?.coding != null &&
+        observation.code!.coding!.isNotEmpty) {
+      final coding = observation.code!.coding!.first;
+      if (coding.display != null) {
+        return coding.display.toString();
+      }
+      if (coding.code != null) {
+        return _mapLoincCodeToTitle(coding.code.toString());
+      }
+    }
+
+    return 'Vital Sign';
+  }
+
+  static String extractVitalSignValue(Observation observation) {
+    final valueX = observation.valueX;
+
+    if (valueX is fhir_r4.Quantity) {
+      final code = observation.code?.coding?.isNotEmpty == true
+          ? observation.code!.coding!.first.code?.toString()
+          : null;
+      return _formatQuantityValueByCode(code, valueX);
+    } else if (valueX is fhir_r4.FhirString) {
+      return valueX.toString();
+    } else if (valueX is fhir_r4.FhirInteger) {
+      return valueX.toString();
+    } else if (valueX is fhir_r4.FhirDecimal) {
+      return _formatDecimal(valueX.toString());
+    } else if (valueX is fhir_r4.CodeableConcept) {
+      return valueX.text?.toString() ?? 'N/A';
+    }
+
+    return 'N/A';
+  }
+
+  static String extractVitalSignUnit(Observation observation) {
+    final valueX = observation.valueX;
+
+    if (valueX is fhir_r4.Quantity) {
+      return valueX.unit?.toString() ?? '';
+    }
+
+    if (observation.code?.coding != null &&
+        observation.code!.coding!.isNotEmpty) {
+      final coding = observation.code!.coding!.first;
+      if (coding.code != null) {
+        return _mapLoincCodeToUnit(coding.code.toString());
+      }
+    }
+
+    return '';
+  }
+
+  static String extractVitalSignStatus(Observation observation) {
+    if (observation.interpretation != null &&
+        observation.interpretation!.isNotEmpty) {
+      final interpretation = observation.interpretation!.first;
+      if (interpretation.coding != null && interpretation.coding!.isNotEmpty) {
+        final coding = interpretation.coding!.first;
+        if (coding.code != null) {
+          return _mapInterpretationCodeToStatus(coding.code.toString());
+        }
+      }
+    }
+
+    if (observation.referenceRange != null &&
+        observation.referenceRange!.isNotEmpty) {
+      return 'Normal';
+    }
+
+    return 'Unknown';
+  }
+
+  // ===== PRIVATE HELPER METHODS =====
+
+  static String _mapLoincCodeToTitle(String code) {
+    switch (code) {
+      case kLoincHeartRate:
+        return 'Heart Rate';
+      case kLoincBloodPressurePanel:
+        return 'Blood Pressure';
+      case kLoincTemperature:
+        return 'Temperature';
+      case kLoincBloodOxygen:
+      case kLoincBloodOxygenPulseOx:
+        return 'Blood Oxygen';
+      case kLoincWeight:
+        return 'Weight';
+      case kLoincHeight:
+        return 'Height';
+      case kLoincBmi:
+        return 'BMI';
+      case kLoincSystolic:
+        return 'Systolic Blood Pressure';
+      case kLoincDiastolic:
+        return 'Diastolic Blood Pressure';
+      case kLoincRespiratoryRate:
+        return 'Respiratory Rate';
+      case kLoincBloodGlucose:
+        return 'Blood Glucose';
+      default:
+        return 'Vital Sign';
+    }
+  }
+
+  static String _mapLoincCodeToUnit(String code) {
+    switch (code) {
+      case kLoincHeartRate:
+        return 'BPM';
+      case kLoincBloodPressurePanel:
+        return 'mmHg';
+      case kLoincTemperature:
+        return '°F';
+      case kLoincBloodOxygen:
+        return '%';
+      case kLoincWeight:
+        return 'kg';
+      case kLoincHeight:
+        return 'cm';
+      case kLoincBmi:
+        return 'kg/m²';
+      case kLoincSystolic:
+        return 'mmHg';
+      case kLoincDiastolic:
+        return 'mmHg';
+      case kLoincRespiratoryRate:
+        return '/min';
+      case kLoincBloodGlucose:
+        return 'mg/dL';
+      default:
+        return '';
+    }
+  }
+
+  // Map FHIR interpretation codes to status
+  static String _mapInterpretationCodeToStatus(String code) {
+    switch (code) {
+      case 'H':
+        return 'High';
+      case 'L':
+        return 'Low';
+      case 'N':
+        return 'Normal';
+      case 'A':
+        return 'Abnormal';
+      case 'AA':
+        return 'Critically Abnormal';
+      case 'HH':
+        return 'Critically High';
+      case 'LL':
+        return 'Critically Low';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  static String _formatQuantityValueByCode(String? code, fhir_r4.Quantity quantity) {
+    final String? raw = quantity.value?.toString();
+    if (raw == null) return 'N/A';
+    final double? num = double.tryParse(raw);
+    if (num == null) return raw;
+
+    int decimals = 1;
+    switch (code) {
+      case '8867-4': // Heart Rate
+      case '8480-6': // Systolic BP
+      case '8462-4': // Diastolic BP
+      case '2708-6': // SpO2
+        decimals = 0;
+        break;
+      case '8310-5': // Temperature
+      case '29463-7': // Weight
+      case '39156-5': // BMI
+        decimals = 1;
+        break;
+      case '8302-2': // Height
+        decimals = 0;
+        break;
+      default:
+        decimals = num.abs() >= 100 ? 0 : 1;
+    }
+    return decimals == 0
+        ? num.round().toString()
+        : num.toStringAsFixed(decimals);
+  }
+
+  static String _formatDecimal(String s) {
+    final d = double.tryParse(s);
+    if (d == null) return s;
+    return d.abs() >= 100 ? d.round().toString() : d.toStringAsFixed(1);
+  }
+
+  /// Extract patient ID from identifiers or fallback to resource ID
+  static String extractPatientId(Patient patient) {
+    if (patient.identifier?.isNotEmpty == true) {
+      for (final identifier in patient.identifier!) {
+        if (identifier.value != null) {
+          return identifier.value!.toString();
+        }
+      }
+    }
+    return patient.id;
+  }
+
+  /// Calculate patient age from birth date
+  static String extractPatientAge(Patient patient) {
+    if (patient.birthDate == null) return 'N/A';
+
+    try {
+      final birthDateStr = patient.birthDate!.toString();
+      if (birthDateStr.isEmpty) return 'N/A';
+
+      final birthDate = DateTime.parse(birthDateStr);
+      final now = DateTime.now();
+      final age = now.year - birthDate.year;
+
+      if (now.month < birthDate.month ||
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        return '${age - 1} years';
+      }
+
+      return '$age years';
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+  /// Extract patient gender
+  static String extractPatientGender(Patient patient) {
+    final gender = FhirFieldExtractor.extractStatus(patient.gender);
+    return gender ?? 'N/A';
+  }
+
+  /// Extract blood type (placeholder - would need observation query)
+  static String extractBloodType(Patient patient) {
+    // Blood type is typically stored in Observation resources with specific LOINC codes
+    // Common blood type LOINC codes:
+    // - 883-9: ABO group [Type] in Blood
+    // - 884-7: Rh [Type] in Blood
+    // - 34532-2: ABO and Rh group [Type] in Blood
+
+    // This would require querying observations through the repository layer
+    // For now, return placeholder
+    return 'N/A';
   }
 }

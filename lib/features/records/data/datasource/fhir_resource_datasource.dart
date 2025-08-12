@@ -3,7 +3,6 @@ import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
 
-/// Single datasource for all FHIR resource operations using Drift with optimizations
 class FhirResourceDatasource {
   final AppDatabase db;
 
@@ -52,7 +51,7 @@ class FhirResourceDatasource {
   Future<FhirResourceLocalDto?> resolveReference(String reference) async {
     // Handle urn:uuid: references
     if (reference.startsWith('urn:uuid:')) {
-      final uuid = reference.substring(9); // Remove "urn:uuid:"
+      final uuid = reference.substring(9);
 
       final query = db.select(db.fhirResource)
         ..where((tbl) => tbl.resourceId.equals(uuid))
@@ -61,7 +60,6 @@ class FhirResourceDatasource {
       return await query.getSingleOrNull();
     }
 
-    // Handle ResourceType/id references
     final parts = reference.split('/');
     if (parts.length == 2) {
       final query = db.select(db.fhirResource)

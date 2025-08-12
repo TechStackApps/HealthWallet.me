@@ -149,4 +149,7 @@ class MedicationDispense with _$MedicationDispense implements IFhirResource {
       ...?eventHistory?.map((reference) => reference.reference?.valueString),
     }.where((reference) => reference != null).toList();
   }
+
+  @override
+  String get statusDisplay => '';
 }
