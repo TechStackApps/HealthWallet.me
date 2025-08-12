@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -50,7 +49,9 @@ class BiometricToggleButton extends StatelessWidget {
                         'OFF',
                         style: context.textTheme.bodySmall?.copyWith(
                           color: !isBiometricEnabled
-                              ? colorScheme.onPrimary
+                              ? (context.isDarkMode
+                                  ? Colors.white
+                                  : colorScheme.onPrimary)
                               : colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
@@ -72,7 +73,9 @@ class BiometricToggleButton extends StatelessWidget {
                         'ON',
                         style: context.textTheme.bodySmall?.copyWith(
                           color: isBiometricEnabled
-                              ? colorScheme.onPrimary
+                              ? (context.isDarkMode
+                                  ? Colors.white
+                                  : colorScheme.onPrimary)
                               : colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),

@@ -14,6 +14,7 @@ import 'package:health_wallet/features/home/presentation/sections/vitals_section
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
@@ -509,6 +510,10 @@ class _HomeViewState extends State<HomeView> {
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.ease,
                         );
+                      },
+                      onTapRecord: (record) {
+                        context.router
+                            .push(RecordDetailsRoute(resource: record));
                       },
                     ),
                     const SizedBox(height: 116),
