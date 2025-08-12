@@ -82,7 +82,6 @@ class _RecordsViewState extends State<RecordsView> {
   }
 
   void _loadMoreData() {
-    // Simple debounce to prevent multiple requests
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -186,7 +185,9 @@ class _RecordsViewState extends State<RecordsView> {
                   onPressed: _scrollToTop,
                   mini: true,
                   backgroundColor: context.colorScheme.primary,
-                  foregroundColor: context.colorScheme.onPrimary,
+                  foregroundColor: context.isDarkMode
+                      ? Colors.white
+                      : context.colorScheme.onPrimary,
                   child: const Icon(Icons.keyboard_arrow_up),
                 )
               : null,
