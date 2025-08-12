@@ -14,7 +14,7 @@ class SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = context.theme.dividerColor;
+    // final borderColor = context.theme.dividerColor; // Not used currently
 
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
@@ -58,7 +58,9 @@ class SettingsSection extends StatelessWidget {
                     icon: Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: AppColors.textSecondary,
+                      color: context.isDarkMode
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],
