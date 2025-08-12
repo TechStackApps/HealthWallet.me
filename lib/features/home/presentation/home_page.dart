@@ -337,10 +337,11 @@ class _HomeViewState extends State<HomeView> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.filter_alt,
-                                    size: 14,
-                                    color: colorScheme.primary,
+                                  Assets.icons.filter.svg(
+                                    colorFilter: ColorFilter.mode(
+                                      context.colorScheme.primary,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -356,9 +357,6 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ),
                     const SizedBox(height: Insets.smallNormal),
-
-                    // Removed debug logs
-
                     VitalsSection(
                       vitals: state.patientVitals,
                       editMode: editMode,
@@ -385,7 +383,6 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ),
                         if (editMode)
-                          // Show "Edit Records" when in edit mode
                           InkWell(
                             onTap: () => _showEditRecordsDialog(state),
                             child: Container(
@@ -400,10 +397,11 @@ class _HomeViewState extends State<HomeView> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.edit,
-                                    size: 14,
-                                    color: colorScheme.primary,
+                                  Assets.icons.filter.svg(
+                                    colorFilter: ColorFilter.mode(
+                                      context.colorScheme.primary,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(

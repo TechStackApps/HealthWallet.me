@@ -8,7 +8,7 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
+// Removed unused AppColors import; using theme-based colors from context
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_attachments/record_attachments_widget.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_notes/record_notes_widget.dart';
@@ -27,6 +27,15 @@ class _ResourceCardState extends State<ResourceCard> {
   bool _isExpanded = false;
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
+
+  void _closeRelatedIfOpen() {
+    if (_isExpanded) {
+      setState(() {
+        _isExpanded = false;
+      });
+      _hideRelated();
+    }
+  }
 
   @override
   void dispose() {
@@ -67,6 +76,7 @@ class _ResourceCardState extends State<ResourceCard> {
             widget.resource.displayTitle,
             style: AppTextStyle.bodyMedium.copyWith(
               fontWeight: FontWeight.bold,
+              color: context.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -74,13 +84,17 @@ class _ResourceCardState extends State<ResourceCard> {
           ...widget.resource.additionalInfo.take(2).map((infoLine) => Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  infoLine.icon.svg(width: 16, color: AppColors.primary),
+                  infoLine.icon.svg(
+                    width: 16,
+                    color: context.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       infoLine.info,
-                      style: AppTextStyle.labelLarge
-                          .copyWith(color: AppColors.primary),
+                      style: AppTextStyle.labelLarge.copyWith(
+                        color: context.colorScheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   )
                 ],
@@ -176,36 +190,59 @@ class _ResourceCardState extends State<ResourceCard> {
             Row(
               children: [
                 InkWell(
-                  onTap: () => showRecordActionDialog(
-                      RecordNotesWidget(resource: widget.resource)),
+                  onTap: () {
+                    _closeRelatedIfOpen();
+                    showRecordActionDialog(
+                        RecordNotesWidget(resource: widget.resource));
+                  },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
                     child: Assets.icons.licenseDraftNotes.svg(
                       width: 24,
+                      colorFilter: ColorFilter.mode(
+                        context.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: Insets.normal),
                 InkWell(
-                  onTap: () => showRecordActionDialog(
-                      RecordAttachmentsWidget(resource: widget.resource)),
+                  onTap: () {
+                    _closeRelatedIfOpen();
+                    showRecordActionDialog(
+                        RecordAttachmentsWidget(resource: widget.resource));
+                  },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Assets.icons.attachment.svg(width: 24),
+                    child: Assets.icons.attachment.svg(
+                      width: 24,
+                      colorFilter: ColorFilter.mode(
+                        context.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: Insets.normal),
                 InkWell(
                   onTap: () {
+                    _closeRelatedIfOpen();
                     // TODO: Implement share functionality
                     print('Share tapped');
                   },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Assets.icons.share.svg(width: 24),
+                    child: Assets.icons.share.svg(
+                      width: 24,
+                      colorFilter: ColorFilter.mode(
+                        context.colorScheme.onSurface,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -224,30 +261,37 @@ class _ResourceCardState extends State<ResourceCard> {
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
         width: MediaQuery.sizeOf(context).width,
         decoration: BoxDecoration(
-            color: Colors.white,
-            border: BoxBorder.all(
-              color: AppColors.textPrimary.withValues(alpha: 0.1),
+            color: context.colorScheme.surface,
+            border: Border.all(
+              color: context.theme.dividerColor,
               width: 1,
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 offset: const Offset(0, 1),
-                color: AppColors.textPrimary.withValues(alpha: 0.3),
+                color: context.colorScheme.onSurface.withOpacity(0.3),
                 blurRadius: 5,
               ),
             ]),
         child: BlocBuilder<RecordsBloc, RecordsState>(
           builder: (context, state) {
             if (state.recordDetailStatus == RecordDetailStatus.loading()) {
-              return const Padding(
-                padding: EdgeInsets.all(Insets.normal),
+              return Padding(
+                padding: const EdgeInsets.all(Insets.normal),
                 child: Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: Insets.small),
-                      Text('Loading related resources...'),
+                      CircularProgressIndicator(
+                        color: context.colorScheme.primary,
+                      ),
+                      const SizedBox(height: Insets.small),
+                      Text(
+                        'Loading related resources...',
+                        style: AppTextStyle.labelLarge.copyWith(
+                          color: context.colorScheme.onSurface,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -269,8 +313,8 @@ class _ResourceCardState extends State<ResourceCard> {
                     const SizedBox(height: Insets.small),
                     Text(
                       'No related resources found for this encounter',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+                      style: AppTextStyle.labelLarge.copyWith(
+                        color: context.colorScheme.onSurface.withOpacity(0.6),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -292,11 +336,12 @@ class _ResourceCardState extends State<ResourceCard> {
                               .push(RecordDetailsRoute(resource: resource));
                         },
                         child: Padding(
-                          padding:
-                              const EdgeInsetsGeometry.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: Text(
                             "${resource.fhirType.display}: ${resource.title}",
-                            style: AppTextStyle.bodySmall,
+                            style: AppTextStyle.bodySmall.copyWith(
+                              color: context.colorScheme.onSurface,
+                            ),
                           ),
                         ),
                       ),
@@ -316,7 +361,7 @@ class _ResourceCardState extends State<ResourceCard> {
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Dialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadiusGeometry.circular(12),
+              borderRadius: BorderRadius.circular(12),
             ),
             insetPadding: const EdgeInsets.symmetric(horizontal: 20),
             child: child,
