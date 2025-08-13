@@ -6,7 +6,7 @@
     <application
         android:label="health_wallet"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/health_wallet">
         <activity
             android:name=".MainActivity"
             android:exported="true"

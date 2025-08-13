@@ -1,7 +1,7 @@
 name: health_wallet
 description: "Fasten Health Wallet"
 publish_to: 'none'
-version: 1.0.0+6
+version: 1.0.0+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -79,8 +79,6 @@ dev_dependencies:
   mockito: ^5.4.4
   bloc_test: ^9.1.5
   golden_toolkit: ^0.15.0
-  integration_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true
