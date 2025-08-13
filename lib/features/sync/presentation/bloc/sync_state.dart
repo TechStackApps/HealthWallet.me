@@ -1,30 +1,24 @@
 part of 'sync_bloc.dart';
 
-@freezed
-sealed class SyncStatus with _$SyncStatus {
-  const factory SyncStatus.initial() = _InitialStatus;
-  const factory SyncStatus.loading() = _LoadingStatus;
-  const factory SyncStatus.success() = _SuccessStatus;
-  const factory SyncStatus.failure(String error) = _FailureStatus;
-  const factory SyncStatus.connected() = _ConnectedStatus;
-}
-
-@freezed
-sealed class SyncTokenStatus with _$SyncTokenStatus {
-  const factory SyncTokenStatus.none() = _NoneTokenStatus;
-  const factory SyncTokenStatus.active() = _ActiveTokenStatus;
-  const factory SyncTokenStatus.expired() = _ExpiredTokenStatus;
-  const factory SyncTokenStatus.expiringSoon() = _ExpiringSoonTokenStatus;
+enum SyncStatus {
+  disconnected,
+  connecting,
+  connected,
+  syncing,
+  error,
 }
 
 @freezed
 class SyncState with _$SyncState {
-  const SyncState._();
   const factory SyncState({
-    @Default(SyncStatus.initial()) SyncStatus status,
-    @Default([]) List<DateTime> history,
-    @Default(SyncTokenStatus.none()) SyncTokenStatus tokenStatus,
-    SyncToken? currentToken,
-    bool? connectionValid,
+    @Default(false) bool isLoading,
+    @Default(false) bool isDiscovering,
+    @Default(SyncStatus.disconnected) SyncStatus syncStatus,
+    @Default([]) List<SSDPServiceInfo> discoveredServices,
+    SSDPServiceInfo? connectedService,
+    DateTime? lastDiscoveryTime,
+    DateTime? lastSyncTime,
+    bool? connectionTestResult,
+    String? error,
   }) = _SyncState;
 }

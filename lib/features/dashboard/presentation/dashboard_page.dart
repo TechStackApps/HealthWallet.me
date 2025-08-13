@@ -6,6 +6,7 @@ import 'package:health_wallet/features/records/presentation/pages/records_page.d
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 @RoutePage()

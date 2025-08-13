@@ -7,10 +7,8 @@ class OnboardingState with _$OnboardingState {
     @Default(false) bool isLaunchingUrl,
     @Default(false) bool urlLaunchSuccess,
     @Default(false) bool isOnboardingCompleted,
-    @Default(false) bool isScannerActive,
     @Default(false) bool isSyncing,
     @Default(false) bool syncCompleted,
     String? errorMessage,
-    String? scannedQRCode,
   }) = _OnboardingState;
 }

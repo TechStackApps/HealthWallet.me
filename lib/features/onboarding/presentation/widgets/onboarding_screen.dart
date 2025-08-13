@@ -31,43 +31,6 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
-        // If scanner is active, show only the QR scanner
-        if (state.isScannerActive) {
-          return BlocListener<OnboardingBloc, OnboardingState>(
-            listener: (context, state) {
-              // Handle sync process when QR code is detected
-              if (state.scannedQRCode != null && state.isSyncing) {
-                // Trigger sync with the scanned QR code data
-                context.read<SyncBloc>().add(
-                      SyncEvent.syncDataWithJson(state.scannedQRCode!),
-                    );
-
-                // Reset the syncing state after triggering sync
-                context.read<OnboardingBloc>().add(
-                      const OnboardingQRCodeDetected(''),
-                    );
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(Insets.medium),
-              child: QRScannerWidget(
-                onQRCodeDetected: (qrCode) {
-                  context.read<OnboardingBloc>().add(
-                        OnboardingQRCodeDetected(qrCode),
-                      );
-                },
-                onCancel: () {
-                  context.read<OnboardingBloc>().add(
-                        const OnboardingScanQR(),
-                      );
-                },
-                title: 'Scan QR Code',
-                cancelButtonText: 'Cancel',
-              ),
-            ),
-          );
-        }
-
         // Show success state if sync completed
         if (state.syncCompleted) {
           return Padding(
@@ -102,32 +65,30 @@ class OnboardingScreen extends StatelessWidget {
           );
         }
 
-        // Show syncing state if QR code was scanned and syncing is in progress
-        if (state.isSyncing && state.scannedQRCode != null) {
+        // Show syncing state if syncing is in progress
+        if (state.isSyncing) {
           return BlocListener<SyncBloc, SyncState>(
             listener: (context, syncState) {
               // Handle sync completion
-              syncState.status.whenOrNull(
-                success: () {
-                  // Mark sync as completed to show success state
-                  context.read<OnboardingBloc>().add(
-                        const OnboardingSyncCompleted(),
-                      );
-                },
-                failure: (error) {
-                  // Show error message and reset syncing state
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Sync failed: $error'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  // Reset syncing state without triggering another sync
-                  context.read<OnboardingBloc>().add(
-                        const OnboardingResetSync(),
-                      );
-                },
-              );
+              if (syncState.syncStatus == SyncStatus.connected) {
+                // Mark sync as completed to show success state
+                context.read<OnboardingBloc>().add(
+                      const OnboardingSyncCompleted(),
+                    );
+              } else if (syncState.syncStatus == SyncStatus.error &&
+                  syncState.error != null) {
+                // Show error message and reset syncing state
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Sync failed: ${syncState.error}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                // Reset syncing state without triggering another sync
+                context.read<OnboardingBloc>().add(
+                      const OnboardingResetSync(),
+                    );
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(Insets.medium),

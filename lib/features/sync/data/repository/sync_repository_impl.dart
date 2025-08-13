@@ -37,15 +37,10 @@ class SyncRepositoryImpl implements SyncRepository {
       // Check if we have a valid token
       final currentToken = await _syncTokenService.getCurrentToken();
       if (currentToken == null) {
-        // Try to get a new token through initiation
-        final initiationResponse = await _fhirApiService.initiateSync();
-        final data = initiationResponse.data?['data'] as Map<String, dynamic>?;
-
-        if (data != null) {
-          final token = await _syncTokenService.createTokenFromSyncData(data);
-          await _syncTokenService.saveToken(token);
-          await _sync(token.token, token.address, token.port);
-        }
+        // No token available - this should not happen in the normal flow
+        // since we get tokens from the mobile sync endpoint
+        throw Exception(
+            'No valid token available. Please connect to a service first.');
       } else {
         // Use existing token
         await _sync(
@@ -64,10 +59,10 @@ class SyncRepositoryImpl implements SyncRepository {
       logger.d('Received JSON data: $jsonData');
       final decodedData = jsonDecode(jsonData);
 
-      // Check if this is server connection data (has token and port)
+      // Check if this is server connection data (has token and server info)
       if (decodedData is Map<String, dynamic> &&
           decodedData.containsKey('token') &&
-          decodedData.containsKey('port')) {
+          decodedData.containsKey('server')) {
         // Handle server connection data
         final token =
             await _syncTokenService.createTokenFromSyncData(decodedData);
@@ -79,9 +74,19 @@ class SyncRepositoryImpl implements SyncRepository {
         logger.d('Port: ${token.port}');
 
         await _sync(token.token, token.address, token.port);
+      } else if (decodedData is Map<String, dynamic> &&
+          decodedData.containsKey('resourceType') &&
+          decodedData['resourceType'] == 'Bundle') {
+        // Handle FHIR Bundle data directly
+        final bundle = FhirBundle.fromJson(decodedData);
+        final resourcesToCache =
+            bundle.entry.map((entry) => entry.resource).toList();
+        _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+        await _fhirLocalDataSource
+            .setLastSyncTimestamp(DateTime.now().toIso8601String());
       } else {
         throw Exception(
-            'Invalid JSON format. Expected either server connection data (token, port) or FHIR Bundle (resourceType: Bundle)');
+            'Invalid JSON format. Expected either server connection data (token, server) or FHIR Bundle (resourceType: Bundle)');
       }
     } catch (e, s) {
       logger.e('Error in syncDataWithJson: $e', e, s);
@@ -120,32 +125,54 @@ class SyncRepositoryImpl implements SyncRepository {
         await _validateServerConnection(
             dio, serverAddress.split(':')[0], serverAddress.split(':')[1]);
 
-        if (lastSyncTimestamp != null) {
-          logger.d('Syncing updates since: $lastSyncTimestamp');
-          bundle = await tempApiService.syncDataUpdates(lastSyncTimestamp);
-        } else {
-          logger.d('Full sync - no previous sync timestamp');
-          bundle = await tempApiService.syncData();
+        // Always do full sync since the updates endpoint doesn't exist on the server
+        logger.d('Full sync - updates endpoint not available on server');
+        bundle = await tempApiService.syncData();
+
+        try {
+          final populatedEntries = bundle.entry.map(
+            (entry) {
+              try {
+                BundleEntry populatedEntry = entry.copyWith(
+                  resource: entry.resource
+                      .populateEncounterIdFromRaw()
+                      .populateSubjectIdFromRaw(),
+                );
+                return populatedEntry;
+              } catch (e) {
+                logger
+                    .e('⚠️ Error processing resource ${entry.resource.id}: $e');
+                // Return the original entry if processing fails
+                return entry;
+              }
+            },
+          ).toList();
+          FhirBundle newBundle = bundle.copyWith(entry: populatedEntries);
+
+          final resourcesToCache =
+              newBundle.entry.map((entry) => entry.resource).toList();
+
+          _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+        } catch (e) {
+          logger.e(
+              '⚠️ Error processing FHIR bundle, attempting to cache raw resources: $e');
+          // Fallback: try to cache the raw resources without processing
+          try {
+            final resourcesToCache =
+                bundle.entry.map((entry) => entry.resource).toList();
+            _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+          } catch (fallbackError) {
+            logger.e('❌ Failed to cache even raw resources: $fallbackError');
+            throw Exception('Failed to process and cache FHIR resources: $e');
+          }
         }
 
-        final populatedEntries = bundle.entry.map(
-          (entry) {
-            BundleEntry populatedEntry = entry.copyWith(
-              resource: entry.resource
-                  .populateEncounterIdFromRaw()
-                  .populateSubjectIdFromRaw(),
-            );
-            return populatedEntry;
-          },
-        ).toList();
-        FhirBundle newBundle = bundle.copyWith(entry: populatedEntries);
-
-        final resourcesToCache =
-            newBundle.entry.map((entry) => entry.resource).toList();
-
-        _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
-
-        await _fetchAndUpdateUserInfo(tempApiService);
+        // Try to fetch user info, but don't fail if it doesn't work
+        try {
+          await _fetchAndUpdateUserInfo(tempApiService);
+        } catch (e) {
+          logger.d('ℹ️ User info fetch failed, continuing with sync: $e');
+        }
 
         await _fhirLocalDataSource
             .setLastSyncTimestamp(DateTime.now().toIso8601String());
@@ -174,11 +201,19 @@ class SyncRepositoryImpl implements SyncRepository {
   Future<void> _fetchAndUpdateUserInfo(FhirApiService apiService) async {
     try {
       final userDto = await apiService.fetchCurrentUser();
-      final user = UserMapper.fromDto(userDto);
 
-      await _userRepository.updateUser(user);
+      if (userDto != null) {
+        final user = UserMapper.fromDto(userDto);
+        await _userRepository.updateUser(user);
+        logger.d('✅ User information updated successfully');
+      } else {
+        logger.d(
+            'ℹ️ No user information available, continuing without user update');
+      }
     } catch (e, s) {
       logger.e('⚠️ Failed to fetch user information: $e', e, s);
+      // Don't fail the entire sync if user info can't be fetched
+      // This is non-critical information
     }
   }
 
@@ -187,25 +222,18 @@ class SyncRepositoryImpl implements SyncRepository {
     try {
       logger.d('🔍 Validating server connection to $address:$port');
 
-      // Try to reach the server status endpoint first
-      final response = await dio.get('/secure/sync/status');
+      // Try to reach the health endpoint first (public, no auth required)
+      final response = await dio.get('/health');
 
       if (response.statusCode == 200) {
         logger.d('✅ Server connection validated successfully');
         final data = response.data;
         if (data['success'] == true) {
-          final serverInfo = data['data']?['serverInfo'];
-          if (serverInfo != null) {
-            logger.d(
-                '📊 Server info: ${serverInfo['name']} v${serverInfo['version']}');
-            if (serverInfo['docker'] == true) {
-              logger.d('🐳 Server is running in Docker');
-            }
-          }
+          logger.d('📊 Server is healthy and responding');
         }
       } else {
         throw Exception(
-            'Server status check failed with code: ${response.statusCode}');
+            'Server health check failed with code: ${response.statusCode}');
       }
     } on DioException catch (e) {
       logger.e('❌ Server validation failed: ${e.message}');

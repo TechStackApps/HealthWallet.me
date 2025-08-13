@@ -36,8 +36,7 @@ class App extends StatelessWidget {
               create: (context) =>
                   getIt<UserBloc>()..add(const UserInitialised())),
           BlocProvider(
-            create: (context) => getIt<SyncBloc>()
-              ..add(const SyncEvent.checkConnectionValidity()),
+            create: (context) => getIt<SyncBloc>(),
           ),
           BlocProvider(create: (context) => getIt<RecordsBloc>()),
           BlocProvider(
@@ -50,12 +49,12 @@ class App extends StatelessWidget {
         ],
         child: BlocListener<SyncBloc, SyncState>(
           listener: (context, state) {
-            state.status.whenOrNull(
-              success: () {
-                context.read<HomeBloc>().add(const HomeInitialised());
-                context.read<UserBloc>().add(const UserDataUpdatedFromSync());
-              },
-            );
+            // Check if sync was successful and completed
+            if (state.syncStatus == SyncStatus.connected &&
+                state.lastSyncTime != null) {
+              context.read<HomeBloc>().add(const HomeInitialised());
+              context.read<UserBloc>().add(const UserDataUpdatedFromSync());
+            }
           },
           child: BlocBuilder<UserBloc, UserState>(
             builder: (context, state) {

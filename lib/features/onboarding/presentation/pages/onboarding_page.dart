@@ -57,7 +57,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.white, AppColors.primary.withValues(alpha: 0.1)],
+                  colors: [
+                    Colors.white,
+                    AppColors.primary.withValues(alpha: 0.1)
+                  ],
                   stops: const [0.5, 1],
                   begin: Alignment.center,
                   end: Alignment.bottomCenter,
@@ -72,11 +75,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         controller: _pageController,
                         onPageChanged: (int page) {
                           // Close scanner if user swipes to a different page
-                          if (state.isScannerActive && page != 1) {
-                            context
-                                .read<OnboardingBloc>()
-                                .add(const OnboardingScanQR());
-                          }
+
                           context
                               .read<OnboardingBloc>()
                               .add(OnboardingPageChanged(page));

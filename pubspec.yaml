@@ -58,6 +58,7 @@ dependencies:
   file_picker: ^10.2.1
   path: ^1.9.1
   share_plus: ^11.0.0
+  network_info_plus: ^6.0.1
 
 dev_dependencies:
   flutter_test:

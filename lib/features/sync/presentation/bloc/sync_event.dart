@@ -1,13 +1,23 @@
 part of 'sync_bloc.dart';
 
 @freezed
-sealed class SyncEvent with _$SyncEvent {
-  const SyncEvent._();
+class SyncEvent with _$SyncEvent {
+  // Service discovery and connection
+  const factory SyncEvent.discoverServices() = _DiscoverServices;
+  const factory SyncEvent.clearDiscoveredServices() = _ClearDiscoveredServices;
+  const factory SyncEvent.connectToService(SSDPServiceInfo service) =
+      _ConnectToService;
+  const factory SyncEvent.disconnectFromService() = _DisconnectFromService;
+  const factory SyncEvent.testConnection(SSDPServiceInfo service) =
+      _TestConnection;
+
+  // Data operations
   const factory SyncEvent.syncData() = _SyncData;
-  const factory SyncEvent.syncDataWithJson(String jsonData) = _SyncDataWithJson;
-  const factory SyncEvent.historyLoaded() = _HistoryLoaded;
-  const factory SyncEvent.tokenStatusLoaded() = _TokenStatusLoaded;
-  const factory SyncEvent.tokenRevoked({String? tokenId}) = _TokenRevoked;
+
+  // UI state management
+  const factory SyncEvent.clearError() = _ClearError;
+
+  // Token and connection management
   const factory SyncEvent.checkTokenStatus() = _CheckTokenStatus;
   const factory SyncEvent.checkConnectionValidity() = _CheckConnectionValidity;
 }

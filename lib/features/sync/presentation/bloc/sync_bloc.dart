@@ -1,215 +1,299 @@
+import 'dart:convert';
 import 'dart:async';
-
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
-import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
-import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // Added for jsonDecode
+import 'package:health_wallet/features/sync/domain/entities/ssdp_service_info.dart';
+import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
+import 'package:health_wallet/features/sync/domain/services/simple_discovery_service.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 
-part 'sync_bloc.freezed.dart';
 part 'sync_event.dart';
 part 'sync_state.dart';
+part 'sync_bloc.freezed.dart';
 
 @injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
+  final FhirApiService _fhirApiService;
+  final SimpleDiscoveryService _discoveryService;
   final SyncRepository _syncRepository;
-  final SyncTokenService _syncTokenService;
-  final SharedPreferences _prefs;
 
-  SyncBloc(
-    this._syncRepository,
-    this._syncTokenService,
-    this._prefs,
-  ) : super(const SyncState()) {
+  SyncBloc(this._fhirApiService, this._discoveryService, this._syncRepository)
+      : super(const SyncState()) {
+    logger.d('🏗️ [BLOC] SyncBloc constructor called');
+
     on<SyncEvent>((event, emit) async {
-      await event.when(
-        syncData: () => _onSyncData(emit),
-        syncDataWithJson: (jsonData) => _onSyncDataWithJson(jsonData, emit),
-        historyLoaded: () => _onHistoryLoaded(emit),
-        tokenStatusLoaded: () => _onTokenStatusLoaded(emit),
-        tokenRevoked: (tokenId) => _onTokenRevoked(emit, tokenId),
-        checkTokenStatus: () => _onCheckTokenStatus(emit),
-        checkConnectionValidity: () => _onCheckConnectionValidity(emit),
-      );
+      logger.d('🏗️ [BLOC] Event received: ${event.runtimeType}');
+
+      try {
+        await event.when(
+          // Service discovery and connection
+          discoverServices: () async => await _onDiscoverServices(emit),
+          clearDiscoveredServices: () async =>
+              await _onClearDiscoveredServices(emit),
+          connectToService: (service) async =>
+              await _onConnectToService(emit, service),
+          disconnectFromService: () async =>
+              await _onDisconnectFromService(emit),
+          testConnection: (service) async =>
+              await _onTestConnection(emit, service),
+
+          // Data operations
+          syncData: () async => await _onSyncData(emit),
+
+          // UI state management
+          clearError: () async => _onClearError(emit),
+
+          // Token and connection management
+          checkTokenStatus: () async => await _onCheckTokenStatus(emit),
+          checkConnectionValidity: () async =>
+              await _onCheckConnectionValidity(emit),
+        );
+      } catch (e) {
+        logger.e('🏗️ [BLOC] Error in event handler: $e');
+      }
+
+      logger.d('🏗️ [BLOC] Event handler completed for: ${event.runtimeType}');
     });
   }
 
-  Future<void> _onSyncData(Emitter<SyncState> emit) async {
-    emit(state.copyWith(status: const SyncStatus.loading()));
+  @override
+  Future<void> close() {
+    logger.d('🏗️ [BLOC] SyncBloc close() called');
+    return super.close();
+  }
+
+  // Event handlers
+  Future<void> _onDiscoverServices(Emitter<SyncState> emit) async {
     try {
-      await _syncRepository.syncData();
-      await _addSyncTimeToHistory();
+      // Always start fresh discovery
       emit(state.copyWith(
-        status: const SyncStatus.success(),
-        history: _getSyncHistory(),
+        isLoading: true,
+        isDiscovering: true,
+        error: null,
+        discoveredServices: [], // Clear previous discoveries
       ));
-      add(const SyncEvent.checkConnectionValidity());
+
+      // Ensure discovery is running before scanning
+      await _discoveryService.startDiscovery();
+
+      // Use the discovery service to discover real services
+      final services = await _discoveryService.discoverByDirectIP();
+
+      emit(state.copyWith(
+        isLoading: false,
+        isDiscovering: false,
+        discoveredServices: services,
+        lastDiscoveryTime: DateTime.now(),
+      ));
+
+      // Stop discovery after scan completes
+      await _discoveryService.stopDiscovery();
+
+      logger.d('✅ Discovered ${services.length} services');
     } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
+      emit(state.copyWith(
+        isLoading: false,
+        isDiscovering: false,
+        error: 'Failed to discover services: $e',
+      ));
+      logger.e('❌ Service discovery failed: $e');
     }
   }
 
-  Future<void> _onSyncDataWithJson(
-      String jsonData, Emitter<SyncState> emit) async {
-    emit(state.copyWith(status: const SyncStatus.loading()));
-    try {
-      await _syncRepository.syncDataWithJson(jsonData);
-      await _addSyncTimeToHistory();
-
-      // Check if this was a token setup and save it
-      await _handleTokenFromJsonData(jsonData);
-
-      emit(state.copyWith(
-        status: const SyncStatus.success(),
-        history: _getSyncHistory(),
-      ));
-    } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
-    }
+  Future<void> _onClearDiscoveredServices(Emitter<SyncState> emit) async {
+    emit(state.copyWith(
+      discoveredServices: [],
+      lastDiscoveryTime: null,
+    ));
+    logger.d('🧹 Cleared discovered services');
   }
 
-  Future<void> _onHistoryLoaded(Emitter<SyncState> emit) async {
-    emit(state.copyWith(history: _getSyncHistory()));
-  }
-
-  Future<void> _onTokenStatusLoaded(Emitter<SyncState> emit) async {
+  Future<void> _onConnectToService(
+    Emitter<SyncState> emit,
+    SSDPServiceInfo service,
+  ) async {
     try {
-      final token = await _syncTokenService.getCurrentToken();
-      emit(state.copyWith(
-        currentToken: token,
-        tokenStatus: _getTokenStatus(token),
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        currentToken: null,
-        tokenStatus: const SyncTokenStatus.none(),
-      ));
-    }
-  }
+      logger.d(
+          '🔌 [DEBUG] Starting _onConnectToService for: ${service.friendlyName}');
+      logger.d('🔌 [DEBUG] Current state: ${state.syncStatus}');
+      logger.d('🔌 [DEBUG] BLoC closed status: $isClosed');
 
-  Future<void> _onTokenRevoked(Emitter<SyncState> emit, String? tokenId) async {
-    try {
-      await _syncTokenService.revokeToken(tokenId: tokenId);
+      emit(state.copyWith(
+        isLoading: true,
+        error: null,
+        syncStatus: SyncStatus.connecting,
+      ));
+      logger.d('🔌 [DEBUG] Emitted connecting state');
 
-      // If no specific tokenId was provided or it was the current token, clear current token
-      if (tokenId == null || state.currentToken?.tokenId == tokenId) {
+      logger.d('🔌 [DEBUG] About to call _fhirApiService.connectToService');
+      final isConnected =
+          await _fhirApiService.testConnectionToService(service);
+      logger.d('🔌 [DEBUG] testConnection result: $isConnected');
+
+      if (isConnected) {
+        // Connect the FhirApiService to this service by updating its base URL
+        await _fhirApiService.connectToService(service);
+
+        // Attempt to fetch mobile sync data and persist token
+        try {
+          final result = await _fhirApiService.getMobileSyncData(service);
+          final data = result['data'] as Map<String, dynamic>;
+          // Expect data to include token, server and endpoints as per your curl output
+          // Persist via SyncRepository -> SyncTokenService path
+          // Reuse existing method that supports raw JSON input
+          await _syncRepository.syncDataWithJson(jsonEncode(data));
+        } catch (_) {
+          // Non-fatal if bootstrap fails; user can scan QR or retry
+        }
+        logger.d('🔌 [DEBUG] Connection successful, emitting connected state');
         emit(state.copyWith(
-          currentToken: null,
-          tokenStatus: const SyncTokenStatus.none(),
+          isLoading: false,
+          connectedService: service,
+          syncStatus: SyncStatus.connected,
         ));
+        logger.d('🔌 [DEBUG] Connected state emitted successfully');
+        logger.d('✅ Connected to service: ${service.friendlyName}');
       } else {
-        // Just refresh the token status if a different token was revoked
-        await _onTokenStatusLoaded(emit);
+        throw Exception('Connection test failed');
+      }
+      logger.d('🔌 [DEBUG] _onConnectToService method completed');
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'Failed to connect: $e',
+        syncStatus: SyncStatus.error,
+      ));
+      logger.e('❌ Failed to connect to service: $e');
+    }
+  }
+
+  Future<void> _onDisconnectFromService(Emitter<SyncState> emit) async {
+    try {
+      if (state.connectedService != null) {
+        await _fhirApiService.disconnectFromService(state.connectedService!);
+      }
+
+      emit(state.copyWith(
+        connectedService: null,
+        syncStatus: SyncStatus.disconnected,
+      ));
+
+      logger.d('🔌 Disconnected from service');
+    } catch (e) {
+      logger.e('❌ Error during disconnect: $e');
+      // Still update state even if disconnect fails
+      emit(state.copyWith(
+        connectedService: null,
+        syncStatus: SyncStatus.disconnected,
+      ));
+    }
+  }
+
+  Future<void> _onTestConnection(
+    Emitter<SyncState> emit,
+    SSDPServiceInfo service,
+  ) async {
+    try {
+      emit(state.copyWith(isLoading: true, error: null));
+
+      final isConnected =
+          await _fhirApiService.testConnectionToService(service);
+
+      if (isConnected) {
+        emit(state.copyWith(
+          isLoading: false,
+          error: null,
+        ));
+        logger.d('✅ Connection test successful');
+      } else {
+        throw Exception('Connection test failed');
       }
     } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'Connection test failed: $e',
+      ));
+      logger.e('❌ Connection test failed: $e');
     }
+  }
+
+  Future<void> _onSyncData(Emitter<SyncState> emit) async {
+    try {
+      if (state.connectedService == null) {
+        throw Exception('No service connected');
+      }
+
+      emit(state.copyWith(
+        isLoading: true,
+        error: null,
+        syncStatus: SyncStatus.syncing,
+      ));
+
+      // Use the sync repository for data sync
+      await _syncRepository.syncData();
+
+      emit(state.copyWith(
+        isLoading: false,
+        syncStatus: SyncStatus.connected,
+        lastSyncTime: DateTime.now(),
+      ));
+
+      logger.d('✅ Data sync completed successfully');
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        syncStatus: SyncStatus.error,
+        error: 'Data sync failed: $e',
+      ));
+      logger.e('❌ Data sync failed: $e');
+    }
+  }
+
+  void _onClearError(Emitter<SyncState> emit) {
+    emit(state.copyWith(error: null));
   }
 
   Future<void> _onCheckTokenStatus(Emitter<SyncState> emit) async {
     try {
-      await _syncTokenService.clearExpiredTokens();
-      final token = await _syncTokenService.getCurrentToken();
+      emit(state.copyWith(isLoading: true, error: null));
+
+      final status = await _syncRepository.checkConnectionValidity();
+
       emit(state.copyWith(
-        currentToken: token,
-        tokenStatus: _getTokenStatus(token),
+        isLoading: false,
+        error: null,
       ));
+
+      logger.d('✅ Token status checked: $status');
     } catch (e) {
       emit(state.copyWith(
-        currentToken: null,
-        tokenStatus: const SyncTokenStatus.none(),
+        isLoading: false,
+        error: 'Failed to check token status: $e',
       ));
+      logger.e('❌ Token status check failed: $e');
     }
   }
 
   Future<void> _onCheckConnectionValidity(Emitter<SyncState> emit) async {
     try {
-      final status = await _syncTokenService.checkConnectionValidity();
-      switch (status) {
-        case ConnectionStatus.valid:
-          emit(state.copyWith(
-              connectionValid: true, status: const SyncStatus.connected()));
-          break;
-        case ConnectionStatus.invalidToken:
-          emit(state.copyWith(
-              connectionValid: false,
-              tokenStatus: const SyncTokenStatus.expired()));
-          break;
-        case ConnectionStatus.serverDown:
-          // Try to reconnect automatically when server is down
-          final reconnected = await _syncTokenService.attemptReconnection();
-          if (reconnected) {
-            emit(state.copyWith(
-                connectionValid: true, status: const SyncStatus.connected()));
-          } else {
-            emit(state.copyWith(
-                connectionValid: false,
-                status: const SyncStatus.failure(
-                    'Server is down - try updating server address')));
-          }
-          break;
-      }
+      emit(state.copyWith(isLoading: true, error: null));
+
+      final status = await _syncRepository.checkConnectionValidity();
+
+      emit(state.copyWith(
+        isLoading: false,
+        error: null,
+      ));
+
+      logger.d('✅ Connection validity checked: $status');
     } catch (e) {
       emit(state.copyWith(
-          connectionValid: false, status: SyncStatus.failure(e.toString())));
+        isLoading: false,
+        error: 'Failed to check connection validity: $e',
+      ));
+      logger.e('❌ Connection validity check failed: $e');
     }
-  }
-
-  List<DateTime> _getSyncHistory() {
-    final history = _prefs.getStringList('sync_history') ?? [];
-    return history.map((e) => DateTime.parse(e)).toList();
-  }
-
-  Future<void> _addSyncTimeToHistory() async {
-    final history = _getSyncHistory();
-    history.insert(0, DateTime.now());
-    await _prefs.setStringList(
-        'sync_history', history.map((e) => e.toIso8601String()).toList());
-  }
-
-  Future<void> _handleTokenFromJsonData(String jsonData) async {
-    try {
-      final decodedData = await _parseJsonData(jsonData);
-
-      // Check if this is server connection data (has token and port)
-      if (decodedData is Map<String, dynamic> &&
-          decodedData.containsKey('token') &&
-          decodedData.containsKey('port')) {
-        final token =
-            await _syncTokenService.createTokenFromSyncData(decodedData);
-        await _syncTokenService.saveToken(token);
-      }
-    } catch (e) {
-      // If we can't parse or save the token, continue without error
-      // The sync operation itself may still succeed
-    }
-  }
-
-  Future<dynamic> _parseJsonData(String jsonData) async {
-    try {
-      return jsonDecode(jsonData);
-    } catch (e) {
-      throw Exception('Invalid JSON data: $e');
-    }
-  }
-
-  SyncTokenStatus _getTokenStatus(SyncToken? token) {
-    if (token == null) {
-      return const SyncTokenStatus.none();
-    }
-
-    if (token.isExpired) {
-      return const SyncTokenStatus.expired();
-    }
-
-    if (token.isExpiringSoon) {
-      return const SyncTokenStatus.expiringSoon();
-    }
-
-    return const SyncTokenStatus.active();
   }
 }
