@@ -20,5 +20,6 @@ class SyncState with _$SyncState {
     DateTime? lastSyncTime,
     bool? connectionTestResult,
     String? error,
+    @Default([]) List<SSDPServiceInfo> recentConnections,
   }) = _SyncState;
 }

@@ -789,10 +789,10 @@ packages:
     dependency: "direct main"
     description:
       name: liquid_glass_renderer
-      sha256: "060c29c804fb7aa7dd73901eaaedb5ba89cd431ca663c4fe7b8d6eefca685977"
+      sha256: "4a4203d720bc565108bd8c0df7d9b4694bfd5d4444654171d36998093e23584c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1-dev.9"
+    version: "0.1.1-dev.10"
   local_auth:
     dependency: "direct main"
     description:
@@ -889,14 +889,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mobile_scanner:
-    dependency: "direct main"
-    description:
-      name: mobile_scanner
-      sha256: "54005bdea7052d792d35b4fef0f84ec5ddc3a844b250ecd48dc192fb9b4ebc95"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.1"
   mockito:
     dependency: "direct dev"
     description:
@@ -921,6 +913,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  network_info_plus:
+    dependency: "direct main"
+    description:
+      name: network_info_plus
+      sha256: f926b2ba86aa0086a0dfbb9e5072089bc213d854135c1712f1d29fc89ba3c877
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.4"
+  network_info_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: network_info_plus_platform_interface
+      sha256: "7e7496a8a9d8136859b8881affc613c4a21304afeb6c324bcefc4bd0aff6b94b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   nm:
     dependency: transitive
     description:

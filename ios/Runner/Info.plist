@@ -26,8 +26,6 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs camera access to scan QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Please authenticate to access your health wallet.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

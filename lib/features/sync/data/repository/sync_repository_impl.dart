@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:dio/dio.dart';
+// ignore: unused_import
 import 'package:fhir_r4/fhir_r4.dart' hide BundleEntry;
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_local_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
@@ -19,6 +19,8 @@ import 'package:health_wallet/features/user/domain/repository/user_repository.da
 
 @Injectable(as: SyncRepository)
 class SyncRepositoryImpl implements SyncRepository {
+  // Keep reference for potential future use (e.g., streaming sync); currently unused
+  // ignore: unused_field
   final FhirApiService _fhirApiService;
   final FhirLocalDataSource _fhirLocalDataSource;
   final SyncTokenService _syncTokenService;
@@ -81,7 +83,7 @@ class SyncRepositoryImpl implements SyncRepository {
         final bundle = FhirBundle.fromJson(decodedData);
         final resourcesToCache =
             bundle.entry.map((entry) => entry.resource).toList();
-        _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+        await _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
         await _fhirLocalDataSource
             .setLastSyncTimestamp(DateTime.now().toIso8601String());
       } else {
@@ -117,8 +119,8 @@ class SyncRepositoryImpl implements SyncRepository {
         );
 
         final tempApiService = FhirApiService(dio);
-        final lastSyncTimestamp =
-            await _fhirLocalDataSource.getLastSyncTimestamp();
+        // Keep for future incremental syncs when server adds updates endpoint
+        final _ = await _fhirLocalDataSource.getLastSyncTimestamp();
 
         FhirBundle bundle;
         // First, validate server connection
@@ -152,7 +154,7 @@ class SyncRepositoryImpl implements SyncRepository {
           final resourcesToCache =
               newBundle.entry.map((entry) => entry.resource).toList();
 
-          _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+          await _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
         } catch (e) {
           logger.e(
               '⚠️ Error processing FHIR bundle, attempting to cache raw resources: $e');
@@ -160,7 +162,7 @@ class SyncRepositoryImpl implements SyncRepository {
           try {
             final resourcesToCache =
                 bundle.entry.map((entry) => entry.resource).toList();
-            _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
+            await _fhirLocalDataSource.cacheFhirResources(resourcesToCache);
           } catch (fallbackError) {
             logger.e('❌ Failed to cache even raw resources: $fallbackError');
             throw Exception('Failed to process and cache FHIR resources: $e');

@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
+import 'package:intl/intl.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/domain/entities/ssdp_service_info.dart';
 
@@ -11,10 +14,8 @@ class SyncPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<SyncBloc>(), // No automatic discovery
-      child: const SyncView(),
-    );
+    // Use the globally provided SyncBloc from the app-level MultiBlocProvider
+    return const SyncView();
   }
 }
 
@@ -26,7 +27,7 @@ class SyncView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fasten Sync'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: context.colorScheme.inversePrimary,
       ),
       body: BlocBuilder<SyncBloc, SyncState>(
         builder: (context, state) {
@@ -44,12 +45,7 @@ class SyncView extends StatelessWidget {
                   _buildServiceDiscovery(context, state),
                   const SizedBox(height: 16),
 
-                  // Connection Actions
-                  if (state.discoveredServices.isNotEmpty)
-                    _buildConnectionActions(context, state),
-
-                  // Error Display
-                  if (state.error != null) _buildErrorDisplay(context, state),
+                  // Error is shown contextually under each service tile only
 
                   const SizedBox(height: 32), // Add bottom padding for scroll
                 ],
@@ -74,8 +70,7 @@ class SyncView extends StatelessWidget {
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.85),
+                color: context.colorScheme.onSurface.withOpacity(0.85),
               ),
             ),
           ),
@@ -84,7 +79,7 @@ class SyncView extends StatelessWidget {
               value,
               style: TextStyle(
                 fontWeight: FontWeight.w400,
-                color: Theme.of(context).colorScheme.onSurface,
+                color: context.colorScheme.onSurface,
               ),
             ),
           ),
@@ -102,7 +97,7 @@ class SyncView extends StatelessWidget {
           children: [
             Text(
               'Sync Status',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: context.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Row(
@@ -111,7 +106,7 @@ class SyncView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   _getStatusText(state.syncStatus),
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: context.textTheme.bodyLarge,
                 ),
               ],
             ),
@@ -119,24 +114,23 @@ class SyncView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Connected to: ${state.connectedService!.friendlyName}',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: context.textTheme.bodyMedium,
               ),
-            ] else if (state.discoveredServices.isEmpty &&
-                !state.isDiscovering) ...[
+            ] else if (state.discoveredServices.isEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 'Ready to scan for Fasten servers',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
-                    ),
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ],
             if (state.lastSyncTime != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Last sync: ${_formatDateTime(state.lastSyncTime!)}',
-                style: Theme.of(context).textTheme.bodySmall,
+                'Last sync: ${DateFormatUtils.humanReadable(state.lastSyncTime!)}',
+                style: context.textTheme.bodySmall,
               ),
             ],
           ],
@@ -191,139 +185,172 @@ class SyncView extends StatelessWidget {
   }
 
   Widget _buildServiceDiscovery(BuildContext context, SyncState state) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Info on top of the button
-            if (state.discoveredServices.isEmpty && !state.isDiscovering) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'The scan will test common network IPs and your local subnet to find Fasten servers automatically.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.8),
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            // Centered rounded START SEARCH button
-            Center(
-              child: ElevatedButton(
-                onPressed: state.isDiscovering
-                    ? null
-                    : () {
-                        if (state.discoveredServices.isNotEmpty) {
-                          context.read<SyncBloc>().add(
-                                const SyncEvent.clearDiscoveredServices(),
-                              );
-                        }
-                        context.read<SyncBloc>().add(
-                              const SyncEvent.discoverServices(),
-                            );
-                      },
-                style: ElevatedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                  minimumSize: const Size(240, 56),
-                ),
-                child:
-                    Text(state.isDiscovering ? 'Scanning...' : 'START SEARCH'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Info on top of the button (remains visible even while scanning)
+        if (state.discoveredServices.isEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // (info moved above the button)
-
-            // Discovery Status
-            if (state.isDiscovering) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'The scan will test common network IPs and your local subnet to find Fasten servers automatically.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.8),
+                        ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        // Centered rounded SCAN button with circular loading around while scanning
+        if (state.discoveredServices.isEmpty)
+          Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (state.isDiscovering)
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 4,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Scanning network for Fasten servers...',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Testing IP addresses in parallel for faster discovery',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
+                ElevatedButton(
+                  onPressed: state.isDiscovering
+                      ? null
+                      : () {
+                          if (state.discoveredServices.isNotEmpty) {
+                            context.read<SyncBloc>().add(
+                                  const SyncClearDiscoveredServices(),
+                                );
+                          }
+                          context.read<SyncBloc>().add(
+                                const SyncDiscoverServices(),
+                              );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(Insets.huge),
+                  ),
+                  child: const Text('SCAN', textAlign: TextAlign.center),
                 ),
-              ),
-              const SizedBox(height: 16),
-            ],
+              ],
+            ),
+          ),
+        // Error is not shown here; it is displayed contextually under service tiles
+        const SizedBox(height: 16),
+        // Inline error below SCAN area (for scan/connect failures before any service is connected/listed)
+        if (state.error != null && state.discoveredServices.isEmpty) ...[
+          _buildErrorDisplay(context, state),
+          const SizedBox(height: 16),
+        ],
 
-            // Services Found
-            if (state.discoveredServices.isNotEmpty) ...[
-              ...state.discoveredServices
-                  .map((service) => _buildServiceTile(context, service)),
-            ],
-          ],
-        ),
-      ),
+        // Discovery Status
+        if (state.isDiscovering) ...[
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Scanning network…',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Services Found
+        if (state.discoveredServices.isNotEmpty) ...[
+          ...state.discoveredServices.map((service) {
+            final isConnected =
+                context.read<SyncBloc>().state.connectedService?.id ==
+                    service.id;
+            return Column(
+              children: [
+                _buildServiceTile(context, service),
+                if (state.error != null && !isConnected) ...[
+                  const SizedBox(height: 8),
+                  _buildErrorDisplay(context, state),
+                  const SizedBox(height: 8),
+                  // Secondary SCAN action styled like Connect for retrying discovery quickly
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: state.isDiscovering
+                          ? null
+                          : () {
+                              context
+                                  .read<SyncBloc>()
+                                  .add(const SyncClearDiscoveredServices());
+                              context
+                                  .read<SyncBloc>()
+                                  .add(const SyncDiscoverServices());
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onSecondary,
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('SCAN'),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
+        ],
+      ],
     );
   }
 
@@ -395,7 +422,7 @@ class SyncView extends StatelessWidget {
                   context,
                   'Discovered',
                   service.discoveredAt != null
-                      ? _formatDateTime(service.discoveredAt!)
+                      ? '${DateFormatUtils.humanReadable(service.discoveredAt!)} ${DateFormat('HH:mm').format(service.discoveredAt!)}'
                       : 'Unknown'),
             ],
           ),
@@ -403,133 +430,125 @@ class SyncView extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Action Buttons
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => context.read<SyncBloc>().add(
-                      SyncEvent.connectToService(service),
+        // Action Button(s)
+        Builder(builder: (context) {
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+          final isDark = theme.brightness == Brightness.dark;
+          final isConnected =
+              context.read<SyncBloc>().state.connectedService?.id == service.id;
+          final showSync = isConnected;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => context.read<SyncBloc>().add(showSync
+                      ? const SyncData()
+                      : SyncConnectToService(service)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        showSync ? colorScheme.primary : colorScheme.secondary,
+                    foregroundColor: isDark
+                        ? Colors.white
+                        : (showSync
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSecondary),
+                    padding: const EdgeInsets.all(12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                icon: const Icon(Icons.link),
-                label: const Text('Connect'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  foregroundColor: Colors.white,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(showSync ? Icons.sync : Icons.link),
+                      const SizedBox(width: 8),
+                      Text(showSync ? 'SYNC' : 'Connect'),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => context.read<SyncBloc>().add(
-                      SyncEvent.syncData(),
+              if (isConnected) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context
+                        .read<SyncBloc>()
+                        .add(const SyncDisconnectFromService()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.error,
+                      foregroundColor:
+                          isDark ? Colors.white : colorScheme.onError,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                icon: const Icon(Icons.sync),
-                label: const Text('SYNC'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: const Text('Disconnect'),
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
+              ],
+            ],
+          );
+        }),
       ],
     );
   }
 
-  Widget _buildConnectionActions(BuildContext context, SyncState state) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Connection',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: state.isLoading
-                        ? null
-                        : () => context.read<SyncBloc>().add(
-                              SyncEvent.testConnection(state.connectedService!),
-                            ),
-                    icon: const Icon(Icons.wifi),
-                    label: const Text('Test Connection'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: state.isLoading
-                        ? null
-                        : () => context.read<SyncBloc>().add(
-                              const SyncEvent.disconnectFromService(),
-                            ),
-                    icon: const Icon(Icons.link_off),
-                    label: const Text('Disconnect'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Data Sync section removed per request
-
   Widget _buildErrorDisplay(BuildContext context, SyncState state) {
-    return Card(
-      color: Colors.red[50],
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 8, 36, 8),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.red.withOpacity(0.25)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error, color: Colors.red),
+                const Icon(Icons.error_outline, color: Colors.red, size: 18),
                 const SizedBox(width: 8),
-                Text(
-                  'Error',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.red,
-                      ),
+                Flexible(
+                  child: Text(
+                    state.error!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.red.shade700,
+                        ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              state.error!,
-              style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          Positioned(
+            top: -0,
+            right: -0,
+            child: Material(
+              color: Colors.transparent,
+              child: IconButton(
+                onPressed: () => context.read<SyncBloc>().add(
+                      const SyncClearError(),
+                    ),
+                icon: const Icon(Icons.close, size: 18),
+                color: Colors.red.shade700,
+                padding: const EdgeInsets.all(6),
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                splashRadius: 16,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => context.read<SyncBloc>().add(
-                    const SyncEvent.clearError(),
-                  ),
-              child: const Text('Dismiss'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

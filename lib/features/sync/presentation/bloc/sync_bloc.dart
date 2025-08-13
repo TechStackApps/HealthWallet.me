@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_wallet/features/sync/domain/entities/ssdp_service_info.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
-import 'package:health_wallet/features/sync/domain/services/simple_discovery_service.dart';
+import 'package:health_wallet/features/sync/domain/services/discovery_service.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 
 part 'sync_event.dart';
 part 'sync_state.dart';
@@ -16,69 +16,46 @@ part 'sync_bloc.freezed.dart';
 @injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final FhirApiService _fhirApiService;
-  final SimpleDiscoveryService _discoveryService;
+  final DiscoveryService _discoveryService;
   final SyncRepository _syncRepository;
+  final SharedPreferences _prefs;
 
-  SyncBloc(this._fhirApiService, this._discoveryService, this._syncRepository)
+  static const String _persistKey = 'sync_persisted_state_v1';
+
+  SyncBloc(this._fhirApiService, this._discoveryService, this._syncRepository,
+      this._prefs)
       : super(const SyncState()) {
-    logger.d('🏗️ [BLOC] SyncBloc constructor called');
+    on<SyncDiscoverServices>(_onDiscoverServices);
+    on<SyncClearDiscoveredServices>(_onClearDiscoveredServices);
+    on<SyncConnectToService>(_onConnectToService);
+    on<SyncDisconnectFromService>(_onDisconnectFromService);
+    on<SyncTestConnection>(_onTestConnection);
+    on<SyncData>(_onSyncData);
+    on<SyncClearError>(_onClearError);
+    on<SyncCheckTokenStatus>(_onCheckTokenStatus);
+    on<SyncCheckConnectionValidity>(_onCheckConnectionValidity);
+    on<SyncRestoreState>(_onRestoreState);
 
-    on<SyncEvent>((event, emit) async {
-      logger.d('🏗️ [BLOC] Event received: ${event.runtimeType}');
-
-      try {
-        await event.when(
-          // Service discovery and connection
-          discoverServices: () async => await _onDiscoverServices(emit),
-          clearDiscoveredServices: () async =>
-              await _onClearDiscoveredServices(emit),
-          connectToService: (service) async =>
-              await _onConnectToService(emit, service),
-          disconnectFromService: () async =>
-              await _onDisconnectFromService(emit),
-          testConnection: (service) async =>
-              await _onTestConnection(emit, service),
-
-          // Data operations
-          syncData: () async => await _onSyncData(emit),
-
-          // UI state management
-          clearError: () async => _onClearError(emit),
-
-          // Token and connection management
-          checkTokenStatus: () async => await _onCheckTokenStatus(emit),
-          checkConnectionValidity: () async =>
-              await _onCheckConnectionValidity(emit),
-        );
-      } catch (e) {
-        logger.e('🏗️ [BLOC] Error in event handler: $e');
-      }
-
-      logger.d('🏗️ [BLOC] Event handler completed for: ${event.runtimeType}');
-    });
+    add(const SyncRestoreState());
   }
 
   @override
   Future<void> close() {
-    logger.d('🏗️ [BLOC] SyncBloc close() called');
     return super.close();
   }
 
-  // Event handlers
-  Future<void> _onDiscoverServices(Emitter<SyncState> emit) async {
+  Future<void> _onDiscoverServices(
+      SyncDiscoverServices event, Emitter<SyncState> emit) async {
     try {
-      // Always start fresh discovery
       emit(state.copyWith(
         isLoading: true,
         isDiscovering: true,
         error: null,
-        discoveredServices: [], // Clear previous discoveries
+        discoveredServices: [],
       ));
 
-      // Ensure discovery is running before scanning
       await _discoveryService.startDiscovery();
 
-      // Use the discovery service to discover real services
       final services = await _discoveryService.discoverByDirectIP();
 
       emit(state.copyWith(
@@ -88,88 +65,78 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         lastDiscoveryTime: DateTime.now(),
       ));
 
-      // Stop discovery after scan completes
+      await _persistState();
+
       await _discoveryService.stopDiscovery();
 
-      logger.d('✅ Discovered ${services.length} services');
+      if (services.isEmpty) {
+        emit(state.copyWith(
+          error:
+              'No Fasten server found. Make sure your Fasten server is running and reachable on the same network, then tap SCAN again.',
+        ));
+      }
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         isDiscovering: false,
         error: 'Failed to discover services: $e',
       ));
-      logger.e('❌ Service discovery failed: $e');
     }
   }
 
-  Future<void> _onClearDiscoveredServices(Emitter<SyncState> emit) async {
+  Future<void> _onClearDiscoveredServices(
+      SyncClearDiscoveredServices event, Emitter<SyncState> emit) async {
     emit(state.copyWith(
       discoveredServices: [],
       lastDiscoveryTime: null,
     ));
-    logger.d('🧹 Cleared discovered services');
+    await _persistState();
   }
 
   Future<void> _onConnectToService(
+    SyncConnectToService event,
     Emitter<SyncState> emit,
-    SSDPServiceInfo service,
   ) async {
     try {
-      logger.d(
-          '🔌 [DEBUG] Starting _onConnectToService for: ${service.friendlyName}');
-      logger.d('🔌 [DEBUG] Current state: ${state.syncStatus}');
-      logger.d('🔌 [DEBUG] BLoC closed status: $isClosed');
-
       emit(state.copyWith(
         isLoading: true,
         error: null,
         syncStatus: SyncStatus.connecting,
       ));
-      logger.d('🔌 [DEBUG] Emitted connecting state');
 
-      logger.d('🔌 [DEBUG] About to call _fhirApiService.connectToService');
       final isConnected =
-          await _fhirApiService.testConnectionToService(service);
-      logger.d('🔌 [DEBUG] testConnection result: $isConnected');
+          await _fhirApiService.testConnectionToService(event.service);
 
       if (isConnected) {
-        // Connect the FhirApiService to this service by updating its base URL
-        await _fhirApiService.connectToService(service);
+        await _fhirApiService.connectToService(event.service);
 
-        // Attempt to fetch mobile sync data and persist token
         try {
-          final result = await _fhirApiService.getMobileSyncData(service);
+          final result = await _fhirApiService.getMobileSyncData(event.service);
           final data = result['data'] as Map<String, dynamic>;
-          // Expect data to include token, server and endpoints as per your curl output
-          // Persist via SyncRepository -> SyncTokenService path
-          // Reuse existing method that supports raw JSON input
           await _syncRepository.syncDataWithJson(jsonEncode(data));
-        } catch (_) {
-          // Non-fatal if bootstrap fails; user can scan QR or retry
-        }
-        logger.d('🔌 [DEBUG] Connection successful, emitting connected state');
+        } catch (_) {}
+        final updatedRecent = _upsertRecentConnection(service: event.service);
         emit(state.copyWith(
           isLoading: false,
-          connectedService: service,
+          connectedService: event.service,
           syncStatus: SyncStatus.connected,
+          recentConnections: updatedRecent,
         ));
-        logger.d('🔌 [DEBUG] Connected state emitted successfully');
-        logger.d('✅ Connected to service: ${service.friendlyName}');
+        await _persistState();
       } else {
         throw Exception('Connection test failed');
       }
-      logger.d('🔌 [DEBUG] _onConnectToService method completed');
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         error: 'Failed to connect: $e',
         syncStatus: SyncStatus.error,
       ));
-      logger.e('❌ Failed to connect to service: $e');
     }
   }
 
-  Future<void> _onDisconnectFromService(Emitter<SyncState> emit) async {
+  Future<void> _onDisconnectFromService(
+      SyncDisconnectFromService event, Emitter<SyncState> emit) async {
     try {
       if (state.connectedService != null) {
         await _fhirApiService.disconnectFromService(state.connectedService!);
@@ -179,11 +146,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         connectedService: null,
         syncStatus: SyncStatus.disconnected,
       ));
-
-      logger.d('🔌 Disconnected from service');
+      await _persistState();
     } catch (e) {
-      logger.e('❌ Error during disconnect: $e');
-      // Still update state even if disconnect fails
       emit(state.copyWith(
         connectedService: null,
         syncStatus: SyncStatus.disconnected,
@@ -192,21 +156,21 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   }
 
   Future<void> _onTestConnection(
+    SyncTestConnection event,
     Emitter<SyncState> emit,
-    SSDPServiceInfo service,
   ) async {
     try {
       emit(state.copyWith(isLoading: true, error: null));
 
       final isConnected =
-          await _fhirApiService.testConnectionToService(service);
+          await _fhirApiService.testConnectionToService(event.service);
 
       if (isConnected) {
         emit(state.copyWith(
           isLoading: false,
           error: null,
         ));
-        logger.d('✅ Connection test successful');
+        await _persistState();
       } else {
         throw Exception('Connection test failed');
       }
@@ -215,11 +179,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         isLoading: false,
         error: 'Connection test failed: $e',
       ));
-      logger.e('❌ Connection test failed: $e');
     }
   }
 
-  Future<void> _onSyncData(Emitter<SyncState> emit) async {
+  Future<void> _onSyncData(SyncData event, Emitter<SyncState> emit) async {
     try {
       if (state.connectedService == null) {
         throw Exception('No service connected');
@@ -231,7 +194,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         syncStatus: SyncStatus.syncing,
       ));
 
-      // Use the sync repository for data sync
       await _syncRepository.syncData();
 
       emit(state.copyWith(
@@ -239,61 +201,149 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         syncStatus: SyncStatus.connected,
         lastSyncTime: DateTime.now(),
       ));
-
-      logger.d('✅ Data sync completed successfully');
+      await _persistState();
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         syncStatus: SyncStatus.error,
         error: 'Data sync failed: $e',
       ));
-      logger.e('❌ Data sync failed: $e');
     }
   }
 
-  void _onClearError(Emitter<SyncState> emit) {
+  void _onClearError(SyncClearError event, Emitter<SyncState> emit) {
     emit(state.copyWith(error: null));
   }
 
-  Future<void> _onCheckTokenStatus(Emitter<SyncState> emit) async {
+  Future<void> _onCheckTokenStatus(
+      SyncCheckTokenStatus event, Emitter<SyncState> emit) async {
     try {
       emit(state.copyWith(isLoading: true, error: null));
 
-      final status = await _syncRepository.checkConnectionValidity();
+      await _syncRepository.checkConnectionValidity();
 
       emit(state.copyWith(
         isLoading: false,
         error: null,
       ));
-
-      logger.d('✅ Token status checked: $status');
+      await _persistState();
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         error: 'Failed to check token status: $e',
       ));
-      logger.e('❌ Token status check failed: $e');
     }
   }
 
-  Future<void> _onCheckConnectionValidity(Emitter<SyncState> emit) async {
+  Future<void> _onCheckConnectionValidity(
+      SyncCheckConnectionValidity event, Emitter<SyncState> emit) async {
     try {
       emit(state.copyWith(isLoading: true, error: null));
 
-      final status = await _syncRepository.checkConnectionValidity();
+      await _syncRepository.checkConnectionValidity();
 
       emit(state.copyWith(
         isLoading: false,
         error: null,
       ));
-
-      logger.d('✅ Connection validity checked: $status');
+      await _persistState();
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         error: 'Failed to check connection validity: $e',
       ));
-      logger.e('❌ Connection validity check failed: $e');
     }
+  }
+
+  Future<void> _onRestoreState(
+      SyncRestoreState event, Emitter<SyncState> emit) async {
+    await _restorePersistedState(emit);
+  }
+
+  List<SSDPServiceInfo> _upsertRecentConnection({
+    required SSDPServiceInfo service,
+    int maxItems = 5,
+  }) {
+    final List<SSDPServiceInfo> list = List.of(_loadRecentFromPrefs());
+    list.removeWhere((s) =>
+        (s.serverAddress == service.serverAddress &&
+            s.serverPort == service.serverPort) ||
+        s.id == service.id);
+    list.insert(0, service);
+    if (list.length > maxItems) list.removeRange(maxItems, list.length);
+    return list;
+  }
+
+  List<SSDPServiceInfo> _loadRecentFromPrefs() {
+    try {
+      final raw = _prefs.getString(_persistKey);
+      if (raw == null) return [];
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final list =
+          (map['recentConnections'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+      return list.map((e) => SSDPServiceInfo.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _persistState({List<SSDPServiceInfo>? recentConnections}) async {
+    try {
+      final data = <String, dynamic>{
+        'syncStatus': state.syncStatus.name,
+        'connectedService': state.connectedService?.toJson(),
+        'lastDiscoveryTime': state.lastDiscoveryTime?.toIso8601String(),
+        'lastSyncTime': state.lastSyncTime?.toIso8601String(),
+        'discoveredServices':
+            state.discoveredServices.map((e) => e.toJson()).toList(),
+        'recentConnections': (recentConnections ?? state.recentConnections)
+            .map((e) => e.toJson())
+            .toList(),
+      };
+      await _prefs.setString(_persistKey, jsonEncode(data));
+    } catch (_) {}
+  }
+
+  Future<void> _restorePersistedState(Emitter<SyncState> emit) async {
+    try {
+      final raw = _prefs.getString(_persistKey);
+      if (raw == null) return;
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final persistedStatus = switch (map['syncStatus'] as String?) {
+        'connecting' => SyncStatus.connecting,
+        'connected' => SyncStatus.connected,
+        'syncing' => SyncStatus.syncing,
+        'error' => SyncStatus.error,
+        _ => SyncStatus.disconnected,
+      };
+      final connectedServiceMap =
+          map['connectedService'] as Map<String, dynamic>?;
+      final discovered =
+          (map['discoveredServices'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+      final recent =
+          (map['recentConnections'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+
+      emit(state.copyWith(
+        isLoading: false,
+        isDiscovering: false,
+        syncStatus: persistedStatus,
+        connectedService: connectedServiceMap != null
+            ? SSDPServiceInfo.fromJson(connectedServiceMap)
+            : null,
+        lastDiscoveryTime: (map['lastDiscoveryTime'] as String?) != null
+            ? DateTime.tryParse(map['lastDiscoveryTime'] as String)
+            : null,
+        lastSyncTime: (map['lastSyncTime'] as String?) != null
+            ? DateTime.tryParse(map['lastSyncTime'] as String)
+            : null,
+        discoveredServices:
+            discovered.map((e) => SSDPServiceInfo.fromJson(e)).toList(),
+        recentConnections:
+            recent.map((e) => SSDPServiceInfo.fromJson(e)).toList(),
+      ));
+    } catch (_) {}
   }
 }

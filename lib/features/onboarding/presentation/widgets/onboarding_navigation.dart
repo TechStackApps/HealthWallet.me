@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
-import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingNavigation extends StatelessWidget {
@@ -49,8 +47,10 @@ class OnboardingNavigation extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: context.colorScheme.primary,
+                foregroundColor: context.isDarkMode
+                    ? Colors.white
+                    : context.colorScheme.onPrimary,
                 padding: const EdgeInsets.all(12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
@@ -75,7 +75,7 @@ class OnboardingNavigation extends StatelessWidget {
                   child: Text(
                     'Privacy Policy',
                     style: AppTextStyle.bodySmall.copyWith(
-                      color: AppColors.textPrimary.withValues(alpha: 0.7),
+                      color: context.colorScheme.onSurface.withOpacity(0.7),
                       decoration: TextDecoration.underline,
                       letterSpacing: -0.2,
                     ),
@@ -108,8 +108,14 @@ class OnboardingNavigation extends StatelessWidget {
         margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color:
-              currentPage == index ? context.theme.primaryColor : Colors.white,
+          color: currentPage == index
+              ? context.colorScheme.primary
+                  .withOpacity(context.isDarkMode ? 0.9 : 1.0)
+              : context.colorScheme.onSurface.withOpacity(0.3),
+          border: Border.all(
+            color: context.colorScheme.onSurface.withOpacity(0.15),
+            width: currentPage == index ? 0 : 1,
+          ),
         ),
       ),
     );

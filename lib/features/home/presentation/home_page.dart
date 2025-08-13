@@ -110,10 +110,10 @@ class _HomeViewState extends State<HomeView> {
     context.read<HomeBloc>().add(const HomeInitialised());
 
     // Check for sync token updates
-    context.read<SyncBloc>().add(const SyncEvent.checkTokenStatus());
+    context.read<SyncBloc>().add(const SyncCheckTokenStatus());
 
     // Check connection validity
-    context.read<SyncBloc>().add(const SyncEvent.checkConnectionValidity());
+    context.read<SyncBloc>().add(const SyncCheckConnectionValidity());
 
     // Small delay to allow the refresh to complete
     await Future.delayed(const Duration(milliseconds: 500));
