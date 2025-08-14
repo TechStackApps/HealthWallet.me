@@ -17,7 +17,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 3; // Increment for database optimization
+  int get schemaVersion => 4; // Added subjectId column to FhirResource table
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

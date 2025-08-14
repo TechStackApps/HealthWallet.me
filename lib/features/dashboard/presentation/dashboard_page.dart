@@ -1,12 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 @RoutePage()
@@ -72,7 +72,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               height: 24,
                               colorFilter: ColorFilter.mode(
                                 _currentIndex == 0
-                                    ? context.colorScheme.surface
+                                    ? (context.isDarkMode
+                                        ? Colors.white
+                                        : context.colorScheme.surface)
                                     : context.colorScheme.onSurface,
                                 BlendMode.srcIn,
                               ),
@@ -95,7 +97,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               height: 24,
                               colorFilter: ColorFilter.mode(
                                 _currentIndex == 1
-                                    ? context.colorScheme.surface
+                                    ? (context.isDarkMode
+                                        ? Colors.white
+                                        : context.colorScheme.surface)
                                     : context.colorScheme.onSurface,
                                 BlendMode.srcIn,
                               ),
@@ -148,7 +152,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 label,
                 style: AppTextStyle.labelSmall.copyWith(
                   color: isSelected
-                      ? context.colorScheme.surface
+                      ? (context.isDarkMode
+                          ? Colors.white
+                          : context.colorScheme.surface)
                       : context.colorScheme.onSurface,
                 ),
               ),

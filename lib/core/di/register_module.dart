@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/services/biometric_auth_service.dart';
+import 'package:health_wallet/features/sync/domain/services/discovery_service.dart';
 // import 'package:health_wallet/features/user/data/data_source/local/user_local_data_source.dart';
 import 'package:health_wallet/features/user/data/data_source/remote/user_remote_data_source.dart';
 import 'package:injectable/injectable.dart';
@@ -24,4 +25,7 @@ abstract class RegisterModule {
 
   @lazySingleton
   BiometricAuthService get biometricAuthService => BiometricAuthService();
+
+  @lazySingleton
+  DiscoveryService get simpleDiscoveryService => DiscoveryServiceImpl();
 }

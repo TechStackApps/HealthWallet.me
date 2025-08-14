@@ -77,7 +77,7 @@ class SyncSection extends StatelessWidget {
                     ),
                     const SizedBox(height: Insets.small),
                     Text(
-                      'Sync your latest medical records from your healthcare provider using a secure JWT token. *',
+                      'The scan will test common network IPs and your local subnet to find Fasten servers automatically.',
                       textAlign: TextAlign.center,
                       style: AppTextStyle.labelLarge,
                     ),

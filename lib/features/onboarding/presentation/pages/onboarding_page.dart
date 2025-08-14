@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -57,7 +56,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.white, AppColors.primary.withValues(alpha: 0.1)],
+                  colors: [
+                    context.colorScheme.surface,
+                    context.colorScheme.primary.withOpacity(0.08),
+                  ],
                   stops: const [0.5, 1],
                   begin: Alignment.center,
                   end: Alignment.bottomCenter,
@@ -72,11 +74,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         controller: _pageController,
                         onPageChanged: (int page) {
                           // Close scanner if user swipes to a different page
-                          if (state.isScannerActive && page != 1) {
-                            context
-                                .read<OnboardingBloc>()
-                                .add(const OnboardingScanQR());
-                          }
+
                           context
                               .read<OnboardingBloc>()
                               .add(OnboardingPageChanged(page));

@@ -14,6 +14,7 @@ import 'package:health_wallet/features/home/presentation/sections/vitals_section
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
@@ -109,10 +110,10 @@ class _HomeViewState extends State<HomeView> {
     context.read<HomeBloc>().add(const HomeInitialised());
 
     // Check for sync token updates
-    context.read<SyncBloc>().add(const SyncEvent.checkTokenStatus());
+    context.read<SyncBloc>().add(const SyncCheckTokenStatus());
 
     // Check connection validity
-    context.read<SyncBloc>().add(const SyncEvent.checkConnectionValidity());
+    context.read<SyncBloc>().add(const SyncCheckConnectionValidity());
 
     // Small delay to allow the refresh to complete
     await Future.delayed(const Duration(milliseconds: 500));
@@ -337,10 +338,11 @@ class _HomeViewState extends State<HomeView> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.filter_alt,
-                                    size: 14,
-                                    color: colorScheme.primary,
+                                  Assets.icons.filter.svg(
+                                    colorFilter: ColorFilter.mode(
+                                      context.colorScheme.primary,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -356,9 +358,6 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ),
                     const SizedBox(height: Insets.smallNormal),
-
-                    // Removed debug logs
-
                     VitalsSection(
                       vitals: state.patientVitals,
                       editMode: editMode,
@@ -385,7 +384,6 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ),
                         if (editMode)
-                          // Show "Edit Records" when in edit mode
                           InkWell(
                             onTap: () => _showEditRecordsDialog(state),
                             child: Container(
@@ -400,10 +398,11 @@ class _HomeViewState extends State<HomeView> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.edit,
-                                    size: 14,
-                                    color: colorScheme.primary,
+                                  Assets.icons.filter.svg(
+                                    colorFilter: ColorFilter.mode(
+                                      context.colorScheme.primary,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -511,6 +510,10 @@ class _HomeViewState extends State<HomeView> {
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.ease,
                         );
+                      },
+                      onTapRecord: (record) {
+                        context.router
+                            .push(RecordDetailsRoute(resource: record));
                       },
                     ),
                     const SizedBox(height: 116),

@@ -1,215 +1,349 @@
+import 'dart:convert';
 import 'dart:async';
-
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:health_wallet/features/sync/domain/entities/sync_token.dart';
-import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
-import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // Added for jsonDecode
+import 'package:health_wallet/features/sync/domain/entities/ssdp_service_info.dart';
+import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
+import 'package:health_wallet/features/sync/domain/services/discovery_service.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 
-part 'sync_bloc.freezed.dart';
 part 'sync_event.dart';
 part 'sync_state.dart';
+part 'sync_bloc.freezed.dart';
 
 @injectable
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
+  final FhirApiService _fhirApiService;
+  final DiscoveryService _discoveryService;
   final SyncRepository _syncRepository;
-  final SyncTokenService _syncTokenService;
   final SharedPreferences _prefs;
 
-  SyncBloc(
-    this._syncRepository,
-    this._syncTokenService,
-    this._prefs,
-  ) : super(const SyncState()) {
-    on<SyncEvent>((event, emit) async {
-      await event.when(
-        syncData: () => _onSyncData(emit),
-        syncDataWithJson: (jsonData) => _onSyncDataWithJson(jsonData, emit),
-        historyLoaded: () => _onHistoryLoaded(emit),
-        tokenStatusLoaded: () => _onTokenStatusLoaded(emit),
-        tokenRevoked: (tokenId) => _onTokenRevoked(emit, tokenId),
-        checkTokenStatus: () => _onCheckTokenStatus(emit),
-        checkConnectionValidity: () => _onCheckConnectionValidity(emit),
-      );
-    });
+  static const String _persistKey = 'sync_persisted_state_v1';
+
+  SyncBloc(this._fhirApiService, this._discoveryService, this._syncRepository,
+      this._prefs)
+      : super(const SyncState()) {
+    on<SyncDiscoverServices>(_onDiscoverServices);
+    on<SyncClearDiscoveredServices>(_onClearDiscoveredServices);
+    on<SyncConnectToService>(_onConnectToService);
+    on<SyncDisconnectFromService>(_onDisconnectFromService);
+    on<SyncTestConnection>(_onTestConnection);
+    on<SyncData>(_onSyncData);
+    on<SyncClearError>(_onClearError);
+    on<SyncCheckTokenStatus>(_onCheckTokenStatus);
+    on<SyncCheckConnectionValidity>(_onCheckConnectionValidity);
+    on<SyncRestoreState>(_onRestoreState);
+
+    add(const SyncRestoreState());
   }
 
-  Future<void> _onSyncData(Emitter<SyncState> emit) async {
-    emit(state.copyWith(status: const SyncStatus.loading()));
+  @override
+  Future<void> close() {
+    return super.close();
+  }
+
+  Future<void> _onDiscoverServices(
+      SyncDiscoverServices event, Emitter<SyncState> emit) async {
     try {
-      await _syncRepository.syncData();
-      await _addSyncTimeToHistory();
       emit(state.copyWith(
-        status: const SyncStatus.success(),
-        history: _getSyncHistory(),
+        isLoading: true,
+        isDiscovering: true,
+        error: null,
+        discoveredServices: [],
       ));
-      add(const SyncEvent.checkConnectionValidity());
-    } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
-    }
-  }
 
-  Future<void> _onSyncDataWithJson(
-      String jsonData, Emitter<SyncState> emit) async {
-    emit(state.copyWith(status: const SyncStatus.loading()));
-    try {
-      await _syncRepository.syncDataWithJson(jsonData);
-      await _addSyncTimeToHistory();
+      await _discoveryService.startDiscovery();
 
-      // Check if this was a token setup and save it
-      await _handleTokenFromJsonData(jsonData);
+      final services = await _discoveryService.discoverByDirectIP();
 
       emit(state.copyWith(
-        status: const SyncStatus.success(),
-        history: _getSyncHistory(),
+        isLoading: false,
+        isDiscovering: false,
+        discoveredServices: services,
+        lastDiscoveryTime: DateTime.now(),
       ));
-    } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
-    }
-  }
 
-  Future<void> _onHistoryLoaded(Emitter<SyncState> emit) async {
-    emit(state.copyWith(history: _getSyncHistory()));
-  }
+      await _persistState();
 
-  Future<void> _onTokenStatusLoaded(Emitter<SyncState> emit) async {
-    try {
-      final token = await _syncTokenService.getCurrentToken();
-      emit(state.copyWith(
-        currentToken: token,
-        tokenStatus: _getTokenStatus(token),
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        currentToken: null,
-        tokenStatus: const SyncTokenStatus.none(),
-      ));
-    }
-  }
+      await _discoveryService.stopDiscovery();
 
-  Future<void> _onTokenRevoked(Emitter<SyncState> emit, String? tokenId) async {
-    try {
-      await _syncTokenService.revokeToken(tokenId: tokenId);
-
-      // If no specific tokenId was provided or it was the current token, clear current token
-      if (tokenId == null || state.currentToken?.tokenId == tokenId) {
+      if (services.isEmpty) {
         emit(state.copyWith(
-          currentToken: null,
-          tokenStatus: const SyncTokenStatus.none(),
+          error:
+              'No Fasten server found. Make sure your Fasten server is running and reachable on the same network, then tap SCAN again.',
         ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        isDiscovering: false,
+        error: 'Failed to discover services: $e',
+      ));
+    }
+  }
+
+  Future<void> _onClearDiscoveredServices(
+      SyncClearDiscoveredServices event, Emitter<SyncState> emit) async {
+    emit(state.copyWith(
+      discoveredServices: [],
+      lastDiscoveryTime: null,
+    ));
+    await _persistState();
+  }
+
+  Future<void> _onConnectToService(
+    SyncConnectToService event,
+    Emitter<SyncState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(
+        isLoading: true,
+        error: null,
+        syncStatus: SyncStatus.connecting,
+      ));
+
+      final isConnected =
+          await _fhirApiService.testConnectionToService(event.service);
+
+      if (isConnected) {
+        await _fhirApiService.connectToService(event.service);
+
+        try {
+          final result = await _fhirApiService.getMobileSyncData(event.service);
+          final data = result['data'] as Map<String, dynamic>;
+          await _syncRepository.syncDataWithJson(jsonEncode(data));
+        } catch (_) {}
+        final updatedRecent = _upsertRecentConnection(service: event.service);
+        emit(state.copyWith(
+          isLoading: false,
+          connectedService: event.service,
+          syncStatus: SyncStatus.connected,
+          recentConnections: updatedRecent,
+        ));
+        await _persistState();
       } else {
-        // Just refresh the token status if a different token was revoked
-        await _onTokenStatusLoaded(emit);
+        throw Exception('Connection test failed');
       }
     } catch (e) {
-      emit(state.copyWith(status: SyncStatus.failure(e.toString())));
-    }
-  }
-
-  Future<void> _onCheckTokenStatus(Emitter<SyncState> emit) async {
-    try {
-      await _syncTokenService.clearExpiredTokens();
-      final token = await _syncTokenService.getCurrentToken();
       emit(state.copyWith(
-        currentToken: token,
-        tokenStatus: _getTokenStatus(token),
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        currentToken: null,
-        tokenStatus: const SyncTokenStatus.none(),
+        isLoading: false,
+        error: 'Failed to connect: $e',
+        syncStatus: SyncStatus.error,
       ));
     }
   }
 
-  Future<void> _onCheckConnectionValidity(Emitter<SyncState> emit) async {
+  Future<void> _onDisconnectFromService(
+      SyncDisconnectFromService event, Emitter<SyncState> emit) async {
     try {
-      final status = await _syncTokenService.checkConnectionValidity();
-      switch (status) {
-        case ConnectionStatus.valid:
-          emit(state.copyWith(
-              connectionValid: true, status: const SyncStatus.connected()));
-          break;
-        case ConnectionStatus.invalidToken:
-          emit(state.copyWith(
-              connectionValid: false,
-              tokenStatus: const SyncTokenStatus.expired()));
-          break;
-        case ConnectionStatus.serverDown:
-          // Try to reconnect automatically when server is down
-          final reconnected = await _syncTokenService.attemptReconnection();
-          if (reconnected) {
-            emit(state.copyWith(
-                connectionValid: true, status: const SyncStatus.connected()));
-          } else {
-            emit(state.copyWith(
-                connectionValid: false,
-                status: const SyncStatus.failure(
-                    'Server is down - try updating server address')));
-          }
-          break;
+      if (state.connectedService != null) {
+        await _fhirApiService.disconnectFromService(state.connectedService!);
+      }
+
+      emit(state.copyWith(
+        connectedService: null,
+        syncStatus: SyncStatus.disconnected,
+      ));
+      await _persistState();
+    } catch (e) {
+      emit(state.copyWith(
+        connectedService: null,
+        syncStatus: SyncStatus.disconnected,
+      ));
+    }
+  }
+
+  Future<void> _onTestConnection(
+    SyncTestConnection event,
+    Emitter<SyncState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(isLoading: true, error: null));
+
+      final isConnected =
+          await _fhirApiService.testConnectionToService(event.service);
+
+      if (isConnected) {
+        emit(state.copyWith(
+          isLoading: false,
+          error: null,
+        ));
+        await _persistState();
+      } else {
+        throw Exception('Connection test failed');
       }
     } catch (e) {
       emit(state.copyWith(
-          connectionValid: false, status: SyncStatus.failure(e.toString())));
+        isLoading: false,
+        error: 'Connection test failed: $e',
+      ));
     }
   }
 
-  List<DateTime> _getSyncHistory() {
-    final history = _prefs.getStringList('sync_history') ?? [];
-    return history.map((e) => DateTime.parse(e)).toList();
-  }
-
-  Future<void> _addSyncTimeToHistory() async {
-    final history = _getSyncHistory();
-    history.insert(0, DateTime.now());
-    await _prefs.setStringList(
-        'sync_history', history.map((e) => e.toIso8601String()).toList());
-  }
-
-  Future<void> _handleTokenFromJsonData(String jsonData) async {
+  Future<void> _onSyncData(SyncData event, Emitter<SyncState> emit) async {
     try {
-      final decodedData = await _parseJsonData(jsonData);
-
-      // Check if this is server connection data (has token and port)
-      if (decodedData is Map<String, dynamic> &&
-          decodedData.containsKey('token') &&
-          decodedData.containsKey('port')) {
-        final token =
-            await _syncTokenService.createTokenFromSyncData(decodedData);
-        await _syncTokenService.saveToken(token);
+      if (state.connectedService == null) {
+        throw Exception('No service connected');
       }
+
+      emit(state.copyWith(
+        isLoading: true,
+        error: null,
+        syncStatus: SyncStatus.syncing,
+      ));
+
+      await _syncRepository.syncData();
+
+      emit(state.copyWith(
+        isLoading: false,
+        syncStatus: SyncStatus.connected,
+        lastSyncTime: DateTime.now(),
+      ));
+      await _persistState();
     } catch (e) {
-      // If we can't parse or save the token, continue without error
-      // The sync operation itself may still succeed
+      emit(state.copyWith(
+        isLoading: false,
+        syncStatus: SyncStatus.error,
+        error: 'Data sync failed: $e',
+      ));
     }
   }
 
-  Future<dynamic> _parseJsonData(String jsonData) async {
+  void _onClearError(SyncClearError event, Emitter<SyncState> emit) {
+    emit(state.copyWith(error: null));
+  }
+
+  Future<void> _onCheckTokenStatus(
+      SyncCheckTokenStatus event, Emitter<SyncState> emit) async {
     try {
-      return jsonDecode(jsonData);
+      emit(state.copyWith(isLoading: true, error: null));
+
+      await _syncRepository.checkConnectionValidity();
+
+      emit(state.copyWith(
+        isLoading: false,
+        error: null,
+      ));
+      await _persistState();
     } catch (e) {
-      throw Exception('Invalid JSON data: $e');
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'Failed to check token status: $e',
+      ));
     }
   }
 
-  SyncTokenStatus _getTokenStatus(SyncToken? token) {
-    if (token == null) {
-      return const SyncTokenStatus.none();
-    }
+  Future<void> _onCheckConnectionValidity(
+      SyncCheckConnectionValidity event, Emitter<SyncState> emit) async {
+    try {
+      emit(state.copyWith(isLoading: true, error: null));
 
-    if (token.isExpired) {
-      return const SyncTokenStatus.expired();
-    }
+      await _syncRepository.checkConnectionValidity();
 
-    if (token.isExpiringSoon) {
-      return const SyncTokenStatus.expiringSoon();
+      emit(state.copyWith(
+        isLoading: false,
+        error: null,
+      ));
+      await _persistState();
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'Failed to check connection validity: $e',
+      ));
     }
+  }
 
-    return const SyncTokenStatus.active();
+  Future<void> _onRestoreState(
+      SyncRestoreState event, Emitter<SyncState> emit) async {
+    await _restorePersistedState(emit);
+  }
+
+  List<SSDPServiceInfo> _upsertRecentConnection({
+    required SSDPServiceInfo service,
+    int maxItems = 5,
+  }) {
+    final List<SSDPServiceInfo> list = List.of(_loadRecentFromPrefs());
+    list.removeWhere((s) =>
+        (s.serverAddress == service.serverAddress &&
+            s.serverPort == service.serverPort) ||
+        s.id == service.id);
+    list.insert(0, service);
+    if (list.length > maxItems) list.removeRange(maxItems, list.length);
+    return list;
+  }
+
+  List<SSDPServiceInfo> _loadRecentFromPrefs() {
+    try {
+      final raw = _prefs.getString(_persistKey);
+      if (raw == null) return [];
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final list =
+          (map['recentConnections'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+      return list.map((e) => SSDPServiceInfo.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _persistState({List<SSDPServiceInfo>? recentConnections}) async {
+    try {
+      final data = <String, dynamic>{
+        'syncStatus': state.syncStatus.name,
+        'connectedService': state.connectedService?.toJson(),
+        'lastDiscoveryTime': state.lastDiscoveryTime?.toIso8601String(),
+        'lastSyncTime': state.lastSyncTime?.toIso8601String(),
+        'discoveredServices':
+            state.discoveredServices.map((e) => e.toJson()).toList(),
+        'recentConnections': (recentConnections ?? state.recentConnections)
+            .map((e) => e.toJson())
+            .toList(),
+      };
+      await _prefs.setString(_persistKey, jsonEncode(data));
+    } catch (_) {}
+  }
+
+  Future<void> _restorePersistedState(Emitter<SyncState> emit) async {
+    try {
+      final raw = _prefs.getString(_persistKey);
+      if (raw == null) return;
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final persistedStatus = switch (map['syncStatus'] as String?) {
+        'connecting' => SyncStatus.connecting,
+        'connected' => SyncStatus.connected,
+        'syncing' => SyncStatus.syncing,
+        'error' => SyncStatus.error,
+        _ => SyncStatus.disconnected,
+      };
+      final connectedServiceMap =
+          map['connectedService'] as Map<String, dynamic>?;
+      final discovered =
+          (map['discoveredServices'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+      final recent =
+          (map['recentConnections'] as List?)?.cast<Map<String, dynamic>>() ??
+              [];
+
+      emit(state.copyWith(
+        isLoading: false,
+        isDiscovering: false,
+        syncStatus: persistedStatus,
+        connectedService: connectedServiceMap != null
+            ? SSDPServiceInfo.fromJson(connectedServiceMap)
+            : null,
+        lastDiscoveryTime: (map['lastDiscoveryTime'] as String?) != null
+            ? DateTime.tryParse(map['lastDiscoveryTime'] as String)
+            : null,
+        lastSyncTime: (map['lastSyncTime'] as String?) != null
+            ? DateTime.tryParse(map['lastSyncTime'] as String)
+            : null,
+        discoveredServices:
+            discovered.map((e) => SSDPServiceInfo.fromJson(e)).toList(),
+        recentConnections:
+            recent.map((e) => SSDPServiceInfo.fromJson(e)).toList(),
+      ));
+    } catch (_) {}
   }
 }

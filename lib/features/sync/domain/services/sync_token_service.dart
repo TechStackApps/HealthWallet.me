@@ -409,14 +409,24 @@ class SyncTokenServiceImpl implements SyncTokenService {
       port = data['port'] as String;
     }
 
-    // Legacy format with server object
+    // Handle server field - can be either a string (address:port) or a map
     if (data.containsKey('server')) {
-      final server = data['server'] as Map<String, dynamic>;
-      if (server.containsKey('host')) {
-        address = server['host'] as String;
-      }
-      if (server.containsKey('port')) {
-        port = server['port'] as String;
+      final server = data['server'];
+      if (server is String) {
+        // Server is a string like "192.168.1.164:9090"
+        final parts = server.split(':');
+        if (parts.length == 2) {
+          address = parts[0];
+          port = parts[1];
+        }
+      } else if (server is Map<String, dynamic>) {
+        // Legacy format with server object
+        if (server.containsKey('host')) {
+          address = server['host'] as String;
+        }
+        if (server.containsKey('port')) {
+          port = server['port'] as String;
+        }
       }
     }
 

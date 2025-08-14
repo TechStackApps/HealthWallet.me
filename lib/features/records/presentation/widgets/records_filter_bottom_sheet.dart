@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
-import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class RecordsFilterBottomSheet extends StatefulWidget {
@@ -53,14 +51,21 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
-                    bottom: BorderSide(
-                        color: AppColors.textPrimary.withValues(alpha: 0.1),
-                        width: 1)),
+                  bottom: BorderSide(
+                    color: context.colorScheme.onSurface.withOpacity(0.18),
+                    width: 1,
+                  ),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Filters", style: AppTextStyle.bodyMedium),
+                  Text(
+                    "Filters",
+                    style: AppTextStyle.bodyMedium.copyWith(
+                      color: context.colorScheme.onSurface,
+                    ),
+                  ),
                   IconButton(
                     iconSize: 18,
                     visualDensity:
@@ -80,7 +85,8 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
                     Text(
                       "Record type",
                       style: AppTextStyle.buttonSmall.copyWith(
-                          color: AppColors.textPrimary.withValues(alpha: 0.6)),
+                        color: context.colorScheme.onSurface.withOpacity(0.7),
+                      ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,15 +100,16 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
                             width: MediaQuery.sizeOf(context).width,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primary.withValues(alpha: 0.1)
-                                  : Colors.white,
+                                  ? context.colorScheme.primary
+                                      .withOpacity(0.12)
+                                  : context.colorScheme.surface,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(filter.display,
                                 style: AppTextStyle.labelLarge.copyWith(
                                   color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.textPrimary,
+                                      ? context.colorScheme.primary
+                                      : context.colorScheme.onSurface,
                                 )),
                           ),
                         );
@@ -116,9 +123,11 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
-                    top: BorderSide(
-                        color: AppColors.textPrimary.withValues(alpha: 0.1),
-                        width: 1)),
+                  top: BorderSide(
+                    color: context.colorScheme.onSurface.withOpacity(0.18),
+                    width: 1,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
@@ -127,8 +136,9 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
                       onTap: () => Navigator.of(context).pop(),
                       child: Text(
                         "Cancel",
-                        style: AppTextStyle.buttonMedium
-                            .copyWith(color: AppColors.primary),
+                        style: AppTextStyle.buttonMedium.copyWith(
+                          color: context.colorScheme.primary,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -136,8 +146,10 @@ class _RecordsFilterBottomSheetState extends State<RecordsFilterBottomSheet> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: context.colorScheme.primary,
+                        foregroundColor: context.isDarkMode
+                            ? Colors.white
+                            : context.colorScheme.onPrimary,
                         padding: const EdgeInsets.all(10),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadiusGeometry.circular(6)),

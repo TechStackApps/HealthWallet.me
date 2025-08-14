@@ -27,18 +27,6 @@ class OnboardingLaunchUrl extends OnboardingEvent with _$OnboardingLaunchUrl {
 }
 
 @freezed
-class OnboardingScanQR extends OnboardingEvent with _$OnboardingScanQR {
-  const factory OnboardingScanQR() = _OnboardingScanQR;
-}
-
-@freezed
-class OnboardingQRCodeDetected extends OnboardingEvent
-    with _$OnboardingQRCodeDetected {
-  const factory OnboardingQRCodeDetected(String qrCode) =
-      _OnboardingQRCodeDetected;
-}
-
-@freezed
 class OnboardingComplete extends OnboardingEvent with _$OnboardingComplete {
   const factory OnboardingComplete() = _OnboardingComplete;
 }

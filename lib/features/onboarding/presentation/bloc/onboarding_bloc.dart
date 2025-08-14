@@ -12,8 +12,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<OnboardingNextPage>(_onNextPage);
     on<OnboardingPreviousPage>(_onPreviousPage);
     on<OnboardingLaunchUrl>(_onLaunchUrl);
-    on<OnboardingScanQR>(_onScanQR);
-    on<OnboardingQRCodeDetected>(_onQRCodeDetected);
     on<OnboardingComplete>(_onCompleteOnboarding);
     on<OnboardingResetSync>(_onResetSync);
     on<OnboardingSyncCompleted>(_onSyncCompleted);
@@ -68,22 +66,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     }
   }
 
-  void _onScanQR(OnboardingScanQR event, Emitter<OnboardingState> emit) {
-    emit(state.copyWith(isScannerActive: !state.isScannerActive));
-  }
-
-  void _onQRCodeDetected(
-      OnboardingQRCodeDetected event, Emitter<OnboardingState> emit) {
-    emit(state.copyWith(
-      isScannerActive: false,
-      scannedQRCode: event.qrCode,
-      isSyncing: true,
-    ));
-
-    // Trigger sync process with the scanned QR code data
-    // This will be handled by the UI layer which has access to the SyncBloc
-  }
-
   void _onCompleteOnboarding(
       OnboardingComplete event, Emitter<OnboardingState> emit) {
     emit(state.copyWith(isOnboardingCompleted: true));
@@ -93,7 +75,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(
       isSyncing: false,
       syncCompleted: false,
-      scannedQRCode: null,
     ));
   }
 
@@ -102,7 +83,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(
       isSyncing: false,
       syncCompleted: true,
-      scannedQRCode: null,
     ));
   }
 }

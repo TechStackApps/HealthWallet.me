@@ -69,22 +69,19 @@ class _RecordsViewState extends State<RecordsView> {
     final currentScroll = _scrollController.offset;
     final maxScroll = _scrollController.position.maxScrollExtent;
 
-    // Show/hide scroll to top button based on scroll position
-    final shouldShowButton = currentScroll > 200; // Show after scrolling 200px
+    final shouldShowButton = currentScroll > 200;
     if (shouldShowButton != _showScrollToTopButton) {
       setState(() {
         _showScrollToTopButton = shouldShowButton;
       });
     }
 
-    // Simple pagination trigger - when within 200px of bottom
     if (maxScroll > 0 && currentScroll >= maxScroll - 200) {
       _loadMoreData();
     }
   }
 
   void _loadMoreData() {
-    // Simple debounce to prevent multiple requests
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -104,7 +101,6 @@ class _RecordsViewState extends State<RecordsView> {
     );
   }
 
-  // Custom floating action button location that positions the button 50px higher
   FloatingActionButtonLocation get _customFabLocation {
     return _CustomFabLocation();
   }
@@ -141,6 +137,9 @@ class _RecordsViewState extends State<RecordsView> {
               style: AppTextStyle.titleMedium,
             ),
             backgroundColor: context.colorScheme.surface,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
             actions: [
               IconButton(
                 onPressed: () {
@@ -180,14 +179,15 @@ class _RecordsViewState extends State<RecordsView> {
                 },
               ),
             ],
-            elevation: 0,
           ),
           floatingActionButton: _showScrollToTopButton
               ? FloatingActionButton(
                   onPressed: _scrollToTop,
                   mini: true,
                   backgroundColor: context.colorScheme.primary,
-                  foregroundColor: context.colorScheme.onPrimary,
+                  foregroundColor: context.isDarkMode
+                      ? Colors.white
+                      : context.colorScheme.onPrimary,
                   child: const Icon(Icons.keyboard_arrow_up),
                 )
               : null,
@@ -208,19 +208,27 @@ class _RecordsViewState extends State<RecordsView> {
                       decoration: InputDecoration(
                         hintText: context.l10n.searchRecordsHint,
                         hintStyle: AppTextStyle.labelLarge.copyWith(
-                          color: AppColors.textPrimary.withValues(alpha: 0.6),
+                          color: context.colorScheme.onSurface.withOpacity(0.6),
                         ),
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(14),
-                          child: Assets.icons.search.svg(width: 16),
+                          child: Assets.icons.search.svg(
+                            width: 16,
+                            colorFilter: ColorFilter.mode(
+                              context.colorScheme.onSurface.withOpacity(0.6),
+                              BlendMode.srcIn,
+                            ),
+                          ),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(100),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide:
+                              BorderSide(color: context.theme.dividerColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(100),
-                          borderSide: const BorderSide(color: AppColors.border),
+                          borderSide:
+                              BorderSide(color: context.theme.dividerColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(100),
@@ -292,10 +300,10 @@ class _RecordsViewState extends State<RecordsView> {
                       previous.status != current.status,
                   builder: (context, state) {
                     if (state.status == const RecordsStatus.loading()) {
-                      return const Center(
+                      return Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 4,
-                          color: Colors.red,
+                          color: context.colorScheme.primary,
                         ),
                       );
                     }
@@ -307,19 +315,26 @@ class _RecordsViewState extends State<RecordsView> {
                     final timelineResources = state.resources;
 
                     if (timelineResources.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Padding(
-                          padding: EdgeInsets.all(32.0),
+                          padding: const EdgeInsets.all(32.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.folder_open,
-                                  size: 64, color: Colors.grey),
-                              SizedBox(height: 16),
+                              Icon(
+                                Icons.folder_open,
+                                size: 64,
+                                color: context.colorScheme.onSurface
+                                    .withOpacity(0.6),
+                              ),
+                              const SizedBox(height: 16),
                               Text(
                                 'No records found',
-                                style:
-                                    TextStyle(fontSize: 18, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: context.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
                               ),
                             ],
                           ),
@@ -327,18 +342,30 @@ class _RecordsViewState extends State<RecordsView> {
                       );
                     }
 
+                    const double bottomBarHeight = Insets.extraLarge;
+                    const double bottomBarOffset = Insets.medium;
+                    const double extraSpacing = Insets.large;
+                    final double bottomSafeInset =
+                        MediaQuery.of(context).padding.bottom;
+
                     return ListView.builder(
                       controller: _scrollController,
+                      padding: EdgeInsets.only(
+                        bottom: bottomSafeInset +
+                            bottomBarHeight +
+                            bottomBarOffset +
+                            extraSpacing,
+                      ),
                       itemCount: timelineResources.length +
                           (state.hasMorePages ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == timelineResources.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16.0),
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
                             child: Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 4,
-                                color: Colors.red,
+                                color: context.colorScheme.primary,
                               ),
                             ),
                           );
@@ -390,7 +417,7 @@ class _RecordsViewState extends State<RecordsView> {
               child: Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: context.theme.dividerColor),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(Insets.normal),
@@ -413,13 +440,19 @@ class _RecordsViewState extends State<RecordsView> {
                                 vertical: Insets.extraSmall,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.textPrimary
-                                    .withValues(alpha: 0.1),
+                                color: context.colorScheme.onSurface
+                                    .withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(
                                 children: [
-                                  recordType.icon.svg(width: 15),
+                                  recordType.icon.svg(
+                                    width: 15,
+                                    colorFilter: ColorFilter.mode(
+                                      context.colorScheme.onSurface,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     recordType.display,
@@ -432,7 +465,10 @@ class _RecordsViewState extends State<RecordsView> {
                           if (resource.date != null)
                             Text(
                               DateFormat.yMMMMd().format(resource.date!),
-                              style: AppTextStyle.labelMedium,
+                              style: AppTextStyle.labelMedium.copyWith(
+                                color: context.colorScheme.onSurface
+                                    .withOpacity(0.6),
+                              ),
                             ),
                         ],
                       ),
@@ -462,7 +498,7 @@ class _RecordsViewState extends State<RecordsView> {
                     width: dotSize,
                     height: dotSize,
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.colorScheme.surface,
                         border: Border.all(
                           color: AppColors.primary,
                           width: 3,

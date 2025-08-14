@@ -1,12 +1,12 @@
 import 'dart:convert';
-
+import 'dart:developer';
 import 'package:drift/drift.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-
-import 'package:health_wallet/features/sync/domain/entities/source.dart'
-    as entity;
+import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
+import 'package:health_wallet/features/sync/domain/entities/source.dart';
+import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,14 +15,14 @@ abstract class FhirLocalDataSource {
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
-  Future<void> cacheSources(List<entity.Source> sources);
-  Future<List<entity.Source>> getSources({String? patientId});
+  Future<void> cacheSources(List<Source> sources);
+  Future<List<Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
 }
 
 @Injectable(as: FhirLocalDataSource)
 class FhirLocalDataSourceImpl implements FhirLocalDataSource {
-  final AppDatabase _appDatabase;
+  final db.AppDatabase _appDatabase;
   final SharedPreferences _sharedPreferences;
 
   FhirLocalDataSourceImpl(this._appDatabase, this._sharedPreferences);
@@ -67,7 +67,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<void> cacheSources(List<entity.Source> sources) async {
+  Future<void> cacheSources(List<Source> sources) async {
     final sourceEntries = sources.map((e) {
       return db.SourcesCompanion.insert(
         id: e.id,
@@ -90,7 +90,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   }
 
   @override
-  Future<List<entity.Source>> getSources({String? patientId}) async {
+  Future<List<Source>> getSources({String? patientId}) async {
     final query = _appDatabase.select(_appDatabase.fhirResource);
 
     if (patientId != null) {
@@ -109,7 +109,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
 
     return uniqueSourceIds
         .map(
-          (sourceId) => entity.Source(
+          (sourceId) => Source(
             id: sourceId,
             name: sourceId,
             logo: null,

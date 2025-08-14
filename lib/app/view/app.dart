@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
@@ -13,7 +12,6 @@ import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:health_wallet/features/sync/domain/services/sync_token_service.dart';
-import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 
@@ -36,8 +34,7 @@ class App extends StatelessWidget {
               create: (context) =>
                   getIt<UserBloc>()..add(const UserInitialised())),
           BlocProvider(
-            create: (context) => getIt<SyncBloc>()
-              ..add(const SyncEvent.checkConnectionValidity()),
+            create: (context) => getIt<SyncBloc>(),
           ),
           BlocProvider(create: (context) => getIt<RecordsBloc>()),
           BlocProvider(
@@ -50,12 +47,14 @@ class App extends StatelessWidget {
         ],
         child: BlocListener<SyncBloc, SyncState>(
           listener: (context, state) {
-            state.status.whenOrNull(
-              success: () {
-                context.read<HomeBloc>().add(const HomeInitialised());
-                context.read<UserBloc>().add(const UserDataUpdatedFromSync());
-              },
-            );
+            // Refresh only when a sync actually finished
+            if (state.syncStatus == SyncStatus.connected &&
+                state.lastSyncTime != null) {
+              context.read<HomeBloc>().add(const HomeInitialised());
+              context.read<UserBloc>().add(const UserDataUpdatedFromSync());
+              // Refresh records timeline after new data is cached
+              context.read<RecordsBloc>().add(const RecordsInitialised());
+            }
           },
           child: BlocBuilder<UserBloc, UserState>(
             builder: (context, state) {

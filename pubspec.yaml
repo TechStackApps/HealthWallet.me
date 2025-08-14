@@ -1,7 +1,7 @@
 name: health_wallet
 description: "Fasten Health Wallet"
 publish_to: 'none'
-version: 1.0.0+6
+version: 1.0.0+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -31,7 +31,6 @@ dependencies:
   # Network
   dio: ^5.4.1
   connectivity_plus: ^5.0.2
-  mobile_scanner: ^7.0.1
 
   # Local Storage
   drift: ^2.15.0
@@ -58,6 +57,7 @@ dependencies:
   file_picker: ^10.2.1
   path: ^1.9.1
   share_plus: ^11.0.0
+  network_info_plus: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -79,8 +79,6 @@ dev_dependencies:
   mockito: ^5.4.4
   bloc_test: ^9.1.5
   golden_toolkit: ^0.15.0
-  integration_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true

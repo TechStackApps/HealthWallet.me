@@ -29,7 +29,7 @@ class VitalsSection extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.9,
+      childAspectRatio: 1.85,
       itemBuilder: (context, vital, index) => GestureDetector(
         onLongPress: onLongPressCard,
         child: _buildVitalSignCard(context, vital),
@@ -146,7 +146,7 @@ class VitalsSection extends StatelessWidget {
                 statusIcon,
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
