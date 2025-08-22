@@ -1,0 +1,1594 @@
+{
+  "resources": [
+    {
+      "resourceType": "Patient",
+      "id": "demo-patient-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">John Doe - Demo Patient</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "DEMO001"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "text": "John Doe",
+          "family": "Doe",
+          "given": ["John"]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "+1-555-0123",
+          "use": "mobile"
+        },
+        {
+          "system": "email",
+          "value": "john.doe@email.com"
+        }
+      ],
+      "gender": "male",
+      "birthDate": "1985-03-15",
+      "deceasedBoolean": false,
+      "address": [
+        {
+          "use": "home",
+          "type": "physical",
+          "text": "123 Main Street, Anytown, ST 12345",
+          "line": ["123 Main Street"],
+          "city": "Anytown",
+          "state": "ST",
+          "postalCode": "12345",
+          "country": "US"
+        }
+      ],
+      "maritalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+            "code": "M",
+            "display": "Married"
+          }
+        ]
+      },
+      "contact": [
+        {
+          "relationship": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0131",
+                  "code": "C",
+                  "display": "Emergency Contact"
+                }
+              ]
+            }
+          ],
+          "name": {
+            "use": "official",
+            "text": "Jane Doe",
+            "family": "Doe",
+            "given": ["Jane"]
+          },
+          "telecom": [
+            {
+              "system": "phone",
+              "value": "+1-555-0124",
+              "use": "mobile"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "Organization",
+      "id": "demo-org-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Anytown General Hospital</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "ORG001"
+        }
+      ],
+      "active": true,
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+              "code": "prov",
+              "display": "Healthcare Provider"
+            }
+          ]
+        }
+      ],
+      "name": "Anytown General Hospital",
+      "alias": ["AGH"],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "+1-555-1000"
+        }
+      ],
+      "address": [
+        {
+          "use": "work",
+          "type": "physical",
+          "text": "456 Hospital Drive, Anytown, ST 12345",
+          "line": ["456 Hospital Drive"],
+          "city": "Anytown",
+          "state": "ST",
+          "postalCode": "12345",
+          "country": "US"
+        }
+      ]
+    },
+    {
+      "resourceType": "Practitioner",
+      "id": "demo-practitioner-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Dr. Sarah Johnson</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "PRAC001"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "text": "Dr. Sarah Johnson",
+          "family": "Johnson",
+          "given": ["Sarah"],
+          "prefix": ["Dr."]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "+1-555-2000"
+        },
+        {
+          "system": "email",
+          "value": "sarah.johnson@anytownhospital.com"
+        }
+      ],
+      "gender": "female",
+      "birthDate": "1975-08-22",
+      "qualification": [
+        {
+          "identifier": [
+            {
+              "system": "https://demo.healthwallet.com",
+              "value": "MD001"
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v2-0360",
+                "code": "MD",
+                "display": "Doctor of Medicine"
+              }
+            ]
+          },
+          "period": {
+            "start": "2000-06-15"
+          },
+          "issuer": {
+            "reference": "Organization/demo-org-001"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Encounter",
+      "id": "demo-encounter-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Annual Physical Examination</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "ENC001"
+        }
+      ],
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB",
+        "display": "Ambulatory"
+      },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "185389003",
+              "display": "Annual physical examination"
+            }
+          ],
+          "text": "Annual Physical Examination"
+        }
+      ],
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "participant": [
+        {
+          "type": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                  "code": "ATND",
+                  "display": "attender"
+                }
+              ]
+            }
+          ],
+          "individual": {
+            "reference": "Practitioner/demo-practitioner-001"
+          }
+        }
+      ],
+      "serviceProvider": {
+        "reference": "Organization/demo-org-001"
+      },
+      "period": {
+        "start": "2024-01-15T09:00:00Z",
+        "end": "2024-01-15T10:30:00Z"
+      },
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "185389003",
+              "display": "Annual physical examination"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "Condition",
+      "id": "demo-condition-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Hypertension</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "COND001"
+        }
+      ],
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+            "code": "active",
+            "display": "Active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+            "code": "confirmed",
+            "display": "Confirmed"
+          }
+        ]
+      },
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+              "code": "problem-list-item",
+              "display": "Problem List Item"
+            }
+          ]
+        }
+      ],
+      "severity": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "255604002",
+            "display": "Mild"
+          }
+        ]
+      },
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "38341003",
+            "display": "Hypertensive disorder"
+          }
+        ],
+        "text": "Hypertension"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "onsetDateTime": "2023-06-15",
+      "recordedDate": "2023-06-15",
+      "recorder": {
+        "reference": "Practitioner/demo-practitioner-001"
+      },
+      "asserter": {
+        "reference": "Practitioner/demo-practitioner-001"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-bp-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Blood Pressure: 140/90 mmHg</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS001"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "85354-9",
+            "display": "Blood pressure panel with all children optional"
+          }
+        ],
+        "text": "Blood Pressure"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:15:00Z",
+      "issued": "2024-01-15T09:15:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "component": [
+        {
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "8480-6",
+                "display": "Systolic blood pressure"
+              }
+            ]
+          },
+          "valueQuantity": {
+            "value": 140,
+            "unit": "mmHg",
+            "system": "http://unitsofmeasure.org",
+            "code": "mm[Hg]"
+          }
+        },
+        {
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "8462-4",
+                "display": "Diastolic blood pressure"
+              }
+            ]
+          },
+          "valueQuantity": {
+            "value": 90,
+            "unit": "mmHg",
+            "system": "http://unitsofmeasure.org",
+            "code": "mm[Hg]"
+          }
+        }
+      ],
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "H",
+              "display": "High"
+            }
+          ]
+        }
+      ],
+      "referenceRange": [
+        {
+          "low": {
+            "value": 90,
+            "unit": "mmHg",
+            "system": "http://unitsofmeasure.org",
+            "code": "mm[Hg]"
+          },
+          "high": {
+            "value": 140,
+            "unit": "mmHg",
+            "system": "http://unitsofmeasure.org",
+            "code": "mm[Hg]"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-weight-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Body Weight: 75 kg</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS002"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "29463-7",
+            "display": "Body weight"
+          }
+        ],
+        "text": "Body Weight"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:20:00Z",
+      "issued": "2024-01-15T09:20:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 75,
+        "unit": "kg",
+        "system": "http://unitsofmeasure.org",
+        "code": "kg"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-height-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Body Height: 175 cm</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS003"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8302-2",
+            "display": "Body height"
+          }
+        ],
+        "text": "Body Height"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:25:00Z",
+      "issued": "2024-01-15T09:25:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 175,
+        "unit": "cm",
+        "system": "http://unitsofmeasure.org",
+        "code": "cm"
+      }
+    },
+    {
+      "resourceType": "MedicationRequest",
+      "id": "demo-medication-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Lisinopril 10mg daily for hypertension</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "MED001"
+        }
+      ],
+      "status": "active",
+      "intent": "order",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+              "code": "outpatient",
+              "display": "Outpatient"
+            }
+          ]
+        }
+      ],
+      "priority": "routine",
+      "medicationCodeableConcept": {
+        "coding": [
+          {
+            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+            "code": "197361",
+            "display": "Lisinopril 10 MG Oral Tablet"
+          }
+        ],
+        "text": "Lisinopril 10mg"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "authoredOn": "2024-01-15T10:00:00Z",
+      "requester": {
+        "reference": "Practitioner/demo-practitioner-001"
+      },
+      "dosageInstruction": [
+        {
+          "text": "Take 1 tablet daily",
+          "timing": {
+            "repeat": {
+              "frequency": 1,
+              "period": 1,
+              "periodUnit": "d"
+            }
+          },
+          "route": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "26643006",
+                "display": "Oral route"
+              }
+            ]
+          },
+          "doseAndRate": [
+            {
+              "type": {
+                "coding": [
+                  {
+                    "system": "http://terminology.hl7.org/CodeSystem/dose-rate-type",
+                    "code": "ordered",
+                    "display": "Ordered"
+                  }
+                ]
+              },
+              "doseQuantity": {
+                "value": 1,
+                "unit": "tablet",
+                "system": "http://unitsofmeasure.org",
+                "code": "{tbl}"
+              }
+            }
+          ]
+        }
+      ],
+      "dispenseRequest": {
+        "validityPeriod": {
+          "start": "2024-01-15",
+          "end": "2024-02-15"
+        },
+        "quantity": {
+          "value": 30,
+          "unit": "tablet",
+          "system": "http://unitsofmeasure.org",
+          "code": "{tbl}"
+        },
+        "expectedSupplyDuration": {
+          "value": 30,
+          "unit": "days",
+          "system": "http://unitsofmeasure.org",
+          "code": "d"
+        }
+      }
+    },
+    {
+      "resourceType": "Procedure",
+      "id": "demo-procedure-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Complete Physical Examination</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "PROC001"
+        }
+      ],
+      "status": "completed",
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "185389003",
+            "display": "Complete physical examination"
+          }
+        ],
+        "text": "Complete Physical Examination"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "performedDateTime": "2024-01-15T09:30:00Z",
+      "performer": [
+        {
+          "actor": {
+            "reference": "Practitioner/demo-practitioner-001"
+          },
+          "onBehalfOf": {
+            "reference": "Organization/demo-org-001"
+          }
+        }
+      ],
+      "location": {
+        "reference": "Organization/demo-org-001"
+      },
+      "reasonCode": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "185389003",
+              "display": "Annual physical examination"
+            }
+          ]
+        }
+      ],
+      "outcome": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "260413007",
+            "display": "None"
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "Immunization",
+      "id": "demo-immunization-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Influenza vaccine</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "IMM001"
+        }
+      ],
+      "status": "completed",
+      "vaccineCode": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "418608006",
+            "display": "Influenza vaccine"
+          }
+        ],
+        "text": "Influenza vaccine"
+      },
+      "patient": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "occurrenceDateTime": "2024-01-15T09:45:00Z",
+      "recorded": "2024-01-15T09:45:00Z",
+      "primarySource": true,
+      "performer": [
+        {
+          "actor": {
+            "reference": "Practitioner/demo-practitioner-001"
+          }
+        }
+      ],
+      "location": {
+        "reference": "Organization/demo-org-001"
+      },
+      "manufacturer": {
+        "display": "Demo Pharmaceutical Company"
+      },
+      "lotNumber": "DEMO2024-001",
+      "expirationDate": "2025-06-30",
+      "site": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "368209003",
+            "display": "Left upper arm"
+          }
+        ]
+      },
+      "route": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "78421000",
+            "display": "Intramuscular route"
+          }
+        ]
+      },
+      "doseQuantity": {
+        "value": 0.5,
+        "unit": "mL",
+        "system": "http://unitsofmeasure.org",
+        "code": "mL"
+      }
+    },
+    {
+      "resourceType": "DiagnosticReport",
+      "id": "demo-report-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Comprehensive Metabolic Panel Results</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "REP001"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
+              "code": "LAB",
+              "display": "Laboratory"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "24323-8",
+            "display": "Comprehensive metabolic panel"
+          }
+        ],
+        "text": "Comprehensive Metabolic Panel"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:00:00Z",
+      "issued": "2024-01-15T11:00:00Z",
+      "performer": [
+        {
+          "reference": "Organization/demo-org-001"
+        }
+      ],
+      "result": [
+        {
+          "reference": "Observation/demo-observation-bp-001"
+        },
+        {
+          "reference": "Observation/demo-observation-weight-001"
+        },
+        {
+          "reference": "Observation/demo-observation-height-001"
+        }
+      ],
+      "conclusion": "All values within normal range. Patient is in good health.",
+      "conclusionCode": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "260413007",
+              "display": "None"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "CarePlan",
+      "id": "demo-careplan-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Hypertension Management Plan</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "CP001"
+        }
+      ],
+      "status": "active",
+      "intent": "plan",
+      "title": "Hypertension Management Plan",
+      "description": "Comprehensive plan for managing hypertension through medication, lifestyle changes, and regular monitoring",
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "period": {
+        "start": "2024-01-15",
+        "end": "2025-01-15"
+      },
+      "created": "2024-01-15T10:30:00Z",
+      "author": {
+        "reference": "Practitioner/demo-practitioner-001"
+      },
+      "careTeam": [
+        {
+          "reference": "CareTeam/demo-careteam-001"
+        }
+      ],
+      "addresses": [
+        {
+          "reference": "Condition/demo-condition-001"
+        }
+      ],
+      "goal": [
+        {
+          "reference": "Goal/demo-goal-001"
+        }
+      ],
+      "activity": [
+        {
+          "outcomeCodeableConcept": [
+            {
+              "coding": [
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "260413007",
+                  "display": "None"
+                }
+              ]
+            }
+          ],
+          "detail": {
+            "kind": "MedicationRequest",
+            "instantiatesCanonical": [
+              "MedicationRequest/demo-medication-001"
+            ],
+            "status": "in-progress",
+            "description": "Take Lisinopril 10mg daily",
+            "scheduledPeriod": {
+              "start": "2024-01-15",
+              "end": "2025-01-15"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Goal",
+      "id": "demo-goal-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Maintain blood pressure below 140/90 mmHg</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "GOAL001"
+        }
+      ],
+      "lifecycleStatus": "active",
+      "description": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "38341003",
+            "display": "Hypertensive disorder"
+          }
+        ],
+        "text": "Maintain blood pressure below 140/90 mmHg"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "target": [
+        {
+          "measure": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "85354-9",
+                "display": "Blood pressure panel with all children optional"
+              }
+            ]
+          },
+          "detailRange": {
+            "low": {
+              "value": 90,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            },
+            "high": {
+              "value": 140,
+              "unit": "mmHg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mm[Hg]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "CareTeam",
+      "id": "demo-careteam-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Primary Care Team</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "CT001"
+        }
+      ],
+      "status": "active",
+      "name": "Primary Care Team",
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "period": {
+        "start": "2024-01-15"
+      },
+      "participant": [
+        {
+          "role": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/participant-role",
+                  "code": "PPRF",
+                  "display": "Primary Care Physician"
+                }
+              ]
+            }
+          ],
+          "member": {
+            "reference": "Practitioner/demo-practitioner-001"
+          },
+          "onBehalfOf": {
+            "reference": "Organization/demo-org-001"
+          }
+        }
+      ],
+      "managingOrganization": [
+        {
+          "reference": "Organization/demo-org-001"
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-heartrate-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Heart Rate: 72 bpm</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS004"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8867-4",
+            "display": "Heart rate"
+          }
+        ],
+        "text": "Heart Rate"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:10:00Z",
+      "issued": "2024-01-15T09:10:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 72,
+        "unit": "beats/min",
+        "system": "http://unitsofmeasure.org",
+        "code": "/min"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ]
+        }
+      ],
+      "referenceRange": [
+        {
+          "low": {
+            "value": 60,
+            "unit": "beats/min",
+            "system": "http://unitsofmeasure.org",
+            "code": "/min"
+          },
+          "high": {
+            "value": 100,
+            "unit": "beats/min",
+            "system": "http://unitsofmeasure.org",
+            "code": "/min"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-temperature-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Body Temperature: 98.6 °F</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS005"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8310-5",
+            "display": "Body temperature"
+          }
+        ],
+        "text": "Body Temperature"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:12:00Z",
+      "issued": "2024-01-15T09:12:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 98.6,
+        "unit": "°F",
+        "system": "http://unitsofmeasure.org",
+        "code": "[degF]"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ]
+        }
+      ],
+      "referenceRange": [
+        {
+          "low": {
+            "value": 97.0,
+            "unit": "°F",
+            "system": "http://unitsofmeasure.org",
+            "code": "[degF]"
+          },
+          "high": {
+            "value": 99.0,
+            "unit": "°F",
+            "system": "http://unitsofmeasure.org",
+            "code": "[degF]"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-oxygen-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Blood Oxygen: 98%</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS006"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "2708-6",
+            "display": "Oxygen saturation"
+          }
+        ],
+        "text": "Blood Oxygen"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:18:00Z",
+      "issued": "2024-01-15T09:18:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 98,
+        "unit": "%",
+        "system": "http://unitsofmeasure.org",
+        "code": "%"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ]
+        }
+      ],
+      "referenceRange": [
+        {
+          "low": {
+            "value": 95,
+            "unit": "%",
+            "system": "http://unitsofmeasure.org",
+            "code": "%"
+          },
+          "high": {
+            "value": 100,
+            "unit": "%",
+            "system": "http://unitsofmeasure.org",
+            "code": "%"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-respiratory-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Respiratory Rate: 16 breaths/min</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS007"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "9279-1",
+            "display": "Respiratory rate"
+          }
+        ],
+        "text": "Respiratory Rate"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:22:00Z",
+      "issued": "2024-01-15T09:22:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 16,
+        "unit": "breaths/min",
+        "system": "http://unitsofmeasure.org",
+        "code": "/min"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-bmi-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Body Mass Index: 24.5 kg/m²</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS008"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "39156-5",
+            "display": "Body mass index (BMI)"
+          }
+        ],
+        "text": "Body Mass Index"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:26:00Z",
+      "issued": "2024-01-15T09:26:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 24.5,
+        "unit": "kg/m²",
+        "system": "http://unitsofmeasure.org",
+        "code": "kg/m2"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-glucose-001",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Blood Glucose: 95 mg/dL</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS009"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "vital-signs",
+              "display": "Vital Signs"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "2339-0",
+            "display": "Glucose [Mass/volume] in Blood"
+          }
+        ],
+        "text": "Blood Glucose"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:28:00Z",
+      "issued": "2024-01-15T09:28:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 95,
+        "unit": "mg/dL",
+        "system": "http://unitsofmeasure.org",
+        "code": "mg/dL"
+      },
+      "interpretation": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+              "code": "N",
+              "display": "Normal"
+            }
+          ]
+        }
+      ],
+      "referenceRange": [
+        {
+          "low": {
+            "value": 70,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          },
+          "high": {
+            "value": 140,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "Observation",
+      "id": "demo-observation-pain-002",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Pain Scale: 2/10</div>"
+      },
+      "identifier": [
+        {
+          "system": "https://demo.healthwallet.com",
+          "value": "OBS010"
+        }
+      ],
+      "status": "final",
+      "category": [
+        {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+              "code": "survey",
+              "display": "Survey"
+            }
+          ]
+        }
+      ],
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "72514-3",
+            "display": "Pain severity 0-10 verbal numeric rating scale"
+          }
+        ],
+        "text": "Pain Scale"
+      },
+      "subject": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "encounter": {
+        "reference": "Encounter/demo-encounter-001"
+      },
+      "effectiveDateTime": "2024-01-15T09:28:00Z",
+      "issued": "2024-01-15T09:28:00Z",
+      "performer": [
+        {
+          "reference": "Practitioner/demo-practitioner-001"
+        }
+      ],
+      "valueQuantity": {
+        "value": 2,
+        "unit": "scale",
+        "system": "http://unitsofmeasure.org",
+        "code": "{score}"
+      }
+    },
+    {
+      "resourceType": "AllergyIntolerance",
+      "id": "demo-allergy-001",
+      "clinicalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+            "code": "active"
+          }
+        ]
+      },
+      "verificationStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+            "code": "confirmed"
+          }
+        ]
+      },
+      "type": "allergy",
+      "category": [
+        "medication"
+      ],
+      "criticality": "high",
+      "code": {
+        "coding": [
+          {
+            "system": "http://snomed.info/sct",
+            "code": "294659003",
+            "display": "Allergy to penicillin"
+          }
+        ],
+        "text": "Allergy to penicillin"
+      },
+      "patient": {
+        "reference": "Patient/demo-patient-001"
+      },
+      "recordedDate": "2010-06-15"
+    }
+  ]
+}

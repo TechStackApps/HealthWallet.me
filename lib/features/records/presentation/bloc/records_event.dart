@@ -31,5 +31,15 @@ class RecordsFilterRemoved extends RecordsEvent with _$RecordsFilterRemoved {
 @freezed
 class RecordDetailLoaded extends RecordsEvent with _$RecordDetailLoaded {
   const factory RecordDetailLoaded(IFhirResource resource) =
-      _RecordDetailLoaded;
+      _RecordsDetailLoaded;
+}
+
+@freezed
+class LoadDemoData extends RecordsEvent with _$LoadDemoData {
+  const factory LoadDemoData() = _LoadDemoData;
+}
+
+@freezed
+class ClearDemoData extends RecordsEvent with _$ClearDemoData {
+  const factory ClearDemoData() = _ClearDemoData;
 }

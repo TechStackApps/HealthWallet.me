@@ -1,6 +1,6 @@
 {
-    "name": "health_wallet",
-    "short_name": "health_wallet",
+    "name": "HealthWallet.me",
+    "short_name": "HealthWallet.me",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

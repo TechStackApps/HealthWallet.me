@@ -3,8 +3,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <application
-        android:label="health_wallet"
+        android:label="HealthWallet.me"
         android:name="${applicationName}"
         android:icon="@mipmap/health_wallet">
         <activity

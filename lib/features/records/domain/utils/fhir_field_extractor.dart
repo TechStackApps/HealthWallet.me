@@ -11,16 +11,22 @@ class FhirFieldExtractor {
   static String? extractCodeableConceptText(dynamic codeableConcept) {
     if (codeableConcept == null) return null;
 
-    // Try text field first
-    final text = codeableConcept.text?.toString();
-    if (text != null && text.isNotEmpty) return text;
-
-    // Try first coding display
-    final coding = codeableConcept.coding;
-    if (coding?.isNotEmpty == true) {
-      final display = coding!.first.display?.toString();
-      if (display != null && display.isNotEmpty) return display;
+    if (codeableConcept.toString().contains('.')) {
+      return codeableConcept.toString().split('.').last;
     }
+
+    try {
+      final text = codeableConcept.text?.toString();
+      if (text != null && text.isNotEmpty) return text;
+    } catch (e) {}
+
+    try {
+      final coding = codeableConcept.coding;
+      if (coding?.isNotEmpty == true) {
+        final display = coding!.first.display?.toString();
+        if (display != null && display.isNotEmpty) return display;
+      }
+    } catch (e) {}
 
     return null;
   }
@@ -239,7 +245,7 @@ class FhirFieldExtractor {
     return '';
   }
 
-  static String extractVitalSignStatus(Observation observation) {
+  static String? extractVitalSignStatus(Observation observation) {
     if (observation.interpretation != null &&
         observation.interpretation!.isNotEmpty) {
       final interpretation = observation.interpretation!.first;
@@ -251,12 +257,7 @@ class FhirFieldExtractor {
       }
     }
 
-    if (observation.referenceRange != null &&
-        observation.referenceRange!.isNotEmpty) {
-      return 'Normal';
-    }
-
-    return 'Unknown';
+    return null;
   }
 
   // ===== PRIVATE HELPER METHODS =====
@@ -320,7 +321,6 @@ class FhirFieldExtractor {
     }
   }
 
-  // Map FHIR interpretation codes to status
   static String _mapInterpretationCodeToStatus(String code) {
     switch (code) {
       case 'H':
@@ -337,12 +337,25 @@ class FhirFieldExtractor {
         return 'Critically High';
       case 'LL':
         return 'Critically Low';
+      case 'U':
+        return 'Uncertain';
+      case 'R':
+        return 'Resistant';
+      case 'I':
+        return 'Intermediate';
+      case 'S':
+        return 'Susceptible';
+      case 'MS':
+        return 'Moderately Susceptible';
+      case 'VS':
+        return 'Very Susceptible';
       default:
         return 'Unknown';
     }
   }
 
-  static String _formatQuantityValueByCode(String? code, fhir_r4.Quantity quantity) {
+  static String _formatQuantityValueByCode(
+      String? code, fhir_r4.Quantity quantity) {
     final String? raw = quantity.value?.toString();
     if (raw == null) return 'N/A';
     final double? num = double.tryParse(raw);

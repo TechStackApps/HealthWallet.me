@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
+import 'package:health_wallet/core/widgets/placeholder_widget.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
 
@@ -115,19 +117,13 @@ class _RecordsViewState extends State<RecordsView> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<HomeBloc, HomeState>(
-          listener: (context, state) {
-            final selectedSourceId =
-                state.selectedSource == 'All' ? null : state.selectedSource;
+    return BlocListener<HomeBloc, HomeState>(
+      listener: (context, state) {
+        final selectedSourceId =
+            state.selectedSource == 'All' ? null : state.selectedSource;
 
-            context
-                .read<RecordsBloc>()
-                .add(RecordsSourceChanged(selectedSourceId));
-          },
-        ),
-      ],
+        context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
+      },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -318,25 +314,10 @@ class _RecordsViewState extends State<RecordsView> {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.folder_open,
-                                size: 64,
-                                color: context.colorScheme.onSurface
-                                    .withOpacity(0.6),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No records found',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: context.colorScheme.onSurface
-                                      .withOpacity(0.6),
-                                ),
-                              ),
-                            ],
+                          child: PlaceholderWidget(
+                            hasRealData:
+                                false, // Records page always shows this when empty
+                            colorScheme: context.colorScheme,
                           ),
                         ),
                       );

@@ -1,5 +1,5 @@
 name: health_wallet
-description: "Fasten Health Wallet"
+description: "HealthWallet.me"
 publish_to: 'none'
 version: 1.0.0+4
 
@@ -58,6 +58,7 @@ dependencies:
   path: ^1.9.1
   share_plus: ^11.0.0
   network_info_plus: ^6.0.1
+  mobile_scanner: ^7.0.1
 
 dev_dependencies:
   flutter_test:

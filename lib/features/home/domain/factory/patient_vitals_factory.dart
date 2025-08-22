@@ -67,7 +67,7 @@ class PatientVitalFactory {
           title: title,
           value: 'N/A',
           unit: (PatientVitalTypeX.fromTitle(title)?.defaultUnit ?? ''),
-          status: 'Unknown',
+          status: null,
           observationId: null,
           effectiveDate: null,
         ),
@@ -205,7 +205,7 @@ class PatientVitalFactory {
           : diastolic.effectiveDate;
     }
 
-    final String combinedStatus = (sys >= 140 || dia >= 90) ? 'High' : 'Normal';
+    final String? combinedStatus = (sys >= 140 || dia >= 90) ? 'High' : null;
 
     final PatientVital bp = PatientVital(
       title: PatientVitalType.bloodPressure.title,

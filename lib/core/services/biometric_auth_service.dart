@@ -15,7 +15,7 @@ class BiometricAuthService {
   Future<bool> authenticate() async {
     try {
       final didAuthenticate = await _auth.authenticate(
-        localizedReason: 'Please authenticate to access your health wallet',
+        localizedReason: 'Please authenticate to access your HealthWallet.me',
         options: const AuthenticationOptions(
           biometricOnly: false,
         ),

@@ -82,7 +82,7 @@ class PatientVital {
   final String title;
   final String value;
   final String unit;
-  final String status;
+  final String? status;
   final String? observationId;
   final DateTime? effectiveDate;
 
@@ -91,7 +91,7 @@ class PatientVital {
     required this.title,
     required this.value,
     required this.unit,
-    required this.status,
+    this.status,
     this.observationId,
     this.effectiveDate,
   });
