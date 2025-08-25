@@ -14,6 +14,7 @@ class ReorderableGrid<T> extends StatelessWidget {
   final bool enabled;
   final ScrollPhysics? physics;
   final bool shrinkWrap;
+  final EdgeInsets? padding;
 
   const ReorderableGrid({
     super.key,
@@ -27,6 +28,7 @@ class ReorderableGrid<T> extends StatelessWidget {
     this.enabled = true,
     this.physics,
     this.shrinkWrap = true,
+    this.padding,
   });
 
   @override
@@ -35,6 +37,7 @@ class ReorderableGrid<T> extends StatelessWidget {
       return ReorderableGridView.builder(
         shrinkWrap: shrinkWrap,
         physics: physics ?? const NeverScrollableScrollPhysics(),
+        padding: padding ?? EdgeInsets.zero,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: crossAxisSpacing,
@@ -59,6 +62,7 @@ class ReorderableGrid<T> extends StatelessWidget {
       return GridView.builder(
         shrinkWrap: shrinkWrap,
         physics: physics ?? const NeverScrollableScrollPhysics(),
+        padding: padding ?? EdgeInsets.zero,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: crossAxisSpacing,

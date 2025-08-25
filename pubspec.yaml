@@ -59,6 +59,7 @@ dependencies:
   share_plus: ^11.0.0
   network_info_plus: ^6.0.1
   mobile_scanner: ^7.0.1
+  onboarding_overlay: ^3.2.2
 
 dev_dependencies:
   flutter_test:

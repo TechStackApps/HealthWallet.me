@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
+import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 
 class SourceSelectorWidget extends StatelessWidget {
   final List<Source> sources;
   final String? selectedSource;
   final Function(String) onSourceChanged;
+  final Patient? currentPatient; // Add current patient parameter
 
   const SourceSelectorWidget({
     super.key,
     required this.sources,
     required this.selectedSource,
     required this.onSourceChanged,
+    this.currentPatient, // Make it optional but available
   });
 
   @override
@@ -20,13 +23,14 @@ class SourceSelectorWidget extends StatelessWidget {
     final textTheme = context.textTheme;
     final colorScheme = context.colorScheme;
 
-    // Get all sources for the current patient (filter out any 'All' placeholder)
-    final patientSources =
-        sources.where((source) => source.id != 'All').toList();
+    // Get sources for the current patient based on patient's sourceId
+    final patientSources = _getPatientSources();
 
     if (patientSources.isEmpty) {
       return const SizedBox.shrink();
     } else if (patientSources.length == 1) {
+      // Single source for patient - show as text
+      final source = patientSources.first;
       return Container(
         constraints: const BoxConstraints(maxWidth: 200),
         child: Row(
@@ -40,9 +44,7 @@ class SourceSelectorWidget extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                patientSources.first.name?.isNotEmpty == true
-                    ? patientSources.first.name!
-                    : patientSources.first.id,
+                source.name?.isNotEmpty == true ? source.name! : source.id,
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
@@ -55,8 +57,7 @@ class SourceSelectorWidget extends StatelessWidget {
         ),
       );
     } else {
-      // Multiple sources per patient - show dropdown with "All" option
-      // (This case won't happen for your patients since they each have only 1 source)
+      // Multiple sources per patient - show dropdown
       return Container(
         constraints: const BoxConstraints(maxWidth: 250),
         child: Row(
@@ -71,50 +72,85 @@ class SourceSelectorWidget extends StatelessWidget {
             const SizedBox(width: Insets.small),
             Expanded(
               child: DropdownButton<String>(
-                value: selectedSource ?? 'All', // Default to 'All' if not set
+                value: selectedSource ?? _getDefaultSourceId(),
                 isExpanded: true,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     onSourceChanged(newValue);
                   }
                 },
-                items: () {
-                  // Create dropdown items for each source
-                  final sourceItems = patientSources.map((source) {
-                    return DropdownMenuItem<String>(
-                      value: source.id,
-                      child: Text(
-                        source.name?.isNotEmpty == true
-                            ? source.name!
-                            : source.id,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: textTheme.bodySmall,
-                      ),
-                    );
-                  }).toList();
-
-                  // Add "All" option at the top
-                  sourceItems.insert(
-                    0,
-                    DropdownMenuItem<String>(
-                      value: 'All',
-                      child: Text(
-                        context.l10n.homeAll,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: textTheme.bodySmall,
-                      ),
-                    ),
-                  );
-
-                  return sourceItems;
-                }(),
+                items: _buildDropdownItems(patientSources, textTheme),
               ),
             ),
           ],
         ),
       );
     }
+  }
+
+  /// Get sources for the current patient based on patient's sourceId
+  List<Source> _getPatientSources() {
+    if (currentPatient == null || currentPatient!.sourceId.isEmpty) {
+      // If no patient or no sourceId, return all sources
+      return sources.where((source) => source.id != 'All').toList();
+    }
+
+    // Filter sources to only include the current patient's source
+    return sources
+        .where((source) => source.id == currentPatient!.sourceId)
+        .toList();
+  }
+
+  /// Get the default source ID for the dropdown
+  String _getDefaultSourceId() {
+    if (currentPatient != null && currentPatient!.sourceId.isNotEmpty) {
+      // Use patient's sourceId as default
+      return currentPatient!.sourceId;
+    }
+
+    // Fallback to 'All' if no patient source
+    final patientSources = _getPatientSources();
+    if (patientSources.isNotEmpty) {
+      return patientSources.first.id;
+    }
+
+    return 'All';
+  }
+
+  /// Build dropdown items for multiple sources
+  List<DropdownMenuItem<String>> _buildDropdownItems(
+    List<Source> patientSources,
+    TextTheme textTheme,
+  ) {
+    // Create dropdown items for each patient source
+    final sourceItems = patientSources.map((source) {
+      return DropdownMenuItem<String>(
+        value: source.id,
+        child: Text(
+          source.name?.isNotEmpty == true ? source.name! : source.id,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          style: textTheme.bodySmall,
+        ),
+      );
+    }).toList();
+
+    // Add "All" option at the top if there are multiple sources
+    if (patientSources.length > 1) {
+      sourceItems.insert(
+        0,
+        DropdownMenuItem<String>(
+          value: 'All',
+          child: Text(
+            'All', // Use hardcoded text since context is not available here
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: textTheme.bodySmall,
+          ),
+        ),
+      );
+    }
+
+    return sourceItems;
   }
 }

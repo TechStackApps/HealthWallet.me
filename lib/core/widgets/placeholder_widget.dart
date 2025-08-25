@@ -59,30 +59,7 @@ class PlaceholderWidget extends StatelessWidget {
                     const SizedBox(height: Insets.large),
                     Column(
                       children: [
-                        // Sync Button (First)
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: onSyncPressed ??
-                                () {
-                                  context.router.push(const SyncRoute());
-                                },
-                            icon: const Icon(Icons.sync),
-                            label: const Text('Sync Records'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.primary,
-                              foregroundColor: context.isDarkMode
-                                  ? Colors.white
-                                  : colorScheme.onPrimary,
-                              padding: const EdgeInsets.all(12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: Insets.medium),
-                        // Demo Data Button
+                        // Demo Data Button (First - prioritize demo data for new users)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -107,6 +84,29 @@ class PlaceholderWidget extends StatelessWidget {
                                   ? 'Loading Demo Data...'
                                   : 'Load Demo Data',
                             ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: context.isDarkMode
+                                  ? Colors.white
+                                  : colorScheme.onPrimary,
+                              padding: const EdgeInsets.all(12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: Insets.medium),
+                        // Sync Button (Second)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: onSyncPressed ??
+                                () {
+                                  context.router.push(const SyncRoute());
+                                },
+                            icon: const Icon(Icons.sync),
+                            label: const Text('Sync Records'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.secondary,
                               foregroundColor: context.isDarkMode

@@ -5,6 +5,7 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class UserSection extends StatefulWidget {
@@ -42,6 +43,7 @@ class _UserSectionState extends State<UserSection> {
       });
       _nameFocusNode.unfocus();
 
+      // Update the user name through BLoC
       context.read<UserBloc>().add(UserNameUpdated(newName));
     }
   }
@@ -52,89 +54,117 @@ class _UserSectionState extends State<UserSection> {
         ? AppColors.textSecondaryDark
         : AppColors.textSecondary;
 
-    return BlocBuilder<UserBloc, UserState>(
-      builder: (context, state) {
-        final user = state.user;
-        final userName = user.name.isNotEmpty ? user.name : 'User';
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Assets.icons.information.svg(
-                    width: 16,
-                    height: 16,
-                    colorFilter: ColorFilter.mode(
-                      iconColor,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const SizedBox(width: Insets.extraSmall),
-                  Text(
-                    'Display name',
-                    style: AppTextStyle.labelMedium.copyWith(
-                      color: iconColor,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: _isEditing
-                        ? TextField(
-                            controller: _nameController,
-                            focusNode: _nameFocusNode,
-                            style: AppTextStyle.bodyLarge,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            onSubmitted: (_) => _saveName(),
-                            onEditingComplete: _saveName,
-                          )
-                        : Text(
-                            userName,
-                            style: AppTextStyle.bodyLarge,
-                          ),
-                  ),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: IconButton(
-                      icon: _isEditing
-                          ? const Icon(
-                              Icons.check,
-                              color: AppColors.primary,
-                              size: 21,
-                            )
-                          : Assets.icons.edit.svg(
-                              width: 21,
-                              height: 19.5,
-                              colorFilter: const ColorFilter.mode(
-                                AppColors.primary,
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                      onPressed: _isEditing
-                          ? _saveName
-                          : () => _startEditing(userName),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
+    return BlocListener<UserBloc, UserState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status.runtimeType.toString().contains('Failure'),
+      listener: (context, state) {
+        if (state.status.runtimeType.toString().contains('Failure')) {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to update display name: ${state.status.toString()}'),
+              backgroundColor: context.colorScheme.error,
+            ),
+          );
+        }
       },
+      child: BlocBuilder<UserBloc, UserState>(
+        builder: (context, userState) {
+          return BlocBuilder<SyncBloc, SyncState>(
+            builder: (context, syncState) {
+              final user = userState.user;
+              // Use local user name if it's been updated, otherwise fall back to server username
+              final userName = user.name.isNotEmpty
+                  ? user.name
+                  : (syncState.serverUsername?.isNotEmpty == true
+                      ? syncState.serverUsername!
+                      : 'User');
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Assets.icons.information.svg(
+                          width: 16,
+                          height: 16,
+                          colorFilter: ColorFilter.mode(
+                            iconColor,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        const SizedBox(width: Insets.extraSmall),
+                        Text(
+                          'Display name',
+                          style: AppTextStyle.labelMedium.copyWith(
+                            color: iconColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: _isEditing
+                              ? TextField(
+                                  controller: _nameController,
+                                  focusNode: _nameFocusNode,
+                                  style: AppTextStyle.bodyLarge,
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  onSubmitted: (_) => _saveName(),
+                                  onEditingComplete: _saveName,
+                                )
+                              : Text(
+                                  userName,
+                                  style: AppTextStyle.bodyLarge,
+                                ),
+                        ),
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: IconButton(
+                            icon: _isEditing
+                                ? const Icon(
+                                    Icons.check,
+                                    color: AppColors.primary,
+                                    size: 21,
+                                  )
+                                : Assets.icons.edit.svg(
+                                    width: 21,
+                                    height: 19.5,
+                                    colorFilter: const ColorFilter.mode(
+                                      AppColors.primary,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                            onPressed: _isEditing
+                                ? _saveName
+                                : () => _startEditing(user.name.isNotEmpty
+                                    ? user.name
+                                    : userName),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

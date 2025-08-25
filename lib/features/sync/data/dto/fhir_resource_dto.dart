@@ -20,6 +20,9 @@ class FhirResourceDto with _$FhirResourceDto {
     @JsonKey(name: "resource_raw") Map<String, dynamic>? resourceRaw,
     String? encounterId,
     String? subjectId,
+    // New fields for handling deletions
+    @JsonKey(name: "deleted_at", fromJson: dateTimeFromJson) DateTime? deletedAt,
+    @JsonKey(name: "change_type") String? changeType, // "created", "updated", or "deleted"
   }) = _FhirResourceDto;
 
   factory FhirResourceDto.fromJson(Map<String, dynamic> json) =>
@@ -52,5 +55,22 @@ class FhirResourceDto with _$FhirResourceDto {
     if (splitString.length < 3) return null;
 
     return splitString[2];
+  }
+
+  /// Check if this resource represents a deletion
+  bool get isDeleted => deletedAt != null || changeType == 'deleted';
+
+  /// Check if this resource was created (new)
+  bool get isCreated => changeType == 'created';
+
+  /// Check if this resource was updated (modified)
+  bool get isUpdated => changeType == 'updated';
+
+  /// Get a user-friendly description of the change
+  String get changeDescription {
+    if (isDeleted) return 'Deleted';
+    if (isCreated) return 'Created';
+    if (isUpdated) return 'Updated';
+    return 'Unknown';
   }
 }

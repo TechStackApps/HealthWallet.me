@@ -52,3 +52,20 @@ class HomePatientSelected extends HomeEvent with _$HomePatientSelected {
   const factory HomePatientSelected(
       String? patientSourceId, String? patientName) = _HomePatientSelected;
 }
+
+@freezed
+class HomeVitalsExpansionToggled extends HomeEvent
+    with _$HomeVitalsExpansionToggled {
+  const factory HomeVitalsExpansionToggled() = _HomeVitalsExpansionToggled;
+}
+
+@freezed
+class HomeRefreshPreservingOrder extends HomeEvent
+    with _$HomeRefreshPreservingOrder {
+  const factory HomeRefreshPreservingOrder() = _HomeRefreshPreservingOrder;
+}
+
+@freezed
+class HomeDataLoaded extends HomeEvent with _$HomeDataLoaded {
+  const factory HomeDataLoaded() = _HomeDataLoaded;
+}

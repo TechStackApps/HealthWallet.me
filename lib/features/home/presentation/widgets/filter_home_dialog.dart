@@ -43,6 +43,14 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
     _tempSelectedVitals = Map.from(widget.selectedVitals ?? {});
   }
 
+  bool _canSave() {
+    if (widget.type == FilterHomeType.records) {
+      return _tempSelectedRecords.values.any((isSelected) => isSelected);
+    } else {
+      return _tempSelectedVitals.values.any((isSelected) => isSelected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRecords = widget.type == FilterHomeType.records;
@@ -97,6 +105,49 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                   ),
                 ),
               ),
+              // Warning message when no items are selected
+              if (!_canSave())
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Insets.normal,
+                    vertical: Insets.small,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(Insets.small),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .errorContainer
+                          .withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: Insets.small),
+                        Expanded(
+                          child: Text(
+                            'Please select at least one ${isRecords ? 'record type' : 'vital sign'} to continue',
+                            style: AppTextStyle.bodySmall.copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: Insets.normal,
@@ -120,21 +171,34 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                     ),
                     const SizedBox(width: Insets.small),
                     TextButton(
-                      onPressed: () {
-                        if (isRecords && widget.onRecordsSaved != null) {
-                          widget.onRecordsSaved!(_tempSelectedRecords);
-                        } else if (!isRecords && widget.onVitalsSaved != null) {
-                          widget.onVitalsSaved!(_tempSelectedVitals);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onPressed: _canSave()
+                          ? () {
+                              if (isRecords && widget.onRecordsSaved != null) {
+                                widget.onRecordsSaved!(_tempSelectedRecords);
+                              } else if (!isRecords &&
+                                  widget.onVitalsSaved != null) {
+                                widget.onVitalsSaved!(_tempSelectedVitals);
+                              }
+                              Navigator.of(context).pop();
+                            }
+                          : null,
                       style: TextButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: _canSave()
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.38),
                       ),
                       child: Text(
                         'Save',
                         style: AppTextStyle.labelLarge.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: _canSave()
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.38),
                         ),
                       ),
                     ),

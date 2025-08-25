@@ -15,6 +15,10 @@ class VitalsSection extends StatelessWidget {
   final void Function(int oldIndex, int newIndex)? onReorder;
   final VoidCallback? onLongPressCard;
   final VoidCallback? onExpandToggle;
+  final GlobalKey? firstCardKey; // First card key
+  final GlobalKey? secondCardKey; // Second card key (new parameter)
+  final FocusNode? firstCardFocusNode;
+  final Map<String, bool>? selectedVitals; // Add this to check filter state
 
   const VitalsSection({
     super.key,
@@ -25,20 +29,55 @@ class VitalsSection extends StatelessWidget {
     this.onReorder,
     this.onLongPressCard,
     this.onExpandToggle,
+    this.firstCardKey,
+    this.secondCardKey, // Add this parameter
+    this.firstCardFocusNode,
+    this.selectedVitals,
   });
 
   @override
   Widget build(BuildContext context) {
     final vitalsToShow = vitalsExpanded ? allAvailableVitals : vitals;
 
+    print('🔄 VitalsSection build:');
+    print('🔄 Expansion state: $vitalsExpanded');
+    print('🔄 Edit mode: $editMode');
+    print('🔄 Vitals to show count: ${vitalsToShow.length}');
+    print('🔄 All available vitals count: ${allAvailableVitals.length}');
+    print('🔄 Filtered vitals count: ${vitals.length}');
+    print(
+        '🔄 Show expand button: ${allAvailableVitals.isNotEmpty && allAvailableVitals.length > vitals.length && (selectedVitals == null || selectedVitals!.entries.where((e) => e.value).length < allAvailableVitals.length)}');
+    print(
+        '🔄 Selected vitals count: ${selectedVitals?.entries.where((e) => e.value).length ?? 0}');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Vitals Grid
         ReorderableGrid<PatientVital>(
           items: vitalsToShow,
           enabled: editMode,
-          onReorder: onReorder ?? (a, b) {},
+          onReorder: (oldIndex, newIndex) {
+            if (vitalsExpanded) {
+              print('🔄 Reordering in EXPANDED mode: $oldIndex -> $newIndex');
+              onReorder?.call(oldIndex, newIndex);
+            } else {
+              final vitalToMove = vitals[oldIndex];
+              final oldMasterIndex = allAvailableVitals
+                  .indexWhere((v) => v.title == vitalToMove.title);
+              final newMasterIndex = allAvailableVitals
+                  .indexWhere((v) => v.title == vitals[newIndex].title);
+
+              print('🔄 Reordering in COLLAPSED mode: $oldIndex -> $newIndex');
+              print('🔄 Vital to move: ${vitalToMove.title}');
+              print('🔄 Master indices: $oldMasterIndex -> $newMasterIndex');
+
+              if (oldMasterIndex != -1 && newMasterIndex != -1) {
+                onReorder?.call(oldMasterIndex, newMasterIndex);
+              } else {
+                print('🚨 Failed to find master indices for reordering');
+              }
+            }
+          },
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
@@ -47,12 +86,20 @@ class VitalsSection extends StatelessWidget {
           padding: EdgeInsets.zero,
           itemBuilder: (context, vital, index) => GestureDetector(
             onLongPress: onLongPressCard,
-            child: _buildVitalSignCard(context, vital),
+            child: index == 0 && firstCardFocusNode != null
+                ? Focus(
+                    focusNode: firstCardFocusNode!,
+                    child:
+                        _buildVitalSignCard(context, vital, key: firstCardKey),
+                  )
+                : _buildVitalSignCard(context, vital,
+                    key: index == 1 ? secondCardKey : null),
           ),
         ),
-
         if (allAvailableVitals.isNotEmpty &&
-            allAvailableVitals.length > vitals.length)
+            (selectedVitals == null ||
+                selectedVitals!.entries.where((e) => e.value).length <
+                    allAvailableVitals.length))
           Padding(
             padding: const EdgeInsets.only(top: Insets.small),
             child: Row(
@@ -87,7 +134,8 @@ class VitalsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalSignCard(BuildContext context, PatientVital vital) {
+  Widget _buildVitalSignCard(BuildContext context, PatientVital vital,
+      {Key? key}) {
     final String title = vital.title;
     final String value = vital.value;
     final String unit = vital.unit;
@@ -128,7 +176,39 @@ class VitalsSection extends StatelessWidget {
         );
         break;
       case 'Blood Glucose':
-        icon = Assets.icons.drop.svg(
+        icon = Assets.icons.bloodGlucose.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Respiratory Rate':
+        icon = Assets.icons.alarm.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Weight':
+        icon = Assets.icons.weight.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Height':
+        icon = Assets.icons.rulerHeight.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'BMI':
+        icon = Assets.icons.bmi.svg(
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -193,6 +273,7 @@ class VitalsSection extends StatelessWidget {
     }
 
     return Container(
+      key: key,
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(8),

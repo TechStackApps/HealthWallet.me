@@ -60,7 +60,7 @@ class SyncSection extends StatelessWidget {
                               ),
                               const SizedBox(width: Insets.extraSmall),
                               Text(
-                                'Last synced: 2 hours ago',
+                                _getLastSyncText(syncState),
                                 style: AppTextStyle.labelSmall.copyWith(
                                   color: AppColors.primary,
                                 ),
@@ -77,7 +77,7 @@ class SyncSection extends StatelessWidget {
                     ),
                     const SizedBox(height: Insets.small),
                     Text(
-                      'The scan will test common network IPs and your local subnet to find Fasten servers automatically.',
+                      'Sync your latest medical records from your healthcare provider using a secure JWT token.',
                       textAlign: TextAlign.center,
                       style: AppTextStyle.labelLarge,
                     ),
@@ -121,5 +121,24 @@ class SyncSection extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _getLastSyncText(SyncState syncState) {
+    if (syncState.lastSyncTime == null) {
+      return 'Never synced';
+    }
+    
+    final now = DateTime.now();
+    final difference = now.difference(syncState.lastSyncTime!);
+    
+    if (difference.inDays > 0) {
+      return 'Last synced: ${difference.inDays} day${difference.inDays != 1 ? 's' : ''} ago';
+    } else if (difference.inHours > 0) {
+      return 'Last synced: ${difference.inHours} hour${difference.inHours != 1 ? 's' : ''} ago';
+    } else if (difference.inMinutes > 0) {
+      return 'Last synced: ${difference.inMinutes} minute${difference.inMinutes != 1 ? 's' : ''} ago';
+    } else {
+      return 'Last synced: Just now';
+    }
   }
 }

@@ -18,6 +18,9 @@ abstract class FhirLocalDataSource {
   Future<void> cacheSources(List<Source> sources);
   Future<List<Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
+  
+  // New methods for incremental sync
+  Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
 }
 
 @Injectable(as: FhirLocalDataSource)
@@ -116,5 +119,21 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
           ),
         )
         .toList();
+  }
+
+  @override
+  Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions) async {
+    // TODO: Implement proper deletion marking when database schema supports it
+    // For now, we'll just log the deletions
+    for (final deletion in deletions) {
+      if (deletion.resourceId != null) {
+        logger.d('🗑️ Marking resource as deleted: ${deletion.resourceId}');
+        // Note: The current database schema doesn't support deletedAt field
+        // We would need to either:
+        // 1. Add a deletedAt field to the database schema
+        // 2. Use an existing field to mark deletion status
+        // 3. Remove the resource entirely
+      }
+    }
   }
 }

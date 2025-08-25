@@ -139,14 +139,7 @@ class SyncException implements Exception {
     );
   }
 
-  /// Creates a network error
-  factory SyncException.networkError() {
-    return const SyncException(
-      'Network error. Please check your internet connection.',
-      null,
-      'NETWORK_ERROR',
-    );
-  }
+
 
   /// Creates an invalid data error
   factory SyncException.invalidData(String details) {
@@ -157,6 +150,47 @@ class SyncException implements Exception {
       {'details': details},
     );
   }
+
+  /// Creates a validation error for response format issues
+  factory SyncException.validationError(
+    String message, {
+    Map<String, dynamic>? context,
+  }) {
+    return SyncException(
+      message,
+      null,
+      'VALIDATION_ERROR',
+      context,
+    );
+  }
+
+  /// Creates a server error for HTTP status errors
+  factory SyncException.serverError(
+    String message, {
+    Map<String, dynamic>? context,
+  }) {
+    return SyncException(
+      message,
+      null,
+      'SERVER_ERROR',
+      context,
+    );
+  }
+
+  /// Creates a network error for connection issues
+  factory SyncException.networkError(
+    String message, {
+    Map<String, dynamic>? context,
+  }) {
+    return SyncException(
+      message,
+      null,
+      'NETWORK_ERROR',
+      context,
+    );
+  }
+
+
 
   /// Returns true if this is a connection-related error
   bool get isConnectionError {

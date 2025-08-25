@@ -8,7 +8,7 @@ class UserDto with _$UserDto {
   const factory UserDto({
     required String id,
     required String username,
-    String? fullName,
+    @JsonKey(name: 'full_name') String? fullName,
     String? email,
     String? picture,
     String? role,

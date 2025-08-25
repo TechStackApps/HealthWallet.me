@@ -30,6 +30,8 @@
 	<string>Please authenticate to access your HealthWallet.me.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan QR codes for server connection.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to select profile pictures and documents for your health records.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

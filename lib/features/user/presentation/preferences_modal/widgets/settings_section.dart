@@ -20,48 +20,76 @@ class SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
           child: Column(
             children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Theme',
-                    style: AppTextStyle.bodySmall,
+              InkWell(
+                onTap: () {
+                  // Theme toggle functionality
+                  context.read<UserBloc>().add(const UserThemeToggled());
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Insets.small),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Theme',
+                        style: AppTextStyle.bodySmall,
+                      ),
+                      const ThemeToggleButton(),
+                    ],
                   ),
-                  ThemeToggleButton(),
-                ],
+                ),
               ),
               const SizedBox(height: Insets.medium),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.biometricAuthentication,
-                    style: AppTextStyle.bodySmall,
+              InkWell(
+                onTap: () {
+                  // Biometric authentication toggle functionality
+                  final currentState = context.read<UserBloc>().state;
+                  context.read<UserBloc>().add(
+                        UserBiometricAuthToggled(
+                            !currentState.isBiometricAuthEnabled),
+                      );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Insets.small),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        context.l10n.biometricAuthentication,
+                        style: AppTextStyle.bodySmall,
+                      ),
+                      const BiometricToggleButton(),
+                    ],
                   ),
-                  const BiometricToggleButton(),
-                ],
+                ),
               ),
               const SizedBox(height: Insets.medium),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.privacyPolicy,
-                    style: AppTextStyle.bodySmall,
+              InkWell(
+                onTap: () {
+                  context.appRouter.push(const PrivacyPolicyRoute());
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Insets.small),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        context.l10n.privacyPolicy,
+                        style: AppTextStyle.bodySmall,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: context.isDarkMode
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      context.appRouter.push(const PrivacyPolicyRoute());
-                    },
-                    icon: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: context.isDarkMode
-                          ? Colors.white
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
