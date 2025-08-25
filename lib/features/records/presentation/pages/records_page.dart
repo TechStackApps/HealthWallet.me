@@ -245,44 +245,63 @@ class _RecordsViewState extends State<RecordsView> {
                         if (state.activeFilters.isEmpty) {
                           return const SizedBox();
                         }
-                        return Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8,
-                          children: state.activeFilters
-                              .map(
-                                (filter) => GestureDetector(
-                                  onTap: () => context
-                                      .read<RecordsBloc>()
-                                      .add(RecordsFilterRemoved(filter)),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          filter.display,
-                                          style: AppTextStyle.labelSmall
-                                              .copyWith(
-                                                  color: AppColors.primary),
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8,
+                                children: state.activeFilters
+                                    .map(
+                                      (filter) => GestureDetector(
+                                        onTap: () => context
+                                            .read<RecordsBloc>()
+                                            .add(RecordsFilterRemoved(filter)),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4, horizontal: 8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.08),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                filter.display,
+                                                style: AppTextStyle.labelSmall
+                                                    .copyWith(
+                                                        color:
+                                                            AppColors.primary),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Icon(
+                                                Icons.close,
+                                                color: AppColors.primary,
+                                                size: 12,
+                                              )
+                                            ],
+                                          ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Icon(
-                                          Icons.close,
-                                          color: AppColors.primary,
-                                          size: 12,
-                                        )
-                                      ],
-                                    ),
-                                  ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => context
+                                  .read<RecordsBloc>()
+                                  .add(RecordsFiltersApplied([])),
+                              child: Text(
+                                'Clear all',
+                                style: AppTextStyle.labelMedium.copyWith(
+                                  color: AppColors.primary,
                                 ),
-                              )
-                              .toList(),
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
