@@ -16,7 +16,6 @@ class VitalsSection extends StatelessWidget {
   final VoidCallback? onLongPressCard;
   final VoidCallback? onExpandToggle;
   final GlobalKey? firstCardKey; // First card key
-  final GlobalKey? secondCardKey; // Second card key (new parameter)
   final FocusNode? firstCardFocusNode;
   final Map<String, bool>? selectedVitals; // Add this to check filter state
 
@@ -30,7 +29,6 @@ class VitalsSection extends StatelessWidget {
     this.onLongPressCard,
     this.onExpandToggle,
     this.firstCardKey,
-    this.secondCardKey, // Add this parameter
     this.firstCardFocusNode,
     this.selectedVitals,
   });
@@ -92,8 +90,7 @@ class VitalsSection extends StatelessWidget {
                     child:
                         _buildVitalSignCard(context, vital, key: firstCardKey),
                   )
-                : _buildVitalSignCard(context, vital,
-                    key: index == 1 ? secondCardKey : null),
+                : _buildVitalSignCard(context, vital),
           ),
         ),
         if (allAvailableVitals.isNotEmpty &&
