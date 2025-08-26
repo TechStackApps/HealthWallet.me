@@ -39,7 +39,8 @@ class SyncService {
   // ===== BACKGROUND SYNC METHODS =====
 
   /// Start a background sync job
-  Future<void> startBackgroundSync(SyncToken token, {String? workingBaseUrl}) async {
+  Future<void> startBackgroundSync(SyncToken token,
+      {required String baseUrl}) async {
     try {
       logger.d('🚀 Starting background sync job...');
 
@@ -63,7 +64,7 @@ class SyncService {
       await _saveSyncJob(syncJob);
 
       // Start the sync process with the working base URL
-      await _runBackgroundSync(syncJob, workingBaseUrl: workingBaseUrl);
+      await _runBackgroundSync(syncJob, baseUrl: baseUrl);
     } catch (e, s) {
       logger.e('❌ Failed to start background sync: $e', e, s);
       await _updateSyncJobStatus(SyncJobStatus.failed, error: e.toString());
@@ -72,7 +73,7 @@ class SyncService {
   }
 
   /// Start a smart sync job that chooses between full and incremental
-  Future<void> startSmartSync(SyncToken token, {String? workingBaseUrl}) async {
+  Future<void> startSmartSync(SyncToken token, {required String baseUrl}) async {
     try {
       logger.d('🧠 Starting smart sync job...');
 
@@ -96,7 +97,7 @@ class SyncService {
       await _saveSyncJob(syncJob);
 
       // Start the smart sync process with the working base URL
-      await _runSmartSync(syncJob, workingBaseUrl: workingBaseUrl);
+      await _runSmartSync(syncJob, baseUrl: baseUrl);
     } catch (e, s) {
       logger.e('❌ Failed to start smart sync: $e', e, s);
       await _updateSyncJobStatus(SyncJobStatus.failed, error: e.toString());
@@ -121,13 +122,13 @@ class SyncService {
           // Validate token and base URL
           await _validateToken(token);
           await _validateWorkingBaseUrl(baseUrl);
-          
+
           logSyncStart('Incremental sync', {
             'since': since,
             'resourceType': resourceType,
             'limit': limit,
           });
-          
+
           final response = await _remoteService.getIncrementalUpdates(
             baseUrl: baseUrl,
             token: token.token,
@@ -138,22 +139,25 @@ class SyncService {
 
           if (response['success'] == true && response['data'] != null) {
             final data = response['data'] as Map<String, dynamic>;
-            
+
             // Process resources using ResourceProcessor
-            final created = _resourceProcessor.processRawResources(data['created'] ?? [], 'created');
-            final updated = _resourceProcessor.processRawResources(data['updated'] ?? [], 'updated');
-            final deleted = _resourceProcessor.processRawResources(data['deleted'] ?? [], 'deleted');
-            
+            final created = _resourceProcessor.processRawResources(
+                data['created'] ?? [], 'created');
+            final updated = _resourceProcessor.processRawResources(
+                data['updated'] ?? [], 'updated');
+            final deleted = _resourceProcessor.processRawResources(
+                data['deleted'] ?? [], 'deleted');
+
             // Merge with local database using ResourceProcessor
             await _resourceProcessor.mergeResources(
               created: created,
               updated: updated,
               deleted: deleted,
             );
-            
+
             // Update last sync timestamp
             await _updateLastSyncTimestamp(DateTime.now().toIso8601String());
-            
+
             final result = IncrementalSyncResult(
               created: created.length,
               updated: updated.length,
@@ -161,14 +165,14 @@ class SyncService {
               hasMore: data['hasMore'] ?? false,
               nextOffset: data['pagination']?['nextOffset'] ?? 0,
             );
-            
+
             logSyncComplete('Incremental sync', {
               'created': created.length,
               'updated': updated.length,
               'deleted': deleted.length,
               'hasMore': result.hasMore,
             });
-            
+
             return result;
           } else {
             throw Exception('Invalid response from incremental sync endpoint');
@@ -223,25 +227,25 @@ class SyncService {
 
   // ===== BACKGROUND SYNC IMPLEMENTATION =====
 
-  Future<void> _runBackgroundSync(SyncJob syncJob, {String? workingBaseUrl}) async {
+  Future<void> _runBackgroundSync(SyncJob syncJob,
+      {required String baseUrl}) async {
     try {
-      final baseUrl = workingBaseUrl ?? syncJob.token.baseUrl;
-      
-              // Get resource types
-        final resourceTypesResponse = await _remoteService.getResourceTypes(
-          baseUrl: baseUrl,
-          token: syncJob.token.token,
-        );
+      // Get resource types
+      final resourceTypesResponse = await _remoteService.getResourceTypes(
+        baseUrl: baseUrl,
+        token: syncJob.token.token,
+      );
 
-        if (resourceTypesResponse['success'] == true) {
-          final resourceTypes = resourceTypesResponse['data'] as List<dynamic>;
-          final updatedJob = syncJob.copyWith(totalResourceTypes: resourceTypes.length);
-          await _saveSyncJob(updatedJob);
+      if (resourceTypesResponse['success'] == true) {
+        final resourceTypes = resourceTypesResponse['data'] as List<dynamic>;
+        final updatedJob =
+            syncJob.copyWith(totalResourceTypes: resourceTypes.length);
+        await _saveSyncJob(updatedJob);
 
-          // Process each resource type
-          for (int i = 0; i < resourceTypes.length; i++) {
+        // Process each resource type
+        for (int i = 0; i < resourceTypes.length; i++) {
           final resourceType = resourceTypes[i] as String;
-          
+
           try {
             await _processResourceType(
               resourceType,
@@ -249,10 +253,10 @@ class SyncService {
               syncJob.token.token,
               syncJob,
             );
-            
+
             final updatedJob = syncJob.copyWith(completedResourceTypes: i + 1);
             await _saveSyncJob(updatedJob);
-            
+
             // Update progress
             await _updateSyncProgress(updatedJob);
           } catch (e) {
@@ -273,11 +277,10 @@ class SyncService {
     }
   }
 
-  Future<void> _runSmartSync(SyncJob syncJob, {String? workingBaseUrl}) async {
+  Future<void> _runSmartSync(SyncJob syncJob, {required String baseUrl}) async {
     try {
-      final baseUrl = workingBaseUrl ?? syncJob.token.baseUrl;
       final lastSync = _prefs.getString(_lastFullSyncKey);
-      
+
       if (lastSync != null) {
         // Try incremental sync first
         try {
@@ -292,9 +295,9 @@ class SyncService {
           logger.w('⚠️ Incremental sync failed, falling back to full sync: $e');
         }
       }
-      
+
       // Fall back to full sync
-      await _runBackgroundSync(syncJob, workingBaseUrl: workingBaseUrl);
+      await _runBackgroundSync(syncJob, baseUrl: baseUrl);
     } catch (e, s) {
       logger.e('❌ Smart sync failed: $e', e, s);
       await _updateSyncJobStatus(SyncJobStatus.failed, error: e.toString());
@@ -379,8 +382,9 @@ class SyncService {
       final updatedJob = job.copyWith(
         status: status,
         error: error,
-        endTime: (status == SyncJobStatus.completed || status == SyncJobStatus.failed) 
-            ? DateTime.now() 
+        endTime: (status == SyncJobStatus.completed ||
+                status == SyncJobStatus.failed)
+            ? DateTime.now()
             : job.endTime,
       );
       await _saveSyncJob(updatedJob);
@@ -389,7 +393,8 @@ class SyncService {
 
   Future<void> _updateSyncProgress(SyncJob job) async {
     final progress = SyncProgress(
-      currentResourceType: 'processing', // Track current resource type being processed
+      currentResourceType:
+          'processing', // Track current resource type being processed
       totalResourceTypes: job.totalResourceTypes,
       completedResourceTypes: job.completedResourceTypes,
       currentChunk: 0, // Track current chunk being processed

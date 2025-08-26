@@ -149,7 +149,7 @@ class SyncPage extends StatelessWidget {
             if (state.syncToken != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Connected to: ${state.syncToken!.address}:${state.syncToken!.port}',
+                'Connected to: ${state.workingBaseUrl}',
                 style: context.textTheme.bodyMedium,
               ),
             ],
@@ -375,7 +375,7 @@ class SyncPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _buildDetailRow(context, 'Server',
-                '${token.protocol}://${token.address}:${token.port}'),
+                '${state.workingBaseUrl}'),
             _buildDetailRow(context, 'Expires',
                 context.read<SyncBloc>().getTokenExpirationDescription()),
             const SizedBox(height: 8),

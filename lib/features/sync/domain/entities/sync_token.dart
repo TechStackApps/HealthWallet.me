@@ -7,9 +7,7 @@ part 'sync_token.g.dart';
 class SyncToken with _$SyncToken {
   const factory SyncToken({
     required String token,
-    required String address,
-    required String port,
-    required String serverName,
+    required List<String> serverBaseUrls,
     required DateTime createdAt,
     required DateTime expiresAt,
     @Default(true) bool isActive,
@@ -17,47 +15,35 @@ class SyncToken with _$SyncToken {
     required String tokenId,
     DateTime? lastUsedAt,
     // Network resilience fields
-    @Default([]) List<String> fallbackAddresses,
     @Default({}) Map<String, dynamic> serverInfo,
     // Protocol and endpoints support (unified from QRSyncConfig)
-    @Default('http') String protocol,
     @Default({
       'accessTokens': '/api/secure/access/tokens',
       'syncData': '/api/secure/sync/data',
       'syncUpdates': '/api/secure/sync/updates'
-    }) Map<String, String> endpoints,
+    })
+    Map<String, String> endpoints,
   }) = _SyncToken;
 
   factory SyncToken.fromJson(Map<String, dynamic> json) =>
       _$SyncTokenFromJson(json);
-      
+
   /// Create SyncToken from QR code data (replaces QRSyncConfig.fromJson)
   factory SyncToken.fromQRData(Map<String, dynamic> qrData) {
     final now = DateTime.now();
-    
+
     // Extract connections array (new format)
-    final connections = qrData['connections'] as List<dynamic>;
-    final primaryConnection = connections.first as Map<String, dynamic>;
     final endpoints = qrData['endpoints'] as Map<String, dynamic>;
-    
-    // Create fallback addresses from all connections except the primary
-    final fallbackAddresses = connections
-        .skip(1)
-        .map((connection) => '${connection['host']}:${connection['port']}')
-        .toList();
-    
+
     return SyncToken(
       token: qrData['token'] as String,
-      address: primaryConnection['host'] as String,
-      port: primaryConnection['port'].toString(),
-      protocol: primaryConnection['protocol'] as String? ?? 'https',
-      serverName: '${primaryConnection['host']}:${primaryConnection['port']}',
+      serverBaseUrls:
+          (qrData["server_base_urls"] as List).whereType<String>().toList(),
       createdAt: now,
-      expiresAt: qrData['expiresAt'] != null 
+      expiresAt: qrData['expiresAt'] != null
           ? DateTime.parse(qrData['expiresAt'] as String)
           : now.add(const Duration(hours: 24)), // Default 24h if no expiration
       tokenId: 'qr_${now.millisecondsSinceEpoch}',
-      fallbackAddresses: fallbackAddresses,
       endpoints: {
         'accessTokens': endpoints['access_tokens'] as String,
         'syncData': endpoints['sync_data'] as String,
@@ -78,21 +64,6 @@ extension SyncTokenExtensions on SyncToken {
   /// Check if the token is about to expire within specified duration
   bool isExpiringWithin(Duration duration) =>
       DateTime.now().add(duration).isAfter(expiresAt);
-
-  /// Get the full base URL for API calls
-  String get baseUrl => '$protocol://$address:$port';
-  
-  /// Get the API base URL (with /api suffix)
-  String get apiBaseUrl => '$baseUrl/api';
-  
-  /// Get the access tokens endpoint URL
-  String get accessTokensUrl => '$baseUrl${endpoints['accessTokens']}';
-  
-  /// Get the sync data endpoint URL
-  String get syncDataUrl => '$baseUrl${endpoints['syncData']}';
-  
-  /// Get the sync updates endpoint URL  
-  String get syncUpdatesUrl => '$baseUrl${endpoints['syncUpdates']}';
 
   /// Get time remaining until expiration
   Duration get timeUntilExpiration => expiresAt.difference(DateTime.now());
@@ -122,33 +93,13 @@ extension SyncTokenExtensions on SyncToken {
   SyncTokenQuality get quality {
     if (lastUsedAt == null) return SyncTokenQuality.invalid;
     if (!isValid) return SyncTokenQuality.invalid;
-    
+
     final daysSinceLastUse = DateTime.now().difference(lastUsedAt!).inDays;
     if (daysSinceLastUse == 0) return SyncTokenQuality.excellent;
     if (daysSinceLastUse <= 7) return SyncTokenQuality.good;
     if (daysSinceLastUse <= 30) return SyncTokenQuality.fair;
     if (daysSinceLastUse <= 90) return SyncTokenQuality.poor;
     return SyncTokenQuality.critical;
-  }
-
-  /// Get all available server addresses including fallbacks
-  List<String> get allAddresses {
-    final addresses = <String>['$address:$port'];
-    addresses.addAll(fallbackAddresses);
-    return addresses.toSet().toList(); // Remove duplicates
-  }
-
-  /// Check if token has fallback addresses for network resilience
-  bool get hasFallbackAddresses => fallbackAddresses.isNotEmpty;
-
-  /// Get next available address to try
-  String getNextAddress(String currentAddress) {
-    final allAddrs = allAddresses;
-    final currentIndex = allAddrs.indexOf(currentAddress);
-    if (currentIndex == -1 || currentIndex == allAddrs.length - 1) {
-      return allAddrs.first;
-    }
-    return allAddrs[currentIndex + 1];
   }
 
   /// Check if token was recently used (within last hour)
@@ -164,18 +115,14 @@ extension SyncTokenExtensions on SyncToken {
   }
 
   /// Get a short identifier for display purposes
-  String get shortId => tokenId.length > 8 ? '${tokenId.substring(0, 8)}...' : tokenId;
-
-  /// Check if this token is for the same server as another
-  bool isSameServer(SyncToken other) {
-    return address == other.address && port == other.port;
-  }
+  String get shortId =>
+      tokenId.length > 8 ? '${tokenId.substring(0, 8)}...' : tokenId;
 
   /// Get formatted expiration time for display
   String get formattedExpiration {
     final now = DateTime.now();
     final diff = expiresAt.difference(now);
-    
+
     if (diff.isNegative) {
       final expiredDiff = now.difference(expiresAt);
       if (expiredDiff.inDays > 0) {
@@ -199,10 +146,10 @@ extension SyncTokenExtensions on SyncToken {
   /// Get formatted last used time for display
   String? get formattedLastUsed {
     if (lastUsedAt == null) return null;
-    
+
     final now = DateTime.now();
     final diff = now.difference(lastUsedAt!);
-    
+
     if (diff.inDays > 0) {
       return '${diff.inDays} day${diff.inDays != 1 ? 's' : ''} ago';
     } else if (diff.inHours > 0) {

@@ -138,9 +138,7 @@ class TokenServiceImpl implements TokenService {
 
     return SyncToken(
       token: tokenValue,
-      address: address,
-      port: port,
-      serverName: '$address:$port',
+      serverBaseUrls: [baseUrl],
       tokenId: tokenId,
       createdAt: now,
       expiresAt: expiresAt,

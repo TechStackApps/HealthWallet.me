@@ -80,11 +80,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     add(const SyncRestoreState());
   }
 
-  @override
-  Future<void> close() {
-    return super.close();
-  }
-
   Future<void> _onSyncData(SyncData event, Emitter<SyncState> emit) async {
     try {
       if (state.syncToken == null) {
@@ -96,7 +91,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       }
 
       logger.d('🚀 Starting data sync...');
-      logger.d('🌐 Server: ${state.syncToken!.baseUrl}');
       logger.d('🔑 Token: ${state.syncToken!.token.substring(0, 20)}...');
 
       emit(state.copyWith(
@@ -179,9 +173,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         logger.w('⚠️ Failed to fetch user info before sync: $e');
         // Don't fail the sync if user info fetch fails
       }
-
-      await _syncRepository.startBackgroundSync(
-          workingBaseUrl: state.workingBaseUrl);
+      
+      await _syncRepository.startBackgroundSync(baseUrl: state.workingBaseUrl!);
 
       // Background sync completed successfully (it's synchronous now)
       emit(state.copyWith(
@@ -194,7 +187,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         hasSyncData: true,
       ));
 
-      add(SyncDataCompleted(
+      add(const SyncDataCompleted(
         sourceId: 'sync',
         isSuccess: true,
       ));
@@ -383,8 +376,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
         logger.d('✅ SyncToken created and saved successfully');
         logger.d('🔑 Token ID: ${syncToken.tokenId}');
-        logger.d('🌐 Server: ${syncToken.address}:${syncToken.port}');
-        logger.d('🔗 Base URL: ${syncToken.baseUrl}');
 
         // Store in state for UI (we can now use SyncToken directly)
         emit(state.copyWith(
@@ -441,43 +432,14 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       ));
 
       String? workingBaseUrl;
-      final allAddresses = state.syncToken!.allAddresses;
+      final allAddresses = state.syncToken!.serverBaseUrls;
       logger.d('🔍 Available addresses: $allAddresses');
 
-      for (int i = 0; i < allAddresses.length; i++) {
-        final address = allAddresses[i];
-        final parts = address.split(':');
-        final host = parts[0];
-        final originalPort = parts.length > 1 ? parts[1] : '8080';
-
-        // Try original port first, then common Fasten ports
-        final portsToTry = <String>{originalPort, '9090', '8080'}.toList();
-
-        bool foundWorking = false;
-        for (final port in portsToTry) {
-          final httpsUrl = '${state.syncToken!.protocol}://$host:$port';
-          final httpUrl = httpsUrl.replaceFirst('https://', 'http://');
-
-          logger.d('🏥 Checking [$i:$port] HTTPS: $httpsUrl');
-          if (await _tokenService.checkServerHealth(baseUrl: httpsUrl)) {
-            logger.d('✅ HTTPS OK [$i:$port]: $httpsUrl');
-            workingBaseUrl = httpsUrl;
-            foundWorking = true;
-            break;
-          }
-
-          logger.w('❌ HTTPS failed [$i:$port], trying HTTP: $httpUrl');
-          if (await _tokenService.checkServerHealth(baseUrl: httpUrl)) {
-            logger.d('✅ HTTP OK [$i:$port]: $httpUrl');
-            workingBaseUrl = httpUrl;
-            foundWorking = true;
-            break;
-          }
-
-          logger.e('❌ Both failed [$i:$port]: $host:$port');
+      for (String baseUrl in allAddresses) {
+        if (await _tokenService.checkServerHealth(baseUrl: baseUrl)) {
+          workingBaseUrl = baseUrl;
+          break;
         }
-
-        if (foundWorking) break;
       }
 
       if (workingBaseUrl == null) {
@@ -649,7 +611,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         demoDataError: null,
       ));
 
-      add(SyncDataCompleted(
+      add(const SyncDataCompleted(
         sourceId: 'demo',
         isSuccess: true,
       ));
