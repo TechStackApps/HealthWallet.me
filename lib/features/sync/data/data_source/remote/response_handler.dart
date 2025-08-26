@@ -9,7 +9,7 @@ class ResponseHandler {
   Map<String, dynamic> handleResponse(Response response, String operation) {
     if (response.statusCode == 200) {
       if (response.data is Map<String, dynamic>) {
-        return Map<String, dynamic>.from(response.data);
+        return response.data;
       } else {
         throw SyncException.validationError(
           'Invalid response format: expected JSON object, got ${response.data.runtimeType}',

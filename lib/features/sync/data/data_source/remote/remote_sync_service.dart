@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/response_handler.dart';
 import 'package:health_wallet/features/sync/domain/exceptions/sync_exception.dart';
@@ -63,7 +64,7 @@ class RemoteSyncService {
       logger.d('🌐 Base URL: $baseUrl');
       logger.d('🔗 Endpoint: $endpoint');
       logger.d('🔑 Token: ${token.substring(0, 20)}...');
-      
+
       final dio = _createClient(
         baseUrl: baseUrl,
         token: token,
@@ -74,13 +75,13 @@ class RemoteSyncService {
 
       logger.d('🚀 Making GET request to: $baseUrl$endpoint');
       final response = await dio.get(endpoint);
-      
+
       logger.d('📡 Response received');
       logger.d('📊 Status Code: ${response.statusCode}');
       logger.d('📋 Response Headers: ${response.headers}');
       logger.d('📄 Response Data Type: ${response.data.runtimeType}');
       logger.d('📄 Response Data: ${response.data}');
-      
+
       return _responseHandler.handleResponse(response, 'Sync data');
     } catch (e) {
       logger.e('❌ Sync data failed: $e');
@@ -118,37 +119,39 @@ class RemoteSyncService {
     required String token,
   }) async {
     try {
-      logger.d('📋 Getting resource types - using predefined FHIR resource list');
-      
+      logger
+          .d('📋 Getting resource types - using predefined FHIR resource list');
+
       // Return a predefined list of common FHIR resource types
       // This is a fallback since the server doesn't have the endpoint
       return {
         'success': true,
         'data': [
-          'Patient',           // Basic patient demographics
-          'Observation',       // Vital signs, lab results, measurements
-          'Condition',         // Health issues, diagnoses
+          'Patient', // Basic patient demographics
+          'Observation', // Vital signs, lab results, measurements
+          'Condition', // Health issues, diagnoses
           'MedicationRequest', // Prescriptions, medication orders
-          'Procedure',         // Medical procedures performed
-          'Immunization',      // Vaccines given
-          'DiagnosticReport',  // Lab reports, imaging reports
-          'CarePlan',          // Treatment plans
-          'Goal',              // Health goals
-          'CareTeam',          // Healthcare team members
-          'Practitioner',      // Doctors, nurses, etc.
-          'Organization',      // Hospitals, clinics
-          'Encounter',         // Patient visits
+          'Procedure', // Medical procedures performed
+          'Immunization', // Vaccines given
+          'DiagnosticReport', // Lab reports, imaging reports
+          'CarePlan', // Treatment plans
+          'Goal', // Health goals
+          'CareTeam', // Healthcare team members
+          'Practitioner', // Doctors, nurses, etc.
+          'Organization', // Hospitals, clinics
+          'Encounter', // Patient visits
           'AllergyIntolerance', // Allergies
-          'Medication',        // Medication definitions
-          'Specimen',          // Lab specimens
+          'Medication', // Medication definitions
+          'Specimen', // Lab specimens
           'DocumentReference', // Clinical documents
-          'Binary',            // Files, images
-          'Media',             // Multimedia content
-          'Location',          // Physical locations
-          'Coverage',          // Insurance coverage
-          'Claim',             // Insurance claims
+          'Binary', // Files, images
+          'Media', // Multimedia content
+          'Location', // Physical locations
+          'Coverage', // Insurance coverage
+          'Claim', // Insurance claims
         ],
-        'message': 'Using predefined FHIR resource types (server endpoint not available)',
+        'message':
+            'Using predefined FHIR resource types (server endpoint not available)',
         'source': 'fallback',
       };
     } catch (e) {
@@ -157,13 +160,10 @@ class RemoteSyncService {
     }
   }
 
-  /// Get resources of a specific type with pagination
-  Future<Map<String, dynamic>> getResources({
+  Future<List<FhirResourceDto>> getResources({
     required String baseUrl,
     required String token,
     required String resourceType,
-    int limit = 1000,
-    int offset = 0,
   }) async {
     try {
       final dio = _createClient(
@@ -171,35 +171,25 @@ class RemoteSyncService {
         token: token,
       );
 
-      // Use the available sync/data endpoint with resource type filtering
       final response = await dio.get(
-        '/api/secure/sync/data',
+        '/api/secure/resource/fhir',
         queryParameters: {
-          'resource_type': resourceType,  // Server expects "resource_type" not "resourceType"
-          'limit': limit,
-          'offset': offset,
+          'sourceResourceType':
+              resourceType,
         },
       );
 
-      // The server returns resources in data.resources field
-      final responseData = _responseHandler.handleResponse(response, 'Get resources');
-      
-      // Transform the response to match expected structure
-      if (responseData['success'] == true && responseData['data'] != null) {
-        final data = responseData['data'] as Map<String, dynamic>;
-        final resources = data['resources'] as List<dynamic>? ?? [];
-        
-        // Return in the expected format
-        return {
-          'success': true,
-          'data': resources,
-          'pagination': data['pagination'] ?? {},
-          'resourceType': data['resourceType'],
-          'total': data['total'] ?? 0,
-        };
+      final responseData =
+          _responseHandler.handleResponse(response, 'Get resources');
+
+      if (responseData['data'] == null) {
+        return [];
       }
-      
-      return responseData;
+
+      return (responseData['data'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(FhirResourceDto.fromJson)
+          .toList();
     } catch (e) {
       logger.e('❌ Get resources failed: $e');
       rethrow;
@@ -228,7 +218,8 @@ class RemoteSyncService {
       };
 
       if (resourceType != null) {
-        queryParams['resource_type'] = resourceType;  // Server expects "resource_type" not "resourceType"
+        queryParams['resource_type'] =
+            resourceType; // Server expects "resource_type" not "resourceType"
       }
 
       final response = await dio.get(
@@ -236,7 +227,8 @@ class RemoteSyncService {
         queryParameters: queryParams,
       );
 
-      return _responseHandler.handleResponse(response, 'Get incremental updates');
+      return _responseHandler.handleResponse(
+          response, 'Get incremental updates');
     } catch (e) {
       logger.e('❌ Get incremental updates failed: $e');
       rethrow;
@@ -252,7 +244,7 @@ class RemoteSyncService {
     try {
       final dio = _createHealthCheckClient(baseUrl: baseUrl);
       final response = await dio.get('/api/health');
-      
+
       logger.d('✅ Health check successful with $baseUrl');
       return {
         'success': response.statusCode == 200,
@@ -366,11 +358,11 @@ class RemoteSyncService {
       );
 
       final response = await dio.get(endpoint);
-      
+
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final expired = data['expired'] ?? false;
-        
+
         return {
           'success': true,
           'expired': expired,
@@ -449,19 +441,23 @@ class RemoteSyncService {
           response = await dio.get(endpoint, queryParameters: queryParameters);
           break;
         case 'POST':
-          response = await dio.post(endpoint, data: body, queryParameters: queryParameters);
+          response = await dio.post(endpoint,
+              data: body, queryParameters: queryParameters);
           break;
         case 'PUT':
-          response = await dio.put(endpoint, data: body, queryParameters: queryParameters);
+          response = await dio.put(endpoint,
+              data: body, queryParameters: queryParameters);
           break;
         case 'DELETE':
-          response = await dio.delete(endpoint, data: body, queryParameters: queryParameters);
+          response = await dio.delete(endpoint,
+              data: body, queryParameters: queryParameters);
           break;
         default:
           throw Exception('Unsupported HTTP method: $method');
       }
 
-      return _responseHandler.handleResponse(response, 'Generic $method request');
+      return _responseHandler.handleResponse(
+          response, 'Generic $method request');
     } catch (e) {
       logger.e('❌ Generic request failed: $e');
       rethrow;

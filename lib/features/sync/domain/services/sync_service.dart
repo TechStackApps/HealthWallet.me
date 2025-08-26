@@ -73,7 +73,8 @@ class SyncService {
   }
 
   /// Start a smart sync job that chooses between full and incremental
-  Future<void> startSmartSync(SyncToken token, {required String baseUrl}) async {
+  Future<void> startSmartSync(SyncToken token,
+      {required String baseUrl}) async {
     try {
       logger.d('🧠 Starting smart sync job...');
 
@@ -311,47 +312,17 @@ class SyncService {
     String token,
     SyncJob syncJob,
   ) async {
-    int offset = 0;
-    const limit = 1000;
-    int totalProcessed = 0;
+    final resourceDtos = await _remoteService.getResources(
+      baseUrl: baseUrl,
+      token: token,
+      resourceType: resourceType,
+    );
 
-    while (true) {
-      final response = await _remoteService.getResources(
-        baseUrl: baseUrl,
-        token: token,
-        resourceType: resourceType,
-        limit: limit,
-        offset: offset,
-      );
-
-      if (response['success'] == true && response['data'] != null) {
-        final resources = response['data'] as List<dynamic>;
-        if (resources.isEmpty) break;
-
-        // Process resources
-        final processedResources = _resourceProcessor.processRawResources(
-          resources,
-          'created',
-        );
-
-        // Merge with local database
-        await _resourceProcessor.mergeResources(
-          created: processedResources,
-          updated: [],
-          deleted: [],
-        );
-
-        totalProcessed += processedResources.length;
-        offset += limit;
-
-        // Check if we've processed all resources
-        if (resources.length < limit) break;
-      } else {
-        throw Exception('Failed to get resources for $resourceType');
-      }
-    }
-
-    logger.d('✅ Processed $totalProcessed resources for $resourceType');
+    await _resourceProcessor.mergeResources(
+      created: resourceDtos,
+      updated: [],
+      deleted: [],
+    );
   }
 
   // ===== SYNC JOB MANAGEMENT =====
