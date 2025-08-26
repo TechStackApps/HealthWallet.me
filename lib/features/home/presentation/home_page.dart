@@ -8,10 +8,13 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
@@ -57,18 +60,19 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late final HomeOnboardingController _onboardingController;
   late final HomeFocusController _focusController;
+  final GlobalKey<OnboardingState> _onboardingKey =
+      GlobalKey<OnboardingState>();
 
   final GlobalKey _firstVitalCardKey = GlobalKey();
   final GlobalKey _firstOverviewCardKey = GlobalKey();
 
+  bool _hasShownOnboarding = false;
+
   @override
   void initState() {
     super.initState();
-    _onboardingController = HomeOnboardingController();
     _focusController = HomeFocusController();
-    _onboardingController.checkIfShouldShowOnboarding();
   }
 
   @override
@@ -84,13 +88,37 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<HomeBloc, HomeState>(
-      listenWhen: (previous, current) =>
-          previous.status != current.status ||
-          previous.hasDataLoaded != current.hasDataLoaded,
-      listener: (context, state) {
-        if (state.status == const HomeStatus.success() && state.hasDataLoaded) {
-          _onboardingController.triggerOnboardingIfNeeded(state);
+    return BlocListener<SyncBloc, SyncState>(
+      listenWhen: (previous, current) {
+        // Listen for demo data loading completion
+        return (previous.isLoadingDemoData != current.isLoadingDemoData &&
+                !current.isLoadingDemoData &&
+                current.hasDemoData &&
+                current.demoDataError == null) ||
+            // Listen for onboarding trigger
+            (previous.shouldShowOnboarding != current.shouldShowOnboarding &&
+                current.shouldShowOnboarding);
+      },
+      listener: (context, syncState) {
+        if (syncState.shouldShowOnboarding && !_hasShownOnboarding) {
+          print(
+              '🏠 HomePage: Onboarding should be shown - triggering home refresh...');
+
+          _hasShownOnboarding = true;
+
+          context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (context.mounted) {
+              if (_onboardingKey.currentState != null) {
+                try {
+                  _onboardingKey.currentState!.show();
+                } catch (e) {
+                  print('🏠 HomePage: Error showing onboarding overlay: $e');
+                }
+              } else {}
+            }
+          });
         }
       },
       child: BlocBuilder<HomeBloc, HomeState>(
@@ -108,7 +136,7 @@ class _HomeViewState extends State<HomeView> {
           }
 
           return Onboarding(
-            key: _onboardingController.onboardingKey,
+            key: _onboardingKey,
             steps: HomeOnboardingSteps.createSteps(
               firstVitalCardFocusNode: _focusController.firstVitalCardFocusNode,
               firstOverviewCardFocusNode:
@@ -116,7 +144,14 @@ class _HomeViewState extends State<HomeView> {
               context: context,
             ),
             onChanged: (index) => print('Onboarding step changed to: $index'),
-            onEnd: (index) => _onboardingController.markOnboardingAsSeen(),
+            onEnd: (index) async {
+              context.read<SyncBloc>().resetOnboardingState();
+
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('onboarding_shown', true);
+
+              _hasShownOnboarding = false;
+            },
             child: Scaffold(
               backgroundColor: context.colorScheme.surface,
               extendBody: true,
@@ -128,33 +163,42 @@ class _HomeViewState extends State<HomeView> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    BlocBuilder<UserBloc, UserState>(
-                      builder: (context, userState) {
-                        return BlocBuilder<SyncBloc, SyncState>(
-                          builder: (context, syncState) {
-                            final displayName = userState.user.name.isNotEmpty
-                                ? userState.user.name
-                                : (syncState.serverUsername?.isNotEmpty == true
-                                    ? syncState.serverUsername!
-                                    : 'User');
-                            return RichText(
-                              text: TextSpan(
-                                style: AppTextStyle.titleMedium.copyWith(
-                                  color: context.colorScheme.onSurface,
-                                ),
-                                children: [
-                                  TextSpan(text: context.l10n.homeHi),
-                                  TextSpan(
-                                    text: displayName,
-                                    style: TextStyle(
-                                        color: context.colorScheme.primary),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BlocBuilder<UserBloc, UserState>(
+                            builder: (context, userState) {
+                              return BlocBuilder<SyncBloc, SyncState>(
+                                builder: (context, syncState) {
+                                  final displayName = userState
+                                          .user.name.isNotEmpty
+                                      ? userState.user.name
+                                      : (syncState.serverUsername?.isNotEmpty ==
+                                              true
+                                          ? syncState.serverUsername!
+                                          : 'User');
+                                  return RichText(
+                                    text: TextSpan(
+                                      style: AppTextStyle.titleMedium.copyWith(
+                                        color: context.colorScheme.onSurface,
+                                      ),
+                                      children: [
+                                        TextSpan(text: context.l10n.homeHi),
+                                        TextSpan(
+                                            text: displayName,
+                                            style: TextStyle(
+                                                color: context
+                                                    .colorScheme.primary)),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     state.editMode
                         ? TextButton(
@@ -192,49 +236,41 @@ class _HomeViewState extends State<HomeView> {
               body: RefreshIndicator(
                 onRefresh: _onRefresh,
                 color: context.colorScheme.primary,
-                child: Stack(
-                  children: [
-                    _buildDashboardContent(
-                      context,
-                      context.textTheme,
-                      context.colorScheme,
-                      state,
-                      state.editMode,
-                    ),
-                    if (state.status.runtimeType ==
-                        HomeStatus.failure(Exception()).runtimeType)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: MaterialBanner(
-                          backgroundColor: context.colorScheme.errorContainer,
-                          content: Text(
-                            state.errorMessage ?? 'Error loading data.',
-                            style: TextStyle(
-                                color: context.colorScheme.onErrorContainer),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => context
-                                  .read<HomeBloc>()
-                                  .add(const HomeInitialised()),
-                              child: Text(
-                                'Retry',
-                                style: TextStyle(
-                                    color: context.colorScheme.primary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
+                child: _buildHomeContent(context, state),
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildHomeContent(BuildContext context, HomeState state) {
+    final hasVitalDataLoaded = state.patientVitals
+        .any((vital) => vital.value != 'N/A' && vital.observationId != null);
+
+    final hasOverviewDataLoaded =
+        state.overviewCards.any((card) => card.count != '0');
+
+    final hasRecent = state.recentRecords.isNotEmpty;
+
+    if (!hasVitalDataLoaded && !hasOverviewDataLoaded && !hasRecent) {
+      return PlaceholderWidget(
+        hasDataLoaded: false,
+        colorScheme: context.colorScheme,
+        pageController: widget.pageController, // Pass the PageController
+        onSyncPressed: () {
+          context.router.push(const SyncRoute());
+        },
+      );
+    }
+
+    return _buildDashboardContent(
+      context,
+      context.textTheme,
+      context.colorScheme,
+      state,
+      state.editMode,
     );
   }
 
@@ -252,41 +288,20 @@ class _HomeViewState extends State<HomeView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          color: context.colorScheme.surface,
-          padding: const EdgeInsets.symmetric(
-            horizontal: Insets.normal,
-            vertical: Insets.small,
+        if (state.hasDataLoaded)
+          Container(
+            color: context.colorScheme.surface,
+            padding: const EdgeInsets.symmetric(
+              horizontal: Insets.normal,
+              vertical: Insets.small,
+            ),
+            child: Text(
+              'Patient: ${state.patient?.displayTitle ?? 'Loading...'}',
+              style: AppTextStyle.bodyMedium.copyWith(
+                color: context.colorScheme.onSurface,
+              ),
+            ),
           ),
-          child: BlocBuilder<UserBloc, UserState>(
-            builder: (context, userState) {
-              Patient? selectedPatient;
-              if (userState.selectedPatientId != null &&
-                  userState.patients.isNotEmpty) {
-                try {
-                  selectedPatient = userState.patients.firstWhere(
-                    (p) => p.id == userState.selectedPatientId,
-                  );
-                } catch (e) {
-                  selectedPatient = userState.patients.isNotEmpty
-                      ? userState.patients.first
-                      : null;
-                }
-              } else if (userState.patients.isNotEmpty) {
-                selectedPatient = userState.patients.first;
-              }
-              final selectedPatientName = selectedPatient != null
-                  ? selectedPatient.displayTitle
-                  : 'No patient selected';
-              return Text(
-                'Patient: $selectedPatientName',
-                style: AppTextStyle.bodyMedium.copyWith(
-                  color: context.colorScheme.onSurface,
-                ),
-              );
-            },
-          ),
-        ),
         Expanded(
           child: CustomScrollView(
             slivers: [
@@ -295,187 +310,162 @@ class _HomeViewState extends State<HomeView> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: Insets.medium),
-                    BlocBuilder<RecordsBloc, RecordsState>(
-                      builder: (context, recordsState) {
-                        if (state.hasDataLoaded || editMode) {
-                          return Column(
-                            children: [
-                              HomeSectionHeader(
-                                title: context.l10n.homeVitalSigns,
-                                filterLabel: editMode ? 'Filter Vitals' : null,
-                                onFilterTap: editMode
-                                    ? () => HomeDialogController
-                                            .showEditVitalsDialog(
-                                          context,
-                                          state,
-                                          (updated) {
-                                            context.read<HomeBloc>().add(
-                                                HomeVitalsFiltersChanged(
-                                                    updated));
-                                          },
-                                        )
-                                    : null,
-                                colorScheme: colorScheme,
-                              ),
-                              const SizedBox(height: Insets.smallNormal),
-                              VitalsSection(
-                                vitals: state.vitalsExpanded
-                                    ? state.allAvailableVitals
-                                    : state.patientVitals,
-                                allAvailableVitals: state.allAvailableVitals,
-                                editMode: editMode,
-                                vitalsExpanded: state.vitalsExpanded,
-                                firstCardKey: _firstVitalCardKey,
-                                firstCardFocusNode:
-                                    _focusController.firstVitalCardFocusNode,
-                                selectedVitals: Map.fromEntries(
-                                  state.selectedVitals.entries.map(
-                                    (e) => MapEntry(e.key.title, e.value),
-                                  ),
-                                ),
-                                onReorder: (oldIndex, newIndex) {
-                                  context.read<HomeBloc>().add(
-                                      HomeVitalsReordered(oldIndex, newIndex));
-                                },
-                                onLongPressCard: () => context
-                                    .read<HomeBloc>()
-                                    .add(const HomeEditModeChanged(true)),
-                                onExpandToggle: () {
-                                  context
-                                      .read<HomeBloc>()
-                                      .add(const HomeVitalsExpansionToggled());
-                                },
-                              ),
-                            ],
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    const SizedBox(height: Insets.large),
-                    BlocBuilder<RecordsBloc, RecordsState>(
-                      builder: (context, recordsState) {
-                        if (state.hasDataLoaded || editMode) {
-                          return Column(
-                            children: [
-                              HomeSectionHeader(
-                                title: 'Overview',
-                                filterLabel: editMode ? 'Filter Records' : null,
-                                onFilterTap: editMode
-                                    ? () => HomeDialogController
-                                            .showEditRecordsDialog(
-                                          context,
-                                          state,
-                                          (newSelection) {
-                                            context.read<HomeBloc>().add(
-                                                HomeRecordsFiltersChanged(
-                                                    newSelection));
-                                          },
-                                        )
-                                    : null,
-                                colorScheme: colorScheme,
-                              ),
-                              const SizedBox(height: Insets.smallNormal),
-                              MedicalRecordsSection(
-                                overviewCards: filteredCards,
-                                editMode: editMode,
-                                firstCardKey: _firstOverviewCardKey,
-                                firstCardFocusNode:
-                                    _focusController.firstOverviewCardFocusNode,
-                                onLongPressCard: () => context
-                                    .read<HomeBloc>()
-                                    .add(const HomeEditModeChanged(true)),
-                                onReorder: (oldIndex, newIndex) {
-                                  context.read<HomeBloc>().add(
-                                      HomeRecordsReordered(oldIndex, newIndex));
-                                },
-                                onTapCard: (card) {
-                                  context.read<RecordsBloc>().add(
-                                      RecordsFiltersApplied(
-                                          card.category.resourceTypes));
-                                  widget.pageController.animateToPage(
-                                    1,
-                                    duration:
-                                        HomeConstants.pageTransitionDuration,
-                                    curve: Curves.ease,
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    BlocBuilder<RecordsBloc, RecordsState>(
-                      builder: (context, recordsState) {
-                        if (!state.hasDataLoaded) {
-                          return PlaceholderWidget(
-                            hasRealData: false,
+                    if (state.hasDataLoaded || editMode)
+                      Column(
+                        children: [
+                          HomeSectionHeader(
+                            title: context.l10n.homeVitalSigns,
+                            filterLabel: editMode ? 'Filter Vitals' : null,
+                            onFilterTap: editMode
+                                ? () =>
+                                    HomeDialogController.showEditVitalsDialog(
+                                      context,
+                                      state,
+                                      (updated) {
+                                        context.read<HomeBloc>().add(
+                                            HomeVitalsFiltersChanged(updated));
+                                      },
+                                    )
+                                : null,
                             colorScheme: colorScheme,
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+                          ),
+                          const SizedBox(height: Insets.smallNormal),
+                          VitalsSection(
+                            vitals: state.vitalsExpanded
+                                ? state.allAvailableVitals
+                                : state.patientVitals,
+                            allAvailableVitals: state.allAvailableVitals,
+                            editMode: editMode,
+                            vitalsExpanded: state.vitalsExpanded,
+                            firstCardKey: _firstVitalCardKey,
+                            firstCardFocusNode:
+                                _focusController.firstVitalCardFocusNode,
+                            selectedVitals: Map.fromEntries(
+                              state.selectedVitals.entries.map(
+                                (e) => MapEntry(e.key.title, e.value),
+                              ),
+                            ),
+                            onReorder: (oldIndex, newIndex) {
+                              context
+                                  .read<HomeBloc>()
+                                  .add(HomeVitalsReordered(oldIndex, newIndex));
+                            },
+                            onLongPressCard: () => context
+                                .read<HomeBloc>()
+                                .add(const HomeEditModeChanged(true)),
+                            onExpandToggle: () {
+                              context
+                                  .read<HomeBloc>()
+                                  .add(const HomeVitalsExpansionToggled());
+                            },
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: Insets.large),
-                    BlocBuilder<RecordsBloc, RecordsState>(
-                      builder: (context, recordsState) {
-                        if (state.recentRecords.isNotEmpty ||
-                            state.hasDataLoaded ||
-                            editMode) {
-                          return Column(
-                            children: [
-                              HomeSectionHeader(
-                                title: 'Recent records',
-                                trailing: TextButton(
-                                  onPressed: () {
-                                    widget.pageController.animateToPage(
-                                      1,
-                                      duration:
-                                          HomeConstants.pageTransitionDuration,
-                                      curve: Curves.ease,
-                                    );
-                                  },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor:
-                                        context.colorScheme.primary,
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'View all',
-                                    style: AppTextStyle.labelLarge.copyWith(
-                                      color: context.colorScheme.primary,
-                                    ),
-                                  ),
+                    if (state.hasDataLoaded || editMode)
+                      Column(
+                        children: [
+                          HomeSectionHeader(
+                            title: 'Overview',
+                            subtitle: state.sources.isNotEmpty
+                                ? SourceSelectorWidget(
+                                    sources: state.sources,
+                                    selectedSource: state.selectedSource,
+                                    onSourceChanged: (sourceId) {
+                                      context
+                                          .read<HomeBloc>()
+                                          .add(HomeSourceChanged(sourceId));
+                                    },
+                                    currentPatient: state.patient,
+                                  )
+                                : null,
+                            filterLabel: 'Filter Records',
+                            onFilterTap: () =>
+                                HomeDialogController.showEditRecordsDialog(
+                              context,
+                              state,
+                              (newSelection) {
+                                context.read<HomeBloc>().add(
+                                    HomeRecordsFiltersChanged(newSelection));
+                              },
+                            ),
+                            colorScheme: colorScheme,
+                            isEditMode: editMode,
+                          ),
+                          const SizedBox(height: Insets.smallNormal),
+                          MedicalRecordsSection(
+                            overviewCards: filteredCards,
+                            editMode: editMode,
+                            firstCardKey: _firstOverviewCardKey,
+                            firstCardFocusNode:
+                                _focusController.firstOverviewCardFocusNode,
+                            onLongPressCard: () => context
+                                .read<HomeBloc>()
+                                .add(const HomeEditModeChanged(true)),
+                            onReorder: (oldIndex, newIndex) {
+                              context.read<HomeBloc>().add(
+                                  HomeRecordsReordered(oldIndex, newIndex));
+                            },
+                            onTapCard: (card) {
+                              context.read<RecordsBloc>().add(
+                                  RecordsFiltersApplied(
+                                      card.category.resourceTypes));
+                              widget.pageController.animateToPage(
+                                1,
+                                duration: HomeConstants.pageTransitionDuration,
+                                curve: Curves.ease,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: Insets.large),
+                    if (state.hasDataLoaded || editMode)
+                      Column(
+                        children: [
+                          HomeSectionHeader(
+                            title: 'Recent records',
+                            trailing: TextButton(
+                              onPressed: () {
+                                widget.pageController.animateToPage(
+                                  1,
+                                  duration:
+                                      HomeConstants.pageTransitionDuration,
+                                  curve: Curves.ease,
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: context.colorScheme.primary,
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                'View all',
+                                style: AppTextStyle.labelLarge.copyWith(
+                                  color: context.colorScheme.primary,
                                 ),
-                                colorScheme: colorScheme,
                               ),
-                              const SizedBox(height: Insets.smallNormal),
-                              RecentRecordsSection(
-                                recentRecords: state.recentRecords,
-                                onViewAll: () {
-                                  widget.pageController.animateToPage(
-                                    1,
-                                    duration:
-                                        HomeConstants.pageTransitionDuration,
-                                    curve: Curves.ease,
-                                  );
-                                },
-                                onTapRecord: (record) {
-                                  context.router.push(
-                                      RecordDetailsRoute(resource: record));
-                                },
-                              ),
-                            ],
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+                            ),
+                            colorScheme: colorScheme,
+                          ),
+                          const SizedBox(height: Insets.smallNormal),
+                          RecentRecordsSection(
+                            recentRecords: state.recentRecords,
+                            onViewAll: () {
+                              widget.pageController.animateToPage(
+                                1,
+                                duration: HomeConstants.pageTransitionDuration,
+                                curve: Curves.ease,
+                              );
+                            },
+                            onTapRecord: (record) {
+                              context.router
+                                  .push(RecordDetailsRoute(resource: record));
+                            },
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: HomeConstants.bottomPadding),
                   ]),
                 ),

@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:onboarding_overlay/onboarding_overlay.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
-import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
-import 'package:health_wallet/features/home/presentation/widgets/filter_home_dialog.dart';
-import 'package:health_wallet/features/home/core/constants/home_constants.dart';
 
 class HomeOnboardingSteps {
   static List<OnboardingStep> createSteps({
@@ -79,55 +73,6 @@ class HomeOnboardingSteps {
       ),
       arrowPosition: ArrowPosition.topCenter,
     );
-  }
-}
-
-class HomeOnboardingController {
-  final GlobalKey<OnboardingState> onboardingKey = GlobalKey<OnboardingState>();
-  bool _shouldShowOnboarding = false;
-  bool _hasTriggeredOnboarding = false;
-
-  bool get shouldShowOnboarding => _shouldShowOnboarding;
-  bool get hasTriggeredOnboarding => _hasTriggeredOnboarding;
-
-  Future<void> checkIfShouldShowOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenOnboarding =
-        prefs.getBool(HomeConstants.onboardingSeenKey) ?? false;
-    _shouldShowOnboarding = !hasSeenOnboarding;
-    _hasTriggeredOnboarding = false;
-  }
-
-  void triggerOnboardingIfNeeded(HomeState state) {
-    if (_shouldShowOnboarding &&
-        state.hasDataLoaded &&
-        !_hasTriggeredOnboarding &&
-        state.patientVitals.isNotEmpty &&
-        state.overviewCards.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_hasTriggeredOnboarding) {
-          _hasTriggeredOnboarding = true;
-          Future.delayed(HomeConstants.onboardingDelay, () {
-            if (_shouldShowOnboarding) {
-              print(
-                  '🎯 Triggering onboarding with vitals: ${state.patientVitals.length}, cards: ${state.overviewCards.length}');
-              onboardingKey.currentState?.show();
-            }
-          });
-        }
-      });
-    }
-  }
-
-  Future<void> markOnboardingAsSeen() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(HomeConstants.onboardingSeenKey, true);
-    _shouldShowOnboarding = false;
-    _hasTriggeredOnboarding = true;
-  }
-
-  void resetTrigger() {
-    _hasTriggeredOnboarding = false;
   }
 }
 

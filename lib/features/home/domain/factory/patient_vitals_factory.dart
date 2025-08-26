@@ -47,53 +47,6 @@ class PatientVitalFactory {
 
     _combineBloodPressure(latestByTitle);
 
-    final hasRealDemoData = latestByTitle.values.any((vital) =>
-        vital.value != 'N/A' &&
-        vital.value.isNotEmpty &&
-        vital.observationId != null &&
-        vital.value != '0');
-
-    print('🔍 PatientVitalFactory: hasRealDemoData=$hasRealDemoData');
-    print(
-        '🔍 PatientVitalFactory: latestByTitle count=${latestByTitle.length}');
-    if (latestByTitle.isNotEmpty) {
-      print(
-          '🔍 PatientVitalFactory: Sample vital: ${latestByTitle.values.first.title} = ${latestByTitle.values.first.value}');
-    }
-
-    // If we have real demo data, don't add placeholders - use the real data
-    if (hasRealDemoData) {
-      print(
-          '🔍 PatientVitalFactory: Using real demo data, no placeholders needed');
-
-      // Build list in expected order, then append any extras not listed
-      final List<String> expectedOrder = [
-        PatientVitalType.heartRate.title,
-        PatientVitalType.bloodPressure.title,
-        PatientVitalType.temperature.title,
-        PatientVitalType.bloodOxygen.title,
-        PatientVitalType.respiratoryRate.title,
-        PatientVitalType.weight.title,
-        PatientVitalType.height.title,
-        PatientVitalType.bmi.title,
-        PatientVitalType.bloodGlucose.title,
-      ];
-
-      final List<PatientVital> ordered = [
-        for (final t in expectedOrder)
-          if (latestByTitle.containsKey(t)) latestByTitle[t]!,
-        ...latestByTitle.entries
-            .where((e) => !expectedOrder.contains(e.key))
-            .map((e) => e.value),
-      ];
-
-      return ordered;
-    }
-
-    // Only add placeholders if we don't have real demo data
-    print('🔍 PatientVitalFactory: No real demo data, adding placeholders');
-
-    // Ensure placeholders (N/A) for all expected vitals
     final List<String> expectedOrder = [
       PatientVitalType.heartRate.title,
       PatientVitalType.bloodPressure.title,
@@ -106,21 +59,21 @@ class PatientVitalFactory {
       PatientVitalType.bloodGlucose.title,
     ];
 
+    // Add placeholders for missing vitals
     for (final title in expectedOrder) {
-      latestByTitle.putIfAbsent(
-        title,
-        () => PatientVital(
+      if (!latestByTitle.containsKey(title)) {
+        latestByTitle[title] = PatientVital(
           title: title,
           value: 'N/A',
-          unit: (PatientVitalTypeX.fromTitle(title)?.defaultUnit ?? ''),
+          unit: PatientVitalTypeX.fromTitle(title)?.defaultUnit ?? '',
           status: null,
           observationId: null,
           effectiveDate: null,
-        ),
-      );
+        );
+      }
     }
 
-    // Build list in expected order, then append any extras not listed
+    // Return ordered list with placeholders
     final List<PatientVital> ordered = [
       for (final t in expectedOrder) latestByTitle[t]!,
       ...latestByTitle.entries

@@ -14,8 +14,6 @@ class HomeSourceChanged extends HomeEvent with _$HomeSourceChanged {
   const factory HomeSourceChanged(String source) = _HomeSourceChanged;
 }
 
-// Removed: HomeFiltersChanged (use HomeRecordsFiltersChanged)
-
 @freezed
 class HomeEditModeChanged extends HomeEvent with _$HomeEditModeChanged {
   const factory HomeEditModeChanged(bool editMode) = _HomeEditModeChanged;
@@ -63,9 +61,4 @@ class HomeVitalsExpansionToggled extends HomeEvent
 class HomeRefreshPreservingOrder extends HomeEvent
     with _$HomeRefreshPreservingOrder {
   const factory HomeRefreshPreservingOrder() = _HomeRefreshPreservingOrder;
-}
-
-@freezed
-class HomeDataLoaded extends HomeEvent with _$HomeDataLoaded {
-  const factory HomeDataLoaded() = _HomeDataLoaded;
 }

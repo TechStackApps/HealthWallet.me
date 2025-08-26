@@ -10,6 +10,9 @@ class HomeSectionHeader extends StatelessWidget {
   final Widget? trailing;
   final ColorScheme colorScheme;
   final VoidCallback? onTap;
+  final Widget? subtitle;
+  final bool showDivider;
+  final bool isEditMode;
 
   const HomeSectionHeader({
     super.key,
@@ -19,57 +22,84 @@ class HomeSectionHeader extends StatelessWidget {
     this.trailing,
     required this.colorScheme,
     this.onTap,
+    this.subtitle,
+    this.showDivider = false,
+    this.isEditMode = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: AppTextStyle.bodyMedium.copyWith(
-            color: context.colorScheme.onSurface,
-          ),
-        ),
-        if (filterLabel != null && onFilterTap != null)
-          InkWell(
-            onTap: onFilterTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 7,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(14),
-              ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Assets.icons.filter.svg(
-                    colorFilter: ColorFilter.mode(
-                      colorScheme.primary,
-                      BlendMode.srcIn,
-                    ),
-                    width: 16,
-                    height: 16,
-                  ),
-                  const SizedBox(width: 7),
                   Text(
-                    filterLabel!,
-                    style: AppTextStyle.bodySmall.copyWith(
-                      color: colorScheme.primary,
+                    title,
+                    style: AppTextStyle.bodyMedium.copyWith(
+                      color: context.colorScheme.onSurface,
                     ),
                   ),
+                  if (subtitle != null && !isEditMode) ...[
+                    const SizedBox(width: 16),
+                    subtitle!,
+                  ],
                 ],
               ),
             ),
-          )
-        else if (trailing != null)
-          trailing!
-        else
-          const SizedBox.shrink(),
+            if (isEditMode && filterLabel != null && onFilterTap != null)
+              InkWell(
+                onTap: onFilterTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Assets.icons.filter.svg(
+                        colorFilter: ColorFilter.mode(
+                          colorScheme.primary,
+                          BlendMode.srcIn,
+                        ),
+                        width: 16,
+                        height: 16,
+                      ),
+                      const SizedBox(width: 7),
+                      Text(
+                        filterLabel!,
+                        style: AppTextStyle.bodySmall.copyWith(
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (trailing != null)
+              trailing!
+            else
+              const SizedBox.shrink(),
+          ],
+        ),
+        if (showDivider)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Divider(
+              color: colorScheme.outline.withValues(alpha: 0.2),
+              height: 1,
+            ),
+          ),
       ],
     );
   }

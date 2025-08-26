@@ -5,6 +5,8 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/qr_scanner_widget.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage()
 class SyncPage extends StatelessWidget {
@@ -12,12 +14,59 @@ class SyncPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fasten Sync'),
-        backgroundColor: context.colorScheme.inversePrimary,
+    return BlocListener<SyncBloc, SyncState>(
+      listenWhen: (previous, current) {
+        // Listen for sync completion
+        return (previous.syncStatus != current.syncStatus &&
+            current.syncStatus == SyncStatus.synced);
+      },
+      listener: (context, state) {
+        if (state.syncStatus == SyncStatus.synced) {
+          // Sync completed successfully - check if onboarding was already shown
+          print(
+              '🔄 SyncPage: Sync completed successfully - checking onboarding status');
+
+          // Check if onboarding was already shown
+          _checkOnboardingStatusAndNavigate(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Fasten Sync'),
+          backgroundColor: context.colorScheme.inversePrimary,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // Go back to the previous screen (preference modal)
+              context.router.pop();
+            },
+          ),
+        ),
+        body: _buildQRCodeTab(context),
       ),
-      body: _buildQRCodeTab(context),
+    );
+  }
+
+  Future<void> _showSuccessDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Sync Completed Successfully!'),
+          content: const Text(
+            'Your medical records have been synchronized. You will be redirected to the home page.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -763,5 +812,26 @@ class SyncPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _checkOnboardingStatusAndNavigate(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingShown = prefs.getBool('onboarding_shown');
+
+    if (onboardingShown == null || !onboardingShown) {
+      context.router.pushAndPopUntil(
+        const DashboardRoute(),
+        predicate: (_) => false,
+      );
+    } else {
+      _showSuccessDialog(context).then((_) {
+        if (context.mounted) {
+          context.router.pushAndPopUntil(
+            const DashboardRoute(),
+            predicate: (_) => false, // Clear all routes
+          );
+        }
+      });
+    }
   }
 }

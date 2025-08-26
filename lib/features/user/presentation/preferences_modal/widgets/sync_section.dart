@@ -127,10 +127,10 @@ class SyncSection extends StatelessWidget {
     if (syncState.lastSyncTime == null) {
       return 'Never synced';
     }
-    
+
     final now = DateTime.now();
     final difference = now.difference(syncState.lastSyncTime!);
-    
+
     if (difference.inDays > 0) {
       return 'Last synced: ${difference.inDays} day${difference.inDays != 1 ? 's' : ''} ago';
     } else if (difference.inHours > 0) {

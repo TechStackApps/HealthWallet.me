@@ -58,3 +58,28 @@ class SyncResetStatus extends SyncEvent with _$SyncResetStatus {
 class SyncCancelQRScanning extends SyncEvent with _$SyncCancelQRScanning {
   const factory SyncCancelQRScanning() = _SyncCancelQRScanning;
 }
+
+@freezed
+class SyncLoadDemoData extends SyncEvent with _$SyncLoadDemoData {
+  const factory SyncLoadDemoData() = _SyncLoadDemoData;
+}
+
+@freezed
+class SyncDataCompleted extends SyncEvent with _$SyncDataCompleted {
+  const factory SyncDataCompleted({
+    required String sourceId,
+    required bool isSuccess,
+    String? errorMessage,
+  }) = _SyncDataCompleted;
+}
+
+@freezed
+class OnboardingOverlayTriggered extends SyncEvent
+    with _$OnboardingOverlayTriggered {
+  const factory OnboardingOverlayTriggered() = _OnboardingOverlayTriggered;
+}
+
+@freezed
+class SyncResetOnboarding extends SyncEvent with _$SyncResetOnboarding {
+  const factory SyncResetOnboarding() = _SyncResetOnboarding;
+}

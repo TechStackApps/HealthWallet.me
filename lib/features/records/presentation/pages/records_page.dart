@@ -21,20 +21,23 @@ import 'package:intl/intl.dart';
 @RoutePage()
 class RecordsPage extends StatelessWidget {
   final List<FhirType>? initFilters;
+  final PageController? pageController;
 
-  const RecordsPage({super.key, this.initFilters});
+  const RecordsPage({super.key, this.initFilters, this.pageController});
 
   @override
   Widget build(BuildContext context) {
     // Use the global RecordsBloc that's already provided in app.dart
-    return RecordsView(initFilters: initFilters);
+    return RecordsView(
+        initFilters: initFilters, pageController: pageController);
   }
 }
 
 class RecordsView extends StatefulWidget {
   final List<FhirType>? initFilters;
+  final PageController? pageController;
 
-  const RecordsView({super.key, this.initFilters});
+  const RecordsView({super.key, this.initFilters, this.pageController});
 
   @override
   State<RecordsView> createState() => _RecordsViewState();
@@ -334,9 +337,9 @@ class _RecordsViewState extends State<RecordsView> {
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
                           child: PlaceholderWidget(
-                            hasRealData:
-                                false, // Records page always shows this when empty
+                            hasDataLoaded: false,
                             colorScheme: context.colorScheme,
+                            pageController: widget.pageController,
                           ),
                         ),
                       );
@@ -529,7 +532,6 @@ class _RecordsViewState extends State<RecordsView> {
   }
 }
 
-// Custom FloatingActionButtonLocation that positions the button 50px higher
 class _CustomFabLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {

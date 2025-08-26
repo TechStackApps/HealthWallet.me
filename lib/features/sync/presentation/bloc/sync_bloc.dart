@@ -72,6 +72,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<SyncClearToken>(_onClearToken);
     on<SyncResetStatus>(_onResetStatus);
     on<SyncCancelQRScanning>(_onCancelQRScanning);
+    on<SyncLoadDemoData>(_onLoadDemoData);
+    on<SyncDataCompleted>(_onDataCompleted);
+    on<OnboardingOverlayTriggered>(_onOnboardingOverlayTriggered);
+    on<SyncResetOnboarding>(_onResetOnboarding);
 
     add(const SyncRestoreState());
   }
@@ -131,8 +135,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       // Pre-check server health before attempting sync
       logger.d(
           '🏥 Checking server health before sync at: ${state.workingBaseUrl}');
-              final isHealthy = await _tokenService.checkServerHealth(
-          baseUrl: state.workingBaseUrl!);
+      final isHealthy =
+          await _tokenService.checkServerHealth(baseUrl: state.workingBaseUrl!);
       if (!isHealthy) {
         logger.e('❌ Server health check failed. Disconnecting.');
         emit(state.copyWith(
@@ -187,6 +191,12 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         serverUsername: serverUsername,
         serverUserEmail: serverUserEmail,
         successMessage: 'Background sync completed successfully!',
+        hasSyncData: true,
+      ));
+
+      add(SyncDataCompleted(
+        sourceId: 'sync',
+        isSuccess: true,
       ));
 
       // Auto-reset status to connected after 5 seconds
@@ -324,8 +334,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         workingBaseUrl: finalWorkingBaseUrl,
         serverUsername: serverUsername,
         serverUserEmail: serverUserEmail,
-        // Don't restore success message - it should be transient
         successMessage: null,
+        hasSyncData: syncToken != null && map['lastSyncTime'] != null,
       ));
 
       logger.d('✅ State restoration completed');
@@ -355,7 +365,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         qrError: null,
       ));
 
-      // Parse the QR code data directly into SyncToken
       try {
         final qrData = jsonDecode(event.qrData) as Map<String, dynamic>;
         final syncToken = SyncToken.fromQRData(qrData);
@@ -431,7 +440,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         qrError: null,
       ));
 
-      // Try all available addresses with dynamic port detection
       String? workingBaseUrl;
       final allAddresses = state.syncToken!.allAddresses;
       logger.d('🔍 Available addresses: $allAddresses');
@@ -499,7 +507,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       logger.d('🔗 Endpoint path: $accessTokensEndpoint');
       logger.d('🔑 Token: ${state.syncToken!.token.substring(0, 20)}...');
 
-              final tokenValid = await _tokenService.validateToken(
+      final tokenValid = await _tokenService.validateToken(
         baseUrl: workingBaseUrl,
         token: state.syncToken!.token,
         endpoint: accessTokensEndpoint,
@@ -534,7 +542,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         }
       } catch (e) {
         logger.w('⚠️ Failed to fetch user info: $e');
-        // Don't fail the connection if user info fetch fails
       }
 
       // Connection successful
@@ -574,6 +581,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       qrConnectionTestResult: null,
       qrError: null,
       successMessage: null,
+      hasSyncData: false,
     ));
 
     // Persist the disconnected state
@@ -596,6 +604,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       qrError: null,
       successMessage: null,
       lastSyncTime: null,
+      hasSyncData: false, // Reset sync data flag when token is cleared
     ));
 
     // Persist the cleared state
@@ -611,6 +620,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       error: null,
       qrError: null,
       successMessage: null,
+      hasSyncData: false, // Reset sync data flag when resetting status
     ));
     await _persistState();
   }
@@ -619,5 +629,81 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       SyncCancelQRScanning event, Emitter<SyncState> emit) async {
     logger.d('🛑 Canceling QR scanning...');
     emit(state.copyWith(isQRScanning: false));
+  }
+
+  Future<void> _onLoadDemoData(
+      SyncLoadDemoData event, Emitter<SyncState> emit) async {
+    logger.d('🧪 Loading demo data...');
+    emit(state.copyWith(
+      isLoadingDemoData: true,
+      demoDataError: null,
+    ));
+
+    try {
+      await _recordsRepository.loadDemoData();
+      final hasDemoData = await _recordsRepository.hasDemoData();
+
+      emit(state.copyWith(
+        isLoadingDemoData: false,
+        hasDemoData: hasDemoData,
+        demoDataError: null,
+      ));
+
+      add(SyncDataCompleted(
+        sourceId: 'demo',
+        isSuccess: true,
+      ));
+    } catch (e) {
+      logger.e('❌ Failed to load demo data: $e');
+      emit(state.copyWith(
+        isLoadingDemoData: false,
+        demoDataError: e.toString(),
+      ));
+
+      // Emit data completed event with error
+      add(SyncDataCompleted(
+        sourceId: 'demo',
+        isSuccess: false,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onDataCompleted(
+      SyncDataCompleted event, Emitter<SyncState> emit) async {
+    logger.d(
+        '📊 Data operation completed: ${event.sourceId} - Success: ${event.isSuccess}');
+
+    if (event.isSuccess) {
+      if (event.sourceId == 'demo') {
+        final hasDemoData = await _recordsRepository.hasDemoData();
+        emit(state.copyWith(
+          hasDemoData: hasDemoData,
+          shouldShowOnboarding: false,
+        ));
+      } else if (event.sourceId == 'sync') {
+        logger.d('🔄 Sync data completed - updating state...');
+        emit(state.copyWith(
+          hasSyncData: true,
+          shouldShowOnboarding: false,
+        ));
+      }
+    }
+  }
+
+  Future<void> _onOnboardingOverlayTriggered(
+      OnboardingOverlayTriggered event, Emitter<SyncState> emit) async {
+    logger.d('🎯 Onboarding overlay triggered');
+    emit(state.copyWith(shouldShowOnboarding: true));
+  }
+
+  Future<void> _onResetOnboarding(
+      SyncResetOnboarding event, Emitter<SyncState> emit) async {
+    logger.d('🔄 Resetting onboarding state');
+    emit(state.copyWith(shouldShowOnboarding: false));
+  }
+
+  void resetOnboardingState() {
+    add(const SyncResetOnboarding());
   }
 }

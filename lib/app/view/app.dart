@@ -43,53 +43,9 @@ class App extends StatelessWidget {
         ],
         child: MultiBlocListener(
           listeners: [
-            BlocListener<RecordsBloc, RecordsState>(
-              listenWhen: (prev, curr) =>
-                  !prev.hasDemoData &&
-                  curr.hasDemoData &&
-                  !curr.isLoadingDemoData,
-              listener: (context, state) {
-                print('🏠 Demo data available, refreshing HomeBloc...');
-                context.read<HomeBloc>()
-                  ..add(const HomeSourceChanged('demo'))
-                  ..add(const HomeDataLoaded());
-                context.read<UserBloc>().add(const UserPatientsLoaded());
-              },
-            ),
             BlocListener<SyncBloc, SyncState>(
-              listenWhen: (prev, curr) =>
-                  (curr.syncStatus == SyncStatus.connected ||
-                      curr.syncStatus == SyncStatus.synced) &&
-                  prev.syncStatus != curr.syncStatus,
               listener: (context, state) {
-                print(
-                    '🔄 Sync data loaded, clearing demo + refreshing HomeBloc...');
-                context.read<RecordsBloc>().add(const ClearDemoData());
-
-                // Fix: Add longer delay and ensure proper sequencing
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (context.mounted) {
-                    context.read<HomeBloc>()
-                      ..add(const HomeSourceChanged('All'))
-                      ..add(const HomeDataLoaded());
-                    context
-                        .read<UserBloc>()
-                        .add(const UserDataUpdatedFromSync());
-                    context.read<RecordsBloc>().add(const RecordsInitialised());
-
-                    // Additional delay to ensure data is fully loaded before potential onboarding
-                    Future.delayed(const Duration(milliseconds: 800), () {
-                      if (context.mounted) {
-                        print(
-                            '🎯 Sync complete - HomeBloc should now trigger onboarding if needed');
-                        // Trigger a refresh to ensure onboarding can be shown
-                        context
-                            .read<HomeBloc>()
-                            .add(const HomeRefreshPreservingOrder());
-                      }
-                    });
-                  }
-                });
+                _handleSyncBlocStateChange(context, state);
               },
             ),
           ],
@@ -112,5 +68,31 @@ class App extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
+  if (state.hasDemoData) {
+    context.read<HomeBloc>().add(const HomeSourceChanged('demo'));
+  }
+
+  if (state.hasSyncData) {
+    context.read<HomeBloc>().add(const HomeSourceChanged('All'));
+  }
+
+  if (state.shouldShowOnboarding) {
+    context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+  }
+
+  if (state.syncStatus == SyncStatus.synced) {
+    context.read<RecordsBloc>().add(const RecordsInitialised());
+    context.read<UserBloc>().add(const UserDataUpdatedFromSync());
+    context.read<HomeBloc>().add(const HomeSourceChanged('All'));
+
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (context.mounted) {
+        context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
+      }
+    });
   }
 }

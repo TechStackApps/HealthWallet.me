@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
@@ -25,10 +26,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final PatientVitalFactory _patientVitalFactory = PatientVitalFactory();
 
   static const int _minVisibleVitalsCount = 4;
-  static const Duration _dataLoadTimeout = Duration(seconds: 30);
   static const String _demoSourceId = 'demo';
-
-  void _log(String msg, {String lvl = 'ℹ️'}) => print('$lvl $msg');
 
   HomeBloc(
     this._getSourcesUseCase,
@@ -46,7 +44,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeVitalsExpansionToggled>((e, emit) =>
         emit(state.copyWith(vitalsExpanded: !state.vitalsExpanded)));
     on<HomeRefreshPreservingOrder>(_onRefreshPreservingOrder);
-    on<HomeDataLoaded>(_onDataLoaded);
     on<HomePatientSelected>(_onPatientSelected);
   }
 
@@ -54,40 +51,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required List<PatientVital> patientVitals,
     required List<OverviewCard> overviewCards,
     required List<IFhirResource> recentRecords,
-    required bool isSyncing,
-    required bool hasDemoData,
-    required bool isDemoSource,
   }) {
-    final hasRealVitals = patientVitals.any((vital) =>
-        vital.value != null &&
-        vital.value != 'N/A' &&
-        vital.value != '0' &&
-        vital.observationId != null);
+    final hasVitals = patientVitals.isNotEmpty;
+    final hasOverview = overviewCards.isNotEmpty;
+    final hasRecent = recentRecords.isNotEmpty;
 
-    final hasRealOverviewData = overviewCards.any((card) {
-      final count = int.tryParse(card.count);
-      return count != null && count > 0;
-    });
-
-    final hasRecentRecords = recentRecords.isNotEmpty;
-
-    if (isSyncing) {
-      _log('🔍 hasData: Syncing - true');
-      return true;
-    }
-
-    final result = isDemoSource
-        ? (hasDemoData ||
-            hasRealVitals ||
-            hasRealOverviewData ||
-            hasRecentRecords)
-        : (hasRealVitals || hasRealOverviewData || hasRecentRecords);
-
-    _log(
-        '🔍 hasData: ${isDemoSource ? "DEMO" : "REAL"} source (${state.selectedSource}) - '
-        'hasDemoData=$hasDemoData, hasRealVitals=$hasRealVitals, '
-        'hasRealOverviewData=$hasRealOverviewData, hasRecentRecords=$hasRecentRecords, '
-        'hasData=$result');
+    final result = hasVitals || hasOverview || hasRecent;
     return result;
   }
 
@@ -100,7 +69,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     if (_hasExistingVitalsData() && !_shouldForceRefresh()) {
-      _log('♻️ Hot reload: keeping current vitals + order');
       emit(state.copyWith());
     } else {
       await _reloadHomeData(emit, force: true, overrideSourceId: savedSource);
@@ -115,38 +83,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   bool _shouldForceRefresh() {
     final hasOnlyPlaceholders = state.patientVitals.isNotEmpty &&
-        state.patientVitals.every(
-            (v) => v.value == 'N/A' || v.value == '0' || v.value.isEmpty);
+        state.patientVitals.every((v) => v.value == 'N/A');
     final hasOnlyZeroCounts = state.overviewCards.isNotEmpty &&
-        state.overviewCards.every((c) => int.tryParse(c.count) == 0);
-    final shouldForce = hasOnlyPlaceholders || hasOnlyZeroCounts;
-    _log('_shouldForceRefresh=$shouldForce');
-    return shouldForce;
+        state.overviewCards.every((c) => c.count == '0');
+    return hasOnlyPlaceholders || hasOnlyZeroCounts;
   }
 
   Future<void> _onRefreshPreservingOrder(
       HomeRefreshPreservingOrder e, Emitter<HomeState> emit) async {
-    _log('Refresh preserving current order');
     if (state.allAvailableVitals.isEmpty) {
       await _reloadHomeData(emit,
           force: false, overrideSourceId: state.selectedSource);
     } else {
       emit(state.copyWith());
-    }
-  }
-
-  Future<void> _onDataLoaded(HomeDataLoaded e, Emitter<HomeState> emit) async {
-    try {
-      final hasDemo = await _recordsRepository.hasDemoData();
-      final sourceToUse = hasDemo ? _demoSourceId : state.selectedSource;
-      _log('🔄 HomeDataLoaded triggered — refreshing with source=$sourceToUse');
-      await _reloadHomeData(emit, force: true, overrideSourceId: sourceToUse);
-    } catch (err) {
-      _log('🚨 HomeDataLoaded error: $err');
-      emit(state.copyWith(
-        status: HomeStatus.failure('Failed in HomeDataLoaded: $err'),
-        errorMessage: err.toString(),
-      ));
     }
   }
 
@@ -182,7 +131,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final filtered = _filterVitalsByVisibility(master, state.selectedVitals);
       emit(state.copyWith(allAvailableVitals: master, patientVitals: filtered));
     } catch (err) {
-      _log('Vitals reorder error: $err', lvl: '🚨');
+      logger.e('Vitals reorder error: $err');
     }
   }
 
@@ -201,12 +150,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onRecordsReordered(
       HomeRecordsReordered e, Emitter<HomeState> emit) async {
-    final cards = List.of(state.overviewCards);
-    final item = cards.removeAt(e.oldIndex);
-    cards.insert(e.newIndex, item);
-    await _homeLocalDataSource
-        .saveRecordsOrder(cards.map((c) => c.category.display).toList());
-    emit(state.copyWith(overviewCards: cards));
+    try {
+      final cards = List.of(state.overviewCards);
+      if (!_validateReorderIndices(e.oldIndex, e.newIndex, cards.length))
+        return;
+
+      final item = cards.removeAt(e.oldIndex);
+      cards.insert(e.newIndex, item);
+      await _homeLocalDataSource
+          .saveRecordsOrder(cards.map((c) => c.category.display).toList());
+      emit(state.copyWith(overviewCards: cards));
+    } catch (err) {
+      logger.e('Records reorder error: $err');
+    }
   }
 
   Future<void> _onPatientSelected(
@@ -233,10 +189,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final ok = oldIndex >= 0 &&
         oldIndex < length &&
         newIndex >= 0 &&
-        newIndex <= length; // Allow newIndex == length for last position
+        newIndex <= length;
     if (!ok) {
-      _log('Invalid reorder indices: $oldIndex -> $newIndex of $length',
-          lvl: '🚨');
+      logger.e('Invalid reorder indices: $oldIndex -> $newIndex of $length');
     }
     return ok;
   }
@@ -257,7 +212,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           for (final e in updated.entries) e.key.title: e.value,
         });
         emit(state.copyWith(selectedVitals: updated));
-        _log('Auto-visibility: ${vital.title} made visible');
       }
     }
   }
@@ -316,15 +270,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     String? sourceId,
   ) async {
     if (sourceId == _demoSourceId) {
-      return await _recordsRepository.getResources(
+      final resources = await _recordsRepository.getResources(
           resourceTypes: resourceTypes, sourceId: _demoSourceId);
+      return resources;
     }
-    return await _recordsRepository.getResources(
+    final resources = await _recordsRepository.getResources(
         resourceTypes: resourceTypes, sourceId: sourceId);
+    return resources;
   }
 
   Future<List<IFhirResource>> _fetchPatientResources(String? sourceId) async {
-    return await _fetchResourcesFromAllSources([FhirType.Patient], sourceId);
+    final resources =
+        await _fetchResourcesFromAllSources([FhirType.Patient], sourceId);
+    return resources;
   }
 
   Future<List<PatientVital>> _fetchAndProcessVitals(String? sourceId) async {
@@ -346,53 +304,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     final hasData = vitals.any((v) => v.observationId != null);
 
-    _log(
-        '🔍 _processVitalsData: hasData=$hasData, vitals count=${vitals.length}');
-
-    // After sync, ensure all expected vital types are available
-    // This ensures that even if some vitals don't have data, they still show as cards with "N/A"
-    final allExpectedVitalTitles = [
-      PatientVitalType.heartRate.title,
-      PatientVitalType.bloodPressure.title,
-      PatientVitalType.temperature.title,
-      PatientVitalType.bloodOxygen.title,
-      PatientVitalType.respiratoryRate.title,
-      PatientVitalType.weight.title,
-      PatientVitalType.height.title,
-      PatientVitalType.bmi.title,
-      PatientVitalType.bloodGlucose.title,
-    ];
-
-    _log('🔍 Expected vital titles: ${allExpectedVitalTitles.join(', ')}');
-
-    // Create a map of all available vitals, including placeholders for missing ones
-    final Map<String, PatientVital> allVitalsMap = {};
-
-    // First, add all vitals that have data
     for (final vital in vitals) {
-      allVitalsMap[vital.title] = vital;
-    }
-
-    // Then, add placeholders for expected vitals that don't have data
-    for (final title in allExpectedVitalTitles) {
-      if (!allVitalsMap.containsKey(title)) {
-        _log('🔍 Creating placeholder for: $title');
-        allVitalsMap[title] = PatientVital(
-          title: title,
-          value: 'N/A',
-          unit: PatientVitalTypeX.fromTitle(title)?.defaultUnit ?? '',
-          status: null,
-          observationId: null,
-          effectiveDate: null,
-        );
-      }
-    }
-
-    _log('🔍 Final allVitalsMap count: ${allVitalsMap.length}');
-    _log('🔍 Final allVitalsMap titles: ${allVitalsMap.keys.join(', ')}');
-
-    // Update selectedMap to include all available vitals
-    for (final vital in allVitalsMap.values) {
       selectedMap.putIfAbsent(
         vital.title,
         () => hasData && vital.observationId != null
@@ -405,11 +317,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     List<PatientVital> allAvailableVitals;
     if (state.allAvailableVitals.isNotEmpty) {
-      allAvailableVitals = _mergeVitalsWithCurrentOrder(
-          state.allAvailableVitals, allVitalsMap.values.toList());
-    } else {
       allAvailableVitals =
-          await _applyVitalSignsOrder(allVitalsMap.values.toList());
+          _mergeVitalsWithCurrentOrder(state.allAvailableVitals, vitals);
+    } else {
+      allAvailableVitals = await _applyVitalSignsOrder(vitals);
     }
 
     final filtered = allAvailableVitals
@@ -462,6 +373,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return ordered;
     }
 
+    // Default order for vitals
     const pinnedTop = <String>[
       'Heart Rate',
       'Blood Pressure',
@@ -497,6 +409,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
       final sourceId = _resolveSourceId(overrideSourceId);
+
       final sources = await _fetchSources(sourceId);
       final overview = await _fetchOverviewCardsAndResources(sourceId);
       final patientResources = await _fetchPatientResources(sourceId);
@@ -504,36 +417,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final reorderedCards =
           await _applyOverviewCardsOrder(overview.overviewCards);
 
-      final isSyncing = false; // Note: SyncBloc dependency needed for accuracy
-      final hasDemoData = await _recordsRepository.hasDemoData();
-      final isDemoSource = sourceId == _demoSourceId;
+      if (patientResources.isNotEmpty) {
+        final hasData = this.hasData(
+          patientVitals: vitalsData.patientVitals,
+          overviewCards: reorderedCards,
+          recentRecords: overview.allEnabledResources.take(3).toList(),
+        );
 
-      final hasData = this.hasData(
-        patientVitals: vitalsData.patientVitals,
-        overviewCards: reorderedCards,
-        recentRecords: overview.allEnabledResources.take(3).toList(),
-        isSyncing: isSyncing,
-        hasDemoData: hasDemoData,
-        isDemoSource: isDemoSource,
-      );
-
-      emit(state.copyWith(
-        status: const HomeStatus.success(),
-        sources: sources,
-        selectedSource: sourceId ?? 'All',
-        patient: patientResources.isNotEmpty
-            ? patientResources.first as Patient
-            : null,
-        overviewCards: reorderedCards,
-        recentRecords: overview.allEnabledResources.take(3).toList(),
-        allAvailableVitals: vitalsData.allAvailableVitals,
-        patientVitals: vitalsData.patientVitals,
-        selectedVitals: vitalsData.selectedVitals,
-        selectedRecordTypes: overview.selectedRecordTypes,
-        hasDataLoaded: hasData,
-      ));
+        emit(state.copyWith(
+          status: const HomeStatus.success(),
+          sources: sources,
+          selectedSource: sourceId ?? 'All',
+          patient: patientResources.isNotEmpty
+              ? patientResources.first as Patient
+              : null,
+          overviewCards: reorderedCards,
+          recentRecords: overview.allEnabledResources.take(3).toList(),
+          allAvailableVitals: vitalsData.allAvailableVitals,
+          patientVitals: vitalsData.patientVitals,
+          selectedVitals: vitalsData.selectedVitals,
+          selectedRecordTypes: overview.selectedRecordTypes,
+          hasDataLoaded: hasData,
+        ));
+      }
     } catch (err) {
-      _log('🚨 reloadHomeData error: $err');
+      logger.e('reloadHomeData error: $err');
       emit(state.copyWith(
         status: HomeStatus.failure('Failed to load home data: $err'),
         errorMessage: err.toString(),
