@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:developer';
+
 import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
-import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +32,7 @@ class FhirLocalDataSourceImpl implements FhirLocalDataSource {
   Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources) async {
     final resources = fhirResources.map((e) {
       return db.FhirResourceCompanion.insert(
-        id: e.resourceId ?? '',
+        id: e.id ?? '',
         sourceId: Value(e.sourceId),
         resourceType: Value(e.resourceType),
         resourceId: Value(e.resourceId),

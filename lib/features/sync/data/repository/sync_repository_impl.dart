@@ -46,19 +46,6 @@ class SyncRepositoryImpl implements SyncRepository {
         baseUrl: baseUrl);
   }
 
-  /// Start smart sync that automatically chooses between full and incremental
-  @override
-  Future<void> startSmartSync({required String baseUrl}) async {
-    final currentToken = await _tokenService.getCurrentToken();
-    if (currentToken == null) {
-      throw Exception('No valid token available for smart sync');
-    }
-
-    // Use smart sync that chooses the best approach
-    await _syncService.startSmartSync(currentToken,
-        baseUrl: baseUrl);
-  }
-
   /// Check if background sync is running
   @override
   Future<bool> isBackgroundSyncRunning() async {

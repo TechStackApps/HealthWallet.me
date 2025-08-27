@@ -5,8 +5,8 @@ import 'package:drift/native.dart';
 import 'package:health_wallet/core/data/local/app_database.steps.dart';
 import 'package:health_wallet/features/records/data/datasource/tables/record_attachments.dart';
 import 'package:health_wallet/features/records/data/datasource/tables/record_notes.dart';
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
-import 'package:health_wallet/features/sync/data/data_source/local/source_table.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/tables/source_table.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

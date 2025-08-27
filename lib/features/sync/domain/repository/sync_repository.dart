@@ -7,7 +7,6 @@ abstract class SyncRepository {
   
   // Background sync methods (ONLY approach used)
   Future<void> startBackgroundSync({required String baseUrl});
-  Future<void> startSmartSync({required String baseUrl});
   Future<bool> isBackgroundSyncRunning();
   Future<dynamic> getCurrentSyncProgress();
   Future<void> cancelBackgroundSync();
