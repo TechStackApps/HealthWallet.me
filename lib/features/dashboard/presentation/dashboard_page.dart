@@ -27,7 +27,6 @@ class _DashboardPageState extends State<DashboardPage> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 0;
 
-    // Update keyboard visibility state
     if (_isKeyboardVisible != isKeyboardVisible) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
