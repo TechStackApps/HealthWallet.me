@@ -14,6 +14,7 @@ class RecordsState with _$RecordsState {
     @Default(false) bool hasDemoData,
     @Default(false) bool isLoadingDemoData,
     String? demoDataError,
+    @Default('') String searchQuery,
   }) = _RecordsState;
 }
 
