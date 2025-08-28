@@ -1,4 +1,5 @@
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
+import 'package:health_wallet/features/records/domain/entity/observation/observation.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/core/utils/blood_observation_utils.dart';
@@ -22,6 +23,7 @@ class PatientEditService {
   }
 
   /// Updates the blood type observation for a patient
+  /// Creates new observation if none exists, updates existing one if found
   Future<void> updateBloodTypeObservation(
     Patient patient,
     String bloodType,
@@ -31,13 +33,27 @@ class PatientEditService {
     }
 
     try {
-      final newObservation = BloodObservationUtils.createBloodTypeObservation(
-        bloodType: bloodType,
-        patientSourceId: patient.sourceId,
-        patientResourceId: patient.resourceId,
+      final existingObservations =
+          await _recordsRepository.getBloodTypeObservations(
+        patientId: patient.id,
+        sourceId: patient.sourceId.isNotEmpty ? patient.sourceId : null,
       );
 
-      await _recordsRepository.saveObservation(newObservation);
+      if (existingObservations.isNotEmpty) {
+        final existingObservation = existingObservations.first as Observation;
+        final updatedObservation = existingObservation.copyWith(
+          valueX: BloodObservationUtils.createBloodTypeValue(bloodType),
+          date: DateTime.now(),
+        );
+        await _recordsRepository.saveObservation(updatedObservation);
+      } else {
+        final newObservation = BloodObservationUtils.createBloodTypeObservation(
+          bloodType: bloodType,
+          patientSourceId: patient.sourceId,
+          patientResourceId: patient.resourceId,
+        );
+        await _recordsRepository.saveObservation(newObservation);
+      }
     } catch (e) {
       rethrow;
     }

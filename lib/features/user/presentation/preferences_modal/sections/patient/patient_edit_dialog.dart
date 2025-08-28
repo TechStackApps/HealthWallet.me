@@ -177,7 +177,20 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
         return;
       }
 
-      if (_selectedBloodType != 'N/A') {
+      final currentBloodType =
+          await _patientEditService.getCurrentBloodType(_currentPatient!);
+      final currentBirthDate =
+          FhirFieldExtractor.extractPatientBirthDate(_currentPatient!);
+      final currentGender =
+          FhirFieldExtractor.extractPatientGender(_currentPatient!);
+
+      final birthDateChanged = currentBirthDate != _selectedBirthDate;
+      final genderChanged =
+          _mapGenderToDisplay(currentGender) != _selectedGender;
+      final bloodTypeChanged =
+          currentBloodType != _selectedBloodType && _selectedBloodType != 'N/A';
+
+      if (bloodTypeChanged) {
         await _patientEditService.updateBloodTypeObservation(
           _currentPatient!,
           _selectedBloodType,
@@ -202,15 +215,17 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
           return;
         }
 
-        context.read<PatientBloc>().add(
-              PatientEditSaved(
-                patientId: _currentPatient!.id,
-                sourceId: _currentPatient!.sourceId,
-                birthDate: _selectedBirthDate!,
-                gender: _selectedGender,
-                bloodType: _selectedBloodType,
-              ),
-            );
+        if (birthDateChanged || genderChanged || bloodTypeChanged) {
+          context.read<PatientBloc>().add(
+                PatientEditSaved(
+                  patientId: _currentPatient!.id,
+                  sourceId: _currentPatient!.sourceId,
+                  birthDate: _selectedBirthDate!,
+                  gender: _selectedGender,
+                  bloodType: _selectedBloodType,
+                ),
+              );
+        }
 
         context.popDialog();
       }

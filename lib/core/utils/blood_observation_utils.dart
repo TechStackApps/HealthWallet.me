@@ -3,7 +3,6 @@ import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir;
 
 class BloodObservationUtils {
-  /// Creates a new blood type observation with the specified blood type
   static Observation createBloodTypeObservation({
     required String bloodType,
     required String patientSourceId,
@@ -14,7 +13,8 @@ class BloodObservationUtils {
       throw ArgumentError('Blood type cannot be N/A');
     }
 
-    final observationId = customId ?? 'blood_type_${DateTime.now().millisecondsSinceEpoch}';
+    final observationId =
+        customId ?? 'blood_type_${DateTime.now().millisecondsSinceEpoch}';
     final now = DateTime.now();
 
     return Observation(
@@ -54,8 +54,7 @@ class BloodObservationUtils {
           fhir.Coding(
             system: fhir.FhirUri('http://snomed.info/sct'),
             code: fhir.FhirCode(BloodTypes.getSnomedCode(bloodType)),
-            display: fhir.FhirString(
-                BloodTypes.getDisplayName(bloodType)),
+            display: fhir.FhirString(BloodTypes.getDisplayName(bloodType)),
           ),
         ],
         text: fhir.FhirString(bloodType),
@@ -65,14 +64,26 @@ class BloodObservationUtils {
     );
   }
 
-  /// Validates if a blood type is valid
   static bool isValidBloodType(String bloodType) {
-    return bloodType != 'N/A' && BloodTypes.getAllBloodTypes().contains(bloodType);
+    return bloodType != 'N/A' &&
+        BloodTypes.getAllBloodTypes().contains(bloodType);
   }
 
-  /// Gets the display name for a blood type
   static String getBloodTypeDisplayName(String bloodType) {
     if (bloodType == 'N/A') return 'Not Available';
     return BloodTypes.getDisplayName(bloodType);
+  }
+
+  static fhir.CodeableConcept createBloodTypeValue(String bloodType) {
+    return fhir.CodeableConcept(
+      coding: [
+        fhir.Coding(
+          system: fhir.FhirUri('http://snomed.info/sct'),
+          code: fhir.FhirCode(BloodTypes.getSnomedCode(bloodType)),
+          display: fhir.FhirString(BloodTypes.getDisplayName(bloodType)),
+        ),
+      ],
+      text: fhir.FhirString(bloodType),
+    );
   }
 }
