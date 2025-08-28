@@ -441,7 +441,7 @@ class FhirFieldExtractor {
 
   static String extractPatientGender(Patient patient) {
     final gender = FhirFieldExtractor.extractStatus(patient.gender);
-    return gender ?? 'N/A';
+    return gender ?? 'Unknown';
   }
 
   static String? extractBloodTypeFromObservations(List<dynamic> observations) {

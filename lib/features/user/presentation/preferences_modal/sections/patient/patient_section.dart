@@ -344,7 +344,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                     ),
                                     _buildPatientInfoRow(
                                       context,
-                                      Assets.icons.rulerHeight.svg(
+                                      Assets.icons.calendar.svg(
                                         width: 16,
                                         height: 16,
                                         colorFilter: ColorFilter.mode(
@@ -370,15 +370,8 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                   children: [
                                     _buildPatientInfoRow(
                                       context,
-                                      Assets.icons.genderMale.svg(
-                                        width: 16,
-                                        height: 16,
-                                        colorFilter: ColorFilter.mode(
-                                          widget.iconColor,
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
-                                      'Gender: ${FhirFieldExtractor.extractPatientGender(currentPatient)}',
+                                      _getGenderIcon(currentPatient),
+                                      'Gender: ${_formatGenderDisplay(FhirFieldExtractor.extractPatientGender(currentPatient))}',
                                     ),
                                     _buildPatientInfoRow(
                                       context,
@@ -496,6 +489,50 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
       return 0.5;
     }
     return 0.0;
+  }
+
+  Widget _getGenderIcon(Patient patient) {
+    final gender = FhirFieldExtractor.extractPatientGender(patient);
+
+    if (gender?.toLowerCase() == 'female') {
+      return Assets.icons.genderFemale.svg(
+        width: 16,
+        height: 16,
+        colorFilter: ColorFilter.mode(
+          widget.iconColor,
+          BlendMode.srcIn,
+        ),
+      );
+    }
+
+    return Assets.icons.genderMale.svg(
+      width: 16,
+      height: 16,
+      colorFilter: ColorFilter.mode(
+        widget.iconColor,
+        BlendMode.srcIn,
+      ),
+    );
+  }
+
+  String _formatGenderDisplay(String? gender) {
+    if (gender == null || gender.isEmpty) return 'N/A';
+
+    final lowerGender = gender.toLowerCase();
+
+    switch (lowerGender) {
+      case 'male':
+        return 'Male';
+      case 'female':
+        return 'Female';
+      case 'unknown':
+      case 'prefer not to say':
+      case 'prefer_not_to_say':
+      case 'prefernottosay':
+        return 'Prefer not to say';
+      default:
+        return gender; // Return original if not recognized
+    }
   }
 
   Widget _buildPatientInfoRow(BuildContext context, Widget icon, String text) {
