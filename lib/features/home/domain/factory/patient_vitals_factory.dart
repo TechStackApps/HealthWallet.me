@@ -172,7 +172,9 @@ class PatientVitalFactory {
       }
     } else {
       if (FhirFieldExtractor.isVitalSign(observation)) {
-        vitals.add(PatientVital.fromObservation(observation));
+        final vital = PatientVital.fromObservation(observation);
+        final processedVital = _processVitalSignStatus(vital);
+        vitals.add(processedVital);
       }
     }
 
@@ -180,34 +182,23 @@ class PatientVitalFactory {
   }
 
   void _combineBloodPressure(Map<String, PatientVital> latestByTitle) {
-    final PatientVital? systolic =
+    final systolic =
         latestByTitle[PatientVitalType.systolicBloodPressure.title];
-    final PatientVital? diastolic =
+    final diastolic =
         latestByTitle[PatientVitalType.diastolicBloodPressure.title];
+
     if (systolic == null || diastolic == null) return;
 
-    int? sys = int.tryParse(systolic.value) ??
-        double.tryParse(systolic.value)?.round();
-    int? dia = int.tryParse(diastolic.value) ??
-        double.tryParse(diastolic.value)?.round();
+    final sys = _parseBloodPressureValue(systolic.value);
+    final dia = _parseBloodPressureValue(diastolic.value);
     if (sys == null || dia == null) return;
 
-    final DateTime? latestDate;
-    if (systolic.effectiveDate == null && diastolic.effectiveDate == null) {
-      latestDate = null;
-    } else if (systolic.effectiveDate == null) {
-      latestDate = diastolic.effectiveDate;
-    } else if (diastolic.effectiveDate == null) {
-      latestDate = systolic.effectiveDate;
-    } else {
-      latestDate = systolic.effectiveDate!.isAfter(diastolic.effectiveDate!)
-          ? systolic.effectiveDate
-          : diastolic.effectiveDate;
-    }
+    final combinedStatus =
+        _determineBloodPressureStatus(systolic, diastolic, sys, dia);
+    final latestDate = _getLatestEffectiveDate(
+        systolic.effectiveDate, diastolic.effectiveDate);
 
-    final String? combinedStatus = (sys >= 140 || dia >= 90) ? 'High' : null;
-
-    final PatientVital bp = PatientVital(
+    final bp = PatientVital(
       title: PatientVitalType.bloodPressure.title,
       value: '$sys/$dia',
       unit: 'mmHg',
@@ -216,11 +207,169 @@ class PatientVitalFactory {
       effectiveDate: latestDate,
     );
 
+    _updateBloodPressureInMap(latestByTitle, bp);
+  }
+
+  int? _parseBloodPressureValue(String value) {
+    return int.tryParse(value) ?? double.tryParse(value)?.round();
+  }
+
+  String? _determineBloodPressureStatus(
+    PatientVital systolic,
+    PatientVital diastolic,
+    int sysValue,
+    int diaValue,
+  ) {
+    final fhirStatus = _getFhirInterpretationStatus(systolic, diastolic);
+    if (fhirStatus != null) return fhirStatus;
+
+    return _calculateThresholdBasedStatus(sysValue, diaValue);
+  }
+
+  String? _getFhirInterpretationStatus(
+      PatientVital systolic, PatientVital diastolic) {
+    if (_isValidFhirStatus(systolic.status)) return systolic.status;
+
+    if (_isValidFhirStatus(diastolic.status)) return diastolic.status;
+
+    return null;
+  }
+
+  bool _isValidFhirStatus(String? status) {
+    if (status == null || status.isEmpty) return false;
+
+    const validStatuses = {
+      'Normal',
+      'High',
+      'Low',
+      'Abnormal',
+      'Critically Abnormal',
+      'Critically High',
+      'Critically Low',
+      'Uncertain',
+      'Intermediate'
+    };
+
+    return validStatuses.contains(status);
+  }
+
+  String _calculateThresholdBasedStatus(int systolic, int diastolic) {
+    if (systolic >= 140 || diastolic >= 90) return 'High';
+    if (systolic >= 130 || diastolic >= 80) return 'Elevated';
+    if (systolic >= 120 || diastolic >= 80) return 'Normal';
+    return 'Optimal';
+  }
+
+  DateTime? _getLatestEffectiveDate(DateTime? date1, DateTime? date2) {
+    if (date1 == null && date2 == null) return null;
+    if (date1 == null) return date2;
+    if (date2 == null) return date1;
+
+    return date1.isAfter(date2) ? date1 : date2;
+  }
+
+  void _updateBloodPressureInMap(
+      Map<String, PatientVital> latestByTitle, PatientVital bp) {
     latestByTitle
       ..remove(PatientVitalType.systolicBloodPressure.title)
       ..remove(PatientVitalType.diastolicBloodPressure.title)
       ..putIfAbsent(PatientVitalType.bloodPressure.title, () => bp)
       ..update(PatientVitalType.bloodPressure.title, (_) => bp,
           ifAbsent: () => bp);
+  }
+
+  PatientVital _processVitalSignStatus(PatientVital vital) {
+    if (_isValidFhirStatus(vital.status)) {
+      return vital;
+    }
+
+    final fallbackStatus = _calculateVitalSignStatus(vital);
+    if (fallbackStatus != null) {
+      return PatientVital(
+        icon: vital.icon,
+        title: vital.title,
+        value: vital.value,
+        unit: vital.unit,
+        status: fallbackStatus,
+        observationId: vital.observationId,
+        effectiveDate: vital.effectiveDate,
+      );
+    }
+
+    return vital;
+  }
+
+  String? _calculateVitalSignStatus(PatientVital vital) {
+    final title = vital.title.toLowerCase();
+    final value = double.tryParse(vital.value);
+
+    if (value == null) return null;
+
+    switch (title) {
+      case 'heart rate':
+        return _calculateHeartRateStatus(value);
+      case 'temperature':
+        return _calculateTemperatureStatus(value);
+      case 'blood oxygen':
+        return _calculateBloodOxygenStatus(value);
+      case 'respiratory rate':
+        return _calculateRespiratoryRateStatus(value);
+      case 'blood glucose':
+        return _calculateBloodGlucoseStatus(value);
+      case 'weight':
+        return _calculateWeightStatus(value);
+      case 'height':
+        return _calculateHeightStatus(value);
+      case 'bmi':
+        return _calculateBmiStatus(value);
+      default:
+        return null;
+    }
+  }
+
+  String? _calculateHeartRateStatus(double value) {
+    if (value < 60) return 'Low';
+    if (value > 100) return 'High';
+    return 'Normal';
+  }
+
+  String? _calculateTemperatureStatus(double value) {
+    if (value < 95.0) return 'Low';
+    if (value > 100.4) return 'High';
+    return 'Normal';
+  }
+
+  String? _calculateBloodOxygenStatus(double value) {
+    if (value < 90) return 'Low';
+    if (value < 95) return 'Abnormal';
+    return 'Normal';
+  }
+
+  String? _calculateRespiratoryRateStatus(double value) {
+    if (value < 12) return 'Low';
+    if (value > 20) return 'High';
+    return 'Normal';
+  }
+
+  String? _calculateBloodGlucoseStatus(double value) {
+    if (value < 70) return 'Low';
+    if (value > 140) return 'High';
+    if (value > 100) return 'Elevated';
+    return 'Normal';
+  }
+
+  String? _calculateWeightStatus(double value) {
+    return null;
+  }
+
+  String? _calculateHeightStatus(double value) {
+    return null;
+  }
+
+  String? _calculateBmiStatus(double value) {
+    if (value < 18.5) return 'Low';
+    if (value >= 25 && value < 30) return 'Elevated';
+    if (value >= 30) return 'High';
+    return 'Normal';
   }
 }

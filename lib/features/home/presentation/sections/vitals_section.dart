@@ -204,12 +204,23 @@ class VitalsSection extends StatelessWidget {
 
     if (status != null && status.isNotEmpty) {
       switch (status) {
+        case 'Optimal':
         case 'Normal':
           cardColor = context.isDarkMode
               ? AppColors.successDark.withOpacity(0.08)
               : AppColors.success.withOpacity(0.08);
           statusIconColor = AppColors.success;
           statusIcon = Assets.icons.checkmarkCircleOutline.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        case 'Elevated':
+        case 'Abnormal':
+          cardColor = context.isDarkMode
+              ? AppColors.warningDark.withOpacity(0.08)
+              : AppColors.warning.withOpacity(0.08);
+          statusIconColor = AppColors.warning;
+          statusIcon = Assets.icons.warning.svg(
             colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
           );
           break;

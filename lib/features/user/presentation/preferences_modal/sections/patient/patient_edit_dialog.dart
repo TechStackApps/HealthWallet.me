@@ -212,14 +212,6 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
               ),
             );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Patient details updated successfully'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-
         context.popDialog();
       }
     } catch (e) {
