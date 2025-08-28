@@ -23,13 +23,19 @@ class QRScannerWidget extends StatefulWidget {
 
 class _QRScannerWidgetState extends State<QRScannerWidget> {
   bool _isScannerActive = true;
-  MobileScannerController? _controller;
+  final MobileScannerController _controller = MobileScannerController();
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _controller = MobileScannerController();
+  }
+
+  @override
+  void dispose() {
+    _isScannerActive = false;
+    _controller.stop();
+    super.dispose();
   }
 
   @override
@@ -103,7 +109,7 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
                                   setState(() {
                                     _errorMessage = null;
                                   });
-                                  _controller?.start();
+                                  _controller.start();
                                 },
                                 child: const Text('Retry'),
                               ),
@@ -145,12 +151,5 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _isScannerActive = false;
-    _controller?.dispose();
-    super.dispose();
   }
 }

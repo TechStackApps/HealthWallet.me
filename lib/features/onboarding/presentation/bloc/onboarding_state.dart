@@ -6,9 +6,6 @@ class OnboardingState with _$OnboardingState {
     @Default(0) int currentPage,
     @Default(false) bool isLaunchingUrl,
     @Default(false) bool urlLaunchSuccess,
-    @Default(false) bool isOnboardingCompleted,
-    @Default(false) bool isSyncing,
-    @Default(false) bool syncCompleted,
     String? errorMessage,
   }) = _OnboardingState;
 }

@@ -13,7 +13,6 @@ import 'package:health_wallet/features/records/domain/repository/records_reposit
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
-import 'package:health_wallet/features/sync/domain/services/token_service.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 
 class App extends StatelessWidget {
@@ -23,48 +22,44 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
     final routeObserver = getIt<AppRouteObserver>();
-    final tokenService = getIt<TokenService>();
 
-    return Provider<TokenService>(
-      create: (_) => tokenService,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-              create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
-          BlocProvider(create: (_) => getIt<SyncBloc>()),
-          BlocProvider(create: (_) => getIt<RecordsBloc>()),
-          BlocProvider(
-            create: (_) => HomeBloc(
-              getIt<GetSourcesUseCase>(),
-              HomeLocalDataSourceImpl(),
-              getIt<RecordsRepository>(),
-            )..add(const HomeInitialised()),
-          ),
-        ],
-        child: MultiBlocListener(
-          listeners: [
-            BlocListener<SyncBloc, SyncState>(
-              listener: (context, state) {
-                _handleSyncBlocStateChange(context, state);
-              },
-            ),
-          ],
-          child: BlocBuilder<UserBloc, UserState>(
-            builder: (context, state) {
-              return MaterialApp.router(
-                title: 'HealthWallet.me',
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                themeMode:
-                    state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-                routerConfig:
-                    router.config(navigatorObservers: () => [routeObserver]),
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                builder: (context, child) => child!,
-              );
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+            create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
+        BlocProvider(create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
+        BlocProvider(create: (_) => getIt<RecordsBloc>()),
+        BlocProvider(
+          create: (_) => HomeBloc(
+            getIt<GetSourcesUseCase>(),
+            HomeLocalDataSourceImpl(),
+            getIt<RecordsRepository>(),
+          )..add(const HomeInitialised()),
+        ),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<SyncBloc, SyncState>(
+            listener: (context, state) {
+              _handleSyncBlocStateChange(context, state);
             },
           ),
+        ],
+        child: BlocBuilder<UserBloc, UserState>(
+          builder: (context, state) {
+            return MaterialApp.router(
+              title: 'HealthWallet.me',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode:
+                  state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              routerConfig:
+                  router.config(navigatorObservers: () => [routeObserver]),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              builder: (context, child) => child!,
+            );
+          },
         ),
       ),
     );

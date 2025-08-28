@@ -1,75 +1,48 @@
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_local_data_source.dart';
-import 'package:health_wallet/core/utils/logger.dart';
-import 'package:health_wallet/features/sync/data/data_source/remote/fhir_api_service.dart';
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
+import 'package:health_wallet/features/sync/data/data_source/remote/sync_remote_data_source.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
+import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
-import 'package:health_wallet/features/sync/domain/services/sync_service.dart';
-import 'package:health_wallet/features/sync/domain/services/token_service.dart';
-import 'package:health_wallet/features/sync/domain/entities/sync_job.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @Injectable(as: SyncRepository)
 class SyncRepositoryImpl implements SyncRepository {
-  // Keep reference for potential future use (e.g., streaming sync); currently unused
-  // ignore: unused_field
-  final FhirApiService _fhirApiService;
-  final FhirLocalDataSource _fhirLocalDataSource;
-  final TokenService _tokenService;
-  final SyncService _syncService;
+  final SyncRemoteDataSource _remoteDataSource;
+  final SyncLocalDataSource _localDataSource;
+  final SharedPreferences _prefs;
 
   SyncRepositoryImpl(
-    this._fhirApiService,
-    this._fhirLocalDataSource,
-    this._tokenService,
-    this._syncService,
+    this._remoteDataSource,
+    this._localDataSource,
+    this._prefs,
   );
 
+  static const String _tokenKey = 'sync_token';
+
   @override
-  Future<void> cacheResources(List<FhirResourceDto> resources) async {
-    await _fhirLocalDataSource.cacheFhirResources(resources);
-    await _fhirLocalDataSource
+  Future<void> syncResources({required String endpoint}) async {
+    List<FhirResourceDto> resources =
+        await _remoteDataSource.getResources(endpoint: endpoint);
+
+    await _localDataSource.cacheFhirResources(resources);
+    await _localDataSource
         .setLastSyncTimestamp(DateTime.now().toIso8601String());
   }
 
-  /// Start background sync using the new chunked approach
   @override
-  Future<void> startBackgroundSync({required String baseUrl}) async {
-    final currentToken = await _tokenService.getCurrentToken();
-    if (currentToken == null) {
-      throw Exception('No valid token available for background sync');
-    }
-
-    // Use SyncToken directly - no more conversion needed!
-    await _syncService.startBackgroundSync(currentToken,
-        baseUrl: baseUrl);
-  }
-
-  /// Check if background sync is running
-  @override
-  Future<bool> isBackgroundSyncRunning() async {
-    final job = await _syncService.getCurrentSyncJob();
-    return job?.status == SyncJobStatus.running;
-  }
-
-  /// Get current sync progress
-  @override
-  Future<dynamic> getCurrentSyncProgress() async {
-    return await _syncService.getSyncProgress();
-  }
-
-  /// Cancel background sync
-  @override
-  Future<void> cancelBackgroundSync() async {
-    // Note: Cancel functionality would need to be implemented in SyncService
-    // For now, we'll just log that cancellation was requested
-    logger.w('Cancel background sync requested - functionality not yet implemented');
+  Future<String?> getLastSyncTimestamp() {
+    return _localDataSource.getLastSyncTimestamp();
   }
 
   @override
   Future<List<entity.Source>> getSources() async {
-    final sources = await _fhirLocalDataSource.getSources();
+    final sources = await _localDataSource.getSources();
     return sources
         .map(
           (e) => entity.Source(
@@ -79,5 +52,49 @@ class SyncRepositoryImpl implements SyncRepository {
           ),
         )
         .toList();
+  }
+
+  @override
+  void setBaseUrl(String baseUrl) {
+    if (!baseUrl.endsWith("/")) {
+      baseUrl += "/";
+    }
+    _remoteDataSource.updateBaseUrl(baseUrl);
+  }
+
+  @override
+  void setBearerToken(String token) {
+    _remoteDataSource.updateAuthorizationToken(token);
+  }
+
+  @override
+  Future<void> saveSyncQrData(SyncQrData qrData) async {
+    await _prefs.setString(_tokenKey, jsonEncode(qrData.toJson()));
+  }
+
+  @override
+  Future<SyncQrData?> getCurrentSyncQrData() async {
+    final qrDataJsonString = _prefs.getString(_tokenKey);
+    if (qrDataJsonString == null) return null;
+
+    try {
+      final qrDataJson = jsonDecode(qrDataJsonString) as Map<String, dynamic>;
+      final qrData = SyncQrData.fromJson(qrDataJson);
+
+      if (qrData.tokenMeta.isExpired) {
+        await clearToken();
+        return null;
+      }
+
+      return qrData;
+    } catch (e) {
+      await clearToken();
+      return null;
+    }
+  }
+
+  Future<void> clearToken() async {
+    log("remove");
+    await _prefs.remove(_tokenKey);
   }
 }

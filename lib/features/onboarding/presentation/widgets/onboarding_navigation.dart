@@ -33,10 +33,6 @@ class OnboardingNavigation extends StatelessWidget {
                   await prefs.setBool('hasSeenOnboarding', true);
                   context.appRouter.replace(const DashboardRoute());
                 } else {
-                  // Reset sync state when moving to next page to ensure we don't stay on success state
-                  context
-                      .read<OnboardingBloc>()
-                      .add(const OnboardingResetSync());
                   context
                       .read<OnboardingBloc>()
                       .add(const OnboardingNextPage());
