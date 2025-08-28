@@ -95,6 +95,7 @@ class PatientVitalFactory {
     }
     if (t == 'oxygen saturation' ||
         t == 'oxygen saturation in arterial blood' ||
+        t == 'blood oxygen saturation' ||
         t == 'spo2' ||
         t == 'pulse oximetry' ||
         t == 'oximetry') {

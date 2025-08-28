@@ -121,7 +121,8 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     try {
       final relatedResources = event.resource.fhirType == FhirType.Encounter
           ? await _recordsRepository.getRelatedResourcesForEncounter(
-              encounterId: event.resource.resourceId)
+              encounterId: event.resource.resourceId,
+              sourceId: event.resource.sourceId)
           : await _recordsRepository.getRelatedResources(
               resource: event.resource);
 

@@ -8,8 +8,8 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
@@ -21,8 +21,6 @@ import 'package:health_wallet/features/home/presentation/sections/recent_records
 import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/features/home/core/constants/home_constants.dart';
-import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
-
 import 'package:health_wallet/core/widgets/placeholder_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
@@ -34,16 +32,24 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<PatientBloc, PatientState>(
       listenWhen: (previous, current) =>
           previous.selectedPatientSourceId != current.selectedPatientSourceId ||
-          previous.selectedPatientId != current.selectedPatientId,
-      listener: (context, userState) {
-        if (userState.selectedPatientSourceId != null) {
-          context.read<HomeBloc>().add(HomePatientSelected(
-                userState.selectedPatientSourceId,
-                null,
-              ));
+          (current.status.toString().contains('Success') &&
+              !current.isEditingPatient),
+      listener: (context, patientState) {
+        // Handle patient source changes
+        if (patientState.selectedPatientSourceId != null &&
+            patientState.selectedPatientSourceId != 'All') {
+          context.read<HomeBloc>().add(
+                HomeSourceChanged(patientState.selectedPatientSourceId!),
+              );
+        }
+
+        // Handle patient data updates
+        if (patientState.status.toString().contains('Success') &&
+            !patientState.isEditingPatient) {
+          context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
         }
       },
       child: HomeView(pageController: pageController),
@@ -90,31 +96,26 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        // Listen for demo data loading completion
         return (previous.isLoadingDemoData != current.isLoadingDemoData &&
                 !current.isLoadingDemoData &&
                 current.hasDemoData &&
                 current.demoDataError == null) ||
-            // Listen for onboarding trigger
             (previous.shouldShowOnboarding != current.shouldShowOnboarding &&
                 current.shouldShowOnboarding);
       },
       listener: (context, syncState) {
         if (syncState.shouldShowOnboarding && !_hasShownOnboarding) {
-          print(
-              '🏠 HomePage: Onboarding should be shown - triggering home refresh...');
-
           _hasShownOnboarding = true;
 
           context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
 
-          Future.delayed(const Duration(milliseconds: 800), () {
+          Future.delayed(const Duration(milliseconds: 300), () {
             if (context.mounted) {
               if (_onboardingKey.currentState != null) {
                 try {
                   _onboardingKey.currentState!.show();
                 } catch (e) {
-                  print('🏠 HomePage: Error showing onboarding overlay: $e');
+                  // Silently handle onboarding overlay error
                 }
               } else {}
             }
@@ -143,7 +144,9 @@ class _HomeViewState extends State<HomeView> {
                   _focusController.firstOverviewCardFocusNode,
               context: context,
             ),
-            onChanged: (index) => print('Onboarding step changed to: $index'),
+            onChanged: (index) {
+              // Onboarding step changed
+            },
             onEnd: (index) async {
               context.read<SyncBloc>().resetOnboardingState();
 
@@ -328,6 +331,7 @@ class _HomeViewState extends State<HomeView> {
                                     )
                                 : null,
                             colorScheme: colorScheme,
+                            isEditMode: editMode,
                           ),
                           const SizedBox(height: Insets.smallNormal),
                           VitalsSection(

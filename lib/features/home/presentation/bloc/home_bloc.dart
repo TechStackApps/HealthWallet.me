@@ -26,7 +26,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final PatientVitalFactory _patientVitalFactory = PatientVitalFactory();
 
   static const int _minVisibleVitalsCount = 4;
-  static const String _demoSourceId = 'demo';
+  static const String _demoSourceId = 'demo_data';
 
   HomeBloc(
     this._getSourcesUseCase,
@@ -44,7 +44,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeVitalsExpansionToggled>((e, emit) =>
         emit(state.copyWith(vitalsExpanded: !state.vitalsExpanded)));
     on<HomeRefreshPreservingOrder>(_onRefreshPreservingOrder);
-    on<HomePatientSelected>(_onPatientSelected);
   }
 
   bool hasData({
@@ -163,15 +162,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (err) {
       logger.e('Records reorder error: $err');
     }
-  }
-
-  Future<void> _onPatientSelected(
-      HomePatientSelected e, Emitter<HomeState> emit) async {
-    emit(state.copyWith(
-        selectedPatientName: e.patientName,
-        selectedSource: e.patientSourceId ?? 'All'));
-    await _reloadHomeData(emit,
-        force: true, overrideSourceId: e.patientSourceId);
   }
 
   List<PatientVital> _filterVitalsByVisibility(
@@ -406,9 +396,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     bool force = false,
     String? overrideSourceId,
   }) async {
+    logger.d(
+        'HomeBloc: _reloadHomeData called with force=$force, overrideSourceId=$overrideSourceId');
+
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
       final sourceId = _resolveSourceId(overrideSourceId);
+      logger.d('HomeBloc: Resolved sourceId: $sourceId');
 
       final sources = await _fetchSources(sourceId);
       final overview = await _fetchOverviewCardsAndResources(sourceId);
@@ -423,6 +417,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           overviewCards: reorderedCards,
           recentRecords: overview.allEnabledResources.take(3).toList(),
         );
+
+        logger.d(
+            'HomeBloc: Emitting success state with selectedSource: ${sourceId ?? 'All'}');
 
         emit(state.copyWith(
           status: const HomeStatus.success(),
@@ -439,6 +436,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           selectedRecordTypes: overview.selectedRecordTypes,
           hasDataLoaded: hasData,
         ));
+
+        logger.d('HomeBloc: Success state emitted');
       }
     } catch (err) {
       logger.e('reloadHomeData error: $err');

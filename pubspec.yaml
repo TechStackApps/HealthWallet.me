@@ -1,7 +1,7 @@
 name: health_wallet
 description: "HealthWallet.me"
 publish_to: 'none'
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -87,6 +87,7 @@ flutter:
   generate: true
   assets:
     - assets/
+    - assets/images/
     - assets/icons/
     - assets/favIcons/
     - assets/onboarding/

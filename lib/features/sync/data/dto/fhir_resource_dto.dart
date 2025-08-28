@@ -2,6 +2,7 @@ import 'package:fhir_r4/fhir_r4.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:health_wallet/core/utils/custom_from_json.dart';
+import 'package:health_wallet/core/utils/demo_data_identifier.dart';
 
 part 'fhir_resource_dto.freezed.dart';
 part 'fhir_resource_dto.g.dart';
@@ -20,9 +21,9 @@ class FhirResourceDto with _$FhirResourceDto {
     @JsonKey(name: "resource_raw") Map<String, dynamic>? resourceRaw,
     String? encounterId,
     String? subjectId,
-    // New fields for handling deletions
-    @JsonKey(name: "deleted_at", fromJson: dateTimeFromJson) DateTime? deletedAt,
-    @JsonKey(name: "change_type") String? changeType, // "created", "updated", or "deleted"
+    @JsonKey(name: "deleted_at", fromJson: dateTimeFromJson)
+    DateTime? deletedAt,
+    @JsonKey(name: "change_type") String? changeType,
   }) = _FhirResourceDto;
 
   factory FhirResourceDto.fromJson(Map<String, dynamic> json) =>
@@ -73,4 +74,6 @@ class FhirResourceDto with _$FhirResourceDto {
     if (isUpdated) return 'Updated';
     return 'Unknown';
   }
+
+  bool get isDemoData => DemoDataIdentifier.isDemoResource(sourceId);
 }

@@ -23,8 +23,6 @@ class SyncPage extends StatelessWidget {
       listener: (context, state) {
         if (state.syncStatus == SyncStatus.synced) {
           // Sync completed successfully - check if onboarding was already shown
-          print(
-              '🔄 SyncPage: Sync completed successfully - checking onboarding status');
 
           // Check if onboarding was already shown
           _checkOnboardingStatusAndNavigate(context);

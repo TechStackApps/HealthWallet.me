@@ -2,6 +2,7 @@ import 'package:health_wallet/features/records/domain/entity/observation/observa
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/features/records/domain/utils/vital_codes.dart';
+import 'package:health_wallet/core/constants/blood_types.dart';
 
 class FhirFieldExtractor {
   static String? extractStatus(dynamic status) {
@@ -271,7 +272,6 @@ class FhirFieldExtractor {
       case kLoincTemperature:
         return 'Temperature';
       case kLoincBloodOxygen:
-      case kLoincBloodOxygenPulseOx:
         return 'Blood Oxygen';
       case kLoincWeight:
         return 'Weight';
@@ -426,22 +426,70 @@ class FhirFieldExtractor {
     }
   }
 
-  /// Extract patient gender
+  static DateTime? extractPatientBirthDate(Patient patient) {
+    if (patient.birthDate == null) return null;
+
+    try {
+      final birthDateStr = patient.birthDate!.toString();
+      if (birthDateStr.isEmpty) return null;
+
+      return DateTime.parse(birthDateStr);
+    } catch (e) {
+      return null;
+    }
+  }
+
   static String extractPatientGender(Patient patient) {
     final gender = FhirFieldExtractor.extractStatus(patient.gender);
     return gender ?? 'N/A';
   }
 
-  /// Extract blood type (placeholder - would need observation query)
-  static String extractBloodType(Patient patient) {
-    // Blood type is typically stored in Observation resources with specific LOINC codes
-    // Common blood type LOINC codes:
-    // - 883-9: ABO group [Type] in Blood
-    // - 884-7: Rh [Type] in Blood
-    // - 34532-2: ABO and Rh group [Type] in Blood
+  static String? extractBloodTypeFromObservations(List<dynamic> observations) {
+    if (observations.isEmpty) return null;
 
-    // This would require querying observations through the repository layer
-    // For now, return placeholder
-    return 'N/A';
+    final sortedObservations =
+        observations.where((obs) => obs.code?.coding != null).toList()
+          ..sort((a, b) {
+            DateTime aDate = a.date ?? DateTime.now();
+            DateTime bDate = b.date ?? DateTime.now();
+            return bDate.compareTo(aDate);
+          });
+
+    for (final observation in sortedObservations) {
+      final coding = observation.code?.coding;
+      if (coding == null) continue;
+
+      for (final code in coding) {
+        if (code.code == null) continue;
+
+        final loincCode = code.code.toString();
+
+        if (loincCode == BloodTypes.combinedLoincCode ||
+            loincCode == BloodTypes.aboLoincCode ||
+            loincCode == BloodTypes.rhLoincCode) {
+          final value = observation.valueX;
+
+          if (value is fhir_r4.CodeableConcept) {
+            if (value.text != null && value.text.toString().isNotEmpty) {
+              final directText = value.text.toString();
+              if (_isValidBloodType(directText)) {
+                return directText;
+              }
+            }
+
+            final display = code.display?.toString();
+            if (display != null && _isValidBloodType(display)) {
+              return display;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isValidBloodType(String bloodType) {
+    return BloodTypes.isValidBloodType(bloodType);
   }
 }

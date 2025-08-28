@@ -46,12 +46,6 @@ class HomeRecordsFiltersChanged extends HomeEvent
 }
 
 @freezed
-class HomePatientSelected extends HomeEvent with _$HomePatientSelected {
-  const factory HomePatientSelected(
-      String? patientSourceId, String? patientName) = _HomePatientSelected;
-}
-
-@freezed
 class HomeVitalsExpansionToggled extends HomeEvent
     with _$HomeVitalsExpansionToggled {
   const factory HomeVitalsExpansionToggled() = _HomeVitalsExpansionToggled;

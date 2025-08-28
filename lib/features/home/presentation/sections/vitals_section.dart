@@ -37,17 +37,6 @@ class VitalsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final vitalsToShow = vitalsExpanded ? allAvailableVitals : vitals;
 
-    print('🔄 VitalsSection build:');
-    print('🔄 Expansion state: $vitalsExpanded');
-    print('🔄 Edit mode: $editMode');
-    print('🔄 Vitals to show count: ${vitalsToShow.length}');
-    print('🔄 All available vitals count: ${allAvailableVitals.length}');
-    print('🔄 Filtered vitals count: ${vitals.length}');
-    print(
-        '🔄 Show expand button: ${allAvailableVitals.isNotEmpty && allAvailableVitals.length > vitals.length && (selectedVitals == null || selectedVitals!.entries.where((e) => e.value).length < allAvailableVitals.length)}');
-    print(
-        '🔄 Selected vitals count: ${selectedVitals?.entries.where((e) => e.value).length ?? 0}');
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,7 +45,6 @@ class VitalsSection extends StatelessWidget {
           enabled: editMode,
           onReorder: (oldIndex, newIndex) {
             if (vitalsExpanded) {
-              print('🔄 Reordering in EXPANDED mode: $oldIndex -> $newIndex');
               onReorder?.call(oldIndex, newIndex);
             } else {
               final vitalToMove = vitals[oldIndex];
@@ -65,14 +53,8 @@ class VitalsSection extends StatelessWidget {
               final newMasterIndex = allAvailableVitals
                   .indexWhere((v) => v.title == vitals[newIndex].title);
 
-              print('🔄 Reordering in COLLAPSED mode: $oldIndex -> $newIndex');
-              print('🔄 Vital to move: ${vitalToMove.title}');
-              print('🔄 Master indices: $oldMasterIndex -> $newMasterIndex');
-
               if (oldMasterIndex != -1 && newMasterIndex != -1) {
                 onReorder?.call(oldMasterIndex, newMasterIndex);
-              } else {
-                print('🚨 Failed to find master indices for reordering');
               }
             }
           },

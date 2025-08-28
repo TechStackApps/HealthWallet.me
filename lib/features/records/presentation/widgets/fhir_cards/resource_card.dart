@@ -231,7 +231,6 @@ class _ResourceCardState extends State<ResourceCard> {
                   onTap: () {
                     _closeRelatedIfOpen();
                     // TODO: Implement share functionality
-                    print('Share tapped');
                   },
                   borderRadius: BorderRadius.circular(4),
                   child: Padding(
