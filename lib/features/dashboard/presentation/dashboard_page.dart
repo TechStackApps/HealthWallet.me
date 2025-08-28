@@ -51,7 +51,6 @@ class _DashboardPageState extends State<DashboardPage> {
               RecordsPage(pageController: _pageController),
             ],
           ),
-          // Only show bottom navigation when keyboard is not visible
           if (!_isKeyboardVisible)
             Positioned(
               left: 8,
