@@ -2,6 +2,7 @@ import 'package:fhir_r4/fhir_r4.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:health_wallet/core/utils/custom_from_json.dart';
+import 'package:health_wallet/core/utils/demo_data_identifier.dart';
 
 part 'fhir_resource_dto.freezed.dart';
 part 'fhir_resource_dto.g.dart';
@@ -20,6 +21,9 @@ class FhirResourceDto with _$FhirResourceDto {
     @JsonKey(name: "resource_raw") Map<String, dynamic>? resourceRaw,
     String? encounterId,
     String? subjectId,
+    @JsonKey(name: "deleted_at", fromJson: dateTimeFromJson)
+    DateTime? deletedAt,
+    @JsonKey(name: "change_type") String? changeType,
   }) = _FhirResourceDto;
 
   factory FhirResourceDto.fromJson(Map<String, dynamic> json) =>
@@ -53,4 +57,23 @@ class FhirResourceDto with _$FhirResourceDto {
 
     return splitString[2];
   }
+
+  /// Check if this resource represents a deletion
+  bool get isDeleted => deletedAt != null || changeType == 'deleted';
+
+  /// Check if this resource was created (new)
+  bool get isCreated => changeType == 'created';
+
+  /// Check if this resource was updated (modified)
+  bool get isUpdated => changeType == 'updated';
+
+  /// Get a user-friendly description of the change
+  String get changeDescription {
+    if (isDeleted) return 'Deleted';
+    if (isCreated) return 'Created';
+    if (isUpdated) return 'Updated';
+    return 'Unknown';
+  }
+
+  bool get isDemoData => DemoDataIdentifier.isDemoResource(sourceId);
 }

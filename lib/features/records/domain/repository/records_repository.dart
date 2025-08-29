@@ -19,7 +19,6 @@ abstract class RecordsRepository {
     required IFhirResource resource,
   });
 
-  /// Resolve a FHIR reference to get the actual resource data
   Future<IFhirResource?> resolveReference(String reference);
 
   Future<int> addRecordAttachment({
@@ -41,4 +40,19 @@ abstract class RecordsRepository {
   Future<int> editRecordNote(RecordNote note);
 
   Future<int> deleteRecordNote(RecordNote note);
+
+  Future<void> loadDemoData();
+
+  Future<void> clearDemoData();
+
+  Future<bool> hasDemoData();
+
+  Future<List<IFhirResource>> getBloodTypeObservations({
+    required String patientId,
+    String? sourceId,
+  });
+
+  Future<String> saveObservation(IFhirResource observation);
+
+  Future<void> updatePatient(IFhirResource patient);
 }

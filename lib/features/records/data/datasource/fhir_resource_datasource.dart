@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
@@ -124,5 +123,27 @@ class FhirResourceDatasource {
 
   Future<int> deleteRecordNote(int id) async {
     return (db.delete(db.recordNotes)..where((f) => f.id.equals(id))).go();
+  }
+
+  Future<int> insertResource(FhirResourceLocalDto resource) async {
+    return db.fhirResource.insertOnConflictUpdate(
+      FhirResourceCompanion.insert(
+        id: resource.id,
+        sourceId: Value(resource.sourceId),
+        resourceType: Value(resource.resourceType),
+        resourceId: Value(resource.resourceId),
+        title: Value(resource.title),
+        date: Value(resource.date),
+        resourceRaw: resource.resourceRaw,
+        encounterId: Value(resource.encounterId),
+        subjectId: Value(resource.subjectId),
+      ),
+    );
+  }
+
+  Future<int> deleteResourcesBySourceId(String sourceId) async {
+    return (db.delete(db.fhirResource)
+          ..where((f) => f.sourceId.equals(sourceId)))
+        .go();
   }
 }

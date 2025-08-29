@@ -11,6 +11,9 @@ class RecordsState with _$RecordsState {
     @Default(RecordDetailStatus.initial())
     RecordDetailStatus recordDetailStatus,
     @Default([]) List<IFhirResource> relatedResources,
+    @Default(false) bool hasDemoData,
+    @Default(false) bool isLoadingDemoData,
+    String? demoDataError,
   }) = _RecordsState;
 }
 

@@ -5,45 +5,121 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 
 class VitalsSection extends StatelessWidget {
-  final List<dynamic> vitals;
+  final List<PatientVital> vitals;
+  final List<PatientVital> allAvailableVitals;
   final bool editMode;
+  final bool vitalsExpanded;
   final void Function(int oldIndex, int newIndex)? onReorder;
   final VoidCallback? onLongPressCard;
+  final VoidCallback? onExpandToggle;
+  final GlobalKey? firstCardKey; // First card key
+  final FocusNode? firstCardFocusNode;
+  final Map<String, bool>? selectedVitals; // Add this to check filter state
 
   const VitalsSection({
     super.key,
     required this.vitals,
+    required this.allAvailableVitals,
     this.editMode = false,
+    this.vitalsExpanded = false,
     this.onReorder,
     this.onLongPressCard,
+    this.onExpandToggle,
+    this.firstCardKey,
+    this.firstCardFocusNode,
+    this.selectedVitals,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableGrid<dynamic>(
-      items: vitals,
-      enabled: editMode,
-      onReorder: onReorder ?? (a, b) {},
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.85,
-      itemBuilder: (context, vital, index) => GestureDetector(
-        onLongPress: onLongPressCard,
-        child: _buildVitalSignCard(context, vital),
-      ),
+    final vitalsToShow = vitalsExpanded ? allAvailableVitals : vitals;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ReorderableGrid<PatientVital>(
+          items: vitalsToShow,
+          enabled: editMode,
+          onReorder: (oldIndex, newIndex) {
+            if (vitalsExpanded) {
+              onReorder?.call(oldIndex, newIndex);
+            } else {
+              final vitalToMove = vitals[oldIndex];
+              final oldMasterIndex = allAvailableVitals
+                  .indexWhere((v) => v.title == vitalToMove.title);
+              final newMasterIndex = allAvailableVitals
+                  .indexWhere((v) => v.title == vitals[newIndex].title);
+
+              if (oldMasterIndex != -1 && newMasterIndex != -1) {
+                onReorder?.call(oldMasterIndex, newMasterIndex);
+              }
+            }
+          },
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.85,
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemBuilder: (context, vital, index) => GestureDetector(
+            onLongPress: onLongPressCard,
+            child: index == 0 && firstCardFocusNode != null
+                ? Focus(
+                    focusNode: firstCardFocusNode!,
+                    child:
+                        _buildVitalSignCard(context, vital, key: firstCardKey),
+                  )
+                : _buildVitalSignCard(context, vital),
+          ),
+        ),
+        if (allAvailableVitals.isNotEmpty &&
+            (selectedVitals == null ||
+                selectedVitals!.entries.where((e) => e.value).length <
+                    allAvailableVitals.length))
+          Padding(
+            padding: const EdgeInsets.only(top: Insets.small),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextButton.icon(
+                  onPressed: onExpandToggle,
+                  icon: Icon(
+                    vitalsExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 20,
+                    color: context.colorScheme.primary,
+                  ),
+                  label: Text(
+                    vitalsExpanded ? 'Show Less' : 'Show All',
+                    style: AppTextStyle.bodySmall.copyWith(
+                      color: context.colorScheme.primary,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Insets.small,
+                      vertical: Insets.extraSmall,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildVitalSignCard(BuildContext context, dynamic vital) {
+  Widget _buildVitalSignCard(BuildContext context, PatientVital vital,
+      {Key? key}) {
     final String title = vital.title;
     final String value = vital.value;
     final String unit = vital.unit;
-    final String status = vital.status;
+    final String? status = vital.status;
 
-    // Get icon based on vital type
     Widget icon;
     switch (title) {
       case 'Heart Rate':
@@ -78,44 +154,116 @@ class VitalsSection extends StatelessWidget {
           ),
         );
         break;
+      case 'Blood Glucose':
+        icon = Assets.icons.bloodGlucose.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Respiratory Rate':
+        icon = Assets.icons.alarm.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Weight':
+        icon = Assets.icons.weight.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'Height':
+        icon = Assets.icons.rulerHeight.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
+      case 'BMI':
+        icon = Assets.icons.bmi.svg(
+          colorFilter: ColorFilter.mode(
+            context.colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+        break;
       default:
         icon = const SizedBox.shrink();
     }
 
-    // Get card color and status icon based on status
-    Color cardColor;
-    Widget statusIcon;
-    Color statusIconColor;
+    Color cardColor = context.colorScheme.surface;
+    Widget? statusIcon;
+    Color? statusIconColor;
 
-    switch (status) {
-      case 'Normal':
-        cardColor = context.isDarkMode
-            ? AppColors.successDark.withOpacity(0.08)
-            : AppColors.success.withOpacity(0.08);
-        statusIconColor = AppColors.success;
-        statusIcon = Assets.icons.checkmarkCircleOutline.svg(
-          colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
-        );
-        break;
-      case 'High':
-      case 'Low':
-        cardColor = context.isDarkMode
-            ? AppColors.errorDark.withOpacity(0.08)
-            : AppColors.error.withOpacity(0.08);
-        statusIconColor = AppColors.error;
-        statusIcon = Assets.icons.warning.svg(
-          colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
-        );
-        break;
-      default:
-        cardColor = context.colorScheme.surface;
-        statusIconColor = AppColors.warning;
-        statusIcon = Assets.icons.warning.svg(
-          colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
-        );
+    if (status != null && status.isNotEmpty) {
+      switch (status) {
+        case 'Optimal':
+        case 'Normal':
+          cardColor = context.isDarkMode
+              ? AppColors.successDark.withOpacity(0.08)
+              : AppColors.success.withOpacity(0.08);
+          statusIconColor = AppColors.success;
+          statusIcon = Assets.icons.checkmarkCircleOutline.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        case 'Elevated':
+        case 'Abnormal':
+          cardColor = context.isDarkMode
+              ? AppColors.warningDark.withOpacity(0.08)
+              : AppColors.warning.withOpacity(0.08);
+          statusIconColor = AppColors.warning;
+          statusIcon = Assets.icons.warning.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        case 'High':
+        case 'Low':
+          cardColor = context.isDarkMode
+              ? AppColors.errorDark.withOpacity(0.08)
+              : AppColors.error.withOpacity(0.08);
+          statusIconColor = AppColors.error;
+          statusIcon = Assets.icons.warning.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        case 'Abnormal':
+        case 'Critically Abnormal':
+        case 'Critically High':
+        case 'Critically Low':
+          cardColor = context.isDarkMode
+              ? AppColors.errorDark.withOpacity(0.12)
+              : AppColors.error.withOpacity(0.12);
+          statusIconColor = AppColors.error;
+          statusIcon = Assets.icons.warning.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        case 'Uncertain':
+        case 'Intermediate':
+          cardColor = context.isDarkMode
+              ? AppColors.warningDark.withOpacity(0.08)
+              : AppColors.warning.withOpacity(0.08);
+          statusIconColor = AppColors.warning;
+          statusIcon = Assets.icons.warning.svg(
+            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+          );
+          break;
+        default:
+          cardColor = context.colorScheme.surface;
+          statusIcon = null;
+      }
     }
 
     return Container(
+      key: key,
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(8),
@@ -143,7 +291,7 @@ class VitalsSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                statusIcon,
+                if (statusIcon != null) statusIcon,
               ],
             ),
             const SizedBox(height: 12),

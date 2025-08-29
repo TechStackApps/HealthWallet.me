@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
+import 'package:health_wallet/core/widgets/placeholder_widget.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
 
@@ -19,20 +21,23 @@ import 'package:intl/intl.dart';
 @RoutePage()
 class RecordsPage extends StatelessWidget {
   final List<FhirType>? initFilters;
+  final PageController? pageController;
 
-  const RecordsPage({super.key, this.initFilters});
+  const RecordsPage({super.key, this.initFilters, this.pageController});
 
   @override
   Widget build(BuildContext context) {
     // Use the global RecordsBloc that's already provided in app.dart
-    return RecordsView(initFilters: initFilters);
+    return RecordsView(
+        initFilters: initFilters, pageController: pageController);
   }
 }
 
 class RecordsView extends StatefulWidget {
   final List<FhirType>? initFilters;
+  final PageController? pageController;
 
-  const RecordsView({super.key, this.initFilters});
+  const RecordsView({super.key, this.initFilters, this.pageController});
 
   @override
   State<RecordsView> createState() => _RecordsViewState();
@@ -115,19 +120,13 @@ class _RecordsViewState extends State<RecordsView> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<HomeBloc, HomeState>(
-          listener: (context, state) {
-            final selectedSourceId =
-                state.selectedSource == 'All' ? null : state.selectedSource;
+    return BlocListener<HomeBloc, HomeState>(
+      listener: (context, state) {
+        final selectedSourceId =
+            state.selectedSource == 'All' ? null : state.selectedSource;
 
-            context
-                .read<RecordsBloc>()
-                .add(RecordsSourceChanged(selectedSourceId));
-          },
-        ),
-      ],
+        context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
+      },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -249,44 +248,63 @@ class _RecordsViewState extends State<RecordsView> {
                         if (state.activeFilters.isEmpty) {
                           return const SizedBox();
                         }
-                        return Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8,
-                          children: state.activeFilters
-                              .map(
-                                (filter) => GestureDetector(
-                                  onTap: () => context
-                                      .read<RecordsBloc>()
-                                      .add(RecordsFilterRemoved(filter)),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          filter.display,
-                                          style: AppTextStyle.labelSmall
-                                              .copyWith(
-                                                  color: AppColors.primary),
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8,
+                                children: state.activeFilters
+                                    .map(
+                                      (filter) => GestureDetector(
+                                        onTap: () => context
+                                            .read<RecordsBloc>()
+                                            .add(RecordsFilterRemoved(filter)),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4, horizontal: 8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.08),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                filter.display,
+                                                style: AppTextStyle.labelSmall
+                                                    .copyWith(
+                                                        color:
+                                                            AppColors.primary),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Icon(
+                                                Icons.close,
+                                                color: AppColors.primary,
+                                                size: 12,
+                                              )
+                                            ],
+                                          ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Icon(
-                                          Icons.close,
-                                          color: AppColors.primary,
-                                          size: 12,
-                                        )
-                                      ],
-                                    ),
-                                  ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => context
+                                  .read<RecordsBloc>()
+                                  .add(RecordsFiltersApplied([])),
+                              child: Text(
+                                'Clear all',
+                                style: AppTextStyle.labelMedium.copyWith(
+                                  color: AppColors.primary,
                                 ),
-                              )
-                              .toList(),
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -318,25 +336,10 @@ class _RecordsViewState extends State<RecordsView> {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.folder_open,
-                                size: 64,
-                                color: context.colorScheme.onSurface
-                                    .withOpacity(0.6),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No records found',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: context.colorScheme.onSurface
-                                      .withOpacity(0.6),
-                                ),
-                              ),
-                            ],
+                          child: PlaceholderWidget(
+                            hasDataLoaded: false,
+                            colorScheme: context.colorScheme,
+                            pageController: widget.pageController,
                           ),
                         ),
                       );
@@ -529,7 +532,6 @@ class _RecordsViewState extends State<RecordsView> {
   }
 }
 
-// Custom FloatingActionButtonLocation that positions the button 50px higher
 class _CustomFabLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {

@@ -2,6 +2,7 @@ import 'package:health_wallet/features/records/domain/entity/observation/observa
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/features/records/domain/utils/vital_codes.dart';
+import 'package:health_wallet/core/constants/blood_types.dart';
 
 class FhirFieldExtractor {
   static String? extractStatus(dynamic status) {
@@ -11,16 +12,22 @@ class FhirFieldExtractor {
   static String? extractCodeableConceptText(dynamic codeableConcept) {
     if (codeableConcept == null) return null;
 
-    // Try text field first
-    final text = codeableConcept.text?.toString();
-    if (text != null && text.isNotEmpty) return text;
-
-    // Try first coding display
-    final coding = codeableConcept.coding;
-    if (coding?.isNotEmpty == true) {
-      final display = coding!.first.display?.toString();
-      if (display != null && display.isNotEmpty) return display;
+    if (codeableConcept.toString().contains('.')) {
+      return codeableConcept.toString().split('.').last;
     }
+
+    try {
+      final text = codeableConcept.text?.toString();
+      if (text != null && text.isNotEmpty) return text;
+    } catch (e) {}
+
+    try {
+      final coding = codeableConcept.coding;
+      if (coding?.isNotEmpty == true) {
+        final display = coding!.first.display?.toString();
+        if (display != null && display.isNotEmpty) return display;
+      }
+    } catch (e) {}
 
     return null;
   }
@@ -239,7 +246,7 @@ class FhirFieldExtractor {
     return '';
   }
 
-  static String extractVitalSignStatus(Observation observation) {
+  static String? extractVitalSignStatus(Observation observation) {
     if (observation.interpretation != null &&
         observation.interpretation!.isNotEmpty) {
       final interpretation = observation.interpretation!.first;
@@ -251,12 +258,7 @@ class FhirFieldExtractor {
       }
     }
 
-    if (observation.referenceRange != null &&
-        observation.referenceRange!.isNotEmpty) {
-      return 'Normal';
-    }
-
-    return 'Unknown';
+    return null;
   }
 
   // ===== PRIVATE HELPER METHODS =====
@@ -270,7 +272,6 @@ class FhirFieldExtractor {
       case kLoincTemperature:
         return 'Temperature';
       case kLoincBloodOxygen:
-      case kLoincBloodOxygenPulseOx:
         return 'Blood Oxygen';
       case kLoincWeight:
         return 'Weight';
@@ -320,7 +321,6 @@ class FhirFieldExtractor {
     }
   }
 
-  // Map FHIR interpretation codes to status
   static String _mapInterpretationCodeToStatus(String code) {
     switch (code) {
       case 'H':
@@ -337,12 +337,25 @@ class FhirFieldExtractor {
         return 'Critically High';
       case 'LL':
         return 'Critically Low';
+      case 'U':
+        return 'Uncertain';
+      case 'R':
+        return 'Resistant';
+      case 'I':
+        return 'Intermediate';
+      case 'S':
+        return 'Susceptible';
+      case 'MS':
+        return 'Moderately Susceptible';
+      case 'VS':
+        return 'Very Susceptible';
       default:
         return 'Unknown';
     }
   }
 
-  static String _formatQuantityValueByCode(String? code, fhir_r4.Quantity quantity) {
+  static String _formatQuantityValueByCode(
+      String? code, fhir_r4.Quantity quantity) {
     final String? raw = quantity.value?.toString();
     if (raw == null) return 'N/A';
     final double? num = double.tryParse(raw);
@@ -413,22 +426,70 @@ class FhirFieldExtractor {
     }
   }
 
-  /// Extract patient gender
-  static String extractPatientGender(Patient patient) {
-    final gender = FhirFieldExtractor.extractStatus(patient.gender);
-    return gender ?? 'N/A';
+  static DateTime? extractPatientBirthDate(Patient patient) {
+    if (patient.birthDate == null) return null;
+
+    try {
+      final birthDateStr = patient.birthDate!.toString();
+      if (birthDateStr.isEmpty) return null;
+
+      return DateTime.parse(birthDateStr);
+    } catch (e) {
+      return null;
+    }
   }
 
-  /// Extract blood type (placeholder - would need observation query)
-  static String extractBloodType(Patient patient) {
-    // Blood type is typically stored in Observation resources with specific LOINC codes
-    // Common blood type LOINC codes:
-    // - 883-9: ABO group [Type] in Blood
-    // - 884-7: Rh [Type] in Blood
-    // - 34532-2: ABO and Rh group [Type] in Blood
+  static String extractPatientGender(Patient patient) {
+    final gender = FhirFieldExtractor.extractStatus(patient.gender);
+    return gender ?? 'Unknown';
+  }
 
-    // This would require querying observations through the repository layer
-    // For now, return placeholder
-    return 'N/A';
+  static String? extractBloodTypeFromObservations(List<dynamic> observations) {
+    if (observations.isEmpty) return null;
+
+    final sortedObservations =
+        observations.where((obs) => obs.code?.coding != null).toList()
+          ..sort((a, b) {
+            DateTime aDate = a.date ?? DateTime.now();
+            DateTime bDate = b.date ?? DateTime.now();
+            return bDate.compareTo(aDate);
+          });
+
+    for (final observation in sortedObservations) {
+      final coding = observation.code?.coding;
+      if (coding == null) continue;
+
+      for (final code in coding) {
+        if (code.code == null) continue;
+
+        final loincCode = code.code.toString();
+
+        if (loincCode == BloodTypes.combinedLoincCode ||
+            loincCode == BloodTypes.aboLoincCode ||
+            loincCode == BloodTypes.rhLoincCode) {
+          final value = observation.valueX;
+
+          if (value is fhir_r4.CodeableConcept) {
+            if (value.text != null && value.text.toString().isNotEmpty) {
+              final directText = value.text.toString();
+              if (_isValidBloodType(directText)) {
+                return directText;
+              }
+            }
+
+            final display = code.display?.toString();
+            if (display != null && _isValidBloodType(display)) {
+              return display;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isValidBloodType(String bloodType) {
+    return BloodTypes.isValidBloodType(bloodType);
   }
 }

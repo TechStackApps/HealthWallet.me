@@ -19,6 +19,8 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     on<RecordsFiltersApplied>(_onFiltersApplied);
     on<RecordsFilterRemoved>(_onFilterRemoved);
     on<RecordDetailLoaded>(_onRecordDetailLoaded);
+    on<LoadDemoData>(_onLoadDemoData);
+    on<ClearDemoData>(_onClearDemoData);
   }
 
   Future _loadResources(
@@ -119,7 +121,8 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     try {
       final relatedResources = event.resource.fhirType == FhirType.Encounter
           ? await _recordsRepository.getRelatedResourcesForEncounter(
-              encounterId: event.resource.resourceId)
+              encounterId: event.resource.resourceId,
+              sourceId: event.resource.sourceId)
           : await _recordsRepository.getRelatedResources(
               resource: event.resource);
 
@@ -132,6 +135,55 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     } catch (e) {
       emit(state.copyWith(
         recordDetailStatus: RecordDetailStatus.failure(e),
+      ));
+    }
+  }
+
+  Future<void> _onLoadDemoData(
+    LoadDemoData event,
+    Emitter<RecordsState> emit,
+  ) async {
+    emit(state.copyWith(
+      isLoadingDemoData: true,
+      demoDataError: null,
+    ));
+
+    try {
+      await _recordsRepository.loadDemoData();
+
+      final hasDemoData = await _recordsRepository.hasDemoData();
+
+      emit(state.copyWith(
+        isLoadingDemoData: false,
+        hasDemoData: hasDemoData,
+        demoDataError: null,
+      ));
+
+      await _loadResources(emit);
+    } catch (e) {
+      emit(state.copyWith(
+        isLoadingDemoData: false,
+        demoDataError: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onClearDemoData(
+    ClearDemoData event,
+    Emitter<RecordsState> emit,
+  ) async {
+    try {
+      await _recordsRepository.clearDemoData();
+
+      emit(state.copyWith(
+        hasDemoData: false,
+        demoDataError: null,
+      ));
+
+      await _loadResources(emit);
+    } catch (e) {
+      emit(state.copyWith(
+        demoDataError: e.toString(),
       ));
     }
   }

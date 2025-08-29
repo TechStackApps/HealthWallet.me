@@ -6,11 +6,12 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/user_section.dart';
-import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/patient_section.dart';
-import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/sync_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/user/user_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/patient_section.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/sync/sync_section.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/settings_section.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 
 class PreferenceModal extends StatelessWidget {
   const PreferenceModal({super.key});
@@ -19,8 +20,15 @@ class PreferenceModal extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return BlocProvider.value(
-          value: BlocProvider.of<UserBloc>(context),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(
+              value: BlocProvider.of<UserBloc>(context),
+            ),
+            BlocProvider.value(
+              value: BlocProvider.of<PatientBloc>(context),
+            ),
+          ],
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: const PreferenceModal(),

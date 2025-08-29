@@ -26,24 +26,20 @@ class MockUserRemoteDataSource implements UserRemoteDataSource {
   @override
   Future<void> updateUser(User user) async {
     await Future.delayed(const Duration(seconds: 1));
-    print('User updated: ${user.toString()}');
   }
 
   @override
   Future<void> deleteUser() async {
     await Future.delayed(const Duration(seconds: 1));
-    print('User deleted');
   }
 
   @override
   Future<void> updateProfilePicture(String photoUrl) async {
     await Future.delayed(const Duration(seconds: 1));
-    print('Profile picture updated: $photoUrl');
   }
 
   @override
   Future<void> verifyEmail() async {
     await Future.delayed(const Duration(seconds: 1));
-    print('Email verification sent');
   }
 }

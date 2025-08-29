@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_notes/bloc/record_notes_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
-import 'package:intl/intl.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class RecordNotesWidget extends StatefulWidget {
   const RecordNotesWidget({required this.resource, super.key});
@@ -54,8 +56,8 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
 
   Widget _buildMainWidget(RecordNotesState state) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height / 1.5),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height / 1.5),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -63,9 +65,8 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             decoration: BoxDecoration(
               border: Border(
-                  bottom: BorderSide(
-                      color: AppColors.textPrimary.withValues(alpha: 0.1),
-                      width: 1)),
+                  bottom:
+                      BorderSide(color: context.theme.dividerColor, width: 1)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,9 +144,8 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           decoration: BoxDecoration(
             border: Border(
-                bottom: BorderSide(
-                    color: AppColors.textPrimary.withValues(alpha: 0.1),
-                    width: 1)),
+                bottom:
+                    BorderSide(color: context.theme.dividerColor, width: 1)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -178,18 +178,18 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
           padding: const EdgeInsets.all(16),
           child: TextField(
             maxLines: 9,
-            style: AppTextStyle.labelLarge,
+            style: context.textTheme.bodyLarge ?? AppTextStyle.labelLarge,
             decoration: InputDecoration(
               disabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: AppColors.primary),
+                borderSide: BorderSide(color: context.colorScheme.primary),
                 borderRadius: BorderRadius.circular(8),
               ),
               enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: AppColors.primary),
+                borderSide: BorderSide(color: context.colorScheme.primary),
                 borderRadius: BorderRadius.circular(8),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: AppColors.primary),
+                borderSide: BorderSide(color: context.colorScheme.primary),
                 borderRadius: BorderRadius.circular(8),
               ),
               contentPadding: const EdgeInsets.all(8),
@@ -256,43 +256,142 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            DateFormat.yMd().format(note.timestamp),
-            style: AppTextStyle.labelMedium
-                .copyWith(color: AppColors.textPrimary.withValues(alpha: 0.6)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormatUtils.humanReadable(note.timestamp),
+                style: AppTextStyle.labelMedium.copyWith(
+                    color: context.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.6) ??
+                        context.colorScheme.onSurface.withValues(alpha: 0.6)),
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsetsGeometry.all(6),
+                    child: GestureDetector(
+                      onTap: () => _bloc
+                          .add(RecordNotesInputInitialised(editNote: note)),
+                      child: Assets.icons.edit.svg(
+                          width: 20,
+                          color: context.theme.iconTheme.color ??
+                              context.colorScheme.onSurface),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Padding(
+                    padding: const EdgeInsetsGeometry.all(6),
+                    child: GestureDetector(
+                      onTap: () => _showDeleteConfirmationDialog(context, note),
+                      child: Assets.icons.trashCan.svg(
+                          width: 20,
+                          color: context.theme.iconTheme.color ??
+                              context.colorScheme.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          Text(note.content, style: AppTextStyle.labelLarge),
+          const SizedBox(height: 8),
+          Text(note.content,
+              style: context.textTheme.bodyLarge ?? AppTextStyle.labelLarge),
           const SizedBox(height: 16),
-          if (isSelected) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsetsGeometry.all(6),
-                  child: GestureDetector(
-                    onTap: () =>
-                        _bloc.add(RecordNotesInputInitialised(editNote: note)),
-                    child: Assets.icons.edit.svg(color: AppColors.textPrimary),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Padding(
-                  padding: const EdgeInsetsGeometry.all(6),
-                  child: GestureDetector(
-                    onTap: () => _bloc.add(RecordNotesNoteDeleted(note: note)),
-                    child:
-                        Assets.icons.trashCan.svg(color: AppColors.textPrimary),
-                  ),
-                ),
-              ],
-            )
-          ],
           if (!isLast)
             Divider(
-              color: AppColors.textPrimary.withValues(alpha: 0.1),
+              color: context.theme.dividerColor,
             )
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, RecordNote note) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Note',
+            style: context.textTheme.titleLarge ?? AppTextStyle.bodyLarge,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete this note?',
+                style: context.textTheme.bodyMedium ?? AppTextStyle.bodyMedium,
+              ),
+              const SizedBox(height: Insets.normal),
+              Container(
+                padding: const EdgeInsets.all(Insets.small),
+                decoration: BoxDecoration(
+                  color: (context.colorScheme.error ?? Colors.red)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: (context.colorScheme.error ?? Colors.red)
+                        .withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: context.colorScheme.error ?? Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: Insets.small),
+                    Expanded(
+                      child: Text(
+                        'This action cannot be undone.',
+                        style: (context.textTheme.bodySmall ??
+                                AppTextStyle.bodySmall)
+                            .copyWith(
+                          color: context.colorScheme.error ?? Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: context.textTheme.labelLarge?.copyWith(
+                      color: context.colorScheme.primary,
+                    ) ??
+                    AppTextStyle.buttonMedium.copyWith(
+                      color: AppColors.primary,
+                    ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _bloc.add(RecordNotesNoteDeleted(note: note));
+              },
+              child: Text(
+                'Delete',
+                style: context.textTheme.labelLarge?.copyWith(
+                      color: context.colorScheme.error,
+                    ) ??
+                    AppTextStyle.buttonMedium.copyWith(
+                      color: Colors.red,
+                    ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

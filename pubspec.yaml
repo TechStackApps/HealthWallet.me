@@ -1,7 +1,7 @@
 name: health_wallet
-description: "Fasten Health Wallet"
+description: "HealthWallet.me"
 publish_to: 'none'
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -58,6 +58,8 @@ dependencies:
   path: ^1.9.1
   share_plus: ^11.0.0
   network_info_plus: ^6.0.1
+  mobile_scanner: ^7.0.1
+  onboarding_overlay: ^3.2.2
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +87,7 @@ flutter:
   generate: true
   assets:
     - assets/
+    - assets/images/
     - assets/icons/
     - assets/favIcons/
     - assets/onboarding/

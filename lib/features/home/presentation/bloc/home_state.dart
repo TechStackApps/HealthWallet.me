@@ -5,6 +5,7 @@ class HomeState with _$HomeState {
   const factory HomeState({
     @Default(HomeStatus.initial()) HomeStatus status,
     @Default([]) List<PatientVital> patientVitals,
+    @Default([]) List<PatientVital> allAvailableVitals,
     @Default([]) List<OverviewCard> overviewCards,
     @Default([]) List<IFhirResource> recentRecords,
     @Default([]) List<Source> sources,
@@ -29,8 +30,8 @@ class HomeState with _$HomeState {
     @Default({
       PatientVitalType.heartRate: true,
       PatientVitalType.bloodPressure: true,
-      PatientVitalType.temperature: true,
       PatientVitalType.bloodOxygen: true,
+      PatientVitalType.temperature: true,
       PatientVitalType.respiratoryRate: false,
       PatientVitalType.weight: false,
       PatientVitalType.height: false,
@@ -42,6 +43,8 @@ class HomeState with _$HomeState {
     String? selectedPatientName,
     String? errorMessage,
     @Default(false) bool editMode,
+    @Default(false) bool vitalsExpanded,
+    @Default(false) bool hasDataLoaded,
   }) = _HomeState;
 }
 

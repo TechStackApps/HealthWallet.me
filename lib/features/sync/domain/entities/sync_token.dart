@@ -19,10 +19,52 @@ class SyncToken with _$SyncToken {
     // Network resilience fields
     @Default([]) List<String> fallbackAddresses,
     @Default({}) Map<String, dynamic> serverInfo,
+    // Protocol and endpoints support (unified from QRSyncConfig)
+    @Default('http') String protocol,
+    @Default({
+      'accessTokens': '/api/secure/access/tokens',
+      'syncData': '/api/secure/sync/data',
+      'syncUpdates': '/api/secure/sync/updates'
+    }) Map<String, String> endpoints,
   }) = _SyncToken;
 
   factory SyncToken.fromJson(Map<String, dynamic> json) =>
       _$SyncTokenFromJson(json);
+      
+  /// Create SyncToken from QR code data (replaces QRSyncConfig.fromJson)
+  factory SyncToken.fromQRData(Map<String, dynamic> qrData) {
+    final now = DateTime.now();
+    
+    // Extract connections array (new format)
+    final connections = qrData['connections'] as List<dynamic>;
+    final primaryConnection = connections.first as Map<String, dynamic>;
+    final endpoints = qrData['endpoints'] as Map<String, dynamic>;
+    
+    // Create fallback addresses from all connections except the primary
+    final fallbackAddresses = connections
+        .skip(1)
+        .map((connection) => '${connection['host']}:${connection['port']}')
+        .toList();
+    
+    return SyncToken(
+      token: qrData['token'] as String,
+      address: primaryConnection['host'] as String,
+      port: primaryConnection['port'].toString(),
+      protocol: primaryConnection['protocol'] as String? ?? 'https',
+      serverName: '${primaryConnection['host']}:${primaryConnection['port']}',
+      createdAt: now,
+      expiresAt: qrData['expiresAt'] != null 
+          ? DateTime.parse(qrData['expiresAt'] as String)
+          : now.add(const Duration(hours: 24)), // Default 24h if no expiration
+      tokenId: 'qr_${now.millisecondsSinceEpoch}',
+      fallbackAddresses: fallbackAddresses,
+      endpoints: {
+        'accessTokens': endpoints['access_tokens'] as String,
+        'syncData': endpoints['sync_data'] as String,
+        'syncUpdates': endpoints['sync_updates'] as String,
+      },
+    );
+  }
 }
 
 extension SyncTokenExtensions on SyncToken {
@@ -38,7 +80,19 @@ extension SyncTokenExtensions on SyncToken {
       DateTime.now().add(duration).isAfter(expiresAt);
 
   /// Get the full base URL for API calls
-  String get baseUrl => 'http://$address:$port/api';
+  String get baseUrl => '$protocol://$address:$port';
+  
+  /// Get the API base URL (with /api suffix)
+  String get apiBaseUrl => '$baseUrl/api';
+  
+  /// Get the access tokens endpoint URL
+  String get accessTokensUrl => '$baseUrl${endpoints['accessTokens']}';
+  
+  /// Get the sync data endpoint URL
+  String get syncDataUrl => '$baseUrl${endpoints['syncData']}';
+  
+  /// Get the sync updates endpoint URL  
+  String get syncUpdatesUrl => '$baseUrl${endpoints['syncUpdates']}';
 
   /// Get time remaining until expiration
   Duration get timeUntilExpiration => expiresAt.difference(DateTime.now());

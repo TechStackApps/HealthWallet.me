@@ -131,4 +131,29 @@ class Patient with _$Patient implements IFhirResource {
   @override
   String get statusDisplay =>
       active?.valueBoolean == true ? 'Active' : 'Inactive';
+
+  Map<String, dynamic> toFhirResource() {
+    final fhirPatient = fhir_r4.Patient(
+      id: fhir_r4.FhirString(resourceId),
+      active: active ?? fhir_r4.FhirBoolean(true),
+      identifier: identifier,
+      name: name,
+      telecom: telecom,
+      gender: gender,
+      birthDate: birthDate,
+      deceasedX: deceasedX,
+      address: address,
+      maritalStatus: maritalStatus,
+      multipleBirthX: multipleBirthX,
+      photo: photo,
+      contact: contact,
+      communication: communication,
+      generalPractitioner: generalPractitioner,
+      managingOrganization: managingOrganization,
+      link: link,
+      text: text,
+    );
+
+    return fhirPatient.toJson();
+  }
 }

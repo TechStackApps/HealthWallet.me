@@ -5,6 +5,7 @@ enum SyncStatus {
   connecting,
   connected,
   syncing,
+  synced,
   error,
 }
 
@@ -12,14 +13,27 @@ enum SyncStatus {
 class SyncState with _$SyncState {
   const factory SyncState({
     @Default(false) bool isLoading,
-    @Default(false) bool isDiscovering,
     @Default(SyncStatus.disconnected) SyncStatus syncStatus,
-    @Default([]) List<SSDPServiceInfo> discoveredServices,
-    SSDPServiceInfo? connectedService,
-    DateTime? lastDiscoveryTime,
     DateTime? lastSyncTime,
-    bool? connectionTestResult,
     String? error,
-    @Default([]) List<SSDPServiceInfo> recentConnections,
+    String? successMessage,
+
+    // QR Code Sync fields
+    @Default(false) bool isQRScanning,
+    SyncToken? syncToken, // Unified token instead of qrConfig
+    String? workingBaseUrl, // The actual working URL (HTTP/HTTPS)
+    bool? qrConnectionTestResult,
+    String? qrError,
+
+    // User information from sync server
+    String? serverUsername,
+    String? serverUserEmail,
+
+    // Data loading and onboarding state
+    @Default(false) bool isLoadingDemoData,
+    @Default(false) bool hasDemoData,
+    String? demoDataError,
+    @Default(false) bool shouldShowOnboarding,
+    @Default(false) bool hasSyncData, // Track when sync data has been loaded
   }) = _SyncState;
 }

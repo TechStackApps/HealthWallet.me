@@ -71,7 +71,9 @@ class OnboardingNavigation extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(bottom: 24),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    context.appRouter.push(const PrivacyPolicyRoute());
+                  },
                   child: Text(
                     'Privacy Policy',
                     style: AppTextStyle.bodySmall.copyWith(

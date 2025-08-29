@@ -14,6 +14,8 @@ class MedicalRecordsSection extends StatelessWidget {
   final VoidCallback? onLongPressCard;
   final void Function(int oldIndex, int newIndex)? onReorder;
   final void Function(OverviewCard card)? onTapCard;
+  final GlobalKey? firstCardKey; // Add this for onboarding focus
+  final FocusNode? firstCardFocusNode;
 
   const MedicalRecordsSection({
     super.key,
@@ -22,6 +24,8 @@ class MedicalRecordsSection extends StatelessWidget {
     this.onLongPressCard,
     this.onReorder,
     this.onTapCard,
+    this.firstCardKey,
+    this.firstCardFocusNode,
   });
 
   @override
@@ -40,15 +44,23 @@ class MedicalRecordsSection extends StatelessWidget {
           isShaking: editMode,
           child: GestureDetector(
             onTap: editMode ? null : () => onTapCard?.call(card),
-            child: _buildOverviewCard(context, card),
+            child: index == 0 && firstCardFocusNode != null
+                ? Focus(
+                    focusNode: firstCardFocusNode!,
+                    child: _buildOverviewCard(context, card, key: firstCardKey),
+                  )
+                : _buildOverviewCard(context, card,
+                    key: index == 0 ? firstCardKey : null),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildOverviewCard(BuildContext context, OverviewCard card) {
+  Widget _buildOverviewCard(BuildContext context, OverviewCard card,
+      {Key? key}) {
     return Container(
+      key: key,
       decoration: BoxDecoration(
         color: context.colorScheme.surface,
         borderRadius: BorderRadius.circular(8),

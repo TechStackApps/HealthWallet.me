@@ -35,7 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
             },
             children: [
               HomePage(pageController: _pageController),
-              const RecordsPage(),
+              RecordsPage(pageController: _pageController),
             ],
           ),
           Positioned(

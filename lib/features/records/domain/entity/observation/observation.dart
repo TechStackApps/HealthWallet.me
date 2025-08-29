@@ -166,4 +166,58 @@ class Observation with _$Observation implements IFhirResource {
 
   @override
   String get statusDisplay => status?.valueString ?? '';
+
+  /// Convert the domain entity to a proper FHIR R4 Observation resource
+  Map<String, dynamic> toFhirResource() {
+    final Map<String, dynamic> result = {
+      'resourceType': 'Observation',
+      'id': resourceId,
+      'status': status?.valueString ?? 'final',
+      'category': category?.map((c) => c.toJson()).toList(),
+      'code': code?.toJson(),
+      'subject': subject?.toJson(),
+      'encounter': encounter?.toJson(),
+      'issued': issued?.toIso8601String(),
+      'performer': performer?.map((p) => p.toJson()).toList(),
+      'dataAbsentReason': dataAbsentReason?.toJson(),
+      'interpretation': interpretation?.map((i) => i.toJson()).toList(),
+      'note': note?.map((n) => n.toJson()).toList(),
+      'bodySite': bodySite?.toJson(),
+      'method': method?.toJson(),
+      'specimen': specimen?.toJson(),
+      'device': device?.toJson(),
+      'referenceRange': referenceRange?.map((r) => r.toJson()).toList(),
+      'hasMember': hasMember?.map((h) => h.toJson()).toList(),
+      'derivedFrom': derivedFrom?.map((d) => d.toJson()).toList(),
+      'component': component?.map((c) => c.toJson()).toList(),
+    };
+
+    // Handle effectiveX union type
+    if (effectiveX != null) {
+      final effectiveDateTime = effectiveX?.isAs<FhirDateTime>();
+      if (effectiveDateTime != null) {
+        result['effectiveDateTime'] = effectiveDateTime.toIso8601String();
+      }
+    }
+
+    // Handle valueX union type
+    if (valueX != null) {
+      final valueQuantity = valueX?.isAs<Quantity>();
+      if (valueQuantity != null) {
+        result['valueQuantity'] = valueQuantity.toJson();
+      }
+
+      final valueCodeableConcept = valueX?.isAs<CodeableConcept>();
+      if (valueCodeableConcept != null) {
+        result['valueCodeableConcept'] = valueCodeableConcept.toJson();
+      }
+
+      final valueString = valueX?.isAs<FhirString>();
+      if (valueString != null) {
+        result['valueString'] = valueString.valueString;
+      }
+    }
+
+    return result;
+  }
 }
