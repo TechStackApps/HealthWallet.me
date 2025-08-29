@@ -26,6 +26,12 @@ class _SyncPageState extends State<SyncPage> {
   final TextEditingController _manualCodeController = TextEditingController();
 
   @override
+  void initState() {
+    context.read<SyncBloc>().add(const SyncInitialised());
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
@@ -34,9 +40,9 @@ class _SyncPageState extends State<SyncPage> {
             current.syncStatus == SyncStatus.synced);
       },
       listener: (context, state) {
-        if (state.syncStatus == SyncStatus.synced) {
-          _checkOnboardingStatusAndNavigate(context);
-        }
+        // if (state.syncStatus == SyncStatus.synced) {
+        //   _checkOnboardingStatusAndNavigate(context);
+        // }
       },
       child: Scaffold(
         appBar: AppBar(
