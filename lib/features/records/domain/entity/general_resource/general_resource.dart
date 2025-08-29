@@ -15,6 +15,7 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
     @Default('') String resourceId,
     @Default('') String title,
     DateTime? date,
+    @Default({}) Map<String, dynamic> rawResource,
   }) = _GeneralResource;
 
   @override

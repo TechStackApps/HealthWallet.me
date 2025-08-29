@@ -226,24 +226,24 @@ class _ResourceCardState extends State<ResourceCard> {
                     ),
                   ),
                 ),
-                const SizedBox(width: Insets.normal),
-                InkWell(
-                  onTap: () {
-                    _closeRelatedIfOpen();
-                    // TODO: Implement share functionality
-                  },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: Assets.icons.share.svg(
-                      width: 24,
-                      colorFilter: ColorFilter.mode(
-                        context.colorScheme.onSurface,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                ),
+                // const SizedBox(width: Insets.normal),
+                // InkWell(
+                //   onTap: () {
+                //     _closeRelatedIfOpen();
+                //     // TODO: Implement share functionality
+                //   },
+                //   borderRadius: BorderRadius.circular(4),
+                //   child: Padding(
+                //     padding: const EdgeInsets.all(6),
+                //     child: Assets.icons.share.svg(
+                //       width: 24,
+                //       colorFilter: ColorFilter.mode(
+                //         context.colorScheme.onSurface,
+                //         BlendMode.srcIn,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ],

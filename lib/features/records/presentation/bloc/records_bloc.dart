@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:injectable/injectable.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 part 'records_event.dart';
 part 'records_state.dart';
@@ -26,6 +30,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
     on<ClearDemoData>(_onClearDemoData);
     on<RecordsSearch>(_onSearch);
     on<RecordsSearchExecuted>(_onSearchExecuted);
+    on<RecordsSharePressed>(_onRecordsSharePressed);
   }
 
   @override
@@ -274,5 +279,19 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
       hasMorePages: false,
     ));
     await _loadResources(emit);
+  }
+
+  _onRecordsSharePressed(
+    RecordsSharePressed event,
+    Emitter<RecordsState> emit,
+  ) async {
+    Uint8List ipsBytes =
+        await _recordsRepository.buildIpsExport(sourceId: state.sourceId);
+
+    File pdfFile = await File(
+      '${(await getTemporaryDirectory()).path}/ips-export-${DateTime.now().toIso8601String()}.pdf',
+    ).writeAsBytes(ipsBytes);
+
+    SharePlus.instance.share(ShareParams(files: [XFile(pdfFile.path)]));
   }
 }
