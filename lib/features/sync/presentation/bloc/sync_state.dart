@@ -24,5 +24,6 @@ class SyncState with _$SyncState {
     @Default(false) bool shouldShowOnboarding,
     @Default(false) bool hasSyncData,
     @Default(false) bool isOnboardingActive,
+    @Default(false) bool justCompleted,
   }) = _SyncState;
 }

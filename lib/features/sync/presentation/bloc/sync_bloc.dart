@@ -44,6 +44,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       isLoading: true,
       errorMessage: null,
       successMessage: null,
+      justCompleted: false,
     ));
     try {
       SyncQrData? qrData = await _syncRepository.getCurrentSyncQrData();
@@ -54,6 +55,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         lastSyncTime: lastSyncTime,
         syncStatus: qrData != null ? SyncStatus.synced : SyncStatus.syncing,
         isLoading: false,
+        justCompleted: false,
       ));
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString(), isLoading: false));
@@ -89,6 +91,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         hasSyncData: true,
         errorMessage: null,
         successMessage: "Data was succesfully synced!",
+        justCompleted: true, // Mark that sync just completed
       ));
 
       add(const SyncDataCompleted(
@@ -134,6 +137,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       syncStatus: SyncStatus.syncing,
       successMessage: null,
       errorMessage: null,
+      justCompleted: false,
     ));
   }
 
