@@ -367,11 +367,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
       rawPatient: patient.rawResource,
     );
 
-    for (var section in ipsData.sections) {
-      log(section.headerInfo.display.toString());
-      log(await section.generateNarrative());
-    }
-
     return renderer.render(ipsData: ipsData);
   }
 }
