@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'package:fhir_ips_export/fhir_ips_export.dart';
+import 'package:fhir_ips_export/utils/codeable_concept_utils.dart';
 import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
@@ -286,8 +289,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
       throw Exception('Expected Observation resource type');
     }
 
-    final observationJson = observation.toFhirResource();
-
     final dto = FhirResourceLocalDto(
       id: observation.id,
       sourceId: observation.sourceId,
@@ -295,7 +296,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       resourceId: observation.resourceId,
       title: observation.title,
       date: observation.date,
-      resourceRaw: jsonEncode(observationJson),
+      resourceRaw: jsonEncode(observation.rawResource),
       encounterId: null,
       subjectId: null,
     );
@@ -310,8 +311,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
       throw Exception('Expected Patient resource type');
     }
 
-    final patientJson = patient.toFhirResource();
-
     final dto = FhirResourceLocalDto(
       id: patient.id,
       sourceId: patient.sourceId,
@@ -319,7 +318,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       resourceId: patient.resourceId,
       title: patient.title,
       date: patient.date,
-      resourceRaw: jsonEncode(patientJson),
+      resourceRaw: jsonEncode(patient.rawResource),
       encounterId: null,
       subjectId: null,
     );
@@ -342,5 +341,37 @@ class RecordsRepositoryImpl implements RecordsRepository {
     );
 
     return localDtos.map(IFhirResource.fromLocalDto).toList();
+  }
+
+  @override
+  Future<Uint8List> buildIpsExport({required String? sourceId}) async {
+    List<FhirResourceLocalDto> resourceDtos = await _datasource.getResources(
+      resourceTypes: [],
+      sourceId: sourceId,
+    );
+
+    List<IFhirResource> resources =
+        resourceDtos.map(IFhirResource.fromLocalDto).toList();
+
+    Patient? patient = resources.whereType<Patient>().firstOrNull;
+
+    if (patient == null) {
+      throw Exception("Patient not found");
+    }
+
+    FhirIpsBuilder builder = FhirIpsBuilder();
+    FhirIpsPdfRenderer renderer = FhirIpsPdfRenderer();
+
+    final ipsData = await builder.buildFromRawResources(
+      rawResources: resources.map((r) => r.rawResource).toList(),
+      rawPatient: patient.rawResource,
+    );
+
+    for (var section in ipsData.sections) {
+      log(section.headerInfo.display.toString());
+      log(await section.generateNarrative());
+    }
+
+    return renderer.render(ipsData: ipsData);
   }
 }

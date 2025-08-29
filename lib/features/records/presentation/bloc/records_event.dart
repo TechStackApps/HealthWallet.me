@@ -53,3 +53,9 @@ class RecordsSearch extends RecordsEvent with _$RecordsSearch {
 class RecordsSearchExecuted extends RecordsEvent with _$RecordsSearchExecuted {
   const factory RecordsSearchExecuted(String query) = _RecordsSearchExecuted;
 }
+
+@freezed
+class RecordsSharePressed extends RecordsEvent with _$RecordsSharePressed {
+  const factory RecordsSharePressed() = _RecordsSharePressed;
+}
+

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
@@ -62,4 +63,6 @@ abstract class RecordsRepository {
     String? sourceId,
     int limit = 50,
   });
+
+  Future<Uint8List> buildIpsExport({required String? sourceId});
 }

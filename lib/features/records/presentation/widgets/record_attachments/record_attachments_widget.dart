@@ -76,13 +76,12 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     ),
                   ),
                   if (state.attachments.isEmpty)
-                    Padding(
+                    const Padding(
                       padding: const EdgeInsets.all(16),
                       child: Center(
                         child: Text(
                           "This record has no files attached",
-                          style: context.textTheme.bodyLarge ??
-                              AppTextStyle.labelLarge,
+                          style: AppTextStyle.labelLarge,
                         ),
                       ),
                     )
@@ -125,7 +124,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                               .svg(width: 16, color: Colors.white),
                           const SizedBox(width: 4),
                           const Text("Attach file",
-                              style: AppTextStyle.buttonMedium),
+                              style: AppTextStyle.buttonSmall),
                         ],
                       ),
                     ),
@@ -155,8 +154,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                 Expanded(
                   child: Text(
                     basename(attachment.file.path),
-                    style:
-                        context.textTheme.bodyLarge ?? AppTextStyle.labelLarge,
+                    style: AppTextStyle.labelLarge,
                   ),
                 )
               ],
