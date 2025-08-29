@@ -396,13 +396,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     bool force = false,
     String? overrideSourceId,
   }) async {
-    logger.d(
-        'HomeBloc: _reloadHomeData called with force=$force, overrideSourceId=$overrideSourceId');
-
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
       final sourceId = _resolveSourceId(overrideSourceId);
-      logger.d('HomeBloc: Resolved sourceId: $sourceId');
 
       final sources = await _fetchSources(sourceId);
       final overview = await _fetchOverviewCardsAndResources(sourceId);
@@ -417,9 +413,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           overviewCards: reorderedCards,
           recentRecords: overview.allEnabledResources.take(3).toList(),
         );
-
-        logger.d(
-            'HomeBloc: Emitting success state with selectedSource: ${sourceId ?? 'All'}');
 
         emit(state.copyWith(
           status: const HomeStatus.success(),
@@ -436,8 +429,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           selectedRecordTypes: overview.selectedRecordTypes,
           hasDataLoaded: hasData,
         ));
-
-        logger.d('HomeBloc: Success state emitted');
       }
     } catch (err) {
       logger.e('reloadHomeData error: $err');

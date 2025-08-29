@@ -323,4 +323,21 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
     await _datasource.insertResource(dto);
   }
+
+  @override
+  Future<List<IFhirResource>> searchResources({
+    required String query,
+    List<FhirType> resourceTypes = const [],
+    String? sourceId,
+    int limit = 50,
+  }) async {
+    final localDtos = await _datasource.searchResources(
+      query: query,
+      resourceTypes: resourceTypes.map((fhirType) => fhirType.name).toList(),
+      sourceId: sourceId,
+      limit: limit,
+    );
+
+    return localDtos.map(IFhirResource.fromLocalDto).toList();
+  }
 }
