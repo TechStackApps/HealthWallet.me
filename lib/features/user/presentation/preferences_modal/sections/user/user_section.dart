@@ -78,8 +78,8 @@ class _UserSectionState extends State<UserSection> {
               // Use local user name if it's been updated, otherwise fall back to server username
               final userName = user.name.isNotEmpty
                   ? user.name
-                  : (syncState.serverUsername?.isNotEmpty == true
-                      ? syncState.serverUsername!
+                  : (syncState.syncQrData?.tokenMeta.userName.isNotEmpty == true
+                      ? syncState.syncQrData!.tokenMeta.userName
                       : 'User');
 
               return Padding(

@@ -174,13 +174,15 @@ class _HomeViewState extends State<HomeView> {
                             builder: (context, userState) {
                               return BlocBuilder<SyncBloc, SyncState>(
                                 builder: (context, syncState) {
-                                  final displayName = userState
-                                          .user.name.isNotEmpty
-                                      ? userState.user.name
-                                      : (syncState.serverUsername?.isNotEmpty ==
-                                              true
-                                          ? syncState.serverUsername!
-                                          : 'User');
+                                  final displayName =
+                                      userState.user.name.isNotEmpty
+                                          ? userState.user.name
+                                          : (syncState.syncQrData?.tokenMeta
+                                                      .fullName.isNotEmpty ==
+                                                  true
+                                              ? syncState.syncQrData!.tokenMeta
+                                                  .fullName
+                                              : 'User');
                                   return RichText(
                                     text: TextSpan(
                                       style: AppTextStyle.titleMedium.copyWith(

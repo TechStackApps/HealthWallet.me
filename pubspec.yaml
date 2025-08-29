@@ -89,6 +89,7 @@ flutter:
     - assets/
     - assets/images/
     - assets/icons/
+    - assets/images/
     - assets/favIcons/
     - assets/onboarding/
     - assets/font/matter-font/

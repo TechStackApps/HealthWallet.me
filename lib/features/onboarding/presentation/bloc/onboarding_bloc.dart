@@ -12,9 +12,6 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<OnboardingNextPage>(_onNextPage);
     on<OnboardingPreviousPage>(_onPreviousPage);
     on<OnboardingLaunchUrl>(_onLaunchUrl);
-    on<OnboardingComplete>(_onCompleteOnboarding);
-    on<OnboardingResetSync>(_onResetSync);
-    on<OnboardingSyncCompleted>(_onSyncCompleted);
   }
 
   void _onPageChanged(
@@ -64,25 +61,5 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         errorMessage: 'Could not open link. Please try again.',
       ));
     }
-  }
-
-  void _onCompleteOnboarding(
-      OnboardingComplete event, Emitter<OnboardingState> emit) {
-    emit(state.copyWith(isOnboardingCompleted: true));
-  }
-
-  void _onResetSync(OnboardingResetSync event, Emitter<OnboardingState> emit) {
-    emit(state.copyWith(
-      isSyncing: false,
-      syncCompleted: false,
-    ));
-  }
-
-  void _onSyncCompleted(
-      OnboardingSyncCompleted event, Emitter<OnboardingState> emit) {
-    emit(state.copyWith(
-      isSyncing: false,
-      syncCompleted: true,
-    ));
   }
 }

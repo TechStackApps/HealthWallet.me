@@ -1,6 +1,6 @@
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:drift/drift.dart';
-import 'package:health_wallet/features/sync/data/data_source/local/fhir_resource_table.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
 
 class FhirResourceDatasource {
   final AppDatabase db;

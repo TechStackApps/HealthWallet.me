@@ -5,6 +5,7 @@ import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
@@ -128,17 +129,8 @@ class SyncSection extends StatelessWidget {
       return 'Never synced';
     }
 
-    final now = DateTime.now();
-    final difference = now.difference(syncState.lastSyncTime!);
+    DateTime lastSyncTime = DateTime.parse(syncState.lastSyncTime!);
 
-    if (difference.inDays > 0) {
-      return 'Last synced: ${difference.inDays} day${difference.inDays != 1 ? 's' : ''} ago';
-    } else if (difference.inHours > 0) {
-      return 'Last synced: ${difference.inHours} hour${difference.inHours != 1 ? 's' : ''} ago';
-    } else if (difference.inMinutes > 0) {
-      return 'Last synced: ${difference.inMinutes} minute${difference.inMinutes != 1 ? 's' : ''} ago';
-    } else {
-      return 'Last synced: Just now';
-    }
+    return 'Last synced: ${DateFormatUtils.getSincePretty(lastSyncTime)}';
   }
 }

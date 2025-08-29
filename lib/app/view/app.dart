@@ -27,7 +27,7 @@ class App extends StatelessWidget {
       providers: [
         BlocProvider(
             create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
-        BlocProvider(create: (_) => getIt<SyncBloc>()),
+        BlocProvider(create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
         BlocProvider(create: (_) => getIt<RecordsBloc>()),
         BlocProvider(
           create: (_) => HomeBloc(

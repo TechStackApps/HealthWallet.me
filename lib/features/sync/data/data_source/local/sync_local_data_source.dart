@@ -1,16 +1,14 @@
 import 'dart:convert';
-import 'dart:developer';
+
 import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
-import 'package:health_wallet/features/sync/data/dto/fhir_bundle.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
-import 'package:health_wallet/features/sync/domain/entities/connection_status.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-abstract class FhirLocalDataSource {
+abstract class SyncLocalDataSource {
   Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources);
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
@@ -21,12 +19,12 @@ abstract class FhirLocalDataSource {
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
 }
 
-@Injectable(as: FhirLocalDataSource)
-class FhirLocalDataSourceImpl implements FhirLocalDataSource {
+@Injectable(as: SyncLocalDataSource)
+class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   final db.AppDatabase _appDatabase;
   final SharedPreferences _sharedPreferences;
 
-  FhirLocalDataSourceImpl(this._appDatabase, this._sharedPreferences);
+  SyncLocalDataSourceImpl(this._appDatabase, this._sharedPreferences);
 
   @override
   Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources) async {

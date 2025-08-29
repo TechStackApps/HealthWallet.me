@@ -7,19 +7,19 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
-import 'package:health_wallet/features/sync/domain/services/resource_processor.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
+import 'package:health_wallet/features/sync/domain/services/demo_data_extractor.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/services.dart';
 
 @Injectable(as: RecordsRepository)
 class RecordsRepositoryImpl implements RecordsRepository {
   final FhirResourceDatasource _datasource;
-  final ResourceProcessor _resourceProcessor;
+  final SyncLocalDataSource _syncLocalDataSource;
 
-  RecordsRepositoryImpl(
-      AppDatabase database, ResourceProcessor resourceProcessor)
-      : _datasource = FhirResourceDatasource(database),
-        _resourceProcessor = resourceProcessor;
+  RecordsRepositoryImpl(AppDatabase database, this._syncLocalDataSource)
+      : _datasource = FhirResourceDatasource(database);
 
   @override
   Future<List<IFhirResource>> getResources({
@@ -150,17 +150,20 @@ class RecordsRepositoryImpl implements RecordsRepository {
             'Demo data file has invalid format: neither "entry" nor "resources" key found');
       }
 
-      final processedResources = _resourceProcessor
-          .processDemoResources(resources, sourceId: 'demo_data');
+      final processedResources = resources
+          .map((resource) => FhirResourceDto.fromJson({
+                'id': resource['id'],
+                'source_id': 'demo_data',
+                'source_resource_type': resource['resourceType'],
+                'source_resource_id': resource['id'],
+                'sort_title': DemoDataExtractor.extractTitle(resource),
+                'sort_date': DemoDataExtractor.extractDate(resource),
+                'resource_raw': resource,
+                'change_type': 'created',
+              }).populateEncounterIdFromRaw().populateSubjectIdFromRaw())
+          .toList();
 
-      final stats = _resourceProcessor.getDemoResourceStats(processedResources);
-      _resourceProcessor.logDemoResourceSummary(stats);
-
-      await _resourceProcessor.mergeResources(
-        created: processedResources,
-        updated: [],
-        deleted: [],
-      );
+      _syncLocalDataSource.cacheFhirResources(processedResources);
     } catch (e, stackTrace) {
       logger.e('❌ Failed to load demo data: $e');
       logger.e('❌ Stack trace: $stackTrace');

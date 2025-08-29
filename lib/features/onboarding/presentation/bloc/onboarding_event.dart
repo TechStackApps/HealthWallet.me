@@ -25,19 +25,3 @@ class OnboardingPreviousPage extends OnboardingEvent
 class OnboardingLaunchUrl extends OnboardingEvent with _$OnboardingLaunchUrl {
   const factory OnboardingLaunchUrl(String url) = _OnboardingLaunchUrl;
 }
-
-@freezed
-class OnboardingComplete extends OnboardingEvent with _$OnboardingComplete {
-  const factory OnboardingComplete() = _OnboardingComplete;
-}
-
-@freezed
-class OnboardingResetSync extends OnboardingEvent with _$OnboardingResetSync {
-  const factory OnboardingResetSync() = _OnboardingResetSync;
-}
-
-@freezed
-class OnboardingSyncCompleted extends OnboardingEvent
-    with _$OnboardingSyncCompleted {
-  const factory OnboardingSyncCompleted() = _OnboardingSyncCompleted;
-}
