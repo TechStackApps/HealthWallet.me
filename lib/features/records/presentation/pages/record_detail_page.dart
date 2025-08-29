@@ -43,17 +43,6 @@ class RecordDetailsPage extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back),
               ),
               elevation: 0,
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.share,
-                    color: context.colorScheme.onSurface,
-                  ),
-                  onPressed: () {
-                    // TODO: Implement sharing functionality
-                  },
-                ),
-              ],
             ),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(Insets.normal),
