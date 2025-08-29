@@ -30,7 +30,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   Future<void> cacheFhirResources(List<FhirResourceDto> fhirResources) async {
     final resources = fhirResources.map((e) {
       return db.FhirResourceCompanion.insert(
-        id: e.id ?? '',
+        id: e.resourceId ?? '',
         sourceId: Value(e.sourceId),
         resourceType: Value(e.resourceType),
         resourceId: Value(e.resourceId),

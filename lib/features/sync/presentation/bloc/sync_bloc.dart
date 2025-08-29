@@ -41,6 +41,11 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     SyncInitialised event,
     Emitter<SyncState> emit,
   ) async {
+    emit(state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      successMessage: null,
+    ));
     try {
       SyncQrData? qrData = await _syncRepository.getCurrentSyncQrData();
       String? lastSyncTime = await _syncRepository.getLastSyncTimestamp();
@@ -49,9 +54,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         syncQrData: qrData,
         lastSyncTime: lastSyncTime,
         syncStatus: qrData != null ? SyncStatus.synced : SyncStatus.syncing,
+        isLoading: false,
       ));
     } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+      emit(state.copyWith(errorMessage: e.toString(), isLoading: false));
     }
   }
 
