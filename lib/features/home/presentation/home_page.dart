@@ -38,7 +38,6 @@ class HomePage extends StatelessWidget {
           (current.status.toString().contains('Success') &&
               !current.isEditingPatient),
       listener: (context, patientState) {
-        // Handle patient source changes
         if (patientState.selectedPatientSourceId != null &&
             patientState.selectedPatientSourceId != 'All') {
           context.read<HomeBloc>().add(
@@ -46,7 +45,6 @@ class HomePage extends StatelessWidget {
               );
         }
 
-        // Handle patient data updates
         if (patientState.status.toString().contains('Success') &&
             !patientState.isEditingPatient) {
           context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
@@ -62,10 +60,10 @@ class HomeView extends StatefulWidget {
   const HomeView({super.key, required this.pageController});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeView> createState() => HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class HomeViewState extends State<HomeView> {
   late final HomeFocusController _focusController;
   final GlobalKey<OnboardingState> _onboardingKey =
       GlobalKey<OnboardingState>();
@@ -87,6 +85,18 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
+  void showOnboardingDirectly() {
+    _hasShownOnboarding = false;
+
+    if (_onboardingKey.currentState != null) {
+      try {
+        _onboardingKey.currentState!.show();
+      } catch (e) {
+        // Handle onboarding error
+      }
+    }
+  }
+
   Future<void> _onRefresh() async {
     context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
     await Future.delayed(HomeConstants.refreshDelay);
@@ -96,28 +106,27 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return (previous.isLoadingDemoData != current.isLoadingDemoData &&
-                !current.isLoadingDemoData &&
-                current.hasDemoData &&
-                current.demoDataError == null) ||
-            (previous.shouldShowOnboarding != current.shouldShowOnboarding &&
-                current.shouldShowOnboarding);
+        return (previous.shouldShowOnboarding != current.shouldShowOnboarding &&
+                current.shouldShowOnboarding) ||
+            (previous.shouldShowOnboarding && !current.shouldShowOnboarding);
       },
       listener: (context, syncState) {
+        if (!syncState.shouldShowOnboarding) {
+          _hasShownOnboarding = false;
+        }
+
         if (syncState.shouldShowOnboarding && !_hasShownOnboarding) {
           _hasShownOnboarding = true;
 
           context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
 
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (context.mounted) {
-              if (_onboardingKey.currentState != null) {
-                try {
-                  _onboardingKey.currentState!.show();
-                } catch (e) {
-                  // Silently handle onboarding overlay error
-                }
-              } else {}
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (context.mounted && _onboardingKey.currentState != null) {
+              try {
+                _onboardingKey.currentState!.show();
+              } catch (e) {
+                // Handle onboarding error
+              }
             }
           });
         }

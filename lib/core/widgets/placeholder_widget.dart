@@ -1,10 +1,11 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
+
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -134,60 +135,44 @@ class PlaceholderWidget extends StatelessWidget {
 
   void _handleLoadDemoData(BuildContext context) async {
     final syncBloc = context.read<SyncBloc>();
-
-    syncBloc.add(const SyncResetOnboarding());
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
 
     syncBloc.add(const SyncLoadDemoData());
 
-    _showSuccessDialog(
-      context,
-      'Demo Data Loaded Successfully!',
-      'You can now explore the app with sample medical records.',
-    ).then((_) async {
-      _navigateToHomePage(context);
+    if (!onboardingShown) {
+      if (pageController != null) {
+        _showSuccessDialog(
+          context,
+          'Demo Data Loaded Successfully!',
+          'You can now explore the app with sample medical records.',
+        ).then((_) {
+          _navigateToHomePage(context);
 
-      Future.delayed(const Duration(milliseconds: 500), () async {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('onboarding_shown', true);
-
-        syncBloc.add(const OnboardingOverlayTriggered());
-      });
-    });
+          Future.delayed(const Duration(milliseconds: 500), () {
+            syncBloc.add(const OnboardingOverlayTriggered());
+          });
+        });
+      } else {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          syncBloc.add(const OnboardingOverlayTriggered());
+        });
+      }
+    }
   }
 
   void _handleSyncRecords(BuildContext context) async {
-    final syncBloc = context.read<SyncBloc>();
-
-    syncBloc.add(const SyncResetOnboarding());
-
-    _showSuccessDialog(
-      context,
-      'Sync Initiated!',
-      'Your medical records are being synchronized. You will be redirected to the home page.',
-    ).then((_) async {
-      _navigateToHomePageViaRouter(context);
-
-      Future.delayed(const Duration(milliseconds: 500), () async {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('onboarding_shown', true);
-
-        syncBloc.add(const OnboardingOverlayTriggered());
-      });
-    });
+    context.router.push(const SyncRoute());
   }
 
   void _navigateToHomePage(BuildContext context) {
     if (pageController != null) {
       pageController!.animateToPage(
-        0, // HomePage index
+        0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
     } else {}
-  }
-
-  void _navigateToHomePageViaRouter(BuildContext context) {
-    context.appRouter.replace(const DashboardRoute());
   }
 
   Future<void> _showSuccessDialog(

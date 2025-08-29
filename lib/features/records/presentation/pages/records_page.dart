@@ -132,8 +132,17 @@ class _RecordsViewState extends State<RecordsView> {
         ),
         BlocListener<SyncBloc, SyncState>(
           listener: (context, state) {
-            if (state.hasDemoData) {
+            if (state.hasDemoData || state.hasSyncData) {
               context.read<RecordsBloc>().add(const RecordsInitialised());
+
+              final homeState = context.read<HomeBloc>().state;
+              final selectedSourceId = homeState.selectedSource == 'All'
+                  ? null
+                  : homeState.selectedSource;
+
+              context
+                  .read<RecordsBloc>()
+                  .add(RecordsSourceChanged(selectedSourceId));
             }
           },
         ),
@@ -212,7 +221,8 @@ class _RecordsViewState extends State<RecordsView> {
                     const SizedBox(height: Insets.small),
                     BlocBuilder<RecordsBloc, RecordsState>(
                       builder: (context, state) {
-                        if (state.activeFilters.isEmpty) {
+                        if (state.activeFilters.isEmpty ||
+                            state.resources.isEmpty) {
                           return const SizedBox();
                         }
                         return Row(
