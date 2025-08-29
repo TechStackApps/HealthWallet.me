@@ -61,6 +61,9 @@ dependencies:
   mobile_scanner: ^7.0.1
   onboarding_overlay: ^3.2.2
 
+  fhir_ips_export:
+    git:
+      url: ssh://git@git.techstackapps.com:2822/mobile/health-wallet/fhir-ips-export.git
 dev_dependencies:
   flutter_test:
     sdk: flutter

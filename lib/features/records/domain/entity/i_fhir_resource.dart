@@ -1,5 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
+import 'dart:convert';
+
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
@@ -13,6 +15,7 @@ abstract class IFhirResource {
   String get resourceId;
   String get title;
   DateTime? get date;
+  Map<String, dynamic> get rawResource;
 
   factory IFhirResource.fromLocalDto(FhirResourceLocalDto dto) {
     switch (dto.resourceType) {
@@ -81,6 +84,7 @@ abstract class IFhirResource {
           resourceId: dto.resourceId ?? '',
           title: dto.title ?? '',
           date: dto.date,
+          rawResource: jsonDecode(dto.resourceRaw),
         );
     }
   }

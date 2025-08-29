@@ -161,9 +161,7 @@ class _RecordsViewState extends State<RecordsView> {
             scrolledUnderElevation: 0,
             actions: [
               IconButton(
-                onPressed: () {
-                  // Share functionality
-                },
+                onPressed: () => context.read<RecordsBloc>().add(const RecordsSharePressed()),
                 icon: Assets.icons.share.svg(
                   colorFilter: ColorFilter.mode(
                     context.colorScheme.onSurface,
