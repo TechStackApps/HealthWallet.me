@@ -36,10 +36,11 @@ class _SyncPageState extends State<SyncPage> {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
         return (previous.syncStatus != current.syncStatus &&
-            current.syncStatus == SyncStatus.synced);
+            current.syncStatus == SyncStatus.synced &&
+            current.justCompleted);
       },
       listener: (context, state) {
-        if (state.syncStatus == SyncStatus.synced) {
+        if (state.syncStatus == SyncStatus.synced && state.justCompleted) {
           _handleSyncCompletion(context);
         }
       },
