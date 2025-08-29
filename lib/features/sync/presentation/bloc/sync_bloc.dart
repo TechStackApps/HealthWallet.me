@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/core/utils/logger.dart';
+
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 
 part 'sync_event.dart';
@@ -27,7 +27,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<SyncInitialised>(_onSyncInitialised);
     on<SyncDataInitiated>(_onSyncDataInitiated);
 
-    // QR Code Sync events
     on<SyncScanQRCode>(_onScanQRCode);
     on<SyncScanNewPressed>(_onSyncScanNewPressed);
     on<SyncCancelQRScanning>(_onCancelQRScanning);
@@ -94,8 +93,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         isSuccess: true,
       ));
     } catch (e) {
-      log(e.toString());
-      // Determine if it's a connection issue or other error
       String errorMessage;
       if (e.toString().contains('HandshakeException') ||
           e.toString().contains('Connection refused') ||
@@ -121,7 +118,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     }
   }
 
-  // QR Code Sync Event Handlers
   Future<void> _onScanQRCode(
       SyncScanQRCode event, Emitter<SyncState> emit) async {
     emit(state.copyWith(
@@ -145,7 +141,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   Future<void> _onLoadDemoData(
       SyncLoadDemoData event, Emitter<SyncState> emit) async {
-    logger.d('🧪 Loading demo data...');
     emit(state.copyWith(
       isLoadingDemoData: true,
       demoDataError: null,
@@ -172,7 +167,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         demoDataError: e.toString(),
       ));
 
-      // Emit data completed event with error
       add(SyncDataCompleted(
         sourceId: 'demo_data',
         isSuccess: false,
@@ -183,21 +177,19 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   Future<void> _onDataCompleted(
       SyncDataCompleted event, Emitter<SyncState> emit) async {
-    logger.d(
-        '📊 Data operation completed: ${event.sourceId} - Success: ${event.isSuccess}');
-
     if (event.isSuccess) {
       if (event.sourceId == 'demo_data') {
         final hasDemoData = await _recordsRepository.hasDemoData();
         emit(state.copyWith(
           hasDemoData: hasDemoData,
           shouldShowOnboarding: false,
+          isOnboardingActive: false,
         ));
       } else if (event.sourceId == 'sync') {
-        logger.d('🔄 Sync data completed - updating state...');
         emit(state.copyWith(
           hasSyncData: true,
           shouldShowOnboarding: false,
+          isOnboardingActive: false,
         ));
       }
     }
@@ -205,14 +197,18 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   Future<void> _onOnboardingOverlayTriggered(
       OnboardingOverlayTriggered event, Emitter<SyncState> emit) async {
-    logger.d('🎯 Onboarding overlay triggered');
-    emit(state.copyWith(shouldShowOnboarding: true));
+    emit(state.copyWith(
+      shouldShowOnboarding: true,
+      isOnboardingActive: true,
+    ));
   }
 
   Future<void> _onResetOnboarding(
       SyncResetOnboarding event, Emitter<SyncState> emit) async {
-    logger.d('🔄 Resetting onboarding state');
-    emit(state.copyWith(shouldShowOnboarding: false));
+    emit(state.copyWith(
+      shouldShowOnboarding: false,
+      isOnboardingActive: false,
+    ));
   }
 
   void resetOnboardingState() {

@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -51,95 +53,104 @@ class _DashboardPageState extends State<DashboardPage> {
               RecordsPage(pageController: _pageController),
             ],
           ),
-          if (!_isKeyboardVisible)
-            Positioned(
-              left: 8,
-              right: 8,
-              bottom: 24,
-              child: SizedBox(
-                height: 60,
-                child: Stack(
-                  children: [
-                    // LiquidGlass background
-                    ClipRRect(
-                      child: LiquidGlass(
-                        shape: const LiquidRoundedRectangle(
-                          borderRadius: Radius.circular(100),
+          // Bottom navigation bar
+          BlocBuilder<SyncBloc, SyncState>(
+            builder: (context, syncState) {
+              if (!_isKeyboardVisible) {
+                return Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 24,
+                  child: SizedBox(
+                    height: 60,
+                    child: Stack(
+                      children: [
+                        // LiquidGlass background
+                        ClipRRect(
+                          child: LiquidGlass(
+                            shape: const LiquidRoundedRectangle(
+                              borderRadius: Radius.circular(100),
+                            ),
+                            settings: const LiquidGlassSettings(blur: 15),
+                            child: Container(),
+                          ),
                         ),
-                        settings: const LiquidGlassSettings(blur: 15),
-                        child: Container(),
-                      ),
-                    ),
-                    // Foreground content
-                    Container(
-                      padding: const EdgeInsets.all(Insets.extraSmall),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: _buildNavItem(
-                              icon: Assets.icons.dashboard.svg(
-                                width: 24,
-                                height: 24,
-                                colorFilter: ColorFilter.mode(
-                                  _currentIndex == 0
-                                      ? (context.isDarkMode
-                                          ? Colors.white
-                                          : context.colorScheme.surface)
-                                      : context.colorScheme.onSurface,
-                                  BlendMode.srcIn,
+                        // Foreground content
+                        Container(
+                          padding: const EdgeInsets.all(Insets.extraSmall),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: _buildNavItem(
+                                  icon: Assets.icons.dashboard.svg(
+                                    width: 24,
+                                    height: 24,
+                                    colorFilter: ColorFilter.mode(
+                                      _currentIndex == 0
+                                          ? (context.isDarkMode
+                                              ? Colors.white
+                                              : context.colorScheme.surface)
+                                          : context.colorScheme.onSurface,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  label: context.l10n.dashboardTitle,
+                                  isSelected: _currentIndex == 0,
+                                  onTap: () {
+                                    // Dismiss keyboard when tapping navigation
+                                    FocusScope.of(context).unfocus();
+                                    _pageController.animateToPage(
+                                      0,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease,
+                                    );
+                                  },
                                 ),
                               ),
-                              label: context.l10n.dashboardTitle,
-                              isSelected: _currentIndex == 0,
-                              onTap: () {
-                                // Dismiss keyboard when tapping navigation
-                                FocusScope.of(context).unfocus();
-                                _pageController.animateToPage(
-                                  0,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildNavItem(
-                              icon: Assets.icons.timeline.svg(
-                                width: 24,
-                                height: 24,
-                                colorFilter: ColorFilter.mode(
-                                  _currentIndex == 1
-                                      ? (context.isDarkMode
-                                          ? Colors.white
-                                          : context.colorScheme.surface)
-                                      : context.colorScheme.onSurface,
-                                  BlendMode.srcIn,
+                              Expanded(
+                                child: _buildNavItem(
+                                  icon: Assets.icons.timeline.svg(
+                                    width: 24,
+                                    height: 24,
+                                    colorFilter: ColorFilter.mode(
+                                      _currentIndex == 1
+                                          ? (context.isDarkMode
+                                              ? Colors.white
+                                              : context.colorScheme.surface)
+                                          : context.colorScheme.onSurface,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  label: context.l10n.recordsTitle,
+                                  isSelected: _currentIndex == 1,
+                                  onTap: () {
+                                    // Dismiss keyboard when tapping navigation
+                                    FocusScope.of(context).unfocus();
+                                    _pageController.animateToPage(
+                                      1,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.ease,
+                                    );
+                                  },
                                 ),
                               ),
-                              label: context.l10n.recordsTitle,
-                              isSelected: _currentIndex == 1,
-                              onTap: () {
-                                // Dismiss keyboard when tapping navigation
-                                FocusScope.of(context).unfocus();
-                                _pageController.animateToPage(
-                                  1,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.ease,
-                                );
-                              },
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );

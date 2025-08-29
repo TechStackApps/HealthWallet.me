@@ -27,7 +27,8 @@ class App extends StatelessWidget {
       providers: [
         BlocProvider(
             create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
-        BlocProvider(create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
+        BlocProvider(
+            create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
         BlocProvider(create: (_) => getIt<RecordsBloc>()),
         BlocProvider(
           create: (_) => HomeBloc(
@@ -85,11 +86,15 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
   if (state.syncStatus == SyncStatus.synced) {
     context.read<RecordsBloc>().add(const RecordsInitialised());
     context.read<UserBloc>().add(const UserDataUpdatedFromSync());
-    context.read<HomeBloc>().add(const HomeSourceChanged('All'));
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    context.read<PatientBloc>().add(const PatientPatientsLoaded());
+
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (context.mounted) {
-        context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
+        final patientState = context.read<PatientBloc>().state;
+        final selectedSource = patientState.selectedPatientSourceId ?? 'All';
+
+        context.read<HomeBloc>().add(HomeSourceChanged(selectedSource));
       }
     });
   }

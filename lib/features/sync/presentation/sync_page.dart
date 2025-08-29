@@ -35,14 +35,13 @@ class _SyncPageState extends State<SyncPage> {
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        // Listen for sync completion
         return (previous.syncStatus != current.syncStatus &&
             current.syncStatus == SyncStatus.synced);
       },
       listener: (context, state) {
-        // if (state.syncStatus == SyncStatus.synced) {
-        //   _checkOnboardingStatusAndNavigate(context);
-        // }
+        if (state.syncStatus == SyncStatus.synced) {
+          _handleSyncCompletion(context);
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -55,7 +54,6 @@ class _SyncPageState extends State<SyncPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              // Go back to the previous screen (preference modal)
               context.router.pop();
             },
           ),
@@ -91,7 +89,6 @@ class _SyncPageState extends State<SyncPage> {
   Widget _buildQRCodeTab(BuildContext context) {
     return BlocBuilder<SyncBloc, SyncState>(
       builder: (context, state) {
-        // When QR scanning is active, show only the scanner
         if (state.syncStatus == SyncStatus.syncing) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -108,19 +105,14 @@ class _SyncPageState extends State<SyncPage> {
                 children: [
                   Assets.onboarding.onboarding2.svg(width: 140),
                   const SizedBox(height: 12),
-
                   _buildQRConfigCard(context, state),
                   const SizedBox(height: 12),
-
-                  // Error Display
                   if (state.errorMessage != null)
                     _buildResultCard(
                         context, state.errorMessage!, AppColors.error)
                   else if (state.successMessage != null)
                     _buildResultCard(
                         context, state.successMessage!, AppColors.success),
-
-                  // Action Buttons
                   _buildQRActionButtons(context, state),
                 ],
               ),
@@ -133,7 +125,6 @@ class _SyncPageState extends State<SyncPage> {
     );
   }
 
-  // Widget _buildStatusIndicator(BuildContext context, SyncState state) {
   Widget _buildQRScannerSection(BuildContext context, SyncState state) {
     if (state.isQRScanning) {
       return QRScannerWidget(
@@ -411,24 +402,23 @@ class _SyncPageState extends State<SyncPage> {
     );
   }
 
-  Future<void> _checkOnboardingStatusAndNavigate(BuildContext context) async {
+  Future<void> _handleSyncCompletion(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    final onboardingShown = prefs.getBool('onboarding_shown');
+    final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
 
-    if (onboardingShown == null || !onboardingShown) {
+    final syncBloc = context.read<SyncBloc>();
+
+    _showSuccessDialog(context).then((_) {
       context.router.pushAndPopUntil(
         const DashboardRoute(),
         predicate: (_) => false,
       );
-    } else {
-      _showSuccessDialog(context).then((_) {
-        if (context.mounted) {
-          context.router.pushAndPopUntil(
-            const DashboardRoute(),
-            predicate: (_) => false, // Clear all routes
-          );
-        }
-      });
-    }
+
+      if (!onboardingShown) {
+        Future.delayed(const Duration(milliseconds: 800), () {
+          syncBloc.add(const OnboardingOverlayTriggered());
+        });
+      }
+    });
   }
 }

@@ -22,6 +22,7 @@ class SyncState with _$SyncState {
     @Default(false) bool hasDemoData,
     String? demoDataError,
     @Default(false) bool shouldShowOnboarding,
-    @Default(false) bool hasSyncData, // Track when sync data has been loaded
+    @Default(false) bool hasSyncData,
+    @Default(false) bool isOnboardingActive,
   }) = _SyncState;
 }
