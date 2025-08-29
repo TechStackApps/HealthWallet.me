@@ -102,7 +102,6 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                       .map((note) => _buildNoteWidget(
                             note: note,
                             isLast: note == state.notes.last,
-                            isSelected: note.id == state.selectedNoteId,
                           ))
                       .toList(),
                 ),
@@ -206,7 +205,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                   onTap: () => _bloc.add(const RecordNotesInputCanceled()),
                   child: Text(
                     "Cancel",
-                    style: AppTextStyle.buttonMedium
+                    style: AppTextStyle.buttonSmall
                         .copyWith(color: AppColors.primary),
                     textAlign: TextAlign.center,
                   ),
@@ -234,7 +233,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                       Assets.icons.checkmarkCircleOutline
                           .svg(width: 14, color: Colors.white),
                       const SizedBox(width: 4),
-                      const Text("Done", style: AppTextStyle.buttonMedium),
+                      const Text("Done", style: AppTextStyle.buttonSmall),
                     ],
                   ),
                 ),
@@ -249,65 +248,57 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
   Widget _buildNoteWidget({
     required RecordNote note,
     required bool isLast,
-    required bool isSelected,
   }) {
-    return InkWell(
-      onTap: () => _bloc.add(RecordNotesSelectedNoteToggled(note: note)),
-      splashColor: Colors.transparent,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            DateFormatUtils.humanReadable(note.timestamp),
-            style: AppTextStyle.labelMedium.copyWith(
-                color: context.textTheme.bodyMedium?.color
-                        ?.withValues(alpha: 0.6) ??
-                    context.colorScheme.onSurface.withValues(alpha: 0.6)),
-          ),
-          Text(note.content, style: AppTextStyle.labelLarge),
-          if (isSelected) ...[
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              DateFormatUtils.humanReadable(note.timestamp),
+              style: AppTextStyle.labelMedium.copyWith(
+                  color: context.textTheme.bodyMedium?.color
+                          ?.withValues(alpha: 0.6) ??
+                      context.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsetsGeometry.all(6),
-                      child: GestureDetector(
-                        onTap: () => _bloc
-                            .add(RecordNotesInputInitialised(editNote: note)),
-                        child: Assets.icons.edit.svg(
-                            width: 20,
-                            color: context.theme.iconTheme.color ??
-                                context.colorScheme.onSurface),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Padding(
-                      padding: const EdgeInsetsGeometry.all(6),
-                      child: GestureDetector(
-                        onTap: () =>
-                            _showDeleteConfirmationDialog(context, note),
-                        child: Assets.icons.trashCan.svg(
-                            width: 20,
-                            color: context.theme.iconTheme.color ??
-                                context.colorScheme.onSurface),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsetsGeometry.all(6),
+                  child: GestureDetector(
+                    onTap: () => _bloc
+                        .add(RecordNotesInputInitialised(editNote: note)),
+                    child: Assets.icons.edit.svg(
+                        width: 20,
+                        color: context.theme.iconTheme.color ??
+                            context.colorScheme.onSurface),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Padding(
+                  padding: const EdgeInsetsGeometry.all(6),
+                  child: GestureDetector(
+                    onTap: () => _showDeleteConfirmationDialog(context, note),
+                    child: Assets.icons.trashCan.svg(
+                        width: 20,
+                        color: context.theme.iconTheme.color ??
+                            context.colorScheme.onSurface),
+                  ),
                 ),
               ],
             ),
           ],
-          if (!isLast)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Divider(
-                color: context.theme.dividerColor,
-              ),
-            )
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        Text(note.content,
+            style: AppTextStyle.labelLarge),
+        const SizedBox(height: 16),
+        if (!isLast)
+          Divider(
+            color: context.theme.dividerColor,
+          )
+      ],
     );
   }
 

@@ -34,13 +34,6 @@ class RecordNotesInputDone extends RecordNotesEvent
 }
 
 @freezed
-class RecordNotesSelectedNoteToggled extends RecordNotesEvent
-    with _$RecordNotesSelectedNoteToggled {
-  const factory RecordNotesSelectedNoteToggled({required RecordNote note}) =
-      _RecordNotesSelectedNoteToggled;
-}
-
-@freezed
 class RecordNotesNoteDeleted extends RecordNotesEvent
     with _$RecordNotesNoteDeleted {
   const factory RecordNotesNoteDeleted({required RecordNote note}) =

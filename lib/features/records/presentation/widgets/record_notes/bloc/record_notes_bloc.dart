@@ -1,15 +1,9 @@
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:injectable/injectable.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 part 'record_notes_event.dart';
 part 'record_notes_state.dart';
@@ -22,7 +16,6 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
     on<RecordNotesInputInitialised>(_onRecordNotesInputInitialised);
     on<RecordNotesInputCanceled>(_onRecordNotesInputCanceled);
     on<RecordNotesInputDone>(_onRecordNotesInputDone);
-    on<RecordNotesSelectedNoteToggled>(_onRecordNotesSelectedNoteToggled);
     on<RecordNotesNoteDeleted>(_onRecordNotesNoteDeleted);
   }
 
@@ -93,18 +86,6 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
     } catch (e) {
       emit(state.copyWith(status: RecordNotesStatus.error(e)));
     }
-  }
-
-  _onRecordNotesSelectedNoteToggled(
-    RecordNotesSelectedNoteToggled event,
-    Emitter<RecordNotesState> emit,
-  ) {
-    int? selectedId;
-    if (state.selectedNoteId != event.note.id) {
-      selectedId = event.note.id;
-    }
-    log(selectedId.toString());
-    emit(state.copyWith(selectedNoteId: selectedId));
   }
 
   _onRecordNotesNoteDeleted(
