@@ -156,7 +156,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       ));
 
       add(const SyncDataCompleted(
-        sourceId: 'demo',
+        sourceId: 'demo_data',
         isSuccess: true,
       ));
     } catch (e) {
@@ -168,7 +168,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
       // Emit data completed event with error
       add(SyncDataCompleted(
-        sourceId: 'demo',
+        sourceId: 'demo_data',
         isSuccess: false,
         errorMessage: e.toString(),
       ));
@@ -181,7 +181,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         '📊 Data operation completed: ${event.sourceId} - Success: ${event.isSuccess}');
 
     if (event.isSuccess) {
-      if (event.sourceId == 'demo') {
+      if (event.sourceId == 'demo_data') {
         final hasDemoData = await _recordsRepository.hasDemoData();
         emit(state.copyWith(
           hasDemoData: hasDemoData,

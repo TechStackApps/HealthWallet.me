@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
+import 'package:health_wallet/features/records/presentation/widgets/search_widget.dart';
 import 'package:health_wallet/core/widgets/placeholder_widget.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
@@ -27,7 +28,6 @@ class RecordsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use the global RecordsBloc that's already provided in app.dart
     return RecordsView(
         initFilters: initFilters, pageController: pageController);
   }
@@ -45,7 +45,6 @@ class RecordsView extends StatefulWidget {
 
 class _RecordsViewState extends State<RecordsView> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _searchController = TextEditingController();
 
   Timer? _debounceTimer;
   bool _showScrollToTopButton = false;
@@ -58,7 +57,7 @@ class _RecordsViewState extends State<RecordsView> {
 
     final selected = context.read<HomeBloc>().state.selectedSource;
     final selectedSourceId = selected == 'All' ? null : selected;
-    // Optional: init diagnostics (removed noisy logs)
+    context.read<RecordsBloc>().add(const RecordsInitialised());
     context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
 
     if (widget.initFilters != null) {
@@ -113,20 +112,32 @@ class _RecordsViewState extends State<RecordsView> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _searchController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<HomeBloc, HomeState>(
-      listener: (context, state) {
-        final selectedSourceId =
-            state.selectedSource == 'All' ? null : state.selectedSource;
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<HomeBloc, HomeState>(
+          listener: (context, state) {
+            final selectedSourceId =
+                state.selectedSource == 'All' ? null : state.selectedSource;
 
-        context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
-      },
+            context
+                .read<RecordsBloc>()
+                .add(RecordsSourceChanged(selectedSourceId));
+          },
+        ),
+        BlocListener<SyncBloc, SyncState>(
+          listener: (context, state) {
+            if (state.hasDemoData) {
+              context.read<RecordsBloc>().add(const RecordsInitialised());
+            }
+          },
+        ),
+      ],
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -193,56 +204,14 @@ class _RecordsViewState extends State<RecordsView> {
           floatingActionButtonLocation: _customFabLocation,
           body: Column(
             children: [
-              // Search and filter section
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Search bar
-                    TextField(
-                      controller: _searchController,
-                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                      decoration: InputDecoration(
-                        hintText: context.l10n.searchRecordsHint,
-                        hintStyle: AppTextStyle.labelLarge.copyWith(
-                          color: context.colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Assets.icons.search.svg(
-                            width: 16,
-                            colorFilter: ColorFilter.mode(
-                              context.colorScheme.onSurface.withOpacity(0.6),
-                              BlendMode.srcIn,
-                            ),
-                          ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(100),
-                          borderSide:
-                              BorderSide(color: context.theme.dividerColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(100),
-                          borderSide:
-                              BorderSide(color: context.theme.dividerColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(100),
-                          borderSide:
-                              const BorderSide(color: AppColors.primary),
-                        ),
-                        filled: true,
-                        fillColor: context.colorScheme.surface,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: Insets.smallNormal,
-                        ),
-                      ),
-                    ),
+                    const SearchWidget(),
                     const SizedBox(height: Insets.small),
-                    // Filter chips
                     BlocBuilder<RecordsBloc, RecordsState>(
                       builder: (context, state) {
                         if (state.activeFilters.isEmpty) {
@@ -311,11 +280,12 @@ class _RecordsViewState extends State<RecordsView> {
                   ],
                 ),
               ),
-              // Records list
               Expanded(
                 child: BlocBuilder<RecordsBloc, RecordsState>(
                   buildWhen: (previous, current) =>
-                      previous.status != current.status,
+                      previous.status != current.status ||
+                      previous.resources != current.resources ||
+                      previous.searchQuery != current.searchQuery,
                   builder: (context, state) {
                     if (state.status == const RecordsStatus.loading()) {
                       return Center(
@@ -330,19 +300,55 @@ class _RecordsViewState extends State<RecordsView> {
                       return Center(child: Text(state.status.toString()));
                     }
 
-                    final timelineResources = state.resources;
+                    final timelineResources =
+                        List<IFhirResource>.from(state.resources);
 
                     if (timelineResources.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: PlaceholderWidget(
-                            hasDataLoaded: false,
-                            colorScheme: context.colorScheme,
-                            pageController: widget.pageController,
+                      if (state.searchQuery.isNotEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: context.colorScheme.onSurface
+                                      .withOpacity(0.4),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No records found',
+                                  style: AppTextStyle.titleMedium.copyWith(
+                                    color: context.colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try searching with different keywords',
+                                  style: AppTextStyle.bodyMedium.copyWith(
+                                    color: context.colorScheme.onSurface
+                                        .withOpacity(0.6),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: PlaceholderWidget(
+                              hasDataLoaded: false,
+                              colorScheme: context.colorScheme,
+                              pageController: widget.pageController,
+                            ),
+                          ),
+                        );
+                      }
                     }
 
                     const double bottomBarHeight = Insets.extraLarge;

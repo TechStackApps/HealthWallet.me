@@ -22,16 +22,6 @@ class UserBiometricAuthToggled extends UserEvent
 }
 
 @freezed
-class UserPatientsLoaded extends UserEvent with _$UserPatientsLoaded {
-  const factory UserPatientsLoaded() = _UserPatientsLoaded;
-}
-
-@freezed
-class UserPatientReorder extends UserEvent with _$UserPatientReorder {
-  const factory UserPatientReorder(String patientId) = _UserPatientReorder;
-}
-
-@freezed
 class UserDataUpdatedFromSync extends UserEvent with _$UserDataUpdatedFromSync {
   const factory UserDataUpdatedFromSync() = _UserDataUpdatedFromSync;
 }

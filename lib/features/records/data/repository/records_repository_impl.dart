@@ -1,21 +1,26 @@
 import 'dart:convert';
+import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/sync/domain/services/resource_processor.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/services.dart';
 
 @Injectable(as: RecordsRepository)
 class RecordsRepositoryImpl implements RecordsRepository {
   final FhirResourceDatasource _datasource;
+  final ResourceProcessor _resourceProcessor;
 
-  RecordsRepositoryImpl(AppDatabase database)
-      : _datasource = FhirResourceDatasource(database);
+  RecordsRepositoryImpl(
+      AppDatabase database, ResourceProcessor resourceProcessor)
+      : _datasource = FhirResourceDatasource(database),
+        _resourceProcessor = resourceProcessor;
 
-  /// Get resources with pagination and filtering
   @override
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
@@ -120,205 +125,219 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return _datasource.deleteRecordNote(note.id);
   }
 
-  // Demo Data Management Implementation
   @override
   Future<void> loadDemoData() async {
     try {
       // Load demo data from assets
-      final String demoDataJson = await rootBundle.loadString('assets/demo_data.json');
+      final String demoDataJson =
+          await rootBundle.loadString('assets/demo_data.json');
       final Map<String, dynamic> demoData = json.decode(demoDataJson);
-      
-      final List<dynamic> resources = demoData['resources'] as List<dynamic>;
-      
-      for (final resource in resources) {
-        try {
-          // Validate required fields first
-          if (resource['resourceType'] == null || resource['id'] == null) {
-            print('⚠️ Skipping resource with missing required fields: resourceType=${resource['resourceType']}, id=${resource['id']}');
-            continue;
-          }
-          
-          final String resourceType = resource['resourceType'] as String;
-          final String resourceId = resource['id'] as String;
-          final String resourceRaw = json.encode(resource);
-          
-          // Extract title from resource with detailed logging
-          String? title;
-          
-          // Debug logging
-          print('🔍 Processing resource: $resourceType ($resourceId)');
-          print('🔍 Resource keys: ${resource.keys.toList()}');
-          
-          // Safe title extraction with comprehensive type checking
-          title = _extractTitleSafely(resource, resourceType, resourceId);
-          
-          // Extract date from various fields with type checking
-          DateTime? date = _extractDateSafely(resource);
-          
-          // Extract encounter ID if available
-          String? encounterId = _extractReferenceIdSafely(resource, 'encounter');
-          
-          // Extract subject ID if available
-          String? subjectId = _extractReferenceIdSafely(resource, 'subject') ?? 
-                              _extractReferenceIdSafely(resource, 'patient');
-          
-          // Create FhirResourceLocalDto
-          final fhirResource = FhirResourceLocalDto(
-            id: 'demo_${resourceType}_$resourceId',
-            sourceId: 'demo',
-            resourceType: resourceType,
-            resourceId: resourceId,
-            title: title,
-            date: date,
-            resourceRaw: resourceRaw,
-            encounterId: encounterId,
-            subjectId: subjectId,
-          );
-          
-          print('🔍 Created FhirResourceLocalDto: ${fhirResource.id}');
-          
-          // Validate that the resource can be properly parsed before inserting
-          try {
-            // Try to create the entity to ensure it can be parsed
-            final entity = IFhirResource.fromLocalDto(fhirResource);
-            print('🔍 Successfully validated entity: ${entity.fhirType.display}');
-            
-            // Insert into database only if validation passes
-            await _datasource.insertResource(fhirResource);
-            print('✅ Successfully inserted resource: ${fhirResource.id}');
-          } catch (e, stackTrace) {
-            print('❌ Validation failed for resource ${fhirResource.id}: $e');
-            print('❌ Stack trace: $stackTrace');
-            print('❌ Skipping this resource to prevent UI crashes');
-            // Skip this resource instead of failing completely
-            continue;
-          }
-          
-        } catch (e, stackTrace) {
-          print('❌ Error processing resource: $e');
-          print('❌ Stack trace: $stackTrace');
-          print('❌ Resource data: $resource');
-          // Continue with next resource instead of failing completely
-          continue;
-        }
+
+      // Handle both FHIR Bundle format and simple resources format
+      List<dynamic> resources;
+      if (demoData['entry'] != null) {
+        // FHIR Bundle format - extract resources from entry array
+        final List<dynamic> entries = demoData['entry'] as List<dynamic>;
+        resources = entries
+            .map((entry) => entry['resource'])
+            .where((resource) => resource != null)
+            .toList();
+      } else if (demoData['resources'] != null) {
+        // Simple resources format
+        resources = demoData['resources'] as List<dynamic>;
+      } else {
+        throw Exception(
+            'Demo data file has invalid format: neither "entry" nor "resources" key found');
       }
-      
-      print('✅ Demo data loading completed successfully');
+
+      final processedResources = _resourceProcessor
+          .processDemoResources(resources, sourceId: 'demo_data');
+
+      final stats = _resourceProcessor.getDemoResourceStats(processedResources);
+      _resourceProcessor.logDemoResourceSummary(stats);
+
+      await _resourceProcessor.mergeResources(
+        created: processedResources,
+        updated: [],
+        deleted: [],
+      );
     } catch (e, stackTrace) {
-      print('❌ Failed to load demo data: $e');
-      print('❌ Stack trace: $stackTrace');
+      logger.e('❌ Failed to load demo data: $e');
+      logger.e('❌ Stack trace: $stackTrace');
       throw Exception('Failed to load demo data: $e');
     }
   }
 
   @override
   Future<void> clearDemoData() async {
-    await _datasource.deleteResourcesBySourceId('demo');
+    await _datasource.deleteResourcesBySourceId('demo_data');
   }
 
   @override
   Future<bool> hasDemoData() async {
-    final resources = await _datasource.getResources(sourceId: 'demo', resourceTypes: [], limit: 1);
+    final resources = await _datasource.getResources(
+        sourceId: 'demo_data', resourceTypes: [], limit: 1);
     return resources.isNotEmpty;
   }
 
-  /// Extract text content from HTML div
-  String _extractTextFromHtml(String html) {
-    // Simple HTML tag removal - in production you might want a proper HTML parser
-    return html
-        .replaceAll(RegExp(r'<[^>]*>'), '')
-        .replaceAll('&nbsp;', ' ')
-        .trim();
-  }
+  @override
+  Future<List<IFhirResource>> getBloodTypeObservations({
+    required String patientId,
+    String? sourceId,
+  }) async {
+    List<IFhirResource> observations;
 
-  /// Safely extract title from resource with comprehensive type checking
-  String _extractTitleSafely(Map<String, dynamic> resource, String resourceType, String resourceId) {
-    String? title;
-    
-    // Try to extract from text.div first
-    if (resource['text'] != null && resource['text'] is Map<String, dynamic>) {
-      final textMap = resource['text'] as Map<String, dynamic>;
-      if (textMap['div'] != null && textMap['div'] is String) {
-        title = _extractTextFromHtml(textMap['div'] as String);
-        print('🔍 Extracted title from text.div: $title');
+    if (sourceId != null && sourceId.isNotEmpty) {
+      observations = await getResources(
+        resourceTypes: [FhirType.Observation],
+        sourceId: sourceId,
+        limit: 100,
+        offset: 0,
+      );
+
+      if (observations.isEmpty) {
+        observations = await getResources(
+          resourceTypes: [FhirType.Observation],
+          limit: 100,
+          offset: 0,
+        );
       }
+    } else {
+      observations = await getResources(
+        resourceTypes: [FhirType.Observation],
+        limit: 100,
+        offset: 0,
+      );
     }
-    
-    // Try to extract from name if title not found
-    if (title == null && resource['name'] != null && resource['name'] is List) {
-      final nameList = resource['name'] as List;
-      if (nameList.isNotEmpty) {
-        final name = nameList[0];
-        if (name is Map<String, dynamic>) {
-          if (name['text'] != null && name['text'] is String) {
-            title = name['text'] as String;
-            print('🔍 Extracted title from name.text: $title');
-          } else if (name['family'] != null && name['given'] != null && 
-                     name['family'] is String && name['given'] is List) {
-            final given = name['given'] as List;
-            final family = name['family'] as String;
-            if (given.isNotEmpty && given[0] is String) {
-              title = '${given[0]} $family';
-              print('🔍 Extracted title from name.given+family: $title');
-            }
-          }
+
+    final patients = await getResources(
+      resourceTypes: [FhirType.Patient],
+      limit: 100,
+      offset: 0,
+    );
+
+    final patientList = patients.whereType<Patient>().toList();
+    final targetPatient = patientList.firstWhere(
+      (p) => p.id == patientId,
+      orElse: () =>
+          patientList.isNotEmpty ? patientList.first : patientList.first,
+    );
+
+    final bloodTypeObservations = observations.where((resource) {
+      if (resource is! Observation) {
+        return false;
+      }
+
+      final coding = resource.code?.coding;
+      if (coding == null) {
+        return false;
+      }
+
+      bool hasBloodTypeCode = false;
+      for (final code in coding) {
+        if (code.code == null) continue;
+
+        final loincCode = code.code.toString();
+
+        if (loincCode == BloodTypes.aboLoincCode ||
+            loincCode == BloodTypes.rhLoincCode ||
+            loincCode == BloodTypes.combinedLoincCode) {
+          hasBloodTypeCode = true;
+          break;
         }
       }
-    }
-    
-    // Try to extract from title field
-    if (title == null && resource['title'] != null && resource['title'] is String) {
-      title = resource['title'] as String;
-      print('🔍 Extracted title from title field: $title');
-    }
-    
-    // Fallback title if none extracted
-    if (title == null || title.isEmpty) {
-      title = '$resourceType $resourceId';
-      print('🔍 Using fallback title: $title');
-    }
-    
-    return title;
+
+      if (!hasBloodTypeCode) {
+        return false;
+      }
+
+      final subject = resource.subject?.reference?.valueString;
+
+      if (subject == null) {
+        return false;
+      }
+
+      String subjectPatientId;
+      if (subject.contains('/')) {
+        subjectPatientId = subject.split('/').last;
+      } else if (subject.startsWith('urn:uuid:')) {
+        subjectPatientId = subject.replaceFirst('urn:uuid:', '');
+      } else {
+        subjectPatientId = subject;
+      }
+
+      final matches = subjectPatientId == targetPatient.resourceId ||
+          subjectPatientId == targetPatient.id ||
+          subject == targetPatient.resourceId ||
+          subject == targetPatient.id;
+
+      return matches;
+    }).toList();
+
+    return bloodTypeObservations;
   }
 
-  /// Safely extract date from resource with comprehensive type checking
-  DateTime? _extractDateSafely(Map<String, dynamic> resource) {
-    final dateFields = [
-      'effectiveDateTime',
-      'issued',
-      'performedDateTime',
-      'occurrenceDateTime',
-      'created',
-      'recordedDate',
-      'onsetDateTime'
-    ];
-    
-    for (final field in dateFields) {
-      if (resource[field] != null && resource[field] is String) {
-        try {
-          final date = DateTime.parse(resource[field] as String);
-          print('🔍 Parsed date from $field: $date');
-          return date;
-        } catch (e) {
-          print('⚠️ Failed to parse date from $field: ${resource[field]} - $e');
-        }
-      }
+  @override
+  Future<String> saveObservation(IFhirResource observation) async {
+    if (observation is! Observation) {
+      throw Exception('Expected Observation resource type');
     }
-    
-    return null;
+
+    final observationJson = observation.toFhirResource();
+
+    final dto = FhirResourceLocalDto(
+      id: observation.id,
+      sourceId: observation.sourceId,
+      resourceType: observation.fhirType.name,
+      resourceId: observation.resourceId,
+      title: observation.title,
+      date: observation.date,
+      resourceRaw: jsonEncode(observationJson),
+      encounterId: null,
+      subjectId: null,
+    );
+
+    final id = await _datasource.insertResource(dto);
+    return id.toString();
   }
 
-  /// Safely extract reference ID from resource with comprehensive type checking
-  String? _extractReferenceIdSafely(Map<String, dynamic> resource, String fieldName) {
-    if (resource[fieldName] != null && resource[fieldName] is Map<String, dynamic>) {
-      final refMap = resource[fieldName] as Map<String, dynamic>;
-      if (refMap['reference'] != null && refMap['reference'] is String) {
-        final reference = refMap['reference'] as String;
-        final id = reference.split('/').last;
-        print('🔍 Extracted $fieldName ID: $id');
-        return id;
-      }
+  @override
+  Future<void> updatePatient(IFhirResource patient) async {
+    if (patient is! Patient) {
+      throw Exception('Expected Patient resource type');
     }
-    return null;
+
+    final patientJson = patient.toFhirResource();
+
+    final dto = FhirResourceLocalDto(
+      id: patient.id,
+      sourceId: patient.sourceId,
+      resourceType: patient.fhirType.name,
+      resourceId: patient.resourceId,
+      title: patient.title,
+      date: patient.date,
+      resourceRaw: jsonEncode(patientJson),
+      encounterId: null,
+      subjectId: null,
+    );
+
+    await _datasource.insertResource(dto);
+  }
+
+  @override
+  Future<List<IFhirResource>> searchResources({
+    required String query,
+    List<FhirType> resourceTypes = const [],
+    String? sourceId,
+    int limit = 50,
+  }) async {
+    final localDtos = await _datasource.searchResources(
+      query: query,
+      resourceTypes: resourceTypes.map((fhirType) => fhirType.name).toList(),
+      sourceId: sourceId,
+      limit: limit,
+    );
+
+    return localDtos.map(IFhirResource.fromLocalDto).toList();
   }
 }

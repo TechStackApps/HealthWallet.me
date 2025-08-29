@@ -16,8 +16,6 @@ abstract class SyncLocalDataSource {
   Future<void> cacheSources(List<Source> sources);
   Future<List<Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
-  
-  // New methods for incremental sync
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
 }
 

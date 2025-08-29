@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
@@ -28,77 +30,97 @@ class PlaceholderWidget extends StatelessWidget {
         children: [
           const SizedBox(height: Insets.medium),
           Container(
-            padding: const EdgeInsets.all(Insets.large),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
+            width: 240,
+            height: 240,
+            child: Assets.images.placeholder.svg(
+              fit: BoxFit.contain,
             ),
+          ),
+          const SizedBox(height: Insets.large),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
             child: Column(
               children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 48,
-                  color: colorScheme.primary.withOpacity(0.6),
+                Text(
+                  'No medical records yet',
+                  style: AppTextStyle.titleLarge.copyWith(
+                    color: context.colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: Insets.medium),
                 Text(
-                  'No medical records yet',
-                  style: AppTextStyle.titleMedium.copyWith(
-                    color: colorScheme.onSurface,
+                  'Load demo data to explore the app or sync your real medical records',
+                  style: AppTextStyle.bodyMedium.copyWith(
+                    color: context.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Insets.large),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _handleLoadDemoData(context),
+                    icon: Assets.icons.cloudDownload.svg(
+                      width: 16,
+                      height: 16,
+                      colorFilter:
+                          const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    ),
+                    label: Text(
+                      'Load Home data',
+                      style: AppTextStyle.buttonMedium.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Insets.medium,
+                        vertical: Insets.smallNormal,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(Insets.small),
+                      ),
+                      elevation: 0,
+                    ),
                   ),
                 ),
                 const SizedBox(height: Insets.small),
-                Text(
-                  'Load demo data to explore the app or sync your real medical records',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyle.bodySmall.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed:
+                        onSyncPressed ?? () => _handleSyncRecords(context),
+                    icon: Assets.icons.renewSync.svg(
+                      width: 16,
+                      height: 16,
+                      colorFilter: ColorFilter.mode(
+                        context.isDarkMode
+                            ? Colors.white
+                            : context.colorScheme.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    label: Text(
+                      'Sync Data',
+                      style: AppTextStyle.buttonMedium.copyWith(
+                        color: context.isDarkMode
+                            ? Colors.white
+                            : context.colorScheme.primary,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: Insets.large),
-                Column(
-                  children: [
-                    // Load Demo Data Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _handleLoadDemoData(context),
-                        icon: const Icon(Icons.science),
-                        label: const Text('Load Home Data'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: context.isDarkMode
-                              ? Colors.white
-                              : colorScheme.onPrimary,
-                          padding: const EdgeInsets.all(12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: Insets.medium),
-                    // Sync Data Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed:
-                            onSyncPressed ?? () => _handleSyncRecords(context),
-                        icon: const Icon(Icons.sync),
-                        label: const Text('Sync Data'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.secondary,
-                          foregroundColor: context.isDarkMode
-                              ? Colors.white
-                              : colorScheme.onSecondary,
-                          padding: const EdgeInsets.all(12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -110,7 +132,6 @@ class PlaceholderWidget extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  /// Handle demo data loading
   void _handleLoadDemoData(BuildContext context) async {
     final syncBloc = context.read<SyncBloc>();
 
@@ -125,7 +146,7 @@ class PlaceholderWidget extends StatelessWidget {
     ).then((_) async {
       _navigateToHomePage(context);
 
-      Future.delayed(const Duration(milliseconds: 1500), () async {
+      Future.delayed(const Duration(milliseconds: 500), () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('onboarding_shown', true);
 
@@ -134,7 +155,6 @@ class PlaceholderWidget extends StatelessWidget {
     });
   }
 
-  /// Handle sync records
   void _handleSyncRecords(BuildContext context) async {
     final syncBloc = context.read<SyncBloc>();
 
@@ -147,18 +167,15 @@ class PlaceholderWidget extends StatelessWidget {
     ).then((_) async {
       _navigateToHomePageViaRouter(context);
 
-      Future.delayed(const Duration(milliseconds: 1500), () async {
+      Future.delayed(const Duration(milliseconds: 500), () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('onboarding_shown', true);
-        print('💾 Sync data onboarding marked as shown in SharedPreferences');
 
         syncBloc.add(const OnboardingOverlayTriggered());
-        print('🔄 PlaceholderWidget: OnboardingOverlayTriggered event sent');
       });
     });
   }
 
-  /// Navigate to home page using PageController (for demo data)
   void _navigateToHomePage(BuildContext context) {
     if (pageController != null) {
       pageController!.animateToPage(
@@ -173,7 +190,6 @@ class PlaceholderWidget extends StatelessWidget {
     context.appRouter.replace(const DashboardRoute());
   }
 
-  /// Show success dialog
   Future<void> _showSuccessDialog(
     BuildContext context,
     String title,

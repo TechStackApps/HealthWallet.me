@@ -46,7 +46,6 @@ class FhirResourceDatasource {
     return await query.get();
   }
 
-  /// Resolve a FHIR reference (e.g., "Patient/123" or "urn:uuid:...")
   Future<FhirResourceLocalDto?> resolveReference(String reference) async {
     // Handle urn:uuid: references
     if (reference.startsWith('urn:uuid:')) {
@@ -145,5 +144,78 @@ class FhirResourceDatasource {
     return (db.delete(db.fhirResource)
           ..where((f) => f.sourceId.equals(sourceId)))
         .go();
+  }
+
+  Future<List<FhirResourceLocalDto>> searchResources({
+    required String query,
+    required List<String> resourceTypes,
+    String? sourceId,
+    int? limit,
+  }) async {
+    final searchTerms = query
+        .toLowerCase()
+        .split(' ')
+        .where((term) => term.isNotEmpty)
+        .toList();
+
+    if (searchTerms.isEmpty) {
+      return [];
+    }
+
+    SimpleSelectStatement<FhirResource, FhirResourceLocalDto> selectQuery =
+        db.select(db.fhirResource)..orderBy([(f) => OrderingTerm.desc(f.date)]);
+
+    if (sourceId != null) {
+      selectQuery.where((f) => f.sourceId.equals(sourceId));
+    }
+
+    if (resourceTypes.isNotEmpty) {
+      selectQuery.where((f) => f.resourceType.isIn(resourceTypes));
+    }
+
+    if (searchTerms.isNotEmpty) {
+      for (final term in searchTerms) {
+        selectQuery.where((f) =>
+            f.title.lower().contains(term) |
+            f.resourceRaw.lower().contains(term));
+      }
+    }
+
+    if (limit != null) {
+      selectQuery.limit(limit);
+    }
+
+    final rawResults = await selectQuery.get();
+
+    final seenIds = <String>{};
+    final results = rawResults.where((result) {
+      if (seenIds.contains(result.id)) {
+        return false;
+      }
+      seenIds.add(result.id);
+      return true;
+    }).toList();
+
+    results.sort((a, b) {
+      final aResourceTypeMatch = searchTerms
+          .any((term) => a.resourceType?.toLowerCase() == term.toLowerCase());
+      final bResourceTypeMatch = searchTerms
+          .any((term) => b.resourceType?.toLowerCase() == term.toLowerCase());
+
+      final aInTitle = searchTerms
+          .any((term) => a.title?.toLowerCase().contains(term) ?? false);
+      final bInTitle = searchTerms
+          .any((term) => b.title?.toLowerCase().contains(term) ?? false);
+
+      if (aResourceTypeMatch && !bResourceTypeMatch) return -1;
+      if (!aResourceTypeMatch && bResourceTypeMatch) return 1;
+
+      if (aInTitle && !bInTitle) return -1;
+      if (!aInTitle && bInTitle) return 1;
+
+      return 0;
+    });
+
+    return results;
   }
 }

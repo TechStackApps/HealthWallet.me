@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -13,8 +12,7 @@ class ThemeToggleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = context.colorScheme;
     final borderColor = context.theme.dividerColor;
-    final iconColor =
-        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final iconColor = colorScheme.onSurface;
 
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
@@ -40,8 +38,9 @@ class ThemeToggleButton extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     decoration: BoxDecoration(
-                      color:
-                          !isDarkMode ? AppColors.primary : Colors.transparent,
+                      color: !isDarkMode
+                          ? colorScheme.primary
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(
@@ -61,7 +60,7 @@ class ThemeToggleButton extends StatelessWidget {
                     duration: const Duration(milliseconds: 250),
                     decoration: BoxDecoration(
                       color:
-                          isDarkMode ? AppColors.primary : Colors.transparent,
+                          isDarkMode ? colorScheme.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(

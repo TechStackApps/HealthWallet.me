@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
@@ -13,6 +12,7 @@ import 'package:health_wallet/features/records/domain/repository/records_reposit
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 
 class App extends StatelessWidget {
@@ -35,6 +35,9 @@ class App extends StatelessWidget {
             HomeLocalDataSourceImpl(),
             getIt<RecordsRepository>(),
           )..add(const HomeInitialised()),
+        ),
+        BlocProvider(
+          create: (_) => getIt<PatientBloc>()..add(const PatientInitialised()),
         ),
       ],
       child: MultiBlocListener(
@@ -68,7 +71,7 @@ class App extends StatelessWidget {
 
 void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
   if (state.hasDemoData) {
-    context.read<HomeBloc>().add(const HomeSourceChanged('demo'));
+    context.read<HomeBloc>().add(const HomeSourceChanged('demo_data'));
   }
 
   if (state.hasSyncData) {
@@ -84,7 +87,7 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
     context.read<UserBloc>().add(const UserDataUpdatedFromSync());
     context.read<HomeBloc>().add(const HomeSourceChanged('All'));
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (context.mounted) {
         context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
       }

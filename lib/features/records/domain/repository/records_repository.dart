@@ -46,4 +46,20 @@ abstract class RecordsRepository {
   Future<void> clearDemoData();
 
   Future<bool> hasDemoData();
+
+  Future<List<IFhirResource>> getBloodTypeObservations({
+    required String patientId,
+    String? sourceId,
+  });
+
+  Future<String> saveObservation(IFhirResource observation);
+
+  Future<void> updatePatient(IFhirResource patient);
+
+  Future<List<IFhirResource>> searchResources({
+    required String query,
+    List<FhirType> resourceTypes = const [],
+    String? sourceId,
+    int limit = 50,
+  });
 }

@@ -43,3 +43,13 @@ class LoadDemoData extends RecordsEvent with _$LoadDemoData {
 class ClearDemoData extends RecordsEvent with _$ClearDemoData {
   const factory ClearDemoData() = _ClearDemoData;
 }
+
+@freezed
+class RecordsSearch extends RecordsEvent with _$RecordsSearch {
+  const factory RecordsSearch(String query) = _RecordsSearch;
+}
+
+@freezed
+class RecordsSearchExecuted extends RecordsEvent with _$RecordsSearchExecuted {
+  const factory RecordsSearchExecuted(String query) = _RecordsSearchExecuted;
+}

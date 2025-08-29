@@ -264,7 +264,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                 style: AppTextStyle.labelMedium.copyWith(
                     color: context.textTheme.bodyMedium?.color
                             ?.withValues(alpha: 0.6) ??
-                        AppColors.textPrimary.withValues(alpha: 0.6)),
+                        context.colorScheme.onSurface.withValues(alpha: 0.6)),
               ),
               Row(
                 children: [
@@ -276,7 +276,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                       child: Assets.icons.edit.svg(
                           width: 20,
                           color: context.theme.iconTheme.color ??
-                              AppColors.textPrimary),
+                              context.colorScheme.onSurface),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -287,7 +287,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                       child: Assets.icons.trashCan.svg(
                           width: 20,
                           color: context.theme.iconTheme.color ??
-                              AppColors.textPrimary),
+                              context.colorScheme.onSurface),
                     ),
                   ),
                 ],
