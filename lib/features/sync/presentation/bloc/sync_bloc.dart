@@ -74,10 +74,23 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
       await _recordsRepository.clearDemoData();
 
+      Exception? exception;
       _syncRepository.setBearerToken(syncQrData.token);
-      _syncRepository.setBaseUrl(syncQrData.serverBaseUrls.first);
+      for (String baseUrl in syncQrData.serverBaseUrls) {
+        _syncRepository.setBaseUrl(baseUrl);
 
-      await _syncRepository.syncResources(endpoint: syncQrData.syncEndpoint);
+        try {
+          await _syncRepository.syncResources(
+              endpoint: syncQrData.syncEndpoint);
+
+          exception = null;
+          break;
+        } on Exception catch (e) {
+          exception = e;
+          continue;
+        }
+      }
+      if (exception != null) throw exception;
 
       await _syncRepository.saveSyncQrData(syncQrData);
 
