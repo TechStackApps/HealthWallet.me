@@ -30,7 +30,10 @@ class SyncRepositoryImpl implements SyncRepository {
     List<FhirResourceDto> resources =
         await _remoteDataSource.getResources(endpoint: endpoint);
 
-    await _localDataSource.cacheFhirResources(resources);
+    await _localDataSource.cacheFhirResources(resources
+        .map((resource) =>
+            resource.populateEncounterIdFromRaw().populateSubjectIdFromRaw())
+        .toList());
     await _localDataSource
         .setLastSyncTimestamp(DateTime.now().toIso8601String());
   }
