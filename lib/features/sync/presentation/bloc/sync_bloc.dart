@@ -65,7 +65,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     SyncDataInitiated event,
     Emitter<SyncState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      isQRScanning: false,
+    ));
     try {
       final qrDataJson = jsonDecode(event.qrData) as Map<String, dynamic>;
       final syncQrData = SyncQrData.fromJson(qrDataJson);
