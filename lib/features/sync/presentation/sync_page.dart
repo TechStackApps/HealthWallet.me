@@ -234,9 +234,11 @@ class _SyncPageState extends State<SyncPage> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () => context
-                .read<SyncBloc>()
-                .add(SyncDataInitiated(qrData: _manualCodeController.text)),
+            onPressed: state.isLoading
+                ? null
+                : () => context
+                    .read<SyncBloc>()
+                    .add(SyncDataInitiated(qrData: _manualCodeController.text)),
             style: OutlinedButton.styleFrom(
               foregroundColor: context.isDarkMode
                   ? Colors.white
@@ -247,7 +249,15 @@ class _SyncPageState extends State<SyncPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text("Connect", style: AppTextStyle.buttonSmall),
+            child: state.isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text("Connect", style: AppTextStyle.buttonSmall),
           ),
         ),
         const SizedBox(height: 12),
