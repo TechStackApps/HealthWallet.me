@@ -45,11 +45,12 @@ class ReorderableGrid<T> extends StatelessWidget {
           childAspectRatio: childAspectRatio,
         ),
         itemCount: items.length,
-        dragStartDelay: Duration.zero,
+        dragStartDelay: const Duration(milliseconds: 100),
         itemBuilder: (context, index) {
           final item = items[index];
-          return KeyedSubtree(
+          return ReorderableDragStartListener(
             key: ValueKey(item),
+            index: index,
             child: ShakingCard(
               isShaking: enabled,
               child: itemBuilder(context, item, index),

@@ -3,8 +3,7 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/presentation/widgets/reorderable_grid.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-import 'package:health_wallet/core/theme/app_color.dart';
-import 'package:health_wallet/gen/assets.gen.dart';
+
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/shaking_card.dart';
 
@@ -38,22 +37,31 @@ class MedicalRecordsSection extends StatelessWidget {
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       childAspectRatio: 2,
-      itemBuilder: (context, card, index) => GestureDetector(
-        onLongPress: onLongPressCard,
-        child: ShakingCard(
-          isShaking: editMode,
-          child: GestureDetector(
-            onTap: editMode ? null : () => onTapCard?.call(card),
-            child: index == 0 && firstCardFocusNode != null
+      itemBuilder: (context, card, index) {
+        final cardWidget =
+            (index == 0 && firstCardFocusNode != null && !editMode)
                 ? Focus(
                     focusNode: firstCardFocusNode!,
                     child: _buildOverviewCard(context, card, key: firstCardKey),
                   )
-                : _buildOverviewCard(context, card,
-                    key: index == 0 ? firstCardKey : null),
-          ),
-        ),
-      ),
+                : _buildOverviewCard(context, card);
+
+        if (editMode) {
+          return ShakingCard(
+            isShaking: true,
+            child: cardWidget,
+          );
+        } else {
+          return ShakingCard(
+            isShaking: false,
+            child: GestureDetector(
+              onTap: () => onTapCard?.call(card),
+              onLongPress: onLongPressCard,
+              child: cardWidget,
+            ),
+          );
+        }
+      },
     );
   }
 

@@ -430,8 +430,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           hasDataLoaded: hasData,
         ));
       }
-    } catch (err) {
+    } catch (err, stackTrace) {
       logger.e('reloadHomeData error: $err');
+      logger.e('reloadHomeData stack trace: $stackTrace');
       emit(state.copyWith(
         status: HomeStatus.failure('Failed to load home data: $err'),
         errorMessage: err.toString(),

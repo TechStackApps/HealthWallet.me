@@ -64,16 +64,26 @@ class VitalsSection extends StatelessWidget {
           childAspectRatio: 1.85,
           shrinkWrap: true,
           padding: EdgeInsets.zero,
-          itemBuilder: (context, vital, index) => GestureDetector(
-            onLongPress: onLongPressCard,
-            child: index == 0 && firstCardFocusNode != null
+          itemBuilder: (context, vital, index) {
+            final cardWidget = (index == 0 &&
+                    firstCardFocusNode != null &&
+                    !editMode)
                 ? Focus(
                     focusNode: firstCardFocusNode!,
                     child:
                         _buildVitalSignCard(context, vital, key: firstCardKey),
                   )
-                : _buildVitalSignCard(context, vital),
-          ),
+                : _buildVitalSignCard(context, vital);
+
+            if (editMode) {
+              return cardWidget;
+            } else {
+              return GestureDetector(
+                onLongPress: onLongPressCard,
+                child: cardWidget,
+              );
+            }
+          },
         ),
         if (allAvailableVitals.isNotEmpty &&
             (selectedVitals == null ||
@@ -211,7 +221,7 @@ class VitalsSection extends StatelessWidget {
               : AppColors.success.withOpacity(0.08);
           statusIconColor = AppColors.success;
           statusIcon = Assets.icons.checkmarkCircleOutline.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'Elevated':
@@ -221,7 +231,7 @@ class VitalsSection extends StatelessWidget {
               : AppColors.warning.withOpacity(0.08);
           statusIconColor = AppColors.warning;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'High':
@@ -231,10 +241,9 @@ class VitalsSection extends StatelessWidget {
               : AppColors.error.withOpacity(0.08);
           statusIconColor = AppColors.error;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
-        case 'Abnormal':
         case 'Critically Abnormal':
         case 'Critically High':
         case 'Critically Low':
@@ -243,7 +252,7 @@ class VitalsSection extends StatelessWidget {
               : AppColors.error.withOpacity(0.12);
           statusIconColor = AppColors.error;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'Uncertain':
@@ -253,7 +262,7 @@ class VitalsSection extends StatelessWidget {
               : AppColors.warning.withOpacity(0.08);
           statusIconColor = AppColors.warning;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         default:
