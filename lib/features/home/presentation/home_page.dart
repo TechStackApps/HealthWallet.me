@@ -21,7 +21,7 @@ import 'package:health_wallet/features/home/presentation/sections/recent_records
 import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/features/home/core/constants/home_constants.dart';
-import 'package:health_wallet/core/widgets/placeholder_widget.dart';
+import 'package:health_wallet/features/sync/presentation/widgets/sync_placeholder_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 
@@ -269,13 +269,12 @@ class HomeViewState extends State<HomeView> {
     final hasRecent = state.recentRecords.isNotEmpty;
 
     if (!hasVitalDataLoaded && !hasOverviewDataLoaded && !hasRecent) {
-      return PlaceholderWidget(
-        hasDataLoaded: false,
-        colorScheme: context.colorScheme,
-        pageController: widget.pageController, // Pass the PageController
+      return SyncPlaceholderWidget(
+        pageController: widget.pageController,
         onSyncPressed: () {
           context.router.push(const SyncRoute());
         },
+        recordTypeName: null, // No specific record type for home page
       );
     }
 

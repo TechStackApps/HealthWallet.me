@@ -10,7 +10,7 @@ import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
 import 'package:health_wallet/features/records/presentation/widgets/search_widget.dart';
-import 'package:health_wallet/core/widgets/placeholder_widget.dart';
+import 'package:health_wallet/features/sync/presentation/widgets/sync_placeholder_widget.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
 
@@ -161,7 +161,9 @@ class _RecordsViewState extends State<RecordsView> {
             scrolledUnderElevation: 0,
             actions: [
               IconButton(
-                onPressed: () => context.read<RecordsBloc>().add(const RecordsSharePressed()),
+                onPressed: () => context
+                    .read<RecordsBloc>()
+                    .add(const RecordsSharePressed()),
                 icon: Assets.icons.share.svg(
                   colorFilter: ColorFilter.mode(
                     context.colorScheme.onSurface,
@@ -220,68 +222,84 @@ class _RecordsViewState extends State<RecordsView> {
                     const SearchWidget(),
                     const SizedBox(height: Insets.small),
                     BlocBuilder<RecordsBloc, RecordsState>(
-                      builder: (context, state) {
-                        if (state.activeFilters.isEmpty ||
-                            state.resources.isEmpty) {
+                      buildWhen: (previous, current) =>
+                          previous.activeFilters != current.activeFilters,
+                      builder: (context, recordsState) {
+                        if (recordsState.activeFilters.isEmpty) {
                           return const SizedBox();
                         }
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: Wrap(
-                                spacing: 8.0,
-                                runSpacing: 8,
-                                children: state.activeFilters
-                                    .map(
-                                      (filter) => GestureDetector(
-                                        onTap: () => context
-                                            .read<RecordsBloc>()
-                                            .add(RecordsFilterRemoved(filter)),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 4, horizontal: 8),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withValues(alpha: 0.08),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                filter.display,
-                                                style: AppTextStyle.labelSmall
-                                                    .copyWith(
-                                                        color:
-                                                            AppColors.primary),
+
+                        return BlocBuilder<HomeBloc, HomeState>(
+                          buildWhen: (previous, current) =>
+                              previous.hasDataLoaded != current.hasDataLoaded,
+                          builder: (context, homeState) {
+                            if (!homeState.hasDataLoaded) {
+                              return const SizedBox();
+                            }
+
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: Wrap(
+                                    spacing: 8.0,
+                                    runSpacing: 8,
+                                    children: recordsState.activeFilters
+                                        .map(
+                                          (filter) => GestureDetector(
+                                            onTap: () => context
+                                                .read<RecordsBloc>()
+                                                .add(RecordsFilterRemoved(
+                                                    filter)),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4,
+                                                      horizontal: 8),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.08),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
                                               ),
-                                              const SizedBox(width: 4),
-                                              const Icon(
-                                                Icons.close,
-                                                color: AppColors.primary,
-                                                size: 12,
-                                              )
-                                            ],
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    filter.display,
+                                                    style: AppTextStyle
+                                                        .labelSmall
+                                                        .copyWith(
+                                                            color: AppColors
+                                                                .primary),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  const Icon(
+                                                    Icons.close,
+                                                    color: AppColors.primary,
+                                                    size: 12,
+                                                  )
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => context
-                                  .read<RecordsBloc>()
-                                  .add(RecordsFiltersApplied([])),
-                              child: Text(
-                                'Clear all',
-                                style: AppTextStyle.labelMedium.copyWith(
-                                  color: AppColors.primary,
+                                        )
+                                        .toList(),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                                GestureDetector(
+                                  onTap: () => context
+                                      .read<RecordsBloc>()
+                                      .add(RecordsFiltersApplied([])),
+                                  child: Text(
+                                    'Clear all',
+                                    style: AppTextStyle.labelMedium.copyWith(
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         );
                       },
                     ),
@@ -346,15 +364,15 @@ class _RecordsViewState extends State<RecordsView> {
                           ),
                         );
                       } else {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: PlaceholderWidget(
-                              hasDataLoaded: false,
-                              colorScheme: context.colorScheme,
-                              pageController: widget.pageController,
-                            ),
-                          ),
+                        return SyncPlaceholderWidget(
+                          pageController: widget.pageController,
+                          recordTypeName: state.activeFilters.isNotEmpty
+                              ? state.activeFilters.length == 1
+                                  ? state.activeFilters.first.display
+                                  : state.activeFilters
+                                      .map((f) => f.display)
+                                      .join(', ')
+                              : null,
                         );
                       }
                     }
