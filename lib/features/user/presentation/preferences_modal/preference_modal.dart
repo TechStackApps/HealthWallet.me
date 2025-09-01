@@ -12,6 +12,7 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/settings_section.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class PreferenceModal extends StatelessWidget {
   const PreferenceModal({super.key});
@@ -95,19 +96,36 @@ class PreferenceModal extends StatelessWidget {
               height: 1,
               color: borderColor,
             ),
-            const Flexible(
+            Flexible(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: Insets.normal),
-                    UserSection(),
-                    SizedBox(height: Insets.medium),
-                    PatientSection(),
-                    SizedBox(height: Insets.medium),
-                    SyncSection(),
-                    SizedBox(height: Insets.medium),
-                    SettingsSection(),
-                    SizedBox(height: Insets.normal),
+                    const SizedBox(height: Insets.normal),
+                    const UserSection(),
+                    const SizedBox(height: Insets.medium),
+                    const PatientSection(),
+                    const SizedBox(height: Insets.medium),
+                    const SyncSection(),
+                    const SizedBox(height: Insets.medium),
+                    const SettingsSection(),
+                    const SizedBox(height: Insets.medium),
+                    FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snap) => !snap.hasData
+                          ? const SizedBox(height: 40)
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: Insets.normal),
+                              child: Text(
+                                'Version: v${snap.data!.version} (${snap.data!.buildNumber})',
+                                style: AppTextStyle.labelSmall.copyWith(
+                                  color: context.colorScheme.onSurface
+                                      .withOpacity(0.5),
+                                ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: Insets.normal),
                   ],
                 ),
               ),
