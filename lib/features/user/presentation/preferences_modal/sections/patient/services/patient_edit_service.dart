@@ -3,6 +3,7 @@ import 'package:health_wallet/features/records/domain/entity/observation/observa
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/core/utils/blood_observation_utils.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 
 class PatientEditService {
   final RecordsRepository _recordsRepository;
@@ -28,16 +29,29 @@ class PatientEditService {
     Patient patient,
     String bloodType,
   ) async {
-    if (!BloodObservationUtils.isValidBloodType(bloodType)) {
-      return;
-    }
-
     try {
       final existingObservations =
           await _recordsRepository.getBloodTypeObservations(
         patientId: patient.id,
         sourceId: patient.sourceId.isNotEmpty ? patient.sourceId : null,
       );
+
+      if (bloodType == 'N/A') {
+        if (existingObservations.isNotEmpty) {
+          final existingObservation = existingObservations.first as Observation;
+          final clearedObservation = existingObservation.copyWith(
+            valueX: null,
+            date: DateTime.now(),
+          );
+          await _recordsRepository.saveObservation(clearedObservation);
+        }
+        return;
+      }
+
+      if (!BloodObservationUtils.isValidBloodType(bloodType)) {
+        logger.w('DEBUG SERVICE: Invalid blood type: $bloodType');
+        return;
+      }
 
       if (existingObservations.isNotEmpty) {
         final existingObservation = existingObservations.first as Observation;
@@ -55,6 +69,7 @@ class PatientEditService {
         await _recordsRepository.saveObservation(newObservation);
       }
     } catch (e) {
+      logger.e('DEBUG SERVICE: Error updating blood type observation: $e');
       rethrow;
     }
   }
@@ -74,8 +89,7 @@ class PatientEditService {
 
     final birthDateChanged = currentBirthDate != newBirthDate;
     final genderChanged = _mapGenderToDisplay(currentGender) != newGender;
-    final bloodTypeChanged =
-        currentBloodType != newBloodType && newBloodType != 'N/A';
+    final bloodTypeChanged = currentBloodType != newBloodType;
 
     return birthDateChanged || genderChanged || bloodTypeChanged;
   }

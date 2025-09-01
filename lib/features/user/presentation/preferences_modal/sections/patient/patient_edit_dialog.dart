@@ -187,8 +187,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
       final birthDateChanged = currentBirthDate != _selectedBirthDate;
       final genderChanged =
           _mapGenderToDisplay(currentGender) != _selectedGender;
-      final bloodTypeChanged =
-          currentBloodType != _selectedBloodType && _selectedBloodType != 'N/A';
+      final bloodTypeChanged = currentBloodType != _selectedBloodType;
 
       if (bloodTypeChanged) {
         await _patientEditService.updateBloodTypeObservation(

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:fhir_ips_export/fhir_ips_export.dart';
-import 'package:fhir_ips_export/utils/codeable_concept_utils.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
@@ -235,7 +234,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       }
 
       final coding = resource.code?.coding;
-      if (coding == null) {
+      if (coding == null || coding.isEmpty) {
         return false;
       }
 
@@ -289,6 +288,46 @@ class RecordsRepositoryImpl implements RecordsRepository {
       throw Exception('Expected Observation resource type');
     }
 
+    String fhirJson;
+    try {
+      // Create a proper FHIR Observation and convert to JSON
+      final fhirObservation = fhir_r4.Observation(
+        id: observation.resourceId != null
+            ? fhir_r4.FhirString(observation.resourceId)
+            : null,
+        status: observation.status ?? fhir_r4.ObservationStatus.final_,
+        category: observation.category,
+        code: observation.code!,
+        subject: observation.subject,
+        effectiveX: observation.effectiveX,
+        issued: observation.issued,
+        valueX: observation.valueX,
+        component: observation.component,
+        performer: observation.performer,
+        identifier: observation.identifier,
+        basedOn: observation.basedOn,
+        partOf: observation.partOf,
+        focus: observation.focus,
+        encounter: observation.encounter,
+        dataAbsentReason: observation.dataAbsentReason,
+        interpretation: observation.interpretation,
+        note: observation.note,
+        bodySite: observation.bodySite,
+        method: observation.method,
+        specimen: observation.specimen,
+        device: observation.device,
+        referenceRange: observation.referenceRange,
+        hasMember: observation.hasMember,
+        derivedFrom: observation.derivedFrom,
+      );
+
+      fhirJson = jsonEncode(fhirObservation.toJson());
+    } catch (e) {
+      logger.e(
+          'DEBUG SAVE: Error creating FHIR JSON, falling back to rawResource: $e');
+      fhirJson = jsonEncode(observation.rawResource ?? {});
+    }
+
     final dto = FhirResourceLocalDto(
       id: observation.id,
       sourceId: observation.sourceId,
@@ -296,7 +335,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       resourceId: observation.resourceId,
       title: observation.title,
       date: observation.date,
-      resourceRaw: jsonEncode(observation.rawResource),
+      resourceRaw: fhirJson,
       encounterId: null,
       subjectId: null,
     );

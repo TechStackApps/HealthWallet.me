@@ -198,13 +198,16 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   }
 
   Future<void> _loadBloodType() async {
-    final currentPatient =
-        context.read<PatientBloc>().state.patients.firstWhere(
-              (p) => p.id == widget.patient.id,
-              orElse: () => widget.patient,
-            );
-
     try {
+      final patientState = context.read<PatientBloc>().state;
+
+      final currentPatient = patientState.patients.firstWhere(
+        (p) => p.id == widget.patient.id,
+        orElse: () {
+          return widget.patient;
+        },
+      );
+
       final observations = await _recordsRepository.getBloodTypeObservations(
         patientId: currentPatient.id,
         sourceId:
@@ -219,8 +222,9 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
           _bloodTypeDisplay = extractedBloodType ?? 'N/A';
         });
       }
-    } catch (e) {
-      logger.e('Error loading blood type', e);
+    } catch (e, stackTrace) {
+      logger.e('Error loading blood type: ${e.toString()}');
+      logger.e('Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
           _bloodTypeDisplay = 'N/A';
