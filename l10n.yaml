@@ -2,7 +2,7 @@ arb-dir: lib/core/l10n/arb
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
-preferred-supported-locales: [en]
+preferred-supported-locales: [en, es, de]
 synthetic-package: false
 nullable-getter: false
 untranslated-messages-file: untranslated_messages.json

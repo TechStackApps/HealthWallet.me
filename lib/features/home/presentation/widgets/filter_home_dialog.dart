@@ -124,7 +124,9 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isRecords ? 'Records' : 'Vitals',
+                          isRecords
+                              ? context.l10n.records
+                              : context.l10n.vitals,
                           style: AppTextStyle.bodyMedium
                               .copyWith(color: textColor),
                         ),
@@ -258,7 +260,7 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Cancel',
+                                  context.l10n.cancel,
                                   style: AppTextStyle.buttonSmall
                                       .copyWith(color: AppColors.primary),
                                 ),
@@ -294,7 +296,7 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                                   elevation: 0,
                                 ),
                                 child: Text(
-                                  'Save',
+                                  context.l10n.save,
                                   style: AppTextStyle.buttonSmall.copyWith(
                                     color: _canSave()
                                         ? Colors.white
@@ -329,8 +331,9 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
                       ),
                       child: Column(
                         children: [
-                          _buildDropdownItem('Select all', _selectAll),
-                          _buildDropdownItem('Clear all', _clearAll),
+                          _buildDropdownItem(
+                              context.l10n.selectAll, _selectAll),
+                          _buildDropdownItem(context.l10n.clearAll, _clearAll),
                         ],
                       ),
                     ),

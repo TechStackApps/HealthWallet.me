@@ -14,6 +14,7 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'package:health_wallet/core/di/injection.dart';
 import 'utils/dialog_header.dart';
 import 'utils/dialog_content.dart';
+import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 import 'utils/form_fields.dart';
 import 'services/patient_edit_service.dart';
 
@@ -63,7 +64,8 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
   bool _isLoading = false;
   Patient? _currentPatient;
 
-  final List<String> _genderOptions = ['Male', 'Female', 'Prefer not to say'];
+  List<String> _getGenderOptions(AppLocalizations l10n) =>
+      [l10n.male, l10n.female, l10n.preferNotToSay];
   final List<String> _bloodTypeOptions = [
     'N/A',
     ...BloodTypes.getAllBloodTypes()
@@ -78,10 +80,20 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
     _initializeBloodType();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update gender options with localized values once context is available
+    final extractedGender =
+        FhirFieldExtractor.extractPatientGender(widget.patient);
+    _selectedGender = _mapGenderToDisplay(extractedGender, context.l10n);
+  }
+
   void _initializeControllers() {
     final extractedGender =
         FhirFieldExtractor.extractPatientGender(widget.patient);
-    _selectedGender = _mapGenderToDisplay(extractedGender);
+    // Initialize with default values, will be updated in didChangeDependencies
+    _selectedGender = _mapGenderToDisplayFallback(extractedGender);
 
     _selectedBirthDate =
         FhirFieldExtractor.extractPatientBirthDate(widget.patient);
@@ -98,7 +110,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
 
       final extractedGender =
           FhirFieldExtractor.extractPatientGender(_currentPatient!);
-      _selectedGender = _mapGenderToDisplay(extractedGender);
+      _selectedGender = _mapGenderToDisplay(extractedGender, context.l10n);
 
       _initializeBloodType();
     });
@@ -129,7 +141,20 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
     }
   }
 
-  String _mapGenderToDisplay(String? fhirGender) {
+  String _mapGenderToDisplay(String? fhirGender, AppLocalizations l10n) {
+    if (fhirGender == null) return l10n.preferNotToSay;
+
+    switch (fhirGender.toLowerCase()) {
+      case 'male':
+        return l10n.male;
+      case 'female':
+        return l10n.female;
+      default:
+        return l10n.preferNotToSay;
+    }
+  }
+
+  String _mapGenderToDisplayFallback(String? fhirGender) {
     if (fhirGender == null) return 'Prefer not to say';
 
     switch (fhirGender.toLowerCase()) {
@@ -161,13 +186,14 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
         newBirthDate: _selectedBirthDate,
         newGender: _selectedGender,
         newBloodType: _selectedBloodType,
+        l10n: context.l10n,
       );
 
       if (!hasChanges) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No changes detected'),
+            SnackBar(
+              content: Text(context.l10n.noChangesDetected),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 2),
             ),
@@ -186,7 +212,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
 
       final birthDateChanged = currentBirthDate != _selectedBirthDate;
       final genderChanged =
-          _mapGenderToDisplay(currentGender) != _selectedGender;
+          _mapGenderToDisplay(currentGender, context.l10n) != _selectedGender;
       final bloodTypeChanged = currentBloodType != _selectedBloodType;
 
       if (bloodTypeChanged) {
@@ -206,8 +232,8 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
         if (birthDateChanged || genderChanged) {
           if (_selectedBirthDate == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please select a birth date'),
+              SnackBar(
+                content: Text(context.l10n.pleaseSelectBirthDate),
                 backgroundColor: Colors.orange,
                 duration: Duration(seconds: 2),
               ),
@@ -234,7 +260,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving patient data: $e'),
+            content: Text('${context.l10n.errorSavingPatientData}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -283,7 +309,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
               selectedBirthDate: _selectedBirthDate,
               selectedGender: _selectedGender,
               selectedBloodType: _selectedBloodType,
-              genderOptions: _genderOptions,
+              genderOptions: _getGenderOptions(context.l10n),
               bloodTypeOptions: _bloodTypeOptions,
               iconColor: iconColor,
               onBirthDateChanged: (date) =>

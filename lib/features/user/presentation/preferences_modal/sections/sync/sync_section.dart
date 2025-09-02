@@ -24,7 +24,7 @@ class SyncSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Synchronization',
+                context.l10n.synchronization,
                 style: AppTextStyle.bodySmall,
               ),
               const SizedBox(height: Insets.small),
@@ -61,7 +61,7 @@ class SyncSection extends StatelessWidget {
                               ),
                               const SizedBox(width: Insets.extraSmall),
                               Text(
-                                _getLastSyncText(syncState),
+                                _getLastSyncText(context, syncState),
                                 style: AppTextStyle.labelSmall.copyWith(
                                   color: AppColors.primary,
                                 ),
@@ -78,7 +78,7 @@ class SyncSection extends StatelessWidget {
                     ),
                     const SizedBox(height: Insets.small),
                     Text(
-                      'Sync your latest medical records from your healthcare provider using a secure JWT token.',
+                      context.l10n.syncLatestMedicalRecords,
                       textAlign: TextAlign.center,
                       style: AppTextStyle.labelLarge,
                     ),
@@ -98,7 +98,7 @@ class SyncSection extends StatelessWidget {
                           ),
                         ),
                         label: Text(
-                          'Sync Medical records',
+                          context.l10n.syncMedicalRecords,
                           style: AppTextStyle.buttonSmall,
                         ),
                         style: ElevatedButton.styleFrom(
@@ -124,13 +124,13 @@ class SyncSection extends StatelessWidget {
     );
   }
 
-  String _getLastSyncText(SyncState syncState) {
+  String _getLastSyncText(BuildContext context, SyncState syncState) {
     if (syncState.lastSyncTime == null) {
-      return 'Never synced';
+      return context.l10n.neverSynced;
     }
 
     DateTime lastSyncTime = DateTime.parse(syncState.lastSyncTime!);
 
-    return 'Last synced: ${DateFormatUtils.getSincePretty(lastSyncTime)}';
+    return '${context.l10n.lastSynced}: ${DateFormatUtils.getSincePretty(lastSyncTime)}';
   }
 }

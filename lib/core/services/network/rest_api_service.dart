@@ -3,6 +3,7 @@ import 'package:health_wallet/core/config/constants/app_constants.dart';
 import 'package:health_wallet/core/config/exceptions/remote_exception.dart';
 import 'package:health_wallet/core/services/network/interceptors/access_token_interceptor.dart';
 import 'package:injectable/injectable.dart';
+import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 
 enum RestMethod { get, post, put, patch, delete }
 
@@ -126,10 +127,12 @@ class RestApiServiceImpl implements RestApiService {
     }
   }
 
-  RemoteException mapDioException(Object? exception) {
-    const String remoteGenericMessage = 'Something went wrong on the server';
-    const String remoteTimeoutMessage = 'Server timeout';
-    const String remoteConnectionMessage = 'Connection error';
+  RemoteException mapDioException(Object? exception, [AppLocalizations? l10n]) {
+    final String remoteGenericMessage =
+        l10n?.serverError ?? 'Something went wrong on the server';
+    final String remoteTimeoutMessage = l10n?.serverTimeout ?? 'Server timeout';
+    final String remoteConnectionMessage =
+        l10n?.connectionError ?? 'Connection error';
 
     if (exception is DioException) {
       switch (exception.type) {

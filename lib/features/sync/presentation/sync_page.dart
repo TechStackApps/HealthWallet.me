@@ -242,20 +242,20 @@ class _SyncPageState extends State<SyncPage> {
               children: [
                 Assets.icons.qrCode.svg(width: 16),
                 const SizedBox(width: 8),
-                const Text(
-                  "Scan code",
+                Text(
+                  context.l10n.scanCode,
                   style: AppTextStyle.buttonSmall,
                 )
               ],
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-          child: Text("or", style: AppTextStyle.labelLarge),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Text(context.l10n.or, style: AppTextStyle.labelLarge),
         ),
-        const Text(
-          "If you can’t scan the QR code, you can manually paste the sync data:",
+        Text(
+          context.l10n.manualSyncMessage,
           style: AppTextStyle.labelLarge,
           textAlign: TextAlign.center,
         ),
@@ -265,7 +265,7 @@ class _SyncPageState extends State<SyncPage> {
           style: AppTextStyle.labelLarge,
           controller: _manualCodeController,
           decoration: InputDecoration(
-            hintText: "Paste sync data here",
+            hintText: context.l10n.pasteSyncDataHint,
             hintStyle: AppTextStyle.labelLarge.copyWith(
                 color: context.isDarkMode
                     ? Colors.white
@@ -322,7 +322,7 @@ class _SyncPageState extends State<SyncPage> {
                       strokeWidth: 2,
                     ),
                   )
-                : Text("Connect",
+                : Text(context.l10n.connect,
                     style: AppTextStyle.buttonSmall
                         .copyWith(color: context.colorScheme.primary)),
           ),
@@ -462,7 +462,7 @@ class _SyncPageState extends State<SyncPage> {
               context.read<SyncBloc>().add(const SyncScanNewPressed());
             },
             icon: Icon(Icons.refresh, color: context.colorScheme.primary),
-            label: Text('Scan New QR Code',
+            label: Text(context.l10n.scanNewQRCode,
                 style: AppTextStyle.buttonSmall
                     .copyWith(color: context.colorScheme.primary)),
             style: OutlinedButton.styleFrom(

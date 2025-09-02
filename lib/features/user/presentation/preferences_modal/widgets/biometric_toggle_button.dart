@@ -16,75 +16,68 @@ class BiometricToggleButton extends StatelessWidget {
       builder: (context, state) {
         final isBiometricEnabled = state.isBiometricAuthEnabled;
 
-        return GestureDetector(
-          onTap: () {
-            context.read<UserBloc>().add(
-                  UserBiometricAuthToggled(!isBiometricEnabled),
-                );
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            width: 76,
-            height: 40,
-            padding: const EdgeInsets.all(Insets.extraSmall),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: borderColor),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    decoration: BoxDecoration(
-                      color: !isBiometricEnabled
-                          ? colorScheme.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'OFF',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: !isBiometricEnabled
-                              ? (context.isDarkMode
-                                  ? Colors.white
-                                  : colorScheme.onPrimary)
-                              : colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          width: 76,
+          height: 40,
+          padding: const EdgeInsets.all(Insets.extraSmall),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  decoration: BoxDecoration(
+                    color: !isBiometricEnabled
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'OFF',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: !isBiometricEnabled
+                            ? (context.isDarkMode
+                                ? Colors.white
+                                : colorScheme.onPrimary)
+                            : colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-                Expanded(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    decoration: BoxDecoration(
-                      color: isBiometricEnabled
-                          ? colorScheme.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'ON',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: isBiometricEnabled
-                              ? (context.isDarkMode
-                                  ? Colors.white
-                                  : colorScheme.onPrimary)
-                              : colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
+              ),
+              Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  decoration: BoxDecoration(
+                    color: isBiometricEnabled
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'ON',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: isBiometricEnabled
+                            ? (context.isDarkMode
+                                ? Colors.white
+                                : colorScheme.onPrimary)
+                            : colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

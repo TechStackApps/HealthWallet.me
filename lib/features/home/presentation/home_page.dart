@@ -224,7 +224,7 @@ class HomeViewState extends State<HomeView> {
                             style: TextButton.styleFrom(
                               foregroundColor: context.colorScheme.primary,
                             ),
-                            child: const Text('Done'),
+                            child: Text(context.l10n.done),
                           )
                         : Container(
                             width: 36,
@@ -333,7 +333,7 @@ class HomeViewState extends State<HomeView> {
                         children: [
                           HomeSectionHeader(
                             title: context.l10n.homeVitalSigns,
-                            filterLabel: editMode ? 'Vitals' : null,
+                            filterLabel: editMode ? context.l10n.vitals : null,
                             onFilterTap: editMode
                                 ? () =>
                                     HomeDialogController.showEditVitalsDialog(
@@ -350,8 +350,8 @@ class HomeViewState extends State<HomeView> {
                             isFilterDisabled: state.vitalsExpanded,
                             onInfoTap: () => SectionInfoModal.show(
                               context,
-                              'Vital Signs',
-                              'Long press to move & reorder cards, or filter to select which ones appear on your dashboard.',
+                              context.l10n.vitalSigns,
+                              context.l10n.longPressToReorder,
                             ),
                           ),
                           SizedBox(
@@ -397,7 +397,7 @@ class HomeViewState extends State<HomeView> {
                       Column(
                         children: [
                           HomeSectionHeader(
-                            title: 'Overview',
+                            title: context.l10n.overview,
                             subtitle: state.sources.isNotEmpty
                                 ? SourceSelectorWidget(
                                     sources: state.sources,
@@ -422,7 +422,7 @@ class HomeViewState extends State<HomeView> {
                                     },
                                   )
                                 : null,
-                            filterLabel: 'Records',
+                            filterLabel: context.l10n.records,
                             onFilterTap: () =>
                                 HomeDialogController.showEditRecordsDialog(
                               context,
@@ -436,8 +436,8 @@ class HomeViewState extends State<HomeView> {
                             isEditMode: editMode,
                             onInfoTap: () => SectionInfoModal.show(
                               context,
-                              'Overview',
-                              'Long press to move & reorder cards, or filter to select which ones appear on your dashboard.',
+                              context.l10n.overview,
+                              context.l10n.longPressToReorder,
                             ),
                           ),
                           SizedBox(
@@ -478,7 +478,7 @@ class HomeViewState extends State<HomeView> {
                       Column(
                         children: [
                           HomeSectionHeader(
-                            title: 'Recent records',
+                            title: context.l10n.recentRecords,
                             trailing: TextButton(
                               onPressed: () {
                                 widget.pageController.animateToPage(
@@ -495,7 +495,7 @@ class HomeViewState extends State<HomeView> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: Text(
-                                'View all',
+                                context.l10n.viewAll,
                                 style: AppTextStyle.labelLarge.copyWith(
                                   color: context.colorScheme.primary,
                                 ),

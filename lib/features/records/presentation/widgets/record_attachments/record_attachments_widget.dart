@@ -63,7 +63,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Attachments",
+                        Text(context.l10n.attachments,
                             style: context.textTheme.bodyMedium ??
                                 AppTextStyle.bodyMedium),
                         IconButton(
@@ -77,11 +77,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     ),
                   ),
                   if (state.attachments.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: const EdgeInsets.all(16),
                       child: Center(
                         child: Text(
-                          "This record has no files attached",
+                          context.l10n.noFilesAttached,
                           style: AppTextStyle.labelLarge,
                         ),
                       ),
@@ -124,7 +124,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                           Assets.icons.attachment
                               .svg(width: 16, color: Colors.white),
                           const SizedBox(width: 4),
-                          const Text("Attach file",
+                          Text(context.l10n.attachFile,
                               style: AppTextStyle.buttonSmall),
                         ],
                       ),
@@ -245,7 +245,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                           const SizedBox(width: Insets.small),
                           Expanded(
                             child: Text(
-                              'This action cannot be undone.',
+                              context.l10n.actionCannotBeUndone,
                               style: AppTextStyle.bodySmall.copyWith(
                                 color: context.colorScheme.error ?? Colors.red,
                                 fontWeight: FontWeight.w500,

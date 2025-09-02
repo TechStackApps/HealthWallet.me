@@ -117,6 +117,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             final didAuthenticate = await _biometricAuthService.authenticate();
             if (didAuthenticate) {
               await _userRepository.saveBiometricAuth(true);
+
               emit(
                 state.copyWith(
                   status: const UserStatus.success(),
@@ -150,6 +151,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         }
       } else {
         await _userRepository.saveBiometricAuth(false);
+
         emit(
           state.copyWith(
             status: const UserStatus.success(),

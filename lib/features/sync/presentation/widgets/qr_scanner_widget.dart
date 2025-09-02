@@ -50,7 +50,7 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Scan the QR code from your Fasten Health server to create a new sync connection.',
+            context.l10n.scanQRMessage,
             style: AppTextStyle.labelLarge,
             textAlign: TextAlign.center,
           ),
@@ -108,7 +108,7 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
                                   });
                                   _controller.start();
                                 },
-                                child: const Text('Retry'),
+                                child: Text(context.l10n.retry),
                               ),
                             ],
                           ),
@@ -142,7 +142,7 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
                 ),
               ),
               child: Text(
-                widget.cancelButtonText ?? 'Cancel',
+                widget.cancelButtonText ?? context.l10n.cancel,
                 style: AppTextStyle.buttonSmall
                     .copyWith(color: context.colorScheme.primary),
               ),

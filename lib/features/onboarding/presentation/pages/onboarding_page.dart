@@ -1,14 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:health_wallet/features/onboarding/presentation/models/onboarding_screen_data.dart';
 import 'package:health_wallet/features/onboarding/presentation/widgets/onboarding_navigation.dart';
 import 'package:health_wallet/features/onboarding/presentation/widgets/onboarding_screen.dart';
-import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 @RoutePage()
@@ -46,15 +44,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<OnboardingBloc>(
-          create: (context) => OnboardingBloc(),
-        ),
-        BlocProvider<UserBloc>(
-          create: (context) => getIt<UserBloc>(),
-        ),
-      ],
+    return BlocProvider<OnboardingBloc>(
+      create: (context) => OnboardingBloc(),
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {
           return Scaffold(

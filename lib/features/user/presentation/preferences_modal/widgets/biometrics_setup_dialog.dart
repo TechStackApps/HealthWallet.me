@@ -43,7 +43,7 @@ class BiometricsSetupDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Set Up Device Security',
+                    context.l10n.setupDeviceSecurity,
                     style: AppTextStyle.bodyMedium.copyWith(
                       color: textColor,
                       fontWeight: FontWeight.w600,
@@ -78,23 +78,24 @@ class BiometricsSetupDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Your device has no security setup. For your safety, please set up device security before using this app:',
+                    context.l10n.deviceSecurityMessage,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: textColor,
                       height: 1.4,
                     ),
                   ),
                   const SizedBox(height: Insets.medium),
-                  _buildSetupStep(context, '1', 'Go to your device Settings'),
                   _buildSetupStep(
-                      context, '2', 'Navigate to Security or Lock screen'),
-                  _buildSetupStep(context, '3',
-                      'Set up a screen lock (PIN, pattern, or password)'),
-                  _buildSetupStep(context, '4',
-                      'Optionally add fingerprint or face unlock for convenience'),
+                      context, '1', context.l10n.deviceSettingsStep1),
+                  _buildSetupStep(
+                      context, '2', context.l10n.deviceSettingsStep2),
+                  _buildSetupStep(
+                      context, '3', context.l10n.deviceSettingsStep3),
+                  _buildSetupStep(
+                      context, '4', context.l10n.deviceSettingsStep4),
                   const SizedBox(height: Insets.medium),
                   Text(
-                    'After setting up device security, return to this app and try again.',
+                    context.l10n.deviceSecurityReturnMessage,
                     style: AppTextStyle.labelLarge.copyWith(
                       color: iconColor,
                       fontStyle: FontStyle.italic,
@@ -116,7 +117,7 @@ class BiometricsSetupDialog extends StatelessWidget {
                         foregroundColor: context.colorScheme.primary,
                       ),
                       child: Text(
-                        'Cancel',
+                        context.l10n.cancel,
                         style: AppTextStyle.buttonMedium,
                       ),
                     ),
@@ -135,19 +136,16 @@ class BiometricsSetupDialog extends StatelessWidget {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('Settings Not Available'),
-                                  content: const Text(
-                                    'Could not open device settings automatically. Please manually:\n\n'
-                                    '1. Open Settings\n'
-                                    '2. Go to Security → Biometrics\n'
-                                    '3. Add fingerprint or face unlock\n'
-                                    '4. Return to this app and try again',
+                                  title:
+                                      Text(context.l10n.settingsNotAvailable),
+                                  content: Text(
+                                    context.l10n.settingsNotAvailableMessage,
                                   ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(),
-                                      child: const Text('OK'),
+                                      child: Text(context.l10n.ok),
                                     ),
                                   ],
                                 ),
@@ -167,7 +165,7 @@ class BiometricsSetupDialog extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Open Settings',
+                        context.l10n.openSettings,
                         style: AppTextStyle.buttonMedium.copyWith(
                           color: Colors.white,
                         ),

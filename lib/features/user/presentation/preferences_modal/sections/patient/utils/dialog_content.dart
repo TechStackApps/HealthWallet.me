@@ -4,6 +4,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'date_field.dart';
 import 'form_fields.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class DialogContent extends StatelessWidget {
   final Patient patient;
@@ -43,7 +44,7 @@ class DialogContent extends StatelessWidget {
                   .copyWith(fontWeight: FontWeight.w500)),
           const SizedBox(height: Insets.medium),
           DateField(
-            label: 'Age',
+            label: context.l10n.age,
             selectedDate: selectedBirthDate,
             onDateChanged: onBirthDateChanged,
             iconColor: iconColor,
@@ -51,7 +52,7 @@ class DialogContent extends StatelessWidget {
           const SizedBox(height: Insets.normal),
           FormFields.buildDropdownField(
             context,
-            'Gender',
+            context.l10n.sex,
             selectedGender,
             genderOptions,
             onGenderChanged,
@@ -59,7 +60,7 @@ class DialogContent extends StatelessWidget {
           const SizedBox(height: Insets.normal),
           FormFields.buildDropdownField(
             context,
-            'Blood type',
+            context.l10n.bloodType,
             selectedBloodType,
             bloodTypeOptions,
             onBloodTypeChanged,

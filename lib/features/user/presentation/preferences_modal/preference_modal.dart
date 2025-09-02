@@ -66,8 +66,8 @@ class PreferenceModal extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Preferences',
+                  Text(
+                    context.l10n.preferences,
                     style: AppTextStyle.bodyMedium,
                   ),
                   Container(
@@ -117,7 +117,7 @@ class PreferenceModal extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: Insets.normal),
                               child: Text(
-                                'Version: v${snap.data!.version} (${snap.data!.buildNumber})',
+                                '${context.l10n.version}: v${snap.data!.version} (${snap.data!.buildNumber})',
                                 style: AppTextStyle.labelSmall.copyWith(
                                   color: context.colorScheme.onSurface
                                       .withOpacity(0.5),

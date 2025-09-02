@@ -4,6 +4,7 @@ import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/core/utils/blood_observation_utils.dart';
 import 'package:health_wallet/core/utils/logger.dart';
+import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 
 class PatientEditService {
   final RecordsRepository _recordsRepository;
@@ -93,6 +94,7 @@ class PatientEditService {
     required DateTime? newBirthDate,
     required String newGender,
     required String newBloodType,
+    required AppLocalizations l10n,
   }) async {
     final currentBirthDate =
         FhirFieldExtractor.extractPatientBirthDate(currentPatient);
@@ -101,22 +103,22 @@ class PatientEditService {
     final currentBloodType = await getCurrentBloodType(currentPatient);
 
     final birthDateChanged = currentBirthDate != newBirthDate;
-    final genderChanged = _mapGenderToDisplay(currentGender) != newGender;
+    final genderChanged = _mapGenderToDisplay(currentGender, l10n) != newGender;
     final bloodTypeChanged = currentBloodType != newBloodType;
 
     return birthDateChanged || genderChanged || bloodTypeChanged;
   }
 
-  String _mapGenderToDisplay(String? fhirGender) {
-    if (fhirGender == null) return 'Prefer not to say';
+  String _mapGenderToDisplay(String? fhirGender, AppLocalizations l10n) {
+    if (fhirGender == null) return l10n.preferNotToSay;
 
     switch (fhirGender.toLowerCase()) {
       case 'male':
-        return 'Male';
+        return l10n.male;
       case 'female':
-        return 'Female';
+        return l10n.female;
       default:
-        return 'Prefer not to say';
+        return l10n.preferNotToSay;
     }
   }
 

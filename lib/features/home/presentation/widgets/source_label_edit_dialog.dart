@@ -76,7 +76,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating source label: $e'),
+            content: Text('${context.l10n.errorUpdatingSourceLabel}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -138,7 +138,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                         ),
                       ),
                       const SizedBox(width: Insets.small),
-                      Text('Edit source label',
+                      Text(context.l10n.editSourceLabel,
                           style: AppTextStyle.bodySmall
                               .copyWith(fontWeight: FontWeight.w500)),
                     ],
@@ -168,7 +168,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Provide a custom label for:',
+                    context.l10n.provideCustomLabel,
                     style: AppTextStyle.bodyMedium.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -184,7 +184,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: Insets.smaller),
                     child: Text(
-                      'Source name',
+                      context.l10n.sourceName,
                       style: AppTextStyle.bodySmall.copyWith(
                         color: context.isDarkMode
                             ? AppColors.textPrimaryDark
@@ -196,7 +196,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                     controller: _controller,
                     focusNode: _focusNode,
                     decoration: InputDecoration(
-                      hintText: 'Please enter a source name',
+                      hintText: context.l10n.pleaseEnterSourceName,
                       hintStyle: AppTextStyle.labelLarge.copyWith(
                         color: context.isDarkMode
                             ? AppColors.textSecondaryDark
@@ -279,8 +279,8 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6)),
                       ),
-                      child:
-                          const Text('Cancel', style: AppTextStyle.buttonSmall),
+                      child: Text(context.l10n.cancel,
+                          style: AppTextStyle.buttonSmall),
                     ),
                   ),
                   const SizedBox(width: Insets.small),
@@ -306,7 +306,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                                     AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text('Save details',
+                          : Text(context.l10n.saveDetails,
                               style: AppTextStyle.buttonSmall),
                     ),
                   ),

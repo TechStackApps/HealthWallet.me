@@ -96,8 +96,8 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('de'),
-    Locale('es')
+    Locale('es'),
+    Locale('de')
   ];
 
   /// The title of the application
@@ -157,7 +157,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'All your data into your phone from 100k+ insurances/hospitals/clinics from USA. Secured. Compliant, always only on your device!'**
+  /// **'Securely access your complete medical history with <link>HealthWallet.me</link>. Connect to over 100,000 US healthcare institutions or add records by sharing directly with the app or scan documents. Your health data is private, compliant, and stored only on your device.'**
   String get onboardingWelcomeSubtitle;
 
   /// No description provided for @onboardingWelcomeDescription.
@@ -169,19 +169,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingRecordsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Synchronization'**
+  /// **'Your Health, Always in Sync'**
   String get onboardingRecordsTitle;
 
   /// No description provided for @onboardingRecordsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Health, Up-To-Date'**
+  /// **'**Keep your medical history effortlessly up-to-date with both automatic and manual options.**'**
   String get onboardingRecordsSubtitle;
 
   /// No description provided for @onboardingRecordsDescription.
   ///
   /// In en, this message translates to:
-  /// **'A single scan is all it takes to keep your health records up-to-date.'**
+  /// **'<link>HealthWallet.me</link> ensures your complete health history is always up-to-date. It automatically syncs new records from connected providers and lets you instantly add physical documents with a quick scan.'**
   String get onboardingRecordsDescription;
 
   /// No description provided for @onboardingScanButton.
@@ -193,25 +193,25 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Security & Privacy'**
+  /// **'Private by Design'**
   String get onboardingSyncTitle;
 
   /// No description provided for @onboardingSyncSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your Data, Your Control'**
+  /// **'Your health data belongs only to you.'**
   String get onboardingSyncSubtitle;
 
   /// No description provided for @onboardingSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Your health data is stored locally on your phone and never leaves your device without your permission.'**
+  /// **'We believe your sensitive health information should never sit on a company server. Your data is encrypted and stored exclusively on your device, meaning you are the only one with access.'**
   String get onboardingSyncDescription;
 
   /// No description provided for @onboardingBiometricText.
   ///
   /// In en, this message translates to:
-  /// **'Add an extra layer of security by enabling biometric authentication.'**
+  /// **'You can lock your HealthWallet with biometric security like Face ID or a fingerprint scan.'**
   String get onboardingBiometricText;
 
   /// No description provided for @homeHi.
@@ -465,6 +465,708 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacyPolicy;
+
+  /// No description provided for @setupDeviceSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Up Device Security'**
+  String get setupDeviceSecurity;
+
+  /// No description provided for @deviceSecurityMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device has no security setup. For your safety, please set up device security before using this app:'**
+  String get deviceSecurityMessage;
+
+  /// No description provided for @deviceSettingsStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to your device Settings'**
+  String get deviceSettingsStep1;
+
+  /// No description provided for @deviceSettingsStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to Security or Lock screen'**
+  String get deviceSettingsStep2;
+
+  /// No description provided for @deviceSettingsStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a screen lock (PIN, pattern, or password)'**
+  String get deviceSettingsStep3;
+
+  /// No description provided for @deviceSettingsStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Optionally add fingerprint or face unlock for convenience'**
+  String get deviceSettingsStep4;
+
+  /// No description provided for @deviceSecurityReturnMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'After setting up device security, return to this app and try again.'**
+  String get deviceSecurityReturnMessage;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// No description provided for @settingsNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings Not Available'**
+  String get settingsNotAvailable;
+
+  /// No description provided for @settingsNotAvailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open device settings automatically. Please manually:\n\n1. Open Settings\n2. Go to Security → Biometrics\n3. Add fingerprint or face unlock\n4. Return to this app and try again'**
+  String get settingsNotAvailableMessage;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @scanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan code'**
+  String get scanCode;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get or;
+
+  /// No description provided for @manualSyncMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'If you can\'t scan the QR code, you can manually paste the sync data:'**
+  String get manualSyncMessage;
+
+  /// No description provided for @pasteSyncDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste sync data here'**
+  String get pasteSyncDataHint;
+
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
+  /// No description provided for @scanNewQRCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan New QR Code'**
+  String get scanNewQRCode;
+
+  /// No description provided for @loadDemoData.
+  ///
+  /// In en, this message translates to:
+  /// **'Load Demo Data'**
+  String get loadDemoData;
+
+  /// No description provided for @syncData.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Data'**
+  String get syncData;
+
+  /// No description provided for @noMedicalRecordsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No medical records yet'**
+  String get noMedicalRecordsYet;
+
+  /// No description provided for @noRecordTypeYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No {recordType} yet'**
+  String noRecordTypeYet(Object recordType);
+
+  /// No description provided for @loadDemoDataMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Load demo data to explore the app or sync your real medical records'**
+  String get loadDemoDataMessage;
+
+  /// No description provided for @syncDataMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync or update your data to view {recordType} records'**
+  String syncDataMessage(Object recordType);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @pleaseEnterSourceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a source name'**
+  String get pleaseEnterSourceName;
+
+  /// No description provided for @selectBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select birth date'**
+  String get selectBirthDate;
+
+  /// No description provided for @years.
+  ///
+  /// In en, this message translates to:
+  /// **'years'**
+  String get years;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @preferNotToSay.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get preferNotToSay;
+
+  /// No description provided for @errorUpdatingSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating source label'**
+  String get errorUpdatingSourceLabel;
+
+  /// No description provided for @noChangesDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes detected'**
+  String get noChangesDetected;
+
+  /// No description provided for @pleaseSelectBirthDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a birth date'**
+  String get pleaseSelectBirthDate;
+
+  /// No description provided for @errorSavingPatientData.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving patient data'**
+  String get errorSavingPatientData;
+
+  /// No description provided for @failedToUpdateDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update display name'**
+  String get failedToUpdateDisplayName;
+
+  /// No description provided for @actionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get actionCannotBeUndone;
+
+  /// No description provided for @confirmDeleteFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{filename}\"?'**
+  String confirmDeleteFile(Object filename);
+
+  /// No description provided for @selectAtLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one {type} to continue.'**
+  String selectAtLeastOne(Object type);
+
+  /// No description provided for @editSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit source label'**
+  String get editSourceLabel;
+
+  /// No description provided for @saveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Save details'**
+  String get saveDetails;
+
+  /// No description provided for @editDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get editDetails;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachments;
+
+  /// No description provided for @noFilesAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'This record has no files attached'**
+  String get noFilesAttached;
+
+  /// No description provided for @attachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach file'**
+  String get attachFile;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @recentRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent records'**
+  String get recentRecords;
+
+  /// No description provided for @chooseToDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the {type} you want to see on your dashboard.'**
+  String chooseToDisplay(Object type);
+
+  /// No description provided for @displayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get displayName;
+
+  /// No description provided for @bloodTypeAPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'A positive'**
+  String get bloodTypeAPositive;
+
+  /// No description provided for @bloodTypeANegative.
+  ///
+  /// In en, this message translates to:
+  /// **'A negative'**
+  String get bloodTypeANegative;
+
+  /// No description provided for @bloodTypeBPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'B positive'**
+  String get bloodTypeBPositive;
+
+  /// No description provided for @bloodTypeBNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'B negative'**
+  String get bloodTypeBNegative;
+
+  /// No description provided for @bloodTypeABPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'AB positive'**
+  String get bloodTypeABPositive;
+
+  /// No description provided for @bloodTypeABNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'AB negative'**
+  String get bloodTypeABNegative;
+
+  /// No description provided for @bloodTypeOPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'O positive'**
+  String get bloodTypeOPositive;
+
+  /// No description provided for @bloodTypeONegative.
+  ///
+  /// In en, this message translates to:
+  /// **'O negative'**
+  String get bloodTypeONegative;
+
+  /// No description provided for @serverError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong on the server'**
+  String get serverError;
+
+  /// No description provided for @serverTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Server timeout'**
+  String get serverTimeout;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection error'**
+  String get connectionError;
+
+  /// No description provided for @unknownSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Source'**
+  String get unknownSource;
+
+  /// No description provided for @synchronization.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get synchronization;
+
+  /// No description provided for @syncMedicalRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Medical records'**
+  String get syncMedicalRecords;
+
+  /// No description provided for @syncLatestMedicalRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync your latest medical records from your healthcare provider using a secure JWT token.'**
+  String get syncLatestMedicalRecords;
+
+  /// No description provided for @neverSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get neverSynced;
+
+  /// No description provided for @lastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced'**
+  String get lastSynced;
+
+  /// No description provided for @tapToSelectPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select patient'**
+  String get tapToSelectPatient;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
+  /// No description provided for @on.
+  ///
+  /// In en, this message translates to:
+  /// **'ON'**
+  String get on;
+
+  /// No description provided for @off.
+  ///
+  /// In en, this message translates to:
+  /// **'OFF'**
+  String get off;
+
+  /// No description provided for @confirmDisableBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you would like to disable the Biometric Auth (FaceID / Passcode)?'**
+  String get confirmDisableBiometric;
+
+  /// No description provided for @disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get disable;
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStarted;
+
+  /// No description provided for @enableBiometricAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Biometric Auth (FaceID / Passcode)'**
+  String get enableBiometricAuth;
+
+  /// No description provided for @disableBiometricAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Biometric Auth (FaceID / Passcode)'**
+  String get disableBiometricAuth;
+
+  /// No description provided for @confirmDisableBiometricOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to disable biometric authentication?'**
+  String get confirmDisableBiometricOnboarding;
+
+  /// No description provided for @patient.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient'**
+  String get patient;
+
+  /// No description provided for @noPatientsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No patients found'**
+  String get noPatientsFound;
+
+  /// No description provided for @id.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get id;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get source;
+
+  /// No description provided for @showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show All'**
+  String get showAll;
+
+  /// No description provided for @records.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get records;
+
+  /// No description provided for @vitals.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitals'**
+  String get vitals;
+
+  /// No description provided for @selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectAll;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @noRecordsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No records found'**
+  String get noRecordsFound;
+
+  /// No description provided for @tryDifferentKeywords.
+  ///
+  /// In en, this message translates to:
+  /// **'Try searching with different keywords'**
+  String get tryDifferentKeywords;
+
+  /// No description provided for @clearAllFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllFilters;
+
+  /// No description provided for @syncingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing data'**
+  String get syncingData;
+
+  /// No description provided for @syncingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It might take a while. Please wait.'**
+  String get syncingMessage;
+
+  /// No description provided for @scanQRMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code from your Fasten Health server to create a new sync connection.'**
+  String get scanQRMessage;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
+
+  /// No description provided for @vitalSigns.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital Signs'**
+  String get vitalSigns;
+
+  /// No description provided for @longPressToReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press to move & reorder cards, or filter to select which ones appear on your dashboard.'**
+  String get longPressToReorder;
+
+  /// No description provided for @effectiveDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Effective Date'**
+  String get effectiveDate;
+
+  /// No description provided for @privacyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy is our highest priority.'**
+  String get privacyIntro;
+
+  /// No description provided for @privacyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'is a simple, secure tool designed to help you organize your health records at ease, directly on your device. This policy explains our commitment to your privacy: we do not collect your data, and we do not track you. You are in complete control.'**
+  String get privacyDescription;
+
+  /// No description provided for @corePrinciple.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Core Principle: Your Data Stays on Your Device'**
+  String get corePrinciple;
+
+  /// No description provided for @whatInformationHandled.
+  ///
+  /// In en, this message translates to:
+  /// **'What Information is Handled?'**
+  String get whatInformationHandled;
+
+  /// No description provided for @informationWeDoNotCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Information We Do Not Collect or Access'**
+  String get informationWeDoNotCollect;
+
+  /// No description provided for @informationYouManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Information You Manage'**
+  String get informationYouManage;
+
+  /// No description provided for @importingDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing Documents from Your Device'**
+  String get importingDocuments;
+
+  /// No description provided for @connectingFastenHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to FastenHealth OnPrem'**
+  String get connectingFastenHealth;
+
+  /// No description provided for @howInformationUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'How Your Information is Used'**
+  String get howInformationUsed;
+
+  /// No description provided for @dataStorageSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Storage, Security, and Sharing'**
+  String get dataStorageSecurity;
+
+  /// No description provided for @childrensPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Children\'s Privacy'**
+  String get childrensPrivacy;
+
+  /// No description provided for @changesToPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes to This Privacy Policy'**
+  String get changesToPolicy;
+
+  /// No description provided for @contactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get contactUs;
+
+  /// No description provided for @builtWithLove.
+  ///
+  /// In en, this message translates to:
+  /// **'Built with love by Life Value!'**
+  String get builtWithLove;
+
+  /// No description provided for @sourceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Source name'**
+  String get sourceName;
+
+  /// No description provided for @provideCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide a custom label for:'**
+  String get provideCustomLabel;
 }
 
 class _AppLocalizationsDelegate

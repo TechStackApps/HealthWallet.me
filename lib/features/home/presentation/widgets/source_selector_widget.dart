@@ -43,14 +43,14 @@ class SourceSelectorWidget extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Source: ',
+                  '${context.l10n.source}: ',
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface,
                   ),
                 ),
                 Flexible(
                   child: Text(
-                    _getSourceDisplayName(source),
+                    _getSourceDisplayName(context, source),
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w500,
@@ -88,7 +88,7 @@ class SourceSelectorWidget extends StatelessWidget {
                     onSourceChanged(newValue);
                   }
                 },
-                items: _buildDropdownItems(patientSources, textTheme),
+                items: _buildDropdownItems(context, patientSources, textTheme),
               ),
             ),
           ],
@@ -98,7 +98,7 @@ class SourceSelectorWidget extends StatelessWidget {
   }
 
   /// Get the display name for a source (labelSource > name > id)
-  String _getSourceDisplayName(Source source) {
+  String _getSourceDisplayName(BuildContext context, Source source) {
     if (source.labelSource?.isNotEmpty == true) {
       return source.labelSource!;
     }
@@ -107,7 +107,7 @@ class SourceSelectorWidget extends StatelessWidget {
     }
     // If source ID is too long, don't display it
     if (source.id.length > 20) {
-      return 'Unknown Source';
+      return context.l10n.unknownSource;
     }
     return source.id;
   }
@@ -143,6 +143,7 @@ class SourceSelectorWidget extends StatelessWidget {
 
   /// Build dropdown items for multiple sources
   List<DropdownMenuItem<String>> _buildDropdownItems(
+    BuildContext context,
     List<Source> patientSources,
     TextTheme textTheme,
   ) {
@@ -151,7 +152,7 @@ class SourceSelectorWidget extends StatelessWidget {
       return DropdownMenuItem<String>(
         value: source.id,
         child: Text(
-          _getSourceDisplayName(source),
+          _getSourceDisplayName(context, source),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
           style: textTheme.bodySmall,

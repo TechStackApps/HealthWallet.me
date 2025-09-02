@@ -291,7 +291,7 @@ class _RecordsViewState extends State<RecordsView> {
                                       .read<RecordsBloc>()
                                       .add(RecordsFiltersApplied([])),
                                   child: Text(
-                                    'Clear all',
+                                    context.l10n.clearAllFilters,
                                     style: AppTextStyle.labelMedium.copyWith(
                                       color: AppColors.primary,
                                     ),
@@ -345,14 +345,14 @@ class _RecordsViewState extends State<RecordsView> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No records found',
+                                  context.l10n.noRecordsFound,
                                   style: AppTextStyle.titleMedium.copyWith(
                                     color: context.colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Try searching with different keywords',
+                                  context.l10n.tryDifferentKeywords,
                                   style: AppTextStyle.bodyMedium.copyWith(
                                     color: context.colorScheme.onSurface
                                         .withOpacity(0.6),

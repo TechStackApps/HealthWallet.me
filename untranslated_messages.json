@@ -1,17 +1,1 @@
-{
-  "de": [
-    "onboardingAuthTitle",
-    "onboardingAuthDescription",
-    "onboardingAuthEnable",
-    "onboardingAuthSkip",
-    "biometricAuthentication"
-  ],
-
-  "es": [
-    "onboardingAuthTitle",
-    "onboardingAuthDescription",
-    "onboardingAuthEnable",
-    "onboardingAuthSkip",
-    "biometricAuthentication"
-  ]
-}
+{}

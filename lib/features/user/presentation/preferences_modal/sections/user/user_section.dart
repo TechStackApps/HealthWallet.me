@@ -64,7 +64,7 @@ class _UserSectionState extends State<UserSection> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Failed to update display name: ${state.status.toString()}'),
+                  '${context.l10n.failedToUpdateDisplayName}: ${state.status.toString()}'),
               backgroundColor: context.colorScheme.error,
             ),
           );
@@ -99,7 +99,7 @@ class _UserSectionState extends State<UserSection> {
                         ),
                         const SizedBox(width: Insets.extraSmall),
                         Text(
-                          'Display name',
+                          context.l10n.displayName,
                           style: AppTextStyle.labelMedium.copyWith(
                             color: iconColor,
                           ),

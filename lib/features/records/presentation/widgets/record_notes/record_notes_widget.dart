@@ -358,7 +358,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                           const SizedBox(width: Insets.small),
                           Expanded(
                             child: Text(
-                              'This action cannot be undone.',
+                              context.l10n.actionCannotBeUndone,
                               style: AppTextStyle.bodySmall.copyWith(
                                 color: context.colorScheme.error ?? Colors.red,
                                 fontWeight: FontWeight.w500,

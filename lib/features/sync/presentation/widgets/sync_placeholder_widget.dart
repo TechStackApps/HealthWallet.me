@@ -64,7 +64,7 @@ class SyncPlaceholderWidget extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            _getTitle(hasAnyMeaningfulData),
+            _getTitle(context, hasAnyMeaningfulData),
             style: AppTextStyle.titleLarge.copyWith(
               color: context.colorScheme.onSurface,
             ),
@@ -72,7 +72,7 @@ class SyncPlaceholderWidget extends StatelessWidget {
           ),
           const SizedBox(height: Insets.medium),
           Text(
-            _getSubtitle(hasAnyMeaningfulData),
+            _getSubtitle(context, hasAnyMeaningfulData),
             style: AppTextStyle.bodyMedium.copyWith(
               color: context.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
@@ -101,7 +101,7 @@ class SyncPlaceholderWidget extends StatelessWidget {
                       const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
                 label: Text(
-                  'Load Demo Data',
+                  context.l10n.loadDemoData,
                   style: AppTextStyle.buttonMedium.copyWith(
                     color: Colors.white,
                   ),
@@ -136,7 +136,7 @@ class SyncPlaceholderWidget extends StatelessWidget {
                           const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                     ),
                     label: Text(
-                      'Sync Data',
+                      context.l10n.syncData,
                       style: AppTextStyle.buttonMedium.copyWith(
                         color: Colors.white,
                       ),
@@ -168,7 +168,7 @@ class SyncPlaceholderWidget extends StatelessWidget {
                       ),
                     ),
                     label: Text(
-                      'Sync Data',
+                      context.l10n.syncData,
                       style: AppTextStyle.buttonMedium.copyWith(
                         color: context.isDarkMode
                             ? Colors.white
@@ -182,18 +182,18 @@ class SyncPlaceholderWidget extends StatelessWidget {
     );
   }
 
-  String _getTitle(bool hasAnyMeaningfulData) {
+  String _getTitle(BuildContext context, bool hasAnyMeaningfulData) {
     if (hasAnyMeaningfulData && recordTypeName != null) {
       return 'No $recordTypeName yet';
     }
-    return 'No medical records yet';
+    return context.l10n.noMedicalRecordsYet;
   }
 
-  String _getSubtitle(bool hasAnyMeaningfulData) {
+  String _getSubtitle(BuildContext context, bool hasAnyMeaningfulData) {
     if (hasAnyMeaningfulData && recordTypeName != null) {
       return 'Sync or update your data to view $recordTypeName records';
     }
-    return 'Load demo data to explore the app or sync your real medical records';
+    return context.l10n.loadDemoDataMessage;
   }
 
   void _handleLoadDemoData(BuildContext context) {

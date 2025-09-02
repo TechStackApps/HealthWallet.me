@@ -48,7 +48,7 @@ class SyncLoadingWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Syncing data',
+                  context.l10n.syncingData,
                   style: AppTextStyle.bodyMedium.copyWith(
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.14,
@@ -57,7 +57,7 @@ class SyncLoadingWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'It might take a while. Please wait.',
+                  context.l10n.syncingMessage,
                   style: AppTextStyle.labelLarge.copyWith(
                     fontWeight: FontWeight.w400,
                   ),
@@ -84,7 +84,7 @@ class SyncLoadingWidget extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  cancelButtonText ?? 'Cancel',
+                  cancelButtonText ?? context.l10n.cancel,
                   style: AppTextStyle.buttonSmall
                       .copyWith(color: context.colorScheme.primary),
                 ),
