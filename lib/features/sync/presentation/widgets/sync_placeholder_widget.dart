@@ -239,10 +239,14 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
           context.router.pop();
         }
 
-        // Trigger onboarding after navigation
+        // Trigger onboarding after navigation only for demo data
         Future.delayed(const Duration(milliseconds: 2000), () {
           if (context.mounted) {
-            context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
+            final syncState = context.read<SyncBloc>().state;
+            // Only show onboarding if it's demo data, not real sync data
+            if (syncState.hasDemoData && !syncState.hasSyncData) {
+              context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
+            }
           }
         });
       },

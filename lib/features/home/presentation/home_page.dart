@@ -58,7 +58,6 @@ class HomePage extends StatelessWidget {
         ),
         BlocListener<SyncBloc, SyncState>(
           listenWhen: (previous, current) {
-            // Listen for both sync completion and demo data completion
             return (previous.syncStatus != current.syncStatus &&
                     current.syncStatus == SyncStatus.synced &&
                     current.justCompleted) ||
@@ -68,18 +67,13 @@ class HomePage extends StatelessWidget {
                     current.justCompleted);
           },
           listener: (context, syncState) {
-            // Handle sync completion
             if (syncState.syncStatus == SyncStatus.synced &&
-                syncState.justCompleted) {
-              // Sync completed - success dialog already shown in sync page
-              // No additional action needed here
-            }
+                syncState.justCompleted) {}
 
-            // Handle demo data completion
             if (!syncState.isLoadingDemoData &&
                 syncState.hasDemoData &&
-                syncState.justCompleted) {
-              // Demo data completed - trigger onboarding overlay after a delay
+                syncState.justCompleted &&
+                !syncState.hasSyncData) {
               Future.delayed(const Duration(milliseconds: 1000), () {
                 if (context.mounted) {
                   try {
