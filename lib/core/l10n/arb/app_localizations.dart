@@ -1167,6 +1167,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Provide a custom label for:'**
   String get provideCustomLabel;
+
+  /// No description provided for @success.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get success;
+
+  /// No description provided for @demoDataLoadedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo data has been loaded successfully. You will be redirected to the home page.'**
+  String get demoDataLoadedSuccessfully;
 }
 
 class _AppLocalizationsDelegate

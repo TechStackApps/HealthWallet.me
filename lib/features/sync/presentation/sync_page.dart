@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +7,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/utils/date_format_utils.dart';
+import 'package:health_wallet/core/widgets/success_dialog.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/qr_scanner_widget.dart';
@@ -63,81 +63,6 @@ class _SyncPageState extends State<SyncPage> {
         ),
         body: _buildQRCodeTab(context),
       ),
-    );
-  }
-
-  Future<void> _showSuccessDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        final textColor = context.isDarkMode
-            ? AppColors.textPrimaryDark
-            : AppColors.textPrimary;
-        final borderColor =
-            context.isDarkMode ? AppColors.borderDark : AppColors.border;
-
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(Insets.normal),
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderColor, width: 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(Insets.normal),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Success title
-                    Text(
-                      'Success',
-                      style: AppTextStyle.titleLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: Insets.normal),
-                    // Content
-                    Text(
-                      'Your medical records have been synchronized. You will be redirected to the home page.',
-                      style: AppTextStyle.labelLarge.copyWith(color: textColor),
-                    ),
-
-                    const SizedBox(height: Insets.normal),
-
-                    // Action button
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(8),
-                        fixedSize: const Size.fromHeight(36),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'OK',
-                        style: AppTextStyle.buttonSmall.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -487,17 +412,27 @@ class _SyncPageState extends State<SyncPage> {
 
     final syncBloc = context.read<SyncBloc>();
 
-    _showSuccessDialog(context).then((_) {
-      context.router.pushAndPopUntil(
-        const DashboardRoute(),
-        predicate: (_) => false,
-      );
+    SuccessDialog.show(
+      context: context,
+      title: 'Success',
+      message:
+          'Your medical records have been synchronized. You will be redirected to the home page.',
+      onOkPressed: () {
+        context.router.pushAndPopUntil(
+          const DashboardRoute(),
+          predicate: (_) => false,
+        );
 
-      if (!onboardingShown) {
-        Future.delayed(const Duration(milliseconds: 800), () {
-          syncBloc.add(const OnboardingOverlayTriggered());
-        });
-      }
-    });
+        if (!onboardingShown) {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            try {
+              syncBloc.add(const OnboardingOverlayTriggered());
+            } catch (e) {
+              // Handle any errors silently
+            }
+          });
+        }
+      },
+    );
   }
 }

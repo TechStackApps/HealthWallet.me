@@ -195,5 +195,7 @@
     "builtWithLove": "¡Construido con amor por Life Value!",
     
     "sourceName": "Nombre de fuente",
-    "provideCustomLabel": "Proporciona una etiqueta personalizada para:"
+    "provideCustomLabel": "Proporciona una etiqueta personalizada para:",
+    "success": "Éxito",
+    "demoDataLoadedSuccessfully": "Los datos de demostración se han cargado exitosamente. Serás redirigido a la página de inicio."
 }

@@ -35,32 +35,26 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   Future<void> _onLaunchUrl(
       OnboardingLaunchUrl event, Emitter<OnboardingState> emit) async {
-    print('OnboardingBloc: Launching URL: ${event.url}');
     emit(state.copyWith(isLaunchingUrl: true));
 
     try {
       final url = Uri.parse(event.url);
-      print('OnboardingBloc: Parsed URL: $url');
       if (await canLaunchUrl(url)) {
-        print('OnboardingBloc: Can launch URL, attempting to launch...');
         final launched = await launchUrl(
           url,
           mode: LaunchMode.externalApplication,
         );
-        print('OnboardingBloc: Launch result: $launched');
         emit(state.copyWith(
           isLaunchingUrl: false,
           urlLaunchSuccess: launched,
         ));
       } else {
-        print('OnboardingBloc: Cannot launch URL');
         emit(state.copyWith(
           isLaunchingUrl: false,
           urlLaunchSuccess: false,
         ));
       }
     } catch (e) {
-      print('OnboardingBloc: Error launching URL: $e');
       emit(state.copyWith(
         isLaunchingUrl: false,
         urlLaunchSuccess: false,

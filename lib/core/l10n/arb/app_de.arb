@@ -191,5 +191,7 @@
     "builtWithLove": "Mit Liebe von Life Value gebaut!",
     
     "sourceName": "Quellenname",
-    "provideCustomLabel": "Geben Sie ein benutzerdefiniertes Label an für:"
+    "provideCustomLabel": "Geben Sie ein benutzerdefiniertes Label an für:",
+    "success": "Erfolg",
+    "demoDataLoadedSuccessfully": "Demo-Daten wurden erfolgreich geladen. Sie werden zur Startseite weitergeleitet."
 }

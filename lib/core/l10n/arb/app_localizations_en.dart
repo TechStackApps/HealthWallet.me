@@ -575,4 +575,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get provideCustomLabel => 'Provide a custom label for:';
+
+  @override
+  String get success => 'Success';
+
+  @override
+  String get demoDataLoadedSuccessfully =>
+      'Demo data has been loaded successfully. You will be redirected to the home page.';
 }

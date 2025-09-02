@@ -178,6 +178,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         isLoadingDemoData: false,
         hasDemoData: hasDemoData,
         demoDataError: null,
+        justCompleted: true, // Mark that demo data just completed
       ));
 
       add(const SyncDataCompleted(

@@ -590,4 +590,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get provideCustomLabel =>
       'Geben Sie ein benutzerdefiniertes Label an für:';
+
+  @override
+  String get success => 'Erfolg';
+
+  @override
+  String get demoDataLoadedSuccessfully =>
+      'Demo-Daten wurden erfolgreich geladen. Sie werden zur Startseite weitergeleitet.';
 }

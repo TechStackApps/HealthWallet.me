@@ -104,8 +104,6 @@ class OnboardingScreen extends StatelessWidget {
 
       return BlocListener<OnboardingBloc, OnboardingState>(
         listener: (context, state) {
-          print(
-              'OnboardingScreen: BlocListener triggered, errorMessage: ${state.errorMessage}');
           if (state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

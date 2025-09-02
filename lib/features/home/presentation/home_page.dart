@@ -34,24 +34,67 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PatientBloc, PatientState>(
-      listenWhen: (previous, current) =>
-          previous.selectedPatientSourceId != current.selectedPatientSourceId ||
-          (current.status.toString().contains('Success') &&
-              !current.isEditingPatient),
-      listener: (context, patientState) {
-        if (patientState.selectedPatientSourceId != null &&
-            patientState.selectedPatientSourceId != 'All') {
-          context.read<HomeBloc>().add(
-                HomeSourceChanged(patientState.selectedPatientSourceId!),
-              );
-        }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PatientBloc, PatientState>(
+          listenWhen: (previous, current) =>
+              previous.selectedPatientSourceId !=
+                  current.selectedPatientSourceId ||
+              (current.status.toString().contains('Success') &&
+                  !current.isEditingPatient),
+          listener: (context, patientState) {
+            if (patientState.selectedPatientSourceId != null &&
+                patientState.selectedPatientSourceId != 'All') {
+              context.read<HomeBloc>().add(
+                    HomeSourceChanged(patientState.selectedPatientSourceId!),
+                  );
+            }
 
-        if (patientState.status.toString().contains('Success') &&
-            !patientState.isEditingPatient) {
-          context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-        }
-      },
+            if (patientState.status.toString().contains('Success') &&
+                !patientState.isEditingPatient) {
+              context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+            }
+          },
+        ),
+        BlocListener<SyncBloc, SyncState>(
+          listenWhen: (previous, current) {
+            // Listen for both sync completion and demo data completion
+            return (previous.syncStatus != current.syncStatus &&
+                    current.syncStatus == SyncStatus.synced &&
+                    current.justCompleted) ||
+                (previous.isLoadingDemoData != current.isLoadingDemoData &&
+                    !current.isLoadingDemoData &&
+                    current.hasDemoData &&
+                    current.justCompleted);
+          },
+          listener: (context, syncState) {
+            // Handle sync completion
+            if (syncState.syncStatus == SyncStatus.synced &&
+                syncState.justCompleted) {
+              // Sync completed - success dialog already shown in sync page
+              // No additional action needed here
+            }
+
+            // Handle demo data completion
+            if (!syncState.isLoadingDemoData &&
+                syncState.hasDemoData &&
+                syncState.justCompleted) {
+              // Demo data completed - trigger onboarding overlay after a delay
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                if (context.mounted) {
+                  try {
+                    context
+                        .read<SyncBloc>()
+                        .add(const OnboardingOverlayTriggered());
+                  } catch (e) {
+                    // Handle any errors silently
+                  }
+                }
+              });
+            }
+          },
+        ),
+      ],
       child: HomeView(pageController: pageController),
     );
   }

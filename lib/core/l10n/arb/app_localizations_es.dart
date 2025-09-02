@@ -583,4 +583,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get provideCustomLabel =>
       'Proporciona una etiqueta personalizada para:';
+
+  @override
+  String get success => 'Éxito';
+
+  @override
+  String get demoDataLoadedSuccessfully =>
+      'Los datos de demostración se han cargado exitosamente. Serás redirigido a la página de inicio.';
 }
