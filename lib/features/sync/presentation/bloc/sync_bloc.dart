@@ -53,7 +53,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       emit(state.copyWith(
         syncQrData: qrData,
         lastSyncTime: lastSyncTime,
-        syncStatus: qrData != null ? SyncStatus.synced : SyncStatus.syncing,
+        syncStatus: qrData != null ? SyncStatus.synced : SyncStatus.initial,
         isLoading: false,
         justCompleted: false,
       ));
@@ -69,6 +69,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     emit(state.copyWith(
       isLoading: true,
       isQRScanning: false,
+      syncStatus: SyncStatus.syncing,
+      errorMessage: null,
+      successMessage: null,
     ));
     try {
       final qrDataJson = jsonDecode(event.qrData) as Map<String, dynamic>;
@@ -133,6 +136,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         isLoading: false,
         errorMessage: errorMessage,
         successMessage: null,
+        syncStatus: SyncStatus.initial,
       ));
     }
   }

@@ -22,6 +22,12 @@ class UserBiometricAuthToggled extends UserEvent
 }
 
 @freezed
+class UserBiometricsSetupShown extends UserEvent
+    with _$UserBiometricsSetupShown {
+  const factory UserBiometricsSetupShown() = _UserBiometricsSetupShown;
+}
+
+@freezed
 class UserDataUpdatedFromSync extends UserEvent with _$UserDataUpdatedFromSync {
   const factory UserDataUpdatedFromSync() = _UserDataUpdatedFromSync;
 }

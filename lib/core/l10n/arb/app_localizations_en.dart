@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Sports App';
+  String get appTitle => 'HealthWallet.me';
 
   @override
   String get homeTitle => 'Home';
@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get welcomeMessage => 'Welcome to Sports App!';
+  String get welcomeMessage => 'Welcome to HealthWallet.me!';
 
   @override
   String get onboardingBack => 'Back';

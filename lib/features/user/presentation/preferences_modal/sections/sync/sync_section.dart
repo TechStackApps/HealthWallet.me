@@ -72,7 +72,7 @@ class SyncSection extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: Insets.normal),
-                    Assets.onboarding.onboarding2.svg(
+                    Assets.images.syncScanIlustration.svg(
                       width: 140,
                       height: 140,
                     ),

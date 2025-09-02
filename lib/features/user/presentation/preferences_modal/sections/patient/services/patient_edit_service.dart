@@ -23,8 +23,6 @@ class PatientEditService {
     }
   }
 
-  /// Updates the blood type observation for a patient
-  /// Creates new observation if none exists, updates existing one if found
   Future<void> updateBloodTypeObservation(
     Patient patient,
     String bloodType,
@@ -39,9 +37,15 @@ class PatientEditService {
       if (bloodType == 'N/A') {
         if (existingObservations.isNotEmpty) {
           final existingObservation = existingObservations.first as Observation;
+
+          final updatedRawResource =
+              Map<String, dynamic>.from(existingObservation.rawResource);
+          updatedRawResource.remove('valueCodeableConcept');
+
           final clearedObservation = existingObservation.copyWith(
             valueX: null,
             date: DateTime.now(),
+            rawResource: updatedRawResource,
           );
           await _recordsRepository.saveObservation(clearedObservation);
         }
@@ -49,16 +53,25 @@ class PatientEditService {
       }
 
       if (!BloodObservationUtils.isValidBloodType(bloodType)) {
-        logger.w('DEBUG SERVICE: Invalid blood type: $bloodType');
+        logger.w('Invalid blood type: $bloodType');
         return;
       }
 
       if (existingObservations.isNotEmpty) {
         final existingObservation = existingObservations.first as Observation;
+
+        final newValueX = BloodObservationUtils.createBloodTypeValue(bloodType);
+
+        final updatedRawResource =
+            Map<String, dynamic>.from(existingObservation.rawResource);
+        updatedRawResource['valueCodeableConcept'] = newValueX.toJson();
+
         final updatedObservation = existingObservation.copyWith(
-          valueX: BloodObservationUtils.createBloodTypeValue(bloodType),
+          valueX: newValueX,
           date: DateTime.now(),
+          rawResource: updatedRawResource,
         );
+
         await _recordsRepository.saveObservation(updatedObservation);
       } else {
         final newObservation = BloodObservationUtils.createBloodTypeObservation(
@@ -69,7 +82,7 @@ class PatientEditService {
         await _recordsRepository.saveObservation(newObservation);
       }
     } catch (e) {
-      logger.e('DEBUG SERVICE: Error updating blood type observation: $e');
+      logger.e('Error updating blood type observation: $e');
       rethrow;
     }
   }
@@ -94,7 +107,6 @@ class PatientEditService {
     return birthDateChanged || genderChanged || bloodTypeChanged;
   }
 
-  /// Maps FHIR gender to display format
   String _mapGenderToDisplay(String? fhirGender) {
     if (fhirGender == null) return 'Prefer not to say';
 
@@ -108,7 +120,6 @@ class PatientEditService {
     }
   }
 
-  /// Validates patient data before saving
   bool validatePatientData({
     required DateTime? birthDate,
     required String gender,

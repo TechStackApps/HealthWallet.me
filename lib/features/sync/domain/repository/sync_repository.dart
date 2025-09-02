@@ -9,4 +9,5 @@ abstract class SyncRepository {
   void setBearerToken(String token);
   Future<void> saveSyncQrData(SyncQrData qrData);
   Future<SyncQrData?> getCurrentSyncQrData();
+  Future<void> updateSourceLabel(String sourceId, String newLabel);
 }

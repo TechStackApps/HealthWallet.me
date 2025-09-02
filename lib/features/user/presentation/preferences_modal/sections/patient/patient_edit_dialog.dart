@@ -203,15 +203,17 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
       }
 
       if (mounted) {
-        if (_selectedBirthDate == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please select a birth date'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 2),
-            ),
-          );
-          return;
+        if (birthDateChanged || genderChanged) {
+          if (_selectedBirthDate == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please select a birth date'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
         }
 
         if (birthDateChanged || genderChanged || bloodTypeChanged) {
@@ -219,7 +221,7 @@ class _PatientEditDialogState extends State<PatientEditDialog> {
                 PatientEditSaved(
                   patientId: _currentPatient!.id,
                   sourceId: _currentPatient!.sourceId,
-                  birthDate: _selectedBirthDate!,
+                  birthDate: _selectedBirthDate ?? DateTime.now(),
                   gender: _selectedGender,
                   bloodType: _selectedBloodType,
                 ),

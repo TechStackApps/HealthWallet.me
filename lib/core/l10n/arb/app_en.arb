@@ -1,9 +1,9 @@
 {
-    "appTitle": "Sports App",
+    "appTitle": "HealthWallet.me",
     "homeTitle": "Home",
     "profileTitle": "Profile",
     "settingsTitle": "Settings",
-    "welcomeMessage": "Welcome to Sports App!",
+    "welcomeMessage": "Welcome to HealthWallet.me!",
     "@appTitle": {
         "description": "The title of the application"
     },

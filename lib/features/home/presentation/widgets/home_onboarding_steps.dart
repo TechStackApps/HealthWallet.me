@@ -30,15 +30,15 @@ class HomeOnboardingSteps {
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(8),
       ),
-      labelBoxPadding: const EdgeInsets.all(16),
+      labelBoxPadding: const EdgeInsets.all(24),
       titleTextStyle: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Colors.white,
       ),
       bodyTextStyle: TextStyle(
         fontSize: 16,
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Colors.white,
       ),
       arrowPosition: ArrowPosition.bottomCenter,
     );
@@ -61,15 +61,15 @@ class HomeOnboardingSteps {
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(8),
       ),
-      labelBoxPadding: const EdgeInsets.all(16),
+      labelBoxPadding: const EdgeInsets.all(24),
       titleTextStyle: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Colors.white,
       ),
       bodyTextStyle: TextStyle(
         fontSize: 16,
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Colors.white,
       ),
       arrowPosition: ArrowPosition.topCenter,
     );

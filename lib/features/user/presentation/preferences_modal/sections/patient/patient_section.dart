@@ -237,7 +237,6 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   Widget build(BuildContext context) {
     return BlocBuilder<PatientBloc, PatientState>(
       builder: (context, blocState) {
-        // Get the current patient data from the bloc state
         final currentPatient = blocState.patients.firstWhere(
           (p) => p.id == widget.patient.id,
           orElse: () => widget.patient,
@@ -535,12 +534,14 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
       case 'prefernottosay':
         return 'Prefer not to say';
       default:
-        return gender; // Return original if not recognized
+        return gender;
     }
   }
 
   Widget _buildPatientInfoRow(BuildContext context, Widget icon, String text) {
     final textColor = context.colorScheme.onSurface;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isSmall = screenWidth < 380;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: Insets.small),
@@ -548,10 +549,19 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
         children: [
           icon,
           const SizedBox(width: Insets.smaller),
-          Text(
-            text,
-            style: AppTextStyle.labelLarge.copyWith(
-              color: textColor,
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: isSmall
+                  ? AppTextStyle.labelLarge.copyWith(
+                      fontSize: 11,
+                      color: textColor,
+                    )
+                  : AppTextStyle.labelLarge.copyWith(
+                      color: textColor,
+                    ),
             ),
           ),
         ],

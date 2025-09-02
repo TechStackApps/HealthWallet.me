@@ -1,10 +1,10 @@
 {
     "@@locale": "es",
-    "appTitle": "Aplicación de deportes",
+    "appTitle": "HealthWallet.me",
     "homeTitle": "Inicio",
     "profileTitle": "Perfil",
     "settingsTitle": "Configuración",
-    "welcomeMessage": "¡Bienvenido a la aplicación de deportes!",
+    "welcomeMessage": "¡Bienvenido a HealthWallet.me!",
     "counterAppBarTitle": "Contador",
     "@counterAppBarTitle": {
         "description": "Texto mostrado en la AppBar de la página del contador"

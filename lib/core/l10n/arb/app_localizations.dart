@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// The title of the application
   ///
   /// In en, this message translates to:
-  /// **'Sports App'**
+  /// **'HealthWallet.me'**
   String get appTitle;
 
   /// The title of the home screen
@@ -127,7 +127,7 @@ abstract class AppLocalizations {
   /// The welcome message shown to users
   ///
   /// In en, this message translates to:
-  /// **'Welcome to Sports App!'**
+  /// **'Welcome to HealthWallet.me!'**
   String get welcomeMessage;
 
   /// No description provided for @onboardingBack.

@@ -19,12 +19,15 @@ class OnboardingNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height / 5.2,
+        height: isSmallScreen ? 120 : 140,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             ElevatedButton(
               onPressed: () async {
@@ -47,7 +50,7 @@ class OnboardingNavigation extends StatelessWidget {
                 foregroundColor: context.isDarkMode
                     ? Colors.white
                     : context.colorScheme.onPrimary,
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
               ),
@@ -65,7 +68,7 @@ class OnboardingNavigation extends StatelessWidget {
             ),
             if (currentPage == 2)
               Padding(
-                padding: EdgeInsets.only(bottom: 24),
+                padding: EdgeInsets.only(bottom: isSmallScreen ? 16 : 24),
                 child: GestureDetector(
                   onTap: () {
                     context.appRouter.push(const PrivacyPolicyRoute());

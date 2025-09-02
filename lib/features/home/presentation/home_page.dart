@@ -15,6 +15,8 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
+import 'package:health_wallet/features/home/presentation/widgets/section_info_modal.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
@@ -322,13 +324,16 @@ class HomeViewState extends State<HomeView> {
                 padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    const SizedBox(height: Insets.medium),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.small
+                            : Insets.medium),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
                           HomeSectionHeader(
                             title: context.l10n.homeVitalSigns,
-                            filterLabel: editMode ? 'Filter Vitals' : null,
+                            filterLabel: editMode ? 'Vitals' : null,
                             onFilterTap: editMode
                                 ? () =>
                                     HomeDialogController.showEditVitalsDialog(
@@ -342,8 +347,17 @@ class HomeViewState extends State<HomeView> {
                                 : null,
                             colorScheme: colorScheme,
                             isEditMode: editMode,
+                            isFilterDisabled: state.vitalsExpanded,
+                            onInfoTap: () => SectionInfoModal.show(
+                              context,
+                              'Vital Signs',
+                              'Long press to move & reorder cards, or filter to select which ones appear on your dashboard.',
+                            ),
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           VitalsSection(
                             vitals: state.vitalsExpanded
                                 ? state.allAvailableVitals
@@ -375,7 +389,10 @@ class HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                    const SizedBox(height: Insets.large),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.medium
+                            : Insets.large),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
@@ -391,9 +408,21 @@ class HomeViewState extends State<HomeView> {
                                           .add(HomeSourceChanged(sourceId));
                                     },
                                     currentPatient: state.patient,
+                                    onSourceTap: (source) {
+                                      SourceLabelEditDialog.show(
+                                        context,
+                                        source,
+                                        (newLabel) {
+                                          context.read<HomeBloc>().add(
+                                                HomeSourceLabelUpdated(
+                                                    source.id, newLabel),
+                                              );
+                                        },
+                                      );
+                                    },
                                   )
                                 : null,
-                            filterLabel: 'Filter Records',
+                            filterLabel: 'Records',
                             onFilterTap: () =>
                                 HomeDialogController.showEditRecordsDialog(
                               context,
@@ -405,8 +434,16 @@ class HomeViewState extends State<HomeView> {
                             ),
                             colorScheme: colorScheme,
                             isEditMode: editMode,
+                            onInfoTap: () => SectionInfoModal.show(
+                              context,
+                              'Overview',
+                              'Long press to move & reorder cards, or filter to select which ones appear on your dashboard.',
+                            ),
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           MedicalRecordsSection(
                             overviewCards: filteredCards,
                             editMode: editMode,
@@ -433,7 +470,10 @@ class HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                    const SizedBox(height: Insets.large),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.medium
+                            : Insets.large),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
@@ -463,7 +503,10 @@ class HomeViewState extends State<HomeView> {
                             ),
                             colorScheme: colorScheme,
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           RecentRecordsSection(
                             recentRecords: state.recentRecords,
                             onViewAll: () {

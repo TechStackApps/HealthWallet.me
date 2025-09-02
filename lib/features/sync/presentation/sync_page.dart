@@ -1,15 +1,17 @@
 import 'dart:convert';
-
+import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/qr_scanner_widget.dart';
+import 'package:health_wallet/features/sync/presentation/widgets/sync_loading_widget.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,19 +71,71 @@ class _SyncPageState extends State<SyncPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sync Completed Successfully!'),
-          content: const Text(
-            'Your medical records have been synchronized. You will be redirected to the home page.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+        final textColor = context.isDarkMode
+            ? AppColors.textPrimaryDark
+            : AppColors.textPrimary;
+        final borderColor =
+            context.isDarkMode ? AppColors.borderDark : AppColors.border;
+
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(Insets.normal),
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor, width: 1),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(Insets.normal),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Success title
+                    Text(
+                      'Success',
+                      style: AppTextStyle.titleLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: Insets.normal),
+                    // Content
+                    Text(
+                      'Your medical records have been synchronized. You will be redirected to the home page.',
+                      style: AppTextStyle.labelLarge.copyWith(color: textColor),
+                    ),
+
+                    const SizedBox(height: Insets.normal),
+
+                    // Action button
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(8),
+                        fixedSize: const Size.fromHeight(36),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'OK',
+                        style: AppTextStyle.buttonSmall.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
+          ),
         );
       },
     );
@@ -90,10 +144,30 @@ class _SyncPageState extends State<SyncPage> {
   Widget _buildQRCodeTab(BuildContext context) {
     return BlocBuilder<SyncBloc, SyncState>(
       builder: (context, state) {
-        if (state.syncStatus == SyncStatus.syncing) {
+        if (state.isQRScanning) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: _buildQRScannerSection(context, state),
+            child: QRScannerWidget(
+              cancelButtonText: 'Cancel',
+              onQRCodeDetected: (qrData) {
+                context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
+              },
+              onCancel: () {
+                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+              },
+            ),
+          );
+        }
+
+        if (state.syncStatus == SyncStatus.syncing && state.isLoading) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SyncLoadingWidget(
+              onCancel: () {
+                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+              },
+              cancelButtonText: 'Cancel',
+            ),
           );
         }
 
@@ -104,7 +178,7 @@ class _SyncPageState extends State<SyncPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Assets.onboarding.onboarding2.svg(width: 140),
+                  Assets.images.syncScanIlustration.svg(width: 140),
                   const SizedBox(height: 12),
                   _buildQRConfigCard(context, state),
                   const SizedBox(height: 12),
@@ -121,31 +195,22 @@ class _SyncPageState extends State<SyncPage> {
           );
         }
 
-        return const Center(child: CircularProgressIndicator());
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _buildQRScannerSection(context, state),
+        );
       },
     );
   }
 
   Widget _buildQRScannerSection(BuildContext context, SyncState state) {
-    if (state.isQRScanning) {
-      return QRScannerWidget(
-        title: 'Scan QR Code',
-        cancelButtonText: 'Cancel',
-        onQRCodeDetected: (qrData) {
-          context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
-        },
-        onCancel: () {
-          context.read<SyncBloc>().add(const SyncCancelQRScanning());
-        },
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Assets.onboarding.onboarding2.svg(width: 140),
+        Assets.images.syncScanIlustration.svg(width: 140),
+        const SizedBox(height: Insets.small),
         const Text(
-          'QR Code Scanner',
+          'Scan QR Code',
           style: AppTextStyle.buttonMedium,
           textAlign: TextAlign.center,
         ),
@@ -257,7 +322,9 @@ class _SyncPageState extends State<SyncPage> {
                       strokeWidth: 2,
                     ),
                   )
-                : const Text("Connect", style: AppTextStyle.buttonSmall),
+                : Text("Connect",
+                    style: AppTextStyle.buttonSmall
+                        .copyWith(color: context.colorScheme.primary)),
           ),
         ),
         const SizedBox(height: 12),
@@ -394,9 +461,10 @@ class _SyncPageState extends State<SyncPage> {
             onPressed: () {
               context.read<SyncBloc>().add(const SyncScanNewPressed());
             },
-            icon: const Icon(Icons.refresh),
-            label:
-                const Text('Scan New QR Code', style: AppTextStyle.buttonSmall),
+            icon: Icon(Icons.refresh, color: context.colorScheme.primary),
+            label: Text('Scan New QR Code',
+                style: AppTextStyle.buttonSmall
+                    .copyWith(color: context.colorScheme.primary)),
             style: OutlinedButton.styleFrom(
               foregroundColor: context.isDarkMode
                   ? Colors.white

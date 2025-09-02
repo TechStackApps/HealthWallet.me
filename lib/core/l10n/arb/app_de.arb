@@ -1,10 +1,10 @@
 {
     "@@locale": "de",
-    "appTitle": "Sport-App",
+    "appTitle": "HealthWallet.me",
     "homeTitle": "Startseite",
     "profileTitle": "Profil",
     "settingsTitle": "Einstellungen",
-    "welcomeMessage": "Willkommen bei der Sport-App!",
+    "welcomeMessage": "Willkommen bei HealthWallet.me!",
     "onboardingBack": "Zurück",
     "onboardingGetStarted": "Los geht's",
     "onboardingNext": "Nächste",

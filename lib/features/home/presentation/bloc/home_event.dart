@@ -56,3 +56,9 @@ class HomeRefreshPreservingOrder extends HomeEvent
     with _$HomeRefreshPreservingOrder {
   const factory HomeRefreshPreservingOrder() = _HomeRefreshPreservingOrder;
 }
+
+@freezed
+class HomeSourceLabelUpdated extends HomeEvent with _$HomeSourceLabelUpdated {
+  const factory HomeSourceLabelUpdated(String sourceId, String newLabel) =
+      _HomeSourceLabelUpdated;
+}

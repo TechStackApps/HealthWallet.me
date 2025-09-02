@@ -8,14 +8,16 @@ class SourceSelectorWidget extends StatelessWidget {
   final List<Source> sources;
   final String? selectedSource;
   final Function(String) onSourceChanged;
-  final Patient? currentPatient; // Add current patient parameter
+  final Patient? currentPatient;
+  final Function(Source)? onSourceTap;
 
   const SourceSelectorWidget({
     super.key,
     required this.sources,
     required this.selectedSource,
     required this.onSourceChanged,
-    this.currentPatient, // Make it optional but available
+    this.currentPatient,
+    this.onSourceTap,
   });
 
   @override
@@ -23,43 +25,50 @@ class SourceSelectorWidget extends StatelessWidget {
     final textTheme = context.textTheme;
     final colorScheme = context.colorScheme;
 
-    // Get sources for the current patient based on patient's sourceId
     final patientSources = _getPatientSources();
 
     if (patientSources.isEmpty) {
       return const SizedBox.shrink();
     } else if (patientSources.length == 1) {
-      // Single source for patient - show as text
+      // Single source for patient - show as tappable text
       final source = patientSources.first;
       return Container(
-        constraints: const BoxConstraints(maxWidth: 200),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Source: ',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                source.name?.isNotEmpty == true ? source.name! : source.id,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
+        constraints: const BoxConstraints(maxWidth: 150),
+        child: InkWell(
+          onTap: () => onSourceTap?.call(source),
+          borderRadius: BorderRadius.circular(4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Source: ',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
+                Flexible(
+                  child: Text(
+                    _getSourceDisplayName(source),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     } else {
       // Multiple sources per patient - show dropdown
       return Container(
-        constraints: const BoxConstraints(maxWidth: 250),
+        constraints: const BoxConstraints(maxWidth: 150),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -70,10 +79,10 @@ class SourceSelectorWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(width: Insets.small),
-            Expanded(
+            Flexible(
               child: DropdownButton<String>(
                 value: selectedSource ?? _getDefaultSourceId(),
-                isExpanded: true,
+                isExpanded: false,
                 onChanged: (String? newValue) {
                   if (newValue != null) {
                     onSourceChanged(newValue);
@@ -86,6 +95,21 @@ class SourceSelectorWidget extends StatelessWidget {
         ),
       );
     }
+  }
+
+  /// Get the display name for a source (labelSource > name > id)
+  String _getSourceDisplayName(Source source) {
+    if (source.labelSource?.isNotEmpty == true) {
+      return source.labelSource!;
+    }
+    if (source.name?.isNotEmpty == true) {
+      return source.name!;
+    }
+    // If source ID is too long, don't display it
+    if (source.id.length > 20) {
+      return 'Unknown Source';
+    }
+    return source.id;
   }
 
   /// Get sources for the current patient based on patient's sourceId
@@ -127,7 +151,7 @@ class SourceSelectorWidget extends StatelessWidget {
       return DropdownMenuItem<String>(
         value: source.id,
         child: Text(
-          source.name?.isNotEmpty == true ? source.name! : source.id,
+          _getSourceDisplayName(source),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
           style: textTheme.bodySmall,
@@ -135,14 +159,13 @@ class SourceSelectorWidget extends StatelessWidget {
       );
     }).toList();
 
-    // Add "All" option at the top if there are multiple sources
     if (patientSources.length > 1) {
       sourceItems.insert(
         0,
         DropdownMenuItem<String>(
           value: 'All',
           child: Text(
-            'All', // Use hardcoded text since context is not available here
+            'All',
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
             style: textTheme.bodySmall,

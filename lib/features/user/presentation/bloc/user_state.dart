@@ -6,6 +6,7 @@ class UserState with _$UserState {
     @Default(UserStatus.initial()) UserStatus status,
     @Default(User()) User user,
     @Default(false) bool isBiometricAuthEnabled,
+    @Default(false) bool shouldShowBiometricsSetup,
   }) = _UserState;
 }
 

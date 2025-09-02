@@ -3,7 +3,6 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/presentation/widgets/reorderable_grid.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
-
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/shaking_card.dart';
 
@@ -13,7 +12,7 @@ class MedicalRecordsSection extends StatelessWidget {
   final VoidCallback? onLongPressCard;
   final void Function(int oldIndex, int newIndex)? onReorder;
   final void Function(OverviewCard card)? onTapCard;
-  final GlobalKey? firstCardKey; // Add this for onboarding focus
+  final GlobalKey? firstCardKey;
   final FocusNode? firstCardFocusNode;
 
   const MedicalRecordsSection({
@@ -27,46 +26,86 @@ class MedicalRecordsSection extends StatelessWidget {
     this.firstCardFocusNode,
   });
 
+  static const double _breakpoint = 380;
+
+  int _getCrossAxisCount(double screenWidth) {
+    return 2;
+  }
+
+  double _getCrossAxisSpacing(double screenWidth) {
+    return screenWidth < _breakpoint ? 8 : 12;
+  }
+
+  double _getChildAspectRatio(double screenWidth) {
+    return screenWidth < _breakpoint ? 2.07 : 2.1;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+
     return ReorderableGrid<OverviewCard>(
       items: overviewCards,
       enabled: editMode,
       onReorder: onReorder ?? (a, b) {},
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 2,
+      crossAxisCount: _getCrossAxisCount(screenWidth),
+      crossAxisSpacing: _getCrossAxisSpacing(screenWidth),
+      mainAxisSpacing: _getCrossAxisSpacing(screenWidth),
+      childAspectRatio: _getChildAspectRatio(screenWidth),
       itemBuilder: (context, card, index) {
         final cardWidget =
             (index == 0 && firstCardFocusNode != null && !editMode)
                 ? Focus(
                     focusNode: firstCardFocusNode!,
-                    child: _buildOverviewCard(context, card, key: firstCardKey),
+                    child: _buildOverviewCard(
+                      context,
+                      card,
+                      screenWidth,
+                      key: firstCardKey,
+                    ),
                   )
-                : _buildOverviewCard(context, card);
+                : _buildOverviewCard(context, card, screenWidth);
 
-        if (editMode) {
-          return ShakingCard(
-            isShaking: true,
-            child: cardWidget,
-          );
-        } else {
-          return ShakingCard(
-            isShaking: false,
-            child: GestureDetector(
-              onTap: () => onTapCard?.call(card),
-              onLongPress: onLongPressCard,
-              child: cardWidget,
-            ),
-          );
-        }
+        return editMode
+            ? ShakingCard(
+                isShaking: true,
+                child: cardWidget,
+              )
+            : ShakingCard(
+                isShaking: false,
+                child: GestureDetector(
+                  onTap: () => onTapCard?.call(card),
+                  onLongPress: onLongPressCard,
+                  child: cardWidget,
+                ),
+              );
       },
     );
   }
 
-  Widget _buildOverviewCard(BuildContext context, OverviewCard card,
+  Widget _buildOverviewCard(
+      BuildContext context, OverviewCard card, double screenWidth,
       {Key? key}) {
+    final bool isSmall = screenWidth < _breakpoint;
+    final double iconSize = isSmall ? 14 : 16;
+
+    final TextStyle categoryStyle = isSmall
+        ? AppTextStyle.bodySmall.copyWith(
+            fontSize: 10,
+            color: context.colorScheme.onSurface.withOpacity(0.6),
+          )
+        : AppTextStyle.bodySmall.copyWith(
+            color: context.colorScheme.onSurface.withOpacity(0.6),
+          );
+
+    final TextStyle countStyle = isSmall
+        ? AppTextStyle.titleSmall.copyWith(
+            color: context.colorScheme.onSurface,
+          )
+        : AppTextStyle.titleSmall.copyWith(
+            color: context.colorScheme.onSurface,
+          );
+
     return Container(
       key: key,
       decoration: BoxDecoration(
@@ -86,8 +125,8 @@ class MedicalRecordsSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 16,
-                  height: 16,
+                  width: iconSize,
+                  height: iconSize,
                   child: card.category.icon.svg(
                     colorFilter: ColorFilter.mode(
                       context.colorScheme.onSurface,
@@ -102,16 +141,16 @@ class MedicalRecordsSection extends StatelessWidget {
                     children: [
                       Text(
                         card.category.display,
-                        style: AppTextStyle.bodySmall.copyWith(
-                          color: context.colorScheme.onSurface.withOpacity(0.6),
-                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: categoryStyle,
                       ),
                       const SizedBox(height: Insets.small),
                       Text(
                         card.count,
-                        style: AppTextStyle.titleSmall.copyWith(
-                          color: context.colorScheme.onSurface,
-                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: countStyle,
                       ),
                     ],
                   ),

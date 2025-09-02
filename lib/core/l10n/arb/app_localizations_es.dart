@@ -9,7 +9,7 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Aplicación de deportes';
+  String get appTitle => 'HealthWallet.me';
 
   @override
   String get homeTitle => 'Inicio';
@@ -21,7 +21,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsTitle => 'Configuración';
 
   @override
-  String get welcomeMessage => '¡Bienvenido a la aplicación de deportes!';
+  String get welcomeMessage => '¡Bienvenido a HealthWallet.me!';
 
   @override
   String get onboardingBack => 'Atrás';

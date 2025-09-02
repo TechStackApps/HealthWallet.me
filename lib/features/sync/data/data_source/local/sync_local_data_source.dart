@@ -17,6 +17,7 @@ abstract class SyncLocalDataSource {
   Future<List<Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
+  Future<void> updateSourceLabel(String sourceId, String newLabel);
 }
 
 @Injectable(as: SyncLocalDataSource)
@@ -90,6 +91,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
 
   @override
   Future<List<Source>> getSources({String? patientId}) async {
+    // First get unique source IDs from FHIR resources
     final query = _appDatabase.select(_appDatabase.fhirResource);
 
     if (patientId != null) {
@@ -106,12 +108,19 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         .toSet()
         .toList();
 
+    // Get source labels from Sources table
+    final sourceLabels = await _appDatabase.select(_appDatabase.sources).get();
+    final sourceLabelMap = {
+      for (final source in sourceLabels) source.id: source.labelSource
+    };
+
     return uniqueSourceIds
         .map(
           (sourceId) => Source(
             id: sourceId,
             name: sourceId,
             logo: null,
+            labelSource: sourceLabelMap[sourceId],
           ),
         )
         .toList();
@@ -130,6 +139,22 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         // 2. Use an existing field to mark deletion status
         // 3. Remove the resource entirely
       }
+    }
+  }
+
+  @override
+  Future<void> updateSourceLabel(String sourceId, String newLabel) async {
+    try {
+      await _appDatabase.into(_appDatabase.sources).insertOnConflictUpdate(
+            db.SourcesCompanion(
+              id: Value(sourceId),
+              labelSource: Value(newLabel.isEmpty ? null : newLabel),
+            ),
+          );
+      logger.d('Source label updated in database: $sourceId -> $newLabel');
+    } catch (e) {
+      logger.e('Error updating source label in database: $e');
+      rethrow;
     }
   }
 }
