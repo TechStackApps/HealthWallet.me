@@ -44,12 +44,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<OnboardingBloc>(
-          create: (context) => OnboardingBloc(),
-        ),
-      ],
+    return BlocProvider<OnboardingBloc>(
+      create: (context) => OnboardingBloc(),
       child: BlocBuilder<OnboardingBloc, OnboardingState>(
         builder: (context, state) {
           return Scaffold(
@@ -68,13 +64,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: SafeArea(
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: 2 * MediaQuery.sizeOf(context).height / 3,
+                    Expanded(
                       child: PageView(
                         controller: _pageController,
                         onPageChanged: (int page) {
-                          // Close scanner if user swipes to a different page
-
                           context
                               .read<OnboardingBloc>()
                               .add(OnboardingPageChanged(page));
@@ -95,7 +88,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       pageController: _pageController,
                       currentPage: state.currentPage,
                     ),
-                    const SizedBox(height: Insets.medium),
+                    SizedBox(
+                        height: MediaQuery.of(context).padding.bottom +
+                            Insets.small),
                   ],
                 ),
               ),

@@ -4,6 +4,7 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'dropdown_field.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class FormFields {
   static Widget buildFieldLabel(BuildContext context, String label) {
@@ -57,7 +58,7 @@ class FormFields {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6)),
             ),
-            child: const Text('Cancel', style: AppTextStyle.buttonSmall),
+            child: Text('Cancel', style: AppTextStyle.buttonSmall),
           ),
         ),
         const SizedBox(width: Insets.small),
@@ -81,7 +82,7 @@ class FormFields {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text('Save details', style: AppTextStyle.buttonSmall),
+                : Text('Save details', style: AppTextStyle.buttonSmall),
           ),
         ),
       ],

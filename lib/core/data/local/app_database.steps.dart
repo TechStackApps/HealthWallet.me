@@ -255,6 +255,92 @@ final class Schema3 extends i0.VersionedSchema {
       'resourceId', 'CREATE INDEX resourceId ON fhir_resource (resource_id)');
 }
 
+final class Schema4 extends i0.VersionedSchema {
+  Schema4({required super.database}) : super(version: 4);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    fhirResource,
+    sources,
+    recordAttachments,
+    recordNotes,
+    resourceType,
+    resourceId,
+  ];
+  late final Shape0 fhirResource = Shape0(
+      source: i0.VersionedTable(
+        entityName: 'fhir_resource',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_1,
+          _column_2,
+          _column_3,
+          _column_4,
+          _column_5,
+          _column_6,
+          _column_7,
+          _column_8,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape4 sources = Shape4(
+      source: i0.VersionedTable(
+        entityName: 'sources',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(id)',
+        ],
+        columns: [
+          _column_0,
+          _column_9,
+          _column_10,
+          _column_16,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape2 recordAttachments = Shape2(
+      source: i0.VersionedTable(
+        entityName: 'record_attachments',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_11,
+          _column_12,
+          _column_13,
+          _column_14,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape3 recordNotes = Shape3(
+      source: i0.VersionedTable(
+        entityName: 'record_notes',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_11,
+          _column_12,
+          _column_15,
+          _column_14,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  final i1.Index resourceType = i1.Index('resourceType',
+      'CREATE INDEX resourceType ON fhir_resource (resource_type)');
+  final i1.Index resourceId = i1.Index(
+      'resourceId', 'CREATE INDEX resourceId ON fhir_resource (resource_id)');
+}
+
 class Shape3 extends i0.VersionedTable {
   Shape3({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<int> get id =>
@@ -270,9 +356,27 @@ class Shape3 extends i0.VersionedTable {
 i1.GeneratedColumn<String> _column_15(String aliasedName) =>
     i1.GeneratedColumn<String>('content', aliasedName, false,
         type: i1.DriftSqlType.string);
+
+i1.GeneratedColumn<String> _column_16(String aliasedName) =>
+    i1.GeneratedColumn<String>('label_source', aliasedName, true,
+        type: i1.DriftSqlType.string);
+
+class Shape4 extends i0.VersionedTable {
+  Shape4({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get logo =>
+      columnsByName['logo']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get labelSource =>
+      columnsByName['label_source']! as i1.GeneratedColumn<String>;
+}
+
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -286,6 +390,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from2To3(migrator, schema);
         return 3;
+      case 3:
+        final schema = Schema4(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from3To4(migrator, schema);
+        return 4;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -295,9 +404,11 @@ i0.MigrationStepWithVersion migrationSteps({
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
       from1To2: from1To2,
       from2To3: from2To3,
+      from3To4: from3To4,
     ));

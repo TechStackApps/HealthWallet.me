@@ -10,6 +10,7 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
@@ -35,6 +36,7 @@ class App extends StatelessWidget {
             getIt<GetSourcesUseCase>(),
             HomeLocalDataSourceImpl(),
             getIt<RecordsRepository>(),
+            getIt<SyncRepository>(),
           )..add(const HomeInitialised()),
         ),
         BlocProvider(

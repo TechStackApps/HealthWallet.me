@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
@@ -9,7 +10,7 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+// import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -65,14 +66,34 @@ class _DashboardPageState extends State<DashboardPage> {
                     height: 60,
                     child: Stack(
                       children: [
-                        // LiquidGlass background
+                        // Glassmorphism background using BackdropFilter
                         ClipRRect(
-                          child: LiquidGlass(
-                            shape: const LiquidRoundedRectangle(
-                              borderRadius: Radius.circular(100),
+                          borderRadius: BorderRadius.circular(100),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: context.isDarkMode
+                                    ? Colors.white.withOpacity(0.03)
+                                    : Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(
+                                  color: context.isDarkMode
+                                      ? Colors.white.withOpacity(0.08)
+                                      : Colors.white.withOpacity(0.2),
+                                  width: 1.0,
+                                ),
+                                boxShadow: context.isDarkMode
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 8,
+                                          spreadRadius: 0,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
                             ),
-                            settings: const LiquidGlassSettings(blur: 15),
-                            child: Container(),
                           ),
                         ),
                         // Foreground content

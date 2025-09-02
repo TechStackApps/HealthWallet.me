@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/services/biometric_auth_service.dart';
 import 'package:health_wallet/features/user/domain/entity/user.dart';
 import 'package:health_wallet/features/user/domain/repository/user_repository.dart';
 import 'package:injectable/injectable.dart';
+import 'package:local_auth/local_auth.dart';
 
 part 'user_bloc.freezed.dart';
 part 'user_event.dart';
@@ -23,6 +25,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserInitialised>(_onInitialised);
     on<UserThemeToggled>(_onThemeToggled);
     on<UserBiometricAuthToggled>(_onBiometricAuthToggled);
+    on<UserBiometricsSetupShown>(_onBiometricsSetupShown);
     on<UserDataUpdatedFromSync>(_onUserDataUpdatedFromSync);
     on<UserNameUpdated>(_onUserNameUpdated);
   }
@@ -107,18 +110,29 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     emit(state.copyWith(status: const UserStatus.loading()));
     try {
       if (event.isEnabled) {
-        final canAuth = await _biometricAuthService.canAuthenticate();
-        if (canAuth) {
-          final didAuthenticate = await _biometricAuthService.authenticate();
-          if (didAuthenticate) {
-            await _userRepository.saveBiometricAuth(true);
-            emit(
-              state.copyWith(
-                status: const UserStatus.success(),
-                isBiometricAuthEnabled: true,
-              ),
-            );
-          } else {
+        final isDeviceSecure = await _biometricAuthService.isDeviceSecure();
+
+        if (isDeviceSecure) {
+          try {
+            final didAuthenticate = await _biometricAuthService.authenticate();
+            if (didAuthenticate) {
+              await _userRepository.saveBiometricAuth(true);
+
+              emit(
+                state.copyWith(
+                  status: const UserStatus.success(),
+                  isBiometricAuthEnabled: true,
+                ),
+              );
+            } else {
+              emit(
+                state.copyWith(
+                  status: const UserStatus.success(),
+                  isBiometricAuthEnabled: false,
+                ),
+              );
+            }
+          } catch (e) {
             emit(
               state.copyWith(
                 status: const UserStatus.success(),
@@ -131,11 +145,13 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             state.copyWith(
               status: const UserStatus.success(),
               isBiometricAuthEnabled: false,
+              shouldShowBiometricsSetup: true,
             ),
           );
         }
       } else {
         await _userRepository.saveBiometricAuth(false);
+
         emit(
           state.copyWith(
             status: const UserStatus.success(),
@@ -156,15 +172,8 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       name: event.name,
     );
 
-    emit(
-      state.copyWith(status: const UserStatus.success(), user: updatedUser),
-    );
-
-    try {
-      await _userRepository.updateUser(updatedUser);
-    } catch (e) {
-      emit(state.copyWith(status: UserStatus.failure(e)));
-    }
+    emit(state.copyWith(user: updatedUser));
+    await _userRepository.updateUser(updatedUser);
   }
 
   Future<void> _onUserDataUpdatedFromSync(
@@ -172,5 +181,12 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     Emitter<UserState> emit,
   ) async {
     await _getCurrentUser(false, emit);
+  }
+
+  Future<void> _onBiometricsSetupShown(
+    UserBiometricsSetupShown event,
+    Emitter<UserState> emit,
+  ) async {
+    emit(state.copyWith(shouldShowBiometricsSetup: false));
   }
 }

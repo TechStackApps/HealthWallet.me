@@ -5,6 +5,8 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/biometric_disable_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingNavigation extends StatelessWidget {
@@ -19,13 +21,51 @@ class OnboardingNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height / 5.2,
+        height: currentPage == 2
+            ? (isSmallScreen ? 140 : 160)
+            : (isSmallScreen ? 120 : 140),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            if (currentPage == 2)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: Insets.small),
+                child: BlocBuilder<UserBloc, UserState>(
+                  builder: (context, userState) {
+                    return TextButton(
+                      onPressed: () {
+                        final isEnabled = userState.isBiometricAuthEnabled;
+                        if (isEnabled) {
+                          BiometricDisableDialog.show(context,
+                              isOnboarding: true);
+                        } else {
+                          context
+                              .read<UserBloc>()
+                              .add(UserBiometricAuthToggled(true));
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: context.colorScheme.primary,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        userState.isBiometricAuthEnabled
+                            ? context.l10n.disableBiometricAuth
+                            : context.l10n.enableBiometricAuth,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ElevatedButton(
               onPressed: () async {
                 if (currentPage == 2) {
@@ -47,7 +87,7 @@ class OnboardingNavigation extends StatelessWidget {
                 foregroundColor: context.isDarkMode
                     ? Colors.white
                     : context.colorScheme.onPrimary,
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(isSmallScreen ? 10 : Insets.small),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
               ),
@@ -55,7 +95,9 @@ class OnboardingNavigation extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    currentPage < 2 ? 'Continue' : 'Get started',
+                    currentPage < 2
+                        ? context.l10n.continueButton
+                        : context.l10n.getStarted,
                     style: AppTextStyle.buttonMedium,
                   ),
                   const SizedBox(width: 8),
@@ -65,13 +107,15 @@ class OnboardingNavigation extends StatelessWidget {
             ),
             if (currentPage == 2)
               Padding(
-                padding: EdgeInsets.only(bottom: 24),
+                padding: EdgeInsets.only(
+                    bottom: isSmallScreen ? 16 : Insets.small,
+                    top: Insets.small),
                 child: GestureDetector(
                   onTap: () {
                     context.appRouter.push(const PrivacyPolicyRoute());
                   },
                   child: Text(
-                    'Privacy Policy',
+                    context.l10n.privacyPolicy,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: context.colorScheme.onSurface.withOpacity(0.7),
                       decoration: TextDecoration.underline,

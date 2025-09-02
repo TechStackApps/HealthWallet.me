@@ -3,6 +3,7 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'form_fields.dart';
+import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class DialogHeader extends StatelessWidget {
   final Color textColor;
@@ -24,7 +25,8 @@ class DialogHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              FormFields.buildIconButton(Assets.icons.user, textColor, onCancel),
+              FormFields.buildIconButton(
+                  Assets.icons.user, textColor, onCancel),
               const SizedBox(width: Insets.small),
               Text('Edit details',
                   style: AppTextStyle.bodySmall

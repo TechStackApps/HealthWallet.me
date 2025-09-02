@@ -75,8 +75,8 @@ class DateField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ageText = selectedDate != null
-        ? '${_calculateAge(selectedDate!)} years (${_formatDate(selectedDate!)})'
-        : 'Select birth date';
+        ? '${_calculateAge(selectedDate!)} ${context.l10n.years} (${_formatDate(selectedDate!)})'
+        : context.l10n.selectBirthDate;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -52,6 +52,7 @@ class SyncRepositoryImpl implements SyncRepository {
             id: e.id,
             name: e.name ?? '',
             logo: e.logo,
+            labelSource: e.labelSource,
           ),
         )
         .toList();
@@ -94,6 +95,11 @@ class SyncRepositoryImpl implements SyncRepository {
       await clearToken();
       return null;
     }
+  }
+
+  @override
+  Future<void> updateSourceLabel(String sourceId, String newLabel) async {
+    return _localDataSource.updateSourceLabel(sourceId, newLabel);
   }
 
   Future<void> clearToken() async {

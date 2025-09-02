@@ -10,6 +10,7 @@ class Source with _$Source {
     required String id,
     String? name,
     String? logo,
+    String? labelSource,
   }) = _Source;
 
   factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);

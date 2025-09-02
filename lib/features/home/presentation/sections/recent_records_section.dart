@@ -150,6 +150,7 @@ class RecentRecordsSection extends StatelessWidget {
                 children: [
                   if (infoLine != null)
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         infoLine.icon.svg(
                           width: 16,
@@ -160,10 +161,14 @@ class RecentRecordsSection extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          infoLine.info,
-                          style: AppTextStyle.labelLarge.copyWith(
-                            color: context.colorScheme.primary,
+                        Expanded(
+                          child: Text(
+                            infoLine.info,
+                            style: AppTextStyle.labelLarge.copyWith(
+                              color: context.colorScheme.primary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                           ),
                         ),
                       ],

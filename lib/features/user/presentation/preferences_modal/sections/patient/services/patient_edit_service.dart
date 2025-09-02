@@ -3,6 +3,8 @@ import 'package:health_wallet/features/records/domain/entity/observation/observa
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/core/utils/blood_observation_utils.dart';
+import 'package:health_wallet/core/utils/logger.dart';
+import 'package:health_wallet/core/l10n/arb/app_localizations.dart';
 
 class PatientEditService {
   final RecordsRepository _recordsRepository;
@@ -22,16 +24,10 @@ class PatientEditService {
     }
   }
 
-  /// Updates the blood type observation for a patient
-  /// Creates new observation if none exists, updates existing one if found
   Future<void> updateBloodTypeObservation(
     Patient patient,
     String bloodType,
   ) async {
-    if (!BloodObservationUtils.isValidBloodType(bloodType)) {
-      return;
-    }
-
     try {
       final existingObservations =
           await _recordsRepository.getBloodTypeObservations(
@@ -39,12 +35,44 @@ class PatientEditService {
         sourceId: patient.sourceId.isNotEmpty ? patient.sourceId : null,
       );
 
+      if (bloodType == 'N/A') {
+        if (existingObservations.isNotEmpty) {
+          final existingObservation = existingObservations.first as Observation;
+
+          final updatedRawResource =
+              Map<String, dynamic>.from(existingObservation.rawResource);
+          updatedRawResource.remove('valueCodeableConcept');
+
+          final clearedObservation = existingObservation.copyWith(
+            valueX: null,
+            date: DateTime.now(),
+            rawResource: updatedRawResource,
+          );
+          await _recordsRepository.saveObservation(clearedObservation);
+        }
+        return;
+      }
+
+      if (!BloodObservationUtils.isValidBloodType(bloodType)) {
+        logger.w('Invalid blood type: $bloodType');
+        return;
+      }
+
       if (existingObservations.isNotEmpty) {
         final existingObservation = existingObservations.first as Observation;
+
+        final newValueX = BloodObservationUtils.createBloodTypeValue(bloodType);
+
+        final updatedRawResource =
+            Map<String, dynamic>.from(existingObservation.rawResource);
+        updatedRawResource['valueCodeableConcept'] = newValueX.toJson();
+
         final updatedObservation = existingObservation.copyWith(
-          valueX: BloodObservationUtils.createBloodTypeValue(bloodType),
+          valueX: newValueX,
           date: DateTime.now(),
+          rawResource: updatedRawResource,
         );
+
         await _recordsRepository.saveObservation(updatedObservation);
       } else {
         final newObservation = BloodObservationUtils.createBloodTypeObservation(
@@ -55,6 +83,7 @@ class PatientEditService {
         await _recordsRepository.saveObservation(newObservation);
       }
     } catch (e) {
+      logger.e('Error updating blood type observation: $e');
       rethrow;
     }
   }
@@ -65,6 +94,7 @@ class PatientEditService {
     required DateTime? newBirthDate,
     required String newGender,
     required String newBloodType,
+    required AppLocalizations l10n,
   }) async {
     final currentBirthDate =
         FhirFieldExtractor.extractPatientBirthDate(currentPatient);
@@ -73,28 +103,25 @@ class PatientEditService {
     final currentBloodType = await getCurrentBloodType(currentPatient);
 
     final birthDateChanged = currentBirthDate != newBirthDate;
-    final genderChanged = _mapGenderToDisplay(currentGender) != newGender;
-    final bloodTypeChanged =
-        currentBloodType != newBloodType && newBloodType != 'N/A';
+    final genderChanged = _mapGenderToDisplay(currentGender, l10n) != newGender;
+    final bloodTypeChanged = currentBloodType != newBloodType;
 
     return birthDateChanged || genderChanged || bloodTypeChanged;
   }
 
-  /// Maps FHIR gender to display format
-  String _mapGenderToDisplay(String? fhirGender) {
-    if (fhirGender == null) return 'Prefer not to say';
+  String _mapGenderToDisplay(String? fhirGender, AppLocalizations l10n) {
+    if (fhirGender == null) return l10n.preferNotToSay;
 
     switch (fhirGender.toLowerCase()) {
       case 'male':
-        return 'Male';
+        return l10n.male;
       case 'female':
-        return 'Female';
+        return l10n.female;
       default:
-        return 'Prefer not to say';
+        return l10n.preferNotToSay;
     }
   }
 
-  /// Validates patient data before saving
   bool validatePatientData({
     required DateTime? birthDate,
     required String gender,

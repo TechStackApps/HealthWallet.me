@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
@@ -267,8 +268,8 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
                 Padding(
                   padding: const EdgeInsetsGeometry.all(6),
                   child: GestureDetector(
-                    onTap: () => _bloc
-                        .add(RecordNotesInputInitialised(editNote: note)),
+                    onTap: () =>
+                        _bloc.add(RecordNotesInputInitialised(editNote: note)),
                     child: Assets.icons.edit.svg(
                         width: 20,
                         color: context.theme.iconTheme.color ??
@@ -291,8 +292,7 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(note.content,
-            style: AppTextStyle.labelLarge),
+        Text(note.content, style: AppTextStyle.labelLarge),
         const SizedBox(height: 16),
         if (!isLast)
           Divider(
@@ -303,88 +303,129 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
   }
 
   void _showDeleteConfirmationDialog(BuildContext context, RecordNote note) {
+    final textColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final borderColor =
+        context.isDarkMode ? AppColors.borderDark : AppColors.border;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Delete Note',
-            style: context.textTheme.titleLarge ?? AppTextStyle.bodyLarge,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Are you sure you want to delete this note?',
-                style: context.textTheme.bodyMedium ?? AppTextStyle.bodyMedium,
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(Insets.normal),
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor, width: 1),
               ),
-              const SizedBox(height: Insets.normal),
-              Container(
-                padding: const EdgeInsets.all(Insets.small),
-                decoration: BoxDecoration(
-                  color: (context.colorScheme.error ?? Colors.red)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: (context.colorScheme.error ?? Colors.red)
-                        .withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
+              child: Padding(
+                padding: const EdgeInsets.all(Insets.normal),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: context.colorScheme.error ?? Colors.red,
-                      size: 20,
+                    // Content
+                    Text(
+                      'Are you sure you want to delete this note?',
+                      style: AppTextStyle.labelLarge.copyWith(color: textColor),
                     ),
-                    const SizedBox(width: Insets.small),
-                    Expanded(
-                      child: Text(
-                        'This action cannot be undone.',
-                        style: (context.textTheme.bodySmall ??
-                                AppTextStyle.bodySmall)
-                            .copyWith(
-                          color: context.colorScheme.error ?? Colors.red,
-                          fontWeight: FontWeight.w500,
+
+                    const SizedBox(height: Insets.small),
+
+                    Container(
+                      padding: const EdgeInsets.all(Insets.small),
+                      decoration: BoxDecoration(
+                        color: (context.colorScheme.error ?? Colors.red)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: (context.colorScheme.error ?? Colors.red)
+                              .withValues(alpha: 0.3),
+                          width: 1,
                         ),
                       ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: context.colorScheme.error ?? Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: Insets.small),
+                          Expanded(
+                            child: Text(
+                              context.l10n.actionCannotBeUndone,
+                              style: AppTextStyle.bodySmall.copyWith(
+                                color: context.colorScheme.error ?? Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: Insets.normal),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.all(8),
+                              fixedSize: const Size.fromHeight(36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: AppTextStyle.buttonSmall.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _bloc.add(RecordNotesNoteDeleted(note: note));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  context.colorScheme.error ?? Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.all(8),
+                              fixedSize: const Size.fromHeight(36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Delete',
+                              style: AppTextStyle.buttonSmall
+                                  .copyWith(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colorScheme.primary,
-                    ) ??
-                    AppTextStyle.buttonMedium.copyWith(
-                      color: AppColors.primary,
-                    ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _bloc.add(RecordNotesNoteDeleted(note: note));
-              },
-              child: Text(
-                'Delete',
-                style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colorScheme.error,
-                    ) ??
-                    AppTextStyle.buttonMedium.copyWith(
-                      color: Colors.red,
-                    ),
-              ),
-            ),
-          ],
         );
       },
     );

@@ -17,10 +17,11 @@ class BloodObservationUtils {
         customId ?? 'blood_type_${DateTime.now().millisecondsSinceEpoch}';
     final now = DateTime.now();
 
-    return Observation(
+    // Create the FHIR observation with all fields
+    final observation = Observation(
       id: observationId,
       sourceId: patientSourceId,
-      resourceId: patientResourceId,
+      resourceId: observationId,
       title: 'Blood Type: $bloodType',
       date: now,
       status: fhir.ObservationStatus.final_,
@@ -61,6 +62,23 @@ class BloodObservationUtils {
       ),
       issued: fhir.FhirInstant.fromDateTime(now),
       effectiveX: fhir.FhirDateTime.fromDateTime(now),
+    );
+
+    // Create the rawResource JSON from the FHIR observation
+    final fhirObservation = fhir.Observation(
+      id: fhir.FhirString(observationId),
+      status: fhir.ObservationStatus.final_,
+      category: observation.category,
+      code: observation.code!,
+      subject: observation.subject!,
+      effectiveX: observation.effectiveX!,
+      issued: observation.issued!,
+      valueX: observation.valueX!,
+    );
+
+    // Return observation with populated rawResource
+    return observation.copyWith(
+      rawResource: fhirObservation.toJson(),
     );
   }
 

@@ -481,6 +481,11 @@ class FhirFieldExtractor {
             if (display != null && _isValidBloodType(display)) {
               return display;
             }
+          } else {
+            final extractedValue = extractObservationValue(value);
+            if (extractedValue != null && _isValidBloodType(extractedValue)) {
+              return extractedValue;
+            }
           }
         }
       }

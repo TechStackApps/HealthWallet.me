@@ -15,9 +15,9 @@ class VitalsSection extends StatelessWidget {
   final void Function(int oldIndex, int newIndex)? onReorder;
   final VoidCallback? onLongPressCard;
   final VoidCallback? onExpandToggle;
-  final GlobalKey? firstCardKey; // First card key
+  final GlobalKey? firstCardKey;
   final FocusNode? firstCardFocusNode;
-  final Map<String, bool>? selectedVitals; // Add this to check filter state
+  final Map<String, bool>? selectedVitals;
 
   const VitalsSection({
     super.key,
@@ -33,9 +33,24 @@ class VitalsSection extends StatelessWidget {
     this.selectedVitals,
   });
 
+  static const double _breakpoint = 380;
+
+  int _getCrossAxisCount(double screenWidth) {
+    return 2;
+  }
+
+  double _getCrossAxisSpacing(double screenWidth) {
+    return screenWidth < _breakpoint ? 8 : 12;
+  }
+
+  double _getChildAspectRatio(double screenWidth) {
+    return screenWidth < _breakpoint ? 1.88 : 2.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final vitalsToShow = vitalsExpanded ? allAvailableVitals : vitals;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,22 +73,33 @@ class VitalsSection extends StatelessWidget {
               }
             }
           },
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.85,
+          crossAxisCount: _getCrossAxisCount(screenWidth),
+          crossAxisSpacing: _getCrossAxisSpacing(screenWidth),
+          mainAxisSpacing: _getCrossAxisSpacing(screenWidth),
+          childAspectRatio: _getChildAspectRatio(screenWidth),
           shrinkWrap: true,
           padding: EdgeInsets.zero,
-          itemBuilder: (context, vital, index) => GestureDetector(
-            onLongPress: onLongPressCard,
-            child: index == 0 && firstCardFocusNode != null
-                ? Focus(
-                    focusNode: firstCardFocusNode!,
-                    child:
-                        _buildVitalSignCard(context, vital, key: firstCardKey),
-                  )
-                : _buildVitalSignCard(context, vital),
-          ),
+          itemBuilder: (context, vital, index) {
+            final cardWidget =
+                (index == 0 && firstCardFocusNode != null && !editMode)
+                    ? Focus(
+                        focusNode: firstCardFocusNode!,
+                        child: _buildVitalSignCard(
+                          context,
+                          vital,
+                          screenWidth,
+                          key: firstCardKey,
+                        ),
+                      )
+                    : _buildVitalSignCard(context, vital, screenWidth);
+
+            return editMode
+                ? cardWidget
+                : GestureDetector(
+                    onLongPress: onLongPressCard,
+                    child: cardWidget,
+                  );
+          },
         ),
         if (allAvailableVitals.isNotEmpty &&
             (selectedVitals == null ||
@@ -113,17 +139,28 @@ class VitalsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalSignCard(BuildContext context, PatientVital vital,
+  Widget _buildVitalSignCard(
+      BuildContext context, PatientVital vital, double screenWidth,
       {Key? key}) {
     final String title = vital.title;
     final String value = vital.value;
     final String unit = vital.unit;
     final String? status = vital.status;
 
+    final bool isSmall = screenWidth < _breakpoint;
+
+    final double iconSize = isSmall ? 14 : 16;
+
+    final double cardPadding = isSmall ? Insets.normal : Insets.normal;
+
+    final double iconTitleSpacing = isSmall ? 6 : Insets.smaller;
+
     Widget icon;
     switch (title) {
       case 'Heart Rate':
         icon = Assets.icons.heartFavorite.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -132,6 +169,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Blood Pressure':
         icon = Assets.icons.drop.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -140,6 +179,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Temperature':
         icon = Assets.icons.temperature.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -148,6 +189,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Blood Oxygen':
         icon = Assets.icons.activity.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -156,6 +199,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Blood Glucose':
         icon = Assets.icons.bloodGlucose.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -164,6 +209,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Respiratory Rate':
         icon = Assets.icons.alarm.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -172,6 +219,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Weight':
         icon = Assets.icons.weight.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -180,6 +229,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'Height':
         icon = Assets.icons.rulerHeight.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -188,6 +239,8 @@ class VitalsSection extends StatelessWidget {
         break;
       case 'BMI':
         icon = Assets.icons.bmi.svg(
+          width: iconSize,
+          height: iconSize,
           colorFilter: ColorFilter.mode(
             context.colorScheme.onSurface,
             BlendMode.srcIn,
@@ -211,7 +264,9 @@ class VitalsSection extends StatelessWidget {
               : AppColors.success.withOpacity(0.08);
           statusIconColor = AppColors.success;
           statusIcon = Assets.icons.checkmarkCircleOutline.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            width: iconSize,
+            height: iconSize,
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'Elevated':
@@ -221,7 +276,9 @@ class VitalsSection extends StatelessWidget {
               : AppColors.warning.withOpacity(0.08);
           statusIconColor = AppColors.warning;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            width: iconSize,
+            height: iconSize,
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'High':
@@ -231,10 +288,11 @@ class VitalsSection extends StatelessWidget {
               : AppColors.error.withOpacity(0.08);
           statusIconColor = AppColors.error;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            width: iconSize,
+            height: iconSize,
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
-        case 'Abnormal':
         case 'Critically Abnormal':
         case 'Critically High':
         case 'Critically Low':
@@ -243,7 +301,9 @@ class VitalsSection extends StatelessWidget {
               : AppColors.error.withOpacity(0.12);
           statusIconColor = AppColors.error;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            width: iconSize,
+            height: iconSize,
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         case 'Uncertain':
@@ -253,7 +313,9 @@ class VitalsSection extends StatelessWidget {
               : AppColors.warning.withOpacity(0.08);
           statusIconColor = AppColors.warning;
           statusIcon = Assets.icons.warning.svg(
-            colorFilter: ColorFilter.mode(statusIconColor!, BlendMode.srcIn),
+            width: iconSize,
+            height: iconSize,
+            colorFilter: ColorFilter.mode(statusIconColor, BlendMode.srcIn),
           );
           break;
         default:
@@ -261,6 +323,33 @@ class VitalsSection extends StatelessWidget {
           statusIcon = null;
       }
     }
+
+    final TextStyle titleStyle = isSmall
+        ? AppTextStyle.bodySmall.copyWith(
+            fontSize: 12,
+            color: context.colorScheme.onSurface,
+          )
+        : AppTextStyle.bodySmall.copyWith(
+            color: context.colorScheme.onSurface,
+          );
+
+    final TextStyle valueStyle = isSmall
+        ? AppTextStyle.titleLarge.copyWith(
+            fontSize: 20,
+            color: context.colorScheme.onSurface,
+          )
+        : AppTextStyle.titleSmall.copyWith(
+            color: context.colorScheme.onSurface,
+          );
+
+    final TextStyle unitStyle = isSmall
+        ? AppTextStyle.bodySmall.copyWith(
+            fontSize: 11,
+            color: context.colorScheme.onSurface.withOpacity(0.6),
+          )
+        : AppTextStyle.bodySmall.copyWith(
+            color: context.colorScheme.onSurface.withOpacity(0.6),
+          );
 
     return Container(
       key: key,
@@ -273,47 +362,42 @@ class VitalsSection extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(Insets.normal),
+        padding: EdgeInsets.all(cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                SizedBox(height: 16, width: 16, child: icon),
-                const SizedBox(width: Insets.smaller),
+                SizedBox(height: iconSize, width: iconSize, child: icon),
+                SizedBox(width: iconTitleSpacing),
                 Expanded(
                   child: Text(
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyle.bodySmall.copyWith(
-                      color: context.colorScheme.onSurface,
-                    ),
+                    style: titleStyle,
                   ),
                 ),
                 if (statusIcon != null) statusIcon,
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Insets.smallNormal),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
               children: [
                 Flexible(
                   child: Text(
                     value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyle.titleSmall.copyWith(
-                      color: context.colorScheme.onSurface,
-                    ),
+                    style: valueStyle,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   unit,
-                  style: AppTextStyle.bodySmall.copyWith(
-                    color: context.colorScheme.onSurface.withOpacity(0.6),
-                  ),
+                  style: unitStyle,
                 ),
               ],
             ),

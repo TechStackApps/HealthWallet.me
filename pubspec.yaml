@@ -1,7 +1,7 @@
 name: health_wallet
 description: "HealthWallet.me"
 publish_to: 'none'
-version: 1.0.0+5
+version: 1.0.0+11
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -43,16 +43,17 @@ dependencies:
   flutter_svg: ^2.0.9
   flutter_native_splash: ^2.3.8
   flutter_launcher_icons: ^0.14.3
-  liquid_glass_renderer: ^0.1.1-dev.9
 
   # Utils
   intl: ^0.20.2
   logger: ^2.0.2+1
+  package_info_plus: ^8.0.0
   equatable: ^2.0.7
   google_fonts: ^6.2.1
   local_auth: ^2.1.7
   reorderable_grid_view: ^2.2.8
   url_launcher: ^6.2.5
+  android_intent_plus: ^5.0.2
   fhir_r4: ^0.4.2
   file_picker: ^10.2.1
   path: ^1.9.1

@@ -15,13 +15,15 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
+import 'package:health_wallet/features/home/presentation/widgets/section_info_modal.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/recent_records_section.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/preference_modal.dart';
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/features/home/core/constants/home_constants.dart';
-import 'package:health_wallet/core/widgets/placeholder_widget.dart';
+import 'package:health_wallet/features/sync/presentation/widgets/sync_placeholder_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 
@@ -32,24 +34,61 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PatientBloc, PatientState>(
-      listenWhen: (previous, current) =>
-          previous.selectedPatientSourceId != current.selectedPatientSourceId ||
-          (current.status.toString().contains('Success') &&
-              !current.isEditingPatient),
-      listener: (context, patientState) {
-        if (patientState.selectedPatientSourceId != null &&
-            patientState.selectedPatientSourceId != 'All') {
-          context.read<HomeBloc>().add(
-                HomeSourceChanged(patientState.selectedPatientSourceId!),
-              );
-        }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PatientBloc, PatientState>(
+          listenWhen: (previous, current) =>
+              previous.selectedPatientSourceId !=
+                  current.selectedPatientSourceId ||
+              (current.status.toString().contains('Success') &&
+                  !current.isEditingPatient),
+          listener: (context, patientState) {
+            if (patientState.selectedPatientSourceId != null &&
+                patientState.selectedPatientSourceId != 'All') {
+              context.read<HomeBloc>().add(
+                    HomeSourceChanged(patientState.selectedPatientSourceId!),
+                  );
+            }
 
-        if (patientState.status.toString().contains('Success') &&
-            !patientState.isEditingPatient) {
-          context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-        }
-      },
+            if (patientState.status.toString().contains('Success') &&
+                !patientState.isEditingPatient) {
+              context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+            }
+          },
+        ),
+        BlocListener<SyncBloc, SyncState>(
+          listenWhen: (previous, current) {
+            return (previous.syncStatus != current.syncStatus &&
+                    current.syncStatus == SyncStatus.synced &&
+                    current.justCompleted) ||
+                (previous.isLoadingDemoData != current.isLoadingDemoData &&
+                    !current.isLoadingDemoData &&
+                    current.hasDemoData &&
+                    current.justCompleted);
+          },
+          listener: (context, syncState) {
+            if (syncState.syncStatus == SyncStatus.synced &&
+                syncState.justCompleted) {}
+
+            if (!syncState.isLoadingDemoData &&
+                syncState.hasDemoData &&
+                syncState.justCompleted &&
+                !syncState.hasSyncData) {
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                if (context.mounted) {
+                  try {
+                    context
+                        .read<SyncBloc>()
+                        .add(const OnboardingOverlayTriggered());
+                  } catch (e) {
+                    // Handle any errors silently
+                  }
+                }
+              });
+            }
+          },
+        ),
+      ],
       child: HomeView(pageController: pageController),
     );
   }
@@ -222,7 +261,7 @@ class HomeViewState extends State<HomeView> {
                             style: TextButton.styleFrom(
                               foregroundColor: context.colorScheme.primary,
                             ),
-                            child: const Text('Done'),
+                            child: Text(context.l10n.done),
                           )
                         : Container(
                             width: 36,
@@ -269,13 +308,12 @@ class HomeViewState extends State<HomeView> {
     final hasRecent = state.recentRecords.isNotEmpty;
 
     if (!hasVitalDataLoaded && !hasOverviewDataLoaded && !hasRecent) {
-      return PlaceholderWidget(
-        hasDataLoaded: false,
-        colorScheme: context.colorScheme,
-        pageController: widget.pageController, // Pass the PageController
+      return SyncPlaceholderWidget(
+        pageController: widget.pageController,
         onSyncPressed: () {
           context.router.push(const SyncRoute());
         },
+        recordTypeName: null, // No specific record type for home page
       );
     }
 
@@ -323,13 +361,16 @@ class HomeViewState extends State<HomeView> {
                 padding: const EdgeInsets.symmetric(horizontal: Insets.normal),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    const SizedBox(height: Insets.medium),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.small
+                            : Insets.medium),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
                           HomeSectionHeader(
                             title: context.l10n.homeVitalSigns,
-                            filterLabel: editMode ? 'Filter Vitals' : null,
+                            filterLabel: editMode ? context.l10n.vitals : null,
                             onFilterTap: editMode
                                 ? () =>
                                     HomeDialogController.showEditVitalsDialog(
@@ -343,8 +384,17 @@ class HomeViewState extends State<HomeView> {
                                 : null,
                             colorScheme: colorScheme,
                             isEditMode: editMode,
+                            isFilterDisabled: state.vitalsExpanded,
+                            onInfoTap: () => SectionInfoModal.show(
+                              context,
+                              context.l10n.vitalSigns,
+                              context.l10n.longPressToReorder,
+                            ),
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           VitalsSection(
                             vitals: state.vitalsExpanded
                                 ? state.allAvailableVitals
@@ -376,12 +426,15 @@ class HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                    const SizedBox(height: Insets.large),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.medium
+                            : Insets.large),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
                           HomeSectionHeader(
-                            title: 'Overview',
+                            title: context.l10n.overview,
                             subtitle: state.sources.isNotEmpty
                                 ? SourceSelectorWidget(
                                     sources: state.sources,
@@ -392,9 +445,21 @@ class HomeViewState extends State<HomeView> {
                                           .add(HomeSourceChanged(sourceId));
                                     },
                                     currentPatient: state.patient,
+                                    onSourceTap: (source) {
+                                      SourceLabelEditDialog.show(
+                                        context,
+                                        source,
+                                        (newLabel) {
+                                          context.read<HomeBloc>().add(
+                                                HomeSourceLabelUpdated(
+                                                    source.id, newLabel),
+                                              );
+                                        },
+                                      );
+                                    },
                                   )
                                 : null,
-                            filterLabel: 'Filter Records',
+                            filterLabel: context.l10n.records,
                             onFilterTap: () =>
                                 HomeDialogController.showEditRecordsDialog(
                               context,
@@ -406,8 +471,16 @@ class HomeViewState extends State<HomeView> {
                             ),
                             colorScheme: colorScheme,
                             isEditMode: editMode,
+                            onInfoTap: () => SectionInfoModal.show(
+                              context,
+                              context.l10n.overview,
+                              context.l10n.longPressToReorder,
+                            ),
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           MedicalRecordsSection(
                             overviewCards: filteredCards,
                             editMode: editMode,
@@ -434,12 +507,15 @@ class HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                    const SizedBox(height: Insets.large),
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height < 700
+                            ? Insets.medium
+                            : Insets.large),
                     if (state.hasDataLoaded || editMode)
                       Column(
                         children: [
                           HomeSectionHeader(
-                            title: 'Recent records',
+                            title: context.l10n.recentRecords,
                             trailing: TextButton(
                               onPressed: () {
                                 widget.pageController.animateToPage(
@@ -456,7 +532,7 @@ class HomeViewState extends State<HomeView> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               child: Text(
-                                'View all',
+                                context.l10n.viewAll,
                                 style: AppTextStyle.labelLarge.copyWith(
                                   color: context.colorScheme.primary,
                                 ),
@@ -464,7 +540,10 @@ class HomeViewState extends State<HomeView> {
                             ),
                             colorScheme: colorScheme,
                           ),
-                          const SizedBox(height: Insets.smallNormal),
+                          SizedBox(
+                              height: MediaQuery.of(context).size.height < 700
+                                  ? Insets.small
+                                  : Insets.smallNormal),
                           RecentRecordsSection(
                             recentRecords: state.recentRecords,
                             onViewAll: () {

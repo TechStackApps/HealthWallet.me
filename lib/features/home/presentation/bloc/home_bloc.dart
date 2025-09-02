@@ -14,6 +14,7 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
+import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 
 part 'home_bloc.freezed.dart';
 part 'home_event.dart';
@@ -23,6 +24,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final RecordsRepository _recordsRepository;
   final GetSourcesUseCase _getSourcesUseCase;
   final HomeLocalDataSource _homeLocalDataSource;
+  final SyncRepository _syncRepository;
   final PatientVitalFactory _patientVitalFactory = PatientVitalFactory();
 
   static const int _minVisibleVitalsCount = 4;
@@ -32,6 +34,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getSourcesUseCase,
     this._homeLocalDataSource,
     this._recordsRepository,
+    this._syncRepository,
   ) : super(const HomeState()) {
     on<HomeInitialised>(_onInitialised);
     on<HomeSourceChanged>(_onSourceChanged);
@@ -44,6 +47,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeVitalsExpansionToggled>((e, emit) =>
         emit(state.copyWith(vitalsExpanded: !state.vitalsExpanded)));
     on<HomeRefreshPreservingOrder>(_onRefreshPreservingOrder);
+    on<HomeSourceLabelUpdated>(_onSourceLabelUpdated);
   }
 
   bool hasData({
@@ -430,8 +434,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           hasDataLoaded: hasData,
         ));
       }
-    } catch (err) {
+    } catch (err, stackTrace) {
       logger.e('reloadHomeData error: $err');
+      logger.e('reloadHomeData stack trace: $stackTrace');
       emit(state.copyWith(
         status: HomeStatus.failure('Failed to load home data: $err'),
         errorMessage: err.toString(),
@@ -443,5 +448,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (input == null || input == 'All') return null;
     if (input == _demoSourceId) return _demoSourceId;
     return input;
+  }
+
+  Future<void> _onSourceLabelUpdated(
+    HomeSourceLabelUpdated event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      final updatedSources = state.sources.map((source) {
+        if (source.id == event.sourceId) {
+          return source.copyWith(labelSource: event.newLabel);
+        }
+        return source;
+      }).toList();
+
+      await _updateSourceLabel(event.sourceId, event.newLabel);
+
+      emit(state.copyWith(sources: updatedSources));
+    } catch (e) {
+      logger.e('Error updating source label: $e');
+    }
+  }
+
+  Future<void> _updateSourceLabel(String sourceId, String newLabel) async {
+    try {
+      await _syncRepository.updateSourceLabel(sourceId, newLabel);
+    } catch (e) {
+      logger.e('Error updating source label: $e');
+      rethrow;
+    }
   }
 }

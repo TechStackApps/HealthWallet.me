@@ -1,15 +1,17 @@
 import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/core/utils/date_format_utils.dart';
+import 'package:health_wallet/core/widgets/success_dialog.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/qr_scanner_widget.dart';
+import 'package:health_wallet/features/sync/presentation/widgets/sync_loading_widget.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,36 +66,33 @@ class _SyncPageState extends State<SyncPage> {
     );
   }
 
-  Future<void> _showSuccessDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Sync Completed Successfully!'),
-          content: const Text(
-            'Your medical records have been synchronized. You will be redirected to the home page.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildQRCodeTab(BuildContext context) {
     return BlocBuilder<SyncBloc, SyncState>(
       builder: (context, state) {
-        if (state.syncStatus == SyncStatus.syncing) {
+        if (state.isQRScanning) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: _buildQRScannerSection(context, state),
+            child: QRScannerWidget(
+              cancelButtonText: 'Cancel',
+              onQRCodeDetected: (qrData) {
+                context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
+              },
+              onCancel: () {
+                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+              },
+            ),
+          );
+        }
+
+        if (state.syncStatus == SyncStatus.syncing && state.isLoading) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SyncLoadingWidget(
+              onCancel: () {
+                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+              },
+              cancelButtonText: 'Cancel',
+            ),
           );
         }
 
@@ -104,7 +103,7 @@ class _SyncPageState extends State<SyncPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Assets.onboarding.onboarding2.svg(width: 140),
+                  Assets.images.syncScanIlustration.svg(width: 140),
                   const SizedBox(height: 12),
                   _buildQRConfigCard(context, state),
                   const SizedBox(height: 12),
@@ -121,31 +120,22 @@ class _SyncPageState extends State<SyncPage> {
           );
         }
 
-        return const Center(child: CircularProgressIndicator());
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _buildQRScannerSection(context, state),
+        );
       },
     );
   }
 
   Widget _buildQRScannerSection(BuildContext context, SyncState state) {
-    if (state.isQRScanning) {
-      return QRScannerWidget(
-        title: 'Scan QR Code',
-        cancelButtonText: 'Cancel',
-        onQRCodeDetected: (qrData) {
-          context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
-        },
-        onCancel: () {
-          context.read<SyncBloc>().add(const SyncCancelQRScanning());
-        },
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Assets.onboarding.onboarding2.svg(width: 140),
+        Assets.images.syncScanIlustration.svg(width: 140),
+        const SizedBox(height: Insets.small),
         const Text(
-          'QR Code Scanner',
+          'Scan QR Code',
           style: AppTextStyle.buttonMedium,
           textAlign: TextAlign.center,
         ),
@@ -177,20 +167,20 @@ class _SyncPageState extends State<SyncPage> {
               children: [
                 Assets.icons.qrCode.svg(width: 16),
                 const SizedBox(width: 8),
-                const Text(
-                  "Scan code",
+                Text(
+                  context.l10n.scanCode,
                   style: AppTextStyle.buttonSmall,
                 )
               ],
             ),
           ),
         ),
-        const Padding(
-          padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-          child: Text("or", style: AppTextStyle.labelLarge),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Text(context.l10n.or, style: AppTextStyle.labelLarge),
         ),
-        const Text(
-          "If you can’t scan the QR code, you can manually paste the sync data:",
+        Text(
+          context.l10n.manualSyncMessage,
           style: AppTextStyle.labelLarge,
           textAlign: TextAlign.center,
         ),
@@ -200,7 +190,7 @@ class _SyncPageState extends State<SyncPage> {
           style: AppTextStyle.labelLarge,
           controller: _manualCodeController,
           decoration: InputDecoration(
-            hintText: "Paste sync data here",
+            hintText: context.l10n.pasteSyncDataHint,
             hintStyle: AppTextStyle.labelLarge.copyWith(
                 color: context.isDarkMode
                     ? Colors.white
@@ -257,7 +247,9 @@ class _SyncPageState extends State<SyncPage> {
                       strokeWidth: 2,
                     ),
                   )
-                : const Text("Connect", style: AppTextStyle.buttonSmall),
+                : Text(context.l10n.connect,
+                    style: AppTextStyle.buttonSmall
+                        .copyWith(color: context.colorScheme.primary)),
           ),
         ),
         const SizedBox(height: 12),
@@ -394,9 +386,10 @@ class _SyncPageState extends State<SyncPage> {
             onPressed: () {
               context.read<SyncBloc>().add(const SyncScanNewPressed());
             },
-            icon: const Icon(Icons.refresh),
-            label:
-                const Text('Scan New QR Code', style: AppTextStyle.buttonSmall),
+            icon: Icon(Icons.refresh, color: context.colorScheme.primary),
+            label: Text(context.l10n.scanNewQRCode,
+                style: AppTextStyle.buttonSmall
+                    .copyWith(color: context.colorScheme.primary)),
             style: OutlinedButton.styleFrom(
               foregroundColor: context.isDarkMode
                   ? Colors.white
@@ -419,17 +412,27 @@ class _SyncPageState extends State<SyncPage> {
 
     final syncBloc = context.read<SyncBloc>();
 
-    _showSuccessDialog(context).then((_) {
-      context.router.pushAndPopUntil(
-        const DashboardRoute(),
-        predicate: (_) => false,
-      );
+    SuccessDialog.show(
+      context: context,
+      title: 'Success',
+      message:
+          'Your medical records have been synchronized. You will be redirected to the home page.',
+      onOkPressed: () {
+        context.router.pushAndPopUntil(
+          const DashboardRoute(),
+          predicate: (_) => false,
+        );
 
-      if (!onboardingShown) {
-        Future.delayed(const Duration(milliseconds: 800), () {
-          syncBloc.add(const OnboardingOverlayTriggered());
-        });
-      }
-    });
+        if (!onboardingShown) {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            try {
+              syncBloc.add(const OnboardingOverlayTriggered());
+            } catch (e) {
+              // Handle any errors silently
+            }
+          });
+        }
+      },
+    );
   }
 }

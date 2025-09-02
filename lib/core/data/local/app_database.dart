@@ -17,7 +17,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4; // Added subjectId column to FhirResource table
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -26,12 +26,18 @@ class AppDatabase extends _$AppDatabase {
           // Create custom indexes after table creation
           await _createOptimizationIndexes();
         },
-        onUpgrade: stepByStep(from1To2: (m, schema) async {
-          _createOptimizationIndexes();
-          m.createTable(schema.recordAttachments);
-        }, from2To3: (m, schema) async {
-          m.createTable(schema.recordNotes);
-        }),
+        onUpgrade: stepByStep(
+          from1To2: (m, schema) async {
+            await _createOptimizationIndexes();
+            await m.createTable(schema.recordAttachments);
+          },
+          from2To3: (m, schema) async {
+            await m.createTable(schema.recordNotes);
+          },
+          from3To4: (m, schema) async {
+            await m.addColumn(schema.sources, schema.sources.labelSource);
+          },
+        ),
       );
 
   /// Create performance optimization indexes

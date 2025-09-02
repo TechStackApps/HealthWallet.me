@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class QRScannerWidget extends StatefulWidget {
@@ -48,18 +49,14 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.title != null)
-            Padding(
-              padding: const EdgeInsets.all(Insets.normal),
-              child: Text(
-                widget.title!,
-                style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          Text(
+            context.l10n.scanQRMessage,
+            style: AppTextStyle.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Insets.medium),
           SizedBox(
-            height: 400,
+            height: 450,
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(12)),
               child: Stack(
@@ -111,7 +108,7 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
                                   });
                                   _controller.start();
                                 },
-                                child: const Text('Retry'),
+                                child: Text(context.l10n.retry),
                               ),
                             ],
                           ),
@@ -122,30 +119,33 @@ class _QRScannerWidgetState extends State<QRScannerWidget> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(Insets.normal),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isScannerActive = false;
-                      });
-                      if (widget.onCancel != null) {
-                        widget.onCancel!();
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: context.isDarkMode
-                          ? Colors.white
-                          : context.colorScheme.primary,
-                      side: BorderSide(color: context.colorScheme.primary),
-                    ),
-                    child: Text(widget.cancelButtonText ?? 'Cancel'),
-                  ),
+          const SizedBox(height: Insets.medium),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  _isScannerActive = false;
+                });
+                if (widget.onCancel != null) {
+                  widget.onCancel!();
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.isDarkMode
+                    ? Colors.white
+                    : context.colorScheme.primary,
+                side: BorderSide(color: context.colorScheme.primary),
+                padding: const EdgeInsets.all(10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
+              ),
+              child: Text(
+                widget.cancelButtonText ?? context.l10n.cancel,
+                style: AppTextStyle.buttonSmall
+                    .copyWith(color: context.colorScheme.primary),
+              ),
             ),
           ),
         ],

@@ -68,7 +68,7 @@ class _PatientSectionState extends State<PatientSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Patient',
+                    context.l10n.patient,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: textColor,
                     ),
@@ -85,7 +85,7 @@ class _PatientSectionState extends State<PatientSection> {
                       ),
                       const SizedBox(width: Insets.extraSmall),
                       Text(
-                        'Tap to select patient',
+                        context.l10n.tapToSelectPatient,
                         style: AppTextStyle.labelMedium.copyWith(
                           color: iconColor,
                         ),
@@ -143,7 +143,7 @@ class _PatientSectionState extends State<PatientSection> {
                       ),
                       const SizedBox(width: Insets.small),
                       Text(
-                        'No patients found',
+                        context.l10n.noPatientsFound,
                         style: AppTextStyle.bodySmall.copyWith(
                           color: textColor,
                         ),
@@ -198,13 +198,16 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   }
 
   Future<void> _loadBloodType() async {
-    final currentPatient =
-        context.read<PatientBloc>().state.patients.firstWhere(
-              (p) => p.id == widget.patient.id,
-              orElse: () => widget.patient,
-            );
-
     try {
+      final patientState = context.read<PatientBloc>().state;
+
+      final currentPatient = patientState.patients.firstWhere(
+        (p) => p.id == widget.patient.id,
+        orElse: () {
+          return widget.patient;
+        },
+      );
+
       final observations = await _recordsRepository.getBloodTypeObservations(
         patientId: currentPatient.id,
         sourceId:
@@ -216,14 +219,15 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
 
       if (mounted) {
         setState(() {
-          _bloodTypeDisplay = extractedBloodType ?? 'N/A';
+          _bloodTypeDisplay = extractedBloodType ?? context.l10n.homeNA;
         });
       }
-    } catch (e) {
-      logger.e('Error loading blood type', e);
+    } catch (e, stackTrace) {
+      logger.e('Error loading blood type: ${e.toString()}');
+      logger.e('Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
-          _bloodTypeDisplay = 'N/A';
+          _bloodTypeDisplay = context.l10n.homeNA;
         });
       }
     }
@@ -233,7 +237,6 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   Widget build(BuildContext context) {
     return BlocBuilder<PatientBloc, PatientState>(
       builder: (context, blocState) {
-        // Get the current patient data from the bloc state
         final currentPatient = blocState.patients.firstWhere(
           (p) => p.id == widget.patient.id,
           orElse: () => widget.patient,
@@ -340,7 +343,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                           BlendMode.srcIn,
                                         ),
                                       ),
-                                      'ID: ${currentPatient.id}',
+                                      '${context.l10n.id}: ${currentPatient.id}',
                                     ),
                                     _buildPatientInfoRow(
                                       context,
@@ -352,7 +355,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                           BlendMode.srcIn,
                                         ),
                                       ),
-                                      'Age: ${FhirFieldExtractor.extractPatientAge(currentPatient)} (${currentPatient.birthDate})',
+                                      '${context.l10n.age}: ${FhirFieldExtractor.extractPatientAge(currentPatient)} (${currentPatient.birthDate})',
                                     ),
                                   ],
                                 ),
@@ -371,7 +374,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                     _buildPatientInfoRow(
                                       context,
                                       _getGenderIcon(currentPatient),
-                                      'Gender: ${_formatGenderDisplay(FhirFieldExtractor.extractPatientGender(currentPatient))}',
+                                      '${context.l10n.gender}: ${_formatGenderDisplay(FhirFieldExtractor.extractPatientGender(currentPatient))}',
                                     ),
                                     _buildPatientInfoRow(
                                       context,
@@ -383,7 +386,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                           BlendMode.srcIn,
                                         ),
                                       ),
-                                      'Blood type: $_bloodTypeDisplay',
+                                      '${context.l10n.bloodType}: $_bloodTypeDisplay',
                                     ),
                                   ],
                                 ),
@@ -423,8 +426,8 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                         BlendMode.srcIn,
                                       ),
                                     ),
-                                    label: const Text(
-                                      'Edit details',
+                                    label: Text(
+                                      context.l10n.editDetails,
                                       style: AppTextStyle.buttonSmall,
                                     ),
                                     style: ElevatedButton.styleFrom(
@@ -516,27 +519,29 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   }
 
   String _formatGenderDisplay(String? gender) {
-    if (gender == null || gender.isEmpty) return 'N/A';
+    if (gender == null || gender.isEmpty) return context.l10n.homeNA;
 
     final lowerGender = gender.toLowerCase();
 
     switch (lowerGender) {
       case 'male':
-        return 'Male';
+        return context.l10n.male;
       case 'female':
-        return 'Female';
+        return context.l10n.female;
       case 'unknown':
       case 'prefer not to say':
       case 'prefer_not_to_say':
       case 'prefernottosay':
-        return 'Prefer not to say';
+        return context.l10n.preferNotToSay;
       default:
-        return gender; // Return original if not recognized
+        return gender;
     }
   }
 
   Widget _buildPatientInfoRow(BuildContext context, Widget icon, String text) {
     final textColor = context.colorScheme.onSurface;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isSmall = screenWidth < 380;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: Insets.small),
@@ -544,10 +549,19 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
         children: [
           icon,
           const SizedBox(width: Insets.smaller),
-          Text(
-            text,
-            style: AppTextStyle.labelLarge.copyWith(
-              color: textColor,
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: isSmall
+                  ? AppTextStyle.labelLarge.copyWith(
+                      fontSize: 11,
+                      color: textColor,
+                    )
+                  : AppTextStyle.labelLarge.copyWith(
+                      color: textColor,
+                    ),
             ),
           ),
         ],

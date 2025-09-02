@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,7 +63,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Attachments",
+                        Text(context.l10n.attachments,
                             style: context.textTheme.bodyMedium ??
                                 AppTextStyle.bodyMedium),
                         IconButton(
@@ -76,11 +77,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     ),
                   ),
                   if (state.attachments.isEmpty)
-                    const Padding(
+                    Padding(
                       padding: const EdgeInsets.all(16),
                       child: Center(
                         child: Text(
-                          "This record has no files attached",
+                          context.l10n.noFilesAttached,
                           style: AppTextStyle.labelLarge,
                         ),
                       ),
@@ -123,7 +124,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                           Assets.icons.attachment
                               .svg(width: 16, color: Colors.white),
                           const SizedBox(width: 4),
-                          const Text("Attach file",
+                          Text(context.l10n.attachFile,
                               style: AppTextStyle.buttonSmall),
                         ],
                       ),
@@ -189,88 +190,130 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
 
   void _showDeleteConfirmationDialog(
       BuildContext context, RecordAttachment attachment) {
+    final textColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final borderColor =
+        context.isDarkMode ? AppColors.borderDark : AppColors.border;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Delete Attachment',
-            style: context.textTheme.titleLarge ?? AppTextStyle.bodyLarge,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Are you sure you want to delete "${basename(attachment.file.path)}"?',
-                style: context.textTheme.bodyMedium ?? AppTextStyle.bodyMedium,
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(Insets.normal),
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor, width: 1),
               ),
-              const SizedBox(height: Insets.normal),
-              Container(
-                padding: const EdgeInsets.all(Insets.small),
-                decoration: BoxDecoration(
-                  color: (context.colorScheme.error ?? Colors.red)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: (context.colorScheme.error ?? Colors.red)
-                        .withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
+              child: Padding(
+                padding: const EdgeInsets.all(Insets.normal),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: context.colorScheme.error ?? Colors.red,
-                      size: 20,
+                    // Content
+                    Text(
+                      'Are you sure you want to delete "${basename(attachment.file.path)}"?',
+                      style: AppTextStyle.labelLarge.copyWith(color: textColor),
                     ),
-                    const SizedBox(width: Insets.small),
-                    Expanded(
-                      child: Text(
-                        'This action cannot be undone.',
-                        style: (context.textTheme.bodySmall ??
-                                AppTextStyle.bodySmall)
-                            .copyWith(
-                          color: context.colorScheme.error ?? Colors.red,
-                          fontWeight: FontWeight.w500,
+
+                    const SizedBox(height: Insets.small),
+
+                    Container(
+                      padding: const EdgeInsets.all(Insets.small),
+                      decoration: BoxDecoration(
+                        color: (context.colorScheme.error ?? Colors.red)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: (context.colorScheme.error ?? Colors.red)
+                              .withValues(alpha: 0.3),
+                          width: 1,
                         ),
                       ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: context.colorScheme.error ?? Colors.red,
+                            size: 20,
+                          ),
+                          const SizedBox(width: Insets.small),
+                          Expanded(
+                            child: Text(
+                              context.l10n.actionCannotBeUndone,
+                              style: AppTextStyle.bodySmall.copyWith(
+                                color: context.colorScheme.error ?? Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: Insets.normal),
+
+                    // Action buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.all(8),
+                              fixedSize: const Size.fromHeight(36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancel',
+                              style: AppTextStyle.buttonSmall.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _bloc.add(
+                                  RecordAttachmentsFileDeleted(attachment));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  context.colorScheme.error ?? Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.all(8),
+                              fixedSize: const Size.fromHeight(36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Delete',
+                              style: AppTextStyle.buttonSmall
+                                  .copyWith(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colorScheme.primary,
-                    ) ??
-                    AppTextStyle.buttonMedium.copyWith(
-                      color: AppColors.primary,
-                    ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _bloc.add(RecordAttachmentsFileDeleted(attachment));
-              },
-              child: Text(
-                'Delete',
-                style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colorScheme.error,
-                    ) ??
-                    AppTextStyle.buttonMedium.copyWith(
-                      color: Colors.red,
-                    ),
-              ),
-            ),
-          ],
         );
       },
     );

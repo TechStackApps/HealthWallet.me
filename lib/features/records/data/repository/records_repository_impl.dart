@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:fhir_ips_export/fhir_ips_export.dart';
-import 'package:fhir_ips_export/utils/codeable_concept_utils.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
@@ -235,7 +234,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       }
 
       final coding = resource.code?.coding;
-      if (coding == null) {
+      if (coding == null || coding.isEmpty) {
         return false;
       }
 

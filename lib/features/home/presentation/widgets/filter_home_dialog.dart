@@ -4,6 +4,7 @@ import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/home/domain/entities/patient_vitals.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 enum FilterHomeType { records, vitals }
@@ -35,6 +36,7 @@ class FilterHomeDialog extends StatefulWidget {
 class _FilterHomeDialogState extends State<FilterHomeDialog> {
   late Map<HomeRecordsCategory, bool> _tempSelectedRecords;
   late Map<PatientVitalType, bool> _tempSelectedVitals;
+  bool _showDropdown = false;
 
   @override
   void initState() {
@@ -51,160 +53,292 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
     }
   }
 
+  void _selectAll() {
+    setState(() {
+      if (widget.type == FilterHomeType.records) {
+        final keys =
+            widget.orderedRecords ?? _tempSelectedRecords.keys.toList();
+        for (final key in keys) {
+          _tempSelectedRecords[key] = true;
+        }
+      } else {
+        final keys = widget.orderedVitals ?? _tempSelectedVitals.keys.toList();
+        for (final key in keys) {
+          _tempSelectedVitals[key] = true;
+        }
+      }
+      _showDropdown = false;
+    });
+  }
+
+  void _clearAll() {
+    setState(() {
+      if (widget.type == FilterHomeType.records) {
+        final keys =
+            widget.orderedRecords ?? _tempSelectedRecords.keys.toList();
+        for (final key in keys) {
+          _tempSelectedRecords[key] = false;
+        }
+      } else {
+        final keys = widget.orderedVitals ?? _tempSelectedVitals.keys.toList();
+        for (final key in keys) {
+          _tempSelectedVitals[key] = false;
+        }
+      }
+      _showDropdown = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRecords = widget.type == FilterHomeType.records;
-    final borderColor = Theme.of(context).dividerColor;
+    final textColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final borderColor =
+        context.isDarkMode ? AppColors.borderDark : AppColors.border;
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
       child: Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(Insets.medium),
+        insetPadding: const EdgeInsets.all(Insets.normal),
         child: Container(
+          width: 350,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: context.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: borderColor,
-              width: 1,
-            ),
+            border: Border.all(color: borderColor, width: 1),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Insets.normal,
-                  vertical: Insets.small,
-                ),
-                child: DefaultTextStyle(
-                  style: AppTextStyle.bodyMedium.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  child: _buildHeader(isRecords: isRecords),
-                ),
-              ),
-              Divider(height: 1, color: borderColor),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Insets.normal,
                       vertical: Insets.small,
                     ),
-                    child: DefaultTextStyle(
-                      style: AppTextStyle.bodySmall.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: isRecords ? _buildRecords() : _buildVitals(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Warning message when no items are selected
-              if (!_canSave())
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: Insets.normal,
-                    vertical: Insets.small,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(Insets.small),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .errorContainer
-                          .withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .error
-                            .withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.error,
+                        Text(
+                          isRecords
+                              ? context.l10n.records
+                              : context.l10n.vitals,
+                          style: AppTextStyle.bodyMedium
+                              .copyWith(color: textColor),
                         ),
-                        const SizedBox(width: Insets.small),
-                        Expanded(
-                          child: Text(
-                            'Please select at least one ${isRecords ? 'record type' : 'vital sign'} to continue',
-                            style: AppTextStyle.bodySmall.copyWith(
-                              color: Theme.of(context).colorScheme.error,
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: textColor,
+                              size: 24,
                             ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            padding: const EdgeInsets.all(9),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Insets.normal,
-                  vertical: Insets.small,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: AppTextStyle.labelLarge.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
+
+                  // Divider
+                  Container(height: 1, color: borderColor),
+
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(Insets.normal),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: 227,
+                              child: Text(
+                                'Choose the ${isRecords ? 'records' : 'vitals'} you want to see on your dashboard.',
+                                style: AppTextStyle.labelLarge
+                                    .copyWith(color: textColor),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showDropdown = !_showDropdown;
+                                });
+                              },
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: textColor, width: 2),
+                                      borderRadius: BorderRadius.circular(
+                                          4), // Square checkbox
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    _showDropdown
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    size: 16,
+                                    color: textColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: Insets.small),
-                    TextButton(
-                      onPressed: _canSave()
-                          ? () {
-                              if (isRecords && widget.onRecordsSaved != null) {
-                                widget.onRecordsSaved!(_tempSelectedRecords);
-                              } else if (!isRecords &&
-                                  widget.onVitalsSaved != null) {
-                                widget.onVitalsSaved!(_tempSelectedVitals);
-                              }
-                              Navigator.of(context).pop();
-                            }
-                          : null,
-                      style: TextButton.styleFrom(
-                        foregroundColor: _canSave()
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.38),
-                      ),
-                      child: Text(
-                        'Save',
-                        style: AppTextStyle.labelLarge.copyWith(
-                          color: _canSave()
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context)
+                        const SizedBox(height: Insets.normal),
+                        Container(height: 1, color: borderColor),
+                        const SizedBox(height: Insets.normal),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 400),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children:
+                                  isRecords ? _buildRecords() : _buildVitals(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: Insets.normal),
+                        if (!_canSave())
+                          Container(
+                            padding: const EdgeInsets.all(Insets.smallNormal),
+                            margin:
+                                const EdgeInsets.only(bottom: Insets.normal),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
                                   .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.38),
+                                  .errorContainer
+                                  .withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: AppColors.error.withOpacity(0.3),
+                                  width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber_rounded,
+                                  size: 16,
+                                  color: AppColors.error,
+                                ),
+                                const SizedBox(width: Insets.small),
+                                Expanded(
+                                  child: Text(
+                                    'Select at least one ${isRecords ? 'record type' : 'vital sign'} to continue.',
+                                    style: AppTextStyle.labelLarge
+                                        .copyWith(color: AppColors.error),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: Insets.small),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                child: Text(
+                                  context.l10n.cancel,
+                                  style: AppTextStyle.buttonSmall
+                                      .copyWith(color: AppColors.primary),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: Insets.small),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _canSave()
+                                    ? () {
+                                        if (isRecords &&
+                                            widget.onRecordsSaved != null) {
+                                          widget.onRecordsSaved!(
+                                              _tempSelectedRecords);
+                                        } else if (!isRecords &&
+                                            widget.onVitalsSaved != null) {
+                                          widget.onVitalsSaved!(
+                                              _tempSelectedVitals);
+                                        }
+                                        Navigator.of(context).pop();
+                                      }
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _canSave()
+                                      ? AppColors.primary
+                                      : textColor.withOpacity(0.2),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: Insets.small),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  context.l10n.save,
+                                  style: AppTextStyle.buttonSmall.copyWith(
+                                    color: _canSave()
+                                        ? Colors.white
+                                        : textColor.withOpacity(0.6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Dropdown overlay
+              if (_showDropdown)
+                Positioned(
+                  top: 109,
+                  left: Insets.normal,
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(12),
+                    shadowColor: Colors.black.withOpacity(0.12),
+                    child: Container(
+                      width: 318,
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor, width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildDropdownItem(
+                              context.l10n.selectAll, _selectAll),
+                          _buildDropdownItem(context.l10n.clearAll, _clearAll),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -212,90 +346,34 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
     );
   }
 
-  Widget _buildHeader({required bool isRecords}) {
-    return Row(
-      children: [
-        Text(isRecords ? 'Records' : 'Vitals', style: AppTextStyle.bodyMedium),
-        const Spacer(),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              if (isRecords) {
-                final keys =
-                    widget.orderedRecords ?? _tempSelectedRecords.keys.toList();
-                for (final key in keys) {
-                  _tempSelectedRecords[key] = true;
-                }
-              } else {
-                final keys =
-                    widget.orderedVitals ?? _tempSelectedVitals.keys.toList();
-                for (final key in keys) {
-                  _tempSelectedVitals[key] = true;
-                }
-              }
-            });
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: context.colorScheme.primary,
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Select all',
-            style: AppTextStyle.labelLarge.copyWith(
-              color: context.colorScheme.primary,
+  Widget _buildDropdownItem(String text, VoidCallback onTap) {
+    final textColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Text(
+              text,
+              style: AppTextStyle.labelLarge.copyWith(color: textColor),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: Insets.small),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              if (isRecords) {
-                final keys =
-                    widget.orderedRecords ?? _tempSelectedRecords.keys.toList();
-                for (final key in keys) {
-                  _tempSelectedRecords[key] = false;
-                }
-              } else {
-                final keys =
-                    widget.orderedVitals ?? _tempSelectedVitals.keys.toList();
-                for (final key in keys) {
-                  _tempSelectedVitals[key] = false;
-                }
-              }
-            });
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: context.colorScheme.primary,
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Clear all',
-            style: AppTextStyle.labelLarge.copyWith(
-              color: context.colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   List<Widget> _buildRecords() {
     final categories = widget.orderedRecords ?? HomeRecordsCategory.values;
     return categories.map((category) {
-      return CheckboxListTile(
-        title: Text(
-          category.display,
-          style: AppTextStyle.bodySmall.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        value: _tempSelectedRecords[category] ?? false,
-        onChanged: (bool? value) {
+      return _buildFilterItem(
+        category.display,
+        _tempSelectedRecords[category] ?? false,
+        (value) {
           setState(() {
             _tempSelectedRecords[category] = value ?? false;
           });
@@ -305,22 +383,58 @@ class _FilterHomeDialogState extends State<FilterHomeDialog> {
   }
 
   List<Widget> _buildVitals() {
-    final types = (widget.orderedVitals ?? _tempSelectedVitals.keys.toList());
+    final types = widget.orderedVitals ?? _tempSelectedVitals.keys.toList();
     return types.map((type) {
-      return CheckboxListTile(
-        title: Text(
-          type.title,
-          style: AppTextStyle.bodySmall.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        value: _tempSelectedVitals[type] ?? true,
-        onChanged: (bool? value) {
+      return _buildFilterItem(
+        type.title,
+        _tempSelectedVitals[type] ?? true,
+        (value) {
           setState(() {
             _tempSelectedVitals[type] = value ?? true;
           });
         },
       );
     }).toList();
+  }
+
+  Widget _buildFilterItem(
+      String title, bool isSelected, Function(bool?) onChanged) {
+    final textColor =
+        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Insets.medium),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: AppTextStyle.bodySmall.copyWith(color: textColor),
+          ),
+          GestureDetector(
+            onTap: () => onChanged(!isSelected),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : textColor,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(4), // Square checkboxes
+              ),
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 16,
+                    )
+                  : null,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
