@@ -30,7 +30,6 @@ dependencies:
 
   # Network
   dio: ^5.4.1
-  connectivity_plus: ^5.0.2
 
   # Local Storage
   drift: ^2.15.0

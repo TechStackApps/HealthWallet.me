@@ -27,11 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Please authenticate to access your HealthWallet.me.</string>
+	<string>Protect user health records using biometric (FaceID / passcode) authentification.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs camera access to scan QR codes for server connection.</string>
+	<string>Enable your camera to securely connect to your health provider by scanning their QR code and syncing your health records.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to select profile pictures and documents for your health records.</string>
+	<string>Allow access to your photos to add a picture from the library or take a picture image of your health documents, like lab results, directly from the app and automatically adds to your health record timeline.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

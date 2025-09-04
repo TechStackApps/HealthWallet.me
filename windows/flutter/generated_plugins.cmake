@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  connectivity_plus
   local_auth_windows
   share_plus
   sqlite3_flutter_libs
