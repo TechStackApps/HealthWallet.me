@@ -4,11 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
-
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
-
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 
 part 'sync_event.dart';
@@ -25,15 +22,16 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     this._recordsRepository,
   ) : super(const SyncState()) {
     on<SyncInitialised>(_onSyncInitialised);
-    on<SyncDataInitiated>(_onSyncDataInitiated);
+    on<SyncData>(_onSyncData);
 
     on<SyncScanQRCode>(_onScanQRCode);
     on<SyncScanNewPressed>(_onSyncScanNewPressed);
-    on<SyncCancelQRScanning>(_onCancelQRScanning);
-    on<SyncLoadDemoData>(_onLoadDemoData);
-    on<SyncDataCompleted>(_onDataCompleted);
-    on<OnboardingOverlayTriggered>(_onOnboardingOverlayTriggered);
-    on<SyncResetOnboarding>(_onResetOnboarding);
+    on<SyncCancel>(_onSyncCancel);
+    on<LoadDemoData>(_onLoadDemoData);
+    on<DataHandled>(_onDataHandled);
+    on<TriggerTutorial>(_onTriggerTutorial);
+    on<ResetTutorial>(_onResetTutorial);
+    on<DemoDataConfirmed>(_onDemoDataConfirmed);
   }
 
   _onSyncInitialised(
@@ -44,7 +42,6 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       isLoading: true,
       errorMessage: null,
       successMessage: null,
-      justCompleted: false,
     ));
     try {
       SyncQrData? qrData = await _syncRepository.getCurrentSyncQrData();
@@ -55,15 +52,14 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         lastSyncTime: lastSyncTime,
         syncStatus: qrData != null ? SyncStatus.synced : SyncStatus.initial,
         isLoading: false,
-        justCompleted: false,
       ));
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString(), isLoading: false));
     }
   }
 
-  Future<void> _onSyncDataInitiated(
-    SyncDataInitiated event,
+  Future<void> _onSyncData(
+    SyncData event,
     Emitter<SyncState> emit,
   ) async {
     emit(state.copyWith(
@@ -104,13 +100,13 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         syncStatus: SyncStatus.synced,
         syncQrData: syncQrData,
         lastSyncTime: DateTime.now().toIso8601String(),
-        hasSyncData: true,
+        hasSyncedData: true,
+        syncDialogShown: true,
         errorMessage: null,
         successMessage: "Data was succesfully synced!",
-        justCompleted: true, // Mark that sync just completed
       ));
 
-      add(const SyncDataCompleted(
+      add(const DataHandled(
         sourceId: 'sync',
         isSuccess: true,
       ));
@@ -154,45 +150,36 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       syncStatus: SyncStatus.syncing,
       successMessage: null,
       errorMessage: null,
-      justCompleted: false,
     ));
   }
 
-  Future<void> _onCancelQRScanning(
-      SyncCancelQRScanning event, Emitter<SyncState> emit) async {
-    emit(state.copyWith(isQRScanning: false));
+  Future<void> _onSyncCancel(SyncCancel event, Emitter<SyncState> emit) async {
+    emit(state.copyWith(
+      isQRScanning: false,
+      isLoading: false,
+      syncStatus: SyncStatus.initial,
+      errorMessage: null,
+    ));
   }
 
   Future<void> _onLoadDemoData(
-      SyncLoadDemoData event, Emitter<SyncState> emit) async {
-    emit(state.copyWith(
-      isLoadingDemoData: true,
-      demoDataError: null,
-    ));
-
+      LoadDemoData event, Emitter<SyncState> emit) async {
     try {
       await _recordsRepository.loadDemoData();
       final hasDemoData = await _recordsRepository.hasDemoData();
 
       emit(state.copyWith(
-        isLoadingDemoData: false,
         hasDemoData: hasDemoData,
-        demoDataError: null,
-        justCompleted: true, // Mark that demo data just completed
       ));
 
-      add(const SyncDataCompleted(
+      add(const DataHandled(
         sourceId: 'demo_data',
         isSuccess: true,
       ));
     } catch (e) {
       logger.e('❌ Failed to load demo data: $e');
-      emit(state.copyWith(
-        isLoadingDemoData: false,
-        demoDataError: e.toString(),
-      ));
 
-      add(SyncDataCompleted(
+      add(DataHandled(
         sourceId: 'demo_data',
         isSuccess: false,
         errorMessage: e.toString(),
@@ -200,43 +187,42 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     }
   }
 
-  Future<void> _onDataCompleted(
-      SyncDataCompleted event, Emitter<SyncState> emit) async {
+  Future<void> _onDataHandled(
+      DataHandled event, Emitter<SyncState> emit) async {
     if (event.isSuccess) {
       if (event.sourceId == 'demo_data') {
         final hasDemoData = await _recordsRepository.hasDemoData();
         emit(state.copyWith(
           hasDemoData: hasDemoData,
-          shouldShowOnboarding: false,
-          isOnboardingActive: false,
         ));
       } else if (event.sourceId == 'sync') {
         emit(state.copyWith(
-          hasSyncData: true,
-          shouldShowOnboarding: false,
-          isOnboardingActive: false,
+          hasSyncedData: true,
         ));
       }
     }
   }
 
-  Future<void> _onOnboardingOverlayTriggered(
-      OnboardingOverlayTriggered event, Emitter<SyncState> emit) async {
+  Future<void> _onTriggerTutorial(
+      TriggerTutorial event, Emitter<SyncState> emit) async {
     emit(state.copyWith(
-      shouldShowOnboarding: true,
-      isOnboardingActive: true,
+      shouldShowTutorial: true,
     ));
   }
 
-  Future<void> _onResetOnboarding(
-      SyncResetOnboarding event, Emitter<SyncState> emit) async {
+  Future<void> _onResetTutorial(
+      ResetTutorial event, Emitter<SyncState> emit) async {
     emit(state.copyWith(
-      shouldShowOnboarding: false,
-      isOnboardingActive: false,
+      shouldShowTutorial: false,
+      syncDialogShown: false,
+      demoDataConfirmed: false,
     ));
   }
 
-  void resetOnboardingState() {
-    add(const SyncResetOnboarding());
+  Future<void> _onDemoDataConfirmed(
+      DemoDataConfirmed event, Emitter<SyncState> emit) async {
+    emit(state.copyWith(
+      demoDataConfirmed: true,
+    ));
   }
 }

@@ -6,7 +6,7 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
-import 'package:health_wallet/features/user/presentation/preferences_modal/widgets/biometric_disable_dialog.dart';
+import 'package:health_wallet/core/widgets/confirmation_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingNavigation extends StatelessWidget {
@@ -42,8 +42,17 @@ class OnboardingNavigation extends StatelessWidget {
                       onPressed: () {
                         final isEnabled = userState.isBiometricAuthEnabled;
                         if (isEnabled) {
-                          BiometricDisableDialog.show(context,
-                              isOnboarding: true);
+                          ConfirmationDialog.show(
+                            context: context,
+                            title: context.l10n.confirmDisableBiometric,
+                            confirmText: context.l10n.disable,
+                            cancelText: context.l10n.cancel,
+                            onConfirm: () {
+                              context
+                                  .read<UserBloc>()
+                                  .add(UserBiometricAuthToggled(false));
+                            },
+                          );
                         } else {
                           context
                               .read<UserBloc>()

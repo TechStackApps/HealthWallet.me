@@ -56,38 +56,6 @@ class HomePage extends StatelessWidget {
             }
           },
         ),
-        BlocListener<SyncBloc, SyncState>(
-          listenWhen: (previous, current) {
-            return (previous.syncStatus != current.syncStatus &&
-                    current.syncStatus == SyncStatus.synced &&
-                    current.justCompleted) ||
-                (previous.isLoadingDemoData != current.isLoadingDemoData &&
-                    !current.isLoadingDemoData &&
-                    current.hasDemoData &&
-                    current.justCompleted);
-          },
-          listener: (context, syncState) {
-            if (syncState.syncStatus == SyncStatus.synced &&
-                syncState.justCompleted) {}
-
-            if (!syncState.isLoadingDemoData &&
-                syncState.hasDemoData &&
-                syncState.justCompleted &&
-                !syncState.hasSyncData) {
-              Future.delayed(const Duration(milliseconds: 1000), () {
-                if (context.mounted) {
-                  try {
-                    context
-                        .read<SyncBloc>()
-                        .add(const OnboardingOverlayTriggered());
-                  } catch (e) {
-                    // Handle any errors silently
-                  }
-                }
-              });
-            }
-          },
-        ),
       ],
       child: HomeView(pageController: pageController),
     );
@@ -145,16 +113,16 @@ class HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return (previous.shouldShowOnboarding != current.shouldShowOnboarding &&
-                current.shouldShowOnboarding) ||
-            (previous.shouldShowOnboarding && !current.shouldShowOnboarding);
+        return (previous.shouldShowTutorial != current.shouldShowTutorial &&
+                current.shouldShowTutorial) ||
+            (previous.shouldShowTutorial && !current.shouldShowTutorial);
       },
       listener: (context, syncState) {
-        if (!syncState.shouldShowOnboarding) {
+        if (!syncState.shouldShowTutorial) {
           _hasShownOnboarding = false;
         }
 
-        if (syncState.shouldShowOnboarding && !_hasShownOnboarding) {
+        if (syncState.shouldShowTutorial && !_hasShownOnboarding) {
           _hasShownOnboarding = true;
 
           context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
@@ -163,9 +131,7 @@ class HomeViewState extends State<HomeView> {
             if (context.mounted && _onboardingKey.currentState != null) {
               try {
                 _onboardingKey.currentState!.show();
-              } catch (e) {
-                // Handle onboarding error
-              }
+              } catch (e) {}
             }
           });
         }
@@ -196,7 +162,8 @@ class HomeViewState extends State<HomeView> {
               // Onboarding step changed
             },
             onEnd: (index) async {
-              context.read<SyncBloc>().resetOnboardingState();
+              // Reset onboarding state when tutorial ends
+              context.read<SyncBloc>().add(const ResetTutorial());
 
               final prefs = await SharedPreferences.getInstance();
               await prefs.setBool('onboarding_shown', true);

@@ -47,6 +47,11 @@
     "recordsTitle": "Records",
     "syncTitle": "Sync",
     "syncSuccessful": "Sync successful!",
+    "syncDataLoadedSuccessfully": "Your medical records have been synchronized. You will be redirected to the home page.",
+    "cancelSyncTitle": "Cancel Sync?",
+    "cancelSyncMessage": "Are you sure you want to cancel the synchronization? This will stop the current sync process.",
+    "yesCancel": "Yes, Cancel",
+    "continueSync": "Continue Sync",
     "syncAgain": "Sync Again",
     "syncFailed": "Sync failed: ",
     "tryAgain": "Try Again",
@@ -163,7 +168,6 @@
     "getStarted": "Get started",
     "enableBiometricAuth": "Enable Biometric Auth (FaceID / Passcode)",
     "disableBiometricAuth": "Disable Biometric Auth (FaceID / Passcode)",
-    "confirmDisableBiometricOnboarding": "Are you sure you want to disable biometric authentication?",
     
     "patient": "Patient",
     

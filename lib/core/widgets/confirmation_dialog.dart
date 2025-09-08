@@ -1,26 +1,48 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
 
-class BiometricDisableDialog extends StatelessWidget {
-  final bool isOnboarding;
-
-  const BiometricDisableDialog({
+class ConfirmationDialog extends StatelessWidget {
+  final String title;
+  final String? message;
+  final String confirmText;
+  final String cancelText;
+  final VoidCallback onConfirm;
+  final VoidCallback? onCancel;
+  const ConfirmationDialog({
     super.key,
-    this.isOnboarding = false,
+    required this.title,
+    this.message,
+    required this.confirmText,
+    required this.cancelText,
+    required this.onConfirm,
+    this.onCancel,
   });
 
-  static void show(BuildContext context, {bool isOnboarding = false}) {
-    showDialog<void>(
+  static Future<bool?> show({
+    required BuildContext context,
+    required String title,
+    String? message,
+    required String confirmText,
+    required String cancelText,
+    required VoidCallback onConfirm,
+    VoidCallback? onCancel,
+  }) {
+    return showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return BiometricDisableDialog(isOnboarding: isOnboarding);
+        return ConfirmationDialog(
+          title: title,
+          message: message,
+          confirmText: confirmText,
+          cancelText: cancelText,
+          onConfirm: onConfirm,
+          onCancel: onCancel,
+        );
       },
     );
   }
@@ -49,18 +71,21 @@ class BiometricDisableDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Title and Message
                 Text(
-                  isOnboarding
-                      ? context.l10n.confirmDisableBiometricOnboarding
-                      : context.l10n.confirmDisableBiometric,
+                  message != null ? message! : title,
                   style: AppTextStyle.labelLarge.copyWith(color: textColor),
                 ),
                 const SizedBox(height: Insets.normal),
+                // Action buttons
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                          onCancel?.call();
+                        },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           side: BorderSide.none,
@@ -71,7 +96,7 @@ class BiometricDisableDialog extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          context.l10n.cancel,
+                          cancelText,
                           style: AppTextStyle.buttonSmall.copyWith(
                             color: AppColors.primary,
                           ),
@@ -82,10 +107,8 @@ class BiometricDisableDialog extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          context
-                              .read<UserBloc>()
-                              .add(UserBiometricAuthToggled(false));
+                          Navigator.of(context).pop(true);
+                          onConfirm();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
@@ -98,7 +121,7 @@ class BiometricDisableDialog extends StatelessWidget {
                           elevation: 0,
                         ),
                         child: Text(
-                          context.l10n.disable,
+                          confirmText,
                           style: AppTextStyle.buttonSmall.copyWith(
                             color: Colors.white,
                           ),

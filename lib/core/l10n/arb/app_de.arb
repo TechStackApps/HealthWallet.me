@@ -33,6 +33,11 @@
     "recordsTitle": "Aufzeichnungen",
     "syncTitle": "Synchronisieren",
     "syncSuccessful": "Synchronisierung erfolgreich!",
+    "syncDataLoadedSuccessfully": "Ihre medizinischen Aufzeichnungen wurden synchronisiert. Sie werden zur Startseite weitergeleitet.",
+    "cancelSyncTitle": "Synchronisierung abbrechen?",
+    "cancelSyncMessage": "Sind Sie sicher, dass Sie die Synchronisierung abbrechen möchten? Dies wird den aktuellen Synchronisierungsprozess stoppen.",
+    "yesCancel": "Ja, abbrechen",
+    "continueSync": "Synchronisierung fortsetzen",
     "syncAgain": "Erneut synchronisieren",
     "syncFailed": "Synchronisierung fehlgeschlagen: ",
     "tryAgain": "Erneut versuchen",
@@ -149,7 +154,6 @@
     "getStarted": "Los geht's",
     "enableBiometricAuth": "Biometrische Authentifizierung aktivieren (FaceID / Passcode)",
     "disableBiometricAuth": "Biometrische Authentifizierung deaktivieren (FaceID / Passcode)",
-    "confirmDisableBiometricOnboarding": "Sind Sie sicher, dass Sie die biometrische Authentifizierung deaktivieren möchten?",
     
     "patient": "Patient",
     

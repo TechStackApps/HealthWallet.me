@@ -37,6 +37,11 @@
     "recordsTitle": "Registros",
     "syncTitle": "Sincronizar",
     "syncSuccessful": "¡Sincronización exitosa!",
+    "syncDataLoadedSuccessfully": "Sus registros médicos han sido sincronizados. Será redirigido a la página de inicio.",
+    "cancelSyncTitle": "¿Cancelar sincronización?",
+    "cancelSyncMessage": "¿Está seguro de que desea cancelar la sincronización? Esto detendrá el proceso de sincronización actual.",
+    "yesCancel": "Sí, cancelar",
+    "continueSync": "Continuar sincronización",
     "syncAgain": "Sincronizar de nuevo",
     "syncFailed": "Sincronización fallida: ",
     "tryAgain": "Intentar de nuevo",
@@ -153,7 +158,6 @@
     "getStarted": "Empezar",
     "enableBiometricAuth": "Habilitar Autenticación Biométrica (FaceID / Código de acceso)",
     "disableBiometricAuth": "Desactivar Autenticación Biométrica (FaceID / Código de acceso)",
-    "confirmDisableBiometricOnboarding": "¿Estás seguro de que quieres desactivar la autenticación biométrica?",
     
     "patient": "Paciente",
     

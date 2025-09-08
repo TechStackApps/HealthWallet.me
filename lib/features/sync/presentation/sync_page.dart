@@ -37,12 +37,10 @@ class _SyncPageState extends State<SyncPage> {
   Widget build(BuildContext context) {
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return (previous.syncStatus != current.syncStatus &&
-            current.syncStatus == SyncStatus.synced &&
-            current.justCompleted);
+        return current.syncDialogShown && !previous.syncDialogShown;
       },
       listener: (context, state) {
-        if (state.syncStatus == SyncStatus.synced && state.justCompleted) {
+        if (state.syncDialogShown) {
           _handleSyncCompletion(context);
         }
       },
@@ -75,10 +73,10 @@ class _SyncPageState extends State<SyncPage> {
             child: QRScannerWidget(
               cancelButtonText: 'Cancel',
               onQRCodeDetected: (qrData) {
-                context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
+                context.read<SyncBloc>().add(SyncData(qrData: qrData));
               },
               onCancel: () {
-                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+                context.read<SyncBloc>().add(const SyncCancel());
               },
             ),
           );
@@ -89,7 +87,7 @@ class _SyncPageState extends State<SyncPage> {
             padding: const EdgeInsets.all(16.0),
             child: SyncLoadingWidget(
               onCancel: () {
-                context.read<SyncBloc>().add(const SyncCancelQRScanning());
+                context.read<SyncBloc>().add(const SyncCancel());
               },
               cancelButtonText: 'Cancel',
             ),
@@ -228,7 +226,7 @@ class _SyncPageState extends State<SyncPage> {
                 ? null
                 : () => context
                     .read<SyncBloc>()
-                    .add(SyncDataInitiated(qrData: _manualCodeController.text)),
+                    .add(SyncData(qrData: _manualCodeController.text)),
             style: OutlinedButton.styleFrom(
               foregroundColor: context.isDarkMode
                   ? Colors.white
@@ -348,7 +346,7 @@ class _SyncPageState extends State<SyncPage> {
             child: ElevatedButton.icon(
               onPressed: () {
                 String qrData = jsonEncode(state.syncQrData!.toJson());
-                context.read<SyncBloc>().add(SyncDataInitiated(qrData: qrData));
+                context.read<SyncBloc>().add(SyncData(qrData: qrData));
               },
               icon: state.isLoading
                   ? SizedBox(
@@ -410,23 +408,22 @@ class _SyncPageState extends State<SyncPage> {
     final prefs = await SharedPreferences.getInstance();
     final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
 
-    final syncBloc = context.read<SyncBloc>();
-
-    SuccessDialog.show(
+    await SuccessDialog.show(
       context: context,
-      title: 'Success',
-      message:
-          'Your medical records have been synchronized. You will be redirected to the home page.',
+      title: context.l10n.success,
+      message: context.l10n.syncDataLoadedSuccessfully,
       onOkPressed: () {
+        context.read<SyncBloc>().add(const ResetTutorial());
+
         context.router.pushAndPopUntil(
           const DashboardRoute(),
           predicate: (_) => false,
         );
 
         if (!onboardingShown) {
-          Future.delayed(const Duration(milliseconds: 1000), () {
+          Future.delayed(const Duration(milliseconds: 400), () {
             try {
-              syncBloc.add(const OnboardingOverlayTriggered());
+              context.read<SyncBloc>().add(const TriggerTutorial());
             } catch (e) {
               // Handle any errors silently
             }

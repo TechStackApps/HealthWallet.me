@@ -120,7 +120,8 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
             id: sourceId,
             name: sourceId,
             logo: null,
-            labelSource: sourceLabelMap[sourceId],
+            labelSource: sourceLabelMap[sourceId] ??
+                (sourceId == 'demo_data' ? 'Demo' : null),
           ),
         )
         .toList();
@@ -132,7 +133,6 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
     // For now, we'll just log the deletions
     for (final deletion in deletions) {
       if (deletion.resourceId != null) {
-        logger.d('🗑️ Marking resource as deleted: ${deletion.resourceId}');
         // Note: The current database schema doesn't support deletedAt field
         // We would need to either:
         // 1. Add a deletedAt field to the database schema
@@ -151,7 +151,6 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               labelSource: Value(newLabel.isEmpty ? null : newLabel),
             ),
           );
-      logger.d('Source label updated in database: $sourceId -> $newLabel');
     } catch (e) {
       logger.e('Error updating source label in database: $e');
       rethrow;

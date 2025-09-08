@@ -10,7 +10,7 @@ class DemoDataIdentifier {
 
   /// Get a user-friendly description for demo data
   static String getDemoDescription() {
-    return 'Demo Data';
+    return 'Demo';
   }
 
   /// Check if a resource is demo data based on its source ID
