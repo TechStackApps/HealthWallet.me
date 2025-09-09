@@ -16,14 +16,11 @@ class SyncState with _$SyncState {
     @Default(false) bool isQRScanning,
     String? lastSyncTime,
     String? successMessage,
-
-    // Data loading and onboarding state
-    @Default(false) bool isLoadingDemoData,
     @Default(false) bool hasDemoData,
-    String? demoDataError,
-    @Default(false) bool shouldShowOnboarding,
-    @Default(false) bool hasSyncData,
-    @Default(false) bool isOnboardingActive,
-    @Default(false) bool justCompleted,
+    // Tutorial state
+    @Default(false) bool shouldShowTutorial,
+    @Default(false) bool hasSyncedData,
+    @Default(false) bool syncDialogShown,
+    @Default(false) bool demoDataConfirmed,
   }) = _SyncState;
 }

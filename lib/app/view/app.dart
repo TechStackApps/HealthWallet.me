@@ -77,11 +77,11 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
     context.read<HomeBloc>().add(const HomeSourceChanged('demo_data'));
   }
 
-  if (state.hasSyncData) {
+  if (state.hasSyncedData) {
     context.read<HomeBloc>().add(const HomeSourceChanged('All'));
   }
 
-  if (state.shouldShowOnboarding) {
+  if (state.shouldShowTutorial) {
     context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
   }
 

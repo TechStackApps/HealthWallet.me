@@ -75,11 +75,10 @@ class _UserSectionState extends State<UserSection> {
           return BlocBuilder<SyncBloc, SyncState>(
             builder: (context, syncState) {
               final user = userState.user;
-              // Use local user name if it's been updated, otherwise fall back to server username
-              final userName = user.name.isNotEmpty
+              final displayName = user.name.isNotEmpty
                   ? user.name
-                  : (syncState.syncQrData?.tokenMeta.userName.isNotEmpty == true
-                      ? syncState.syncQrData!.tokenMeta.userName
+                  : (syncState.syncQrData?.tokenMeta.fullName.isNotEmpty == true
+                      ? syncState.syncQrData!.tokenMeta.fullName
                       : 'User');
 
               return Padding(
@@ -123,7 +122,7 @@ class _UserSectionState extends State<UserSection> {
                                   onEditingComplete: _saveName,
                                 )
                               : Text(
-                                  userName,
+                                  displayName,
                                   style: AppTextStyle.bodyLarge,
                                 ),
                         ),
@@ -152,7 +151,7 @@ class _UserSectionState extends State<UserSection> {
                                 ? _saveName
                                 : () => _startEditing(user.name.isNotEmpty
                                     ? user.name
-                                    : userName),
+                                    : displayName),
                             padding: EdgeInsets.zero,
                           ),
                         ),

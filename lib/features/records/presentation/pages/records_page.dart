@@ -132,7 +132,7 @@ class _RecordsViewState extends State<RecordsView> {
         ),
         BlocListener<SyncBloc, SyncState>(
           listener: (context, state) {
-            if (state.hasDemoData || state.hasSyncData) {
+            if (state.hasDemoData || state.hasSyncedData) {
               context.read<RecordsBloc>().add(const RecordsInitialised());
 
               final homeState = context.read<HomeBloc>().state;

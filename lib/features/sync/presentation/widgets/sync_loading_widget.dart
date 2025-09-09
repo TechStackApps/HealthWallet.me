@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/confirmation_dialog.dart';
+import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 class SyncLoadingWidget extends StatelessWidget {
@@ -72,7 +75,7 @@ class SyncLoadingWidget extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: onCancel,
+                onPressed: () => _showCancelConfirmation(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: context.isDarkMode
                       ? Colors.white
@@ -93,6 +96,21 @@ class SyncLoadingWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCancelConfirmation(BuildContext context) {
+    ConfirmationDialog.show(
+      context: context,
+      title: context.l10n.cancelSyncTitle,
+      message: context.l10n.cancelSyncMessage,
+      confirmText: context.l10n.yesCancel,
+      cancelText: context.l10n.continueSync,
+      onConfirm: () {
+        // Cancel the sync operation
+        context.read<SyncBloc>().add(const SyncCancel());
+        onCancel?.call();
+      },
     );
   }
 }

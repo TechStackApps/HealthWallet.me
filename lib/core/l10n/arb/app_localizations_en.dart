@@ -114,6 +114,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncSuccessful => 'Sync successful!';
 
   @override
+  String get syncDataLoadedSuccessfully =>
+      'Your medical records have been synchronized. You will be redirected to the home page.';
+
+  @override
+  String get cancelSyncTitle => 'Cancel Sync?';
+
+  @override
+  String get cancelSyncMessage =>
+      'Are you sure you want to cancel the synchronization? This will stop the current sync process.';
+
+  @override
+  String get yesCancel => 'Yes, Cancel';
+
+  @override
+  String get continueSync => 'Continue Sync';
+
+  @override
   String get syncAgain => 'Sync Again';
 
   @override
@@ -452,10 +469,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get disableBiometricAuth =>
       'Disable Biometric Auth (FaceID / Passcode)';
-
-  @override
-  String get confirmDisableBiometricOnboarding =>
-      'Are you sure you want to disable biometric authentication?';
 
   @override
   String get patient => 'Patient';

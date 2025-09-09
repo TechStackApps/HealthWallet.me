@@ -28,22 +28,21 @@ class SyncPlaceholderWidget extends StatefulWidget {
 
 class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
   bool _hasInitiatedDemoDataLoading = false;
+  SyncBloc? _syncBloc;
 
   @override
   Widget build(BuildContext context) {
+    _syncBloc = context.read<SyncBloc>();
+
     return BlocListener<SyncBloc, SyncState>(listenWhen: (previous, current) {
-      return previous.isLoadingDemoData != current.isLoadingDemoData &&
-          !current.isLoadingDemoData &&
-          current.hasDemoData &&
-          current.justCompleted;
+      return current.hasDemoData && !current.hasSyncedData;
     }, listener: (context, state) {
-      if (!state.isLoadingDemoData &&
-          state.hasDemoData &&
-          state.justCompleted &&
+      if (state.hasDemoData &&
+          !state.hasSyncedData &&
           _hasInitiatedDemoDataLoading) {
         _handleDemoDataCompletion(context);
         _hasInitiatedDemoDataLoading = false; // Reset the flag
-      }
+      } else {}
     }, child: BlocBuilder<HomeBloc, HomeState>(
       builder: (context, homeState) {
         final hasVitalDataLoaded = homeState.patientVitals.any(
@@ -219,11 +218,10 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
   void _handleLoadDemoData(BuildContext context) {
     _hasInitiatedDemoDataLoading = true;
-    context.read<SyncBloc>().add(const SyncLoadDemoData());
+    context.read<SyncBloc>().add(const LoadDemoData());
   }
 
   void _handleDemoDataCompletion(BuildContext context) {
-    // Store the pageController reference before showing dialog
     final pageController = widget.pageController;
 
     SuccessDialog.show(
@@ -231,24 +229,21 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
       title: context.l10n.success,
       message: context.l10n.demoDataLoadedSuccessfully,
       onOkPressed: () {
+        if (_syncBloc != null) {
+          try {
+            _syncBloc!.add(const DemoDataConfirmed());
+          } catch (e) {}
+        } else {}
+
         // Navigate to home page
         if (pageController != null) {
           pageController.animateToPage(0,
               duration: const Duration(milliseconds: 300), curve: Curves.ease);
         } else {
-          context.router.pop();
-        }
-
-        // Trigger onboarding after navigation only for demo data
-        Future.delayed(const Duration(milliseconds: 2000), () {
           if (context.mounted) {
-            final syncState = context.read<SyncBloc>().state;
-            // Only show onboarding if it's demo data, not real sync data
-            if (syncState.hasDemoData && !syncState.hasSyncData) {
-              context.read<SyncBloc>().add(const OnboardingOverlayTriggered());
-            }
+            context.router.pop();
           }
-        });
+        }
       },
     );
   }

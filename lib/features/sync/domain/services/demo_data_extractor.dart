@@ -41,7 +41,6 @@ class DemoDataExtractor {
     if (title.isEmpty) {
       final resourceId = resource['id'] as String? ?? 'Unknown';
       title = '$resourceType $resourceId';
-      logger.d('🔍 Using fallback title: $title');
     }
 
     return title;
@@ -64,7 +63,6 @@ class DemoDataExtractor {
         if (resource[field] != null && resource[field] is String) {
           try {
             final date = DateTime.parse(resource[field] as String);
-            logger.d('🔍 Parsed date from $field: $date');
             return date;
           } catch (e) {
             logger.w(
@@ -89,7 +87,6 @@ class DemoDataExtractor {
           if (name is Map<String, dynamic>) {
             if (name['text'] != null && name['text'] is String) {
               final title = name['text'] as String;
-              logger.d('🔍 Extracted Patient title from name.text: $title');
               return title;
             } else if (name['family'] != null &&
                 name['given'] != null &&
@@ -99,8 +96,6 @@ class DemoDataExtractor {
               final family = name['family'] as String;
               if (given.isNotEmpty && given[0] != null && given[0] is String) {
                 final title = '${given[0]} $family';
-                logger.d(
-                    '🔍 Extracted Patient title from name.given+family: $title');
                 return title;
               }
             }
@@ -117,7 +112,6 @@ class DemoDataExtractor {
   static String _extractOrganizationTitle(Map<String, dynamic> resource) {
     if (resource['name'] != null && resource['name'] is String) {
       final title = resource['name'] as String;
-      logger.d('🔍 Extracted Organization title from name: $title');
       return title;
     }
     return '';
@@ -144,7 +138,6 @@ class DemoDataExtractor {
             final family = name['family'] ?? '';
             if (family.isNotEmpty) {
               final title = '$prefix$given$family'.trim();
-              logger.d('🔍 Extracted Practitioner title from name: $title');
               return title;
             }
           }
@@ -163,7 +156,6 @@ class DemoDataExtractor {
       final code = resource['code'] as Map<String, dynamic>;
       if (code['text'] != null && code['text'] is String) {
         final title = code['text'] as String;
-        logger.d('🔍 Extracted Observation title from code.text: $title');
         return title;
       }
       // Try code.coding[].display
@@ -176,8 +168,6 @@ class DemoDataExtractor {
           if (firstCoding['display'] != null &&
               firstCoding['display'] is String) {
             final title = firstCoding['display'] as String;
-            logger.d(
-                '🔍 Extracted Observation title from code.coding[].display: $title');
             return title;
           }
         }
@@ -197,7 +187,6 @@ class DemoDataExtractor {
         final type = typeList[0] as Map<String, dynamic>;
         if (type['text'] != null && type['text'] is String) {
           final title = type['text'] as String;
-          logger.d('🔍 Extracted Encounter title from type[].text: $title');
           return title;
         }
         // Try type[].coding[].display
@@ -210,8 +199,6 @@ class DemoDataExtractor {
             if (firstCoding['display'] != null &&
                 firstCoding['display'] is String) {
               final title = firstCoding['display'] as String;
-              logger.d(
-                  '🔍 Extracted Encounter title from type[].coding[].display: $title');
               return title;
             }
           }
@@ -228,7 +215,6 @@ class DemoDataExtractor {
       final code = resource['code'] as Map<String, dynamic>;
       if (code['text'] != null && code['text'] is String) {
         final title = code['text'] as String;
-        logger.d('🔍 Extracted Condition title from code.text: $title');
         return title;
       }
       // Try code.coding[].display
@@ -241,8 +227,6 @@ class DemoDataExtractor {
           if (firstCoding['display'] != null &&
               firstCoding['display'] is String) {
             final title = firstCoding['display'] as String;
-            logger.d(
-                '🔍 Extracted Condition title from code.coding[].display: $title');
             return title;
           }
         }
@@ -258,7 +242,6 @@ class DemoDataExtractor {
       final code = resource['code'] as Map<String, dynamic>;
       if (code['text'] != null && code['text'] is String) {
         final title = code['text'] as String;
-        logger.d('🔍 Extracted Medication title from code.text: $title');
         return title;
       }
       // Try code.coding[].display
@@ -271,8 +254,6 @@ class DemoDataExtractor {
           if (firstCoding['display'] != null &&
               firstCoding['display'] is String) {
             final title = firstCoding['display'] as String;
-            logger.d(
-                '🔍 Extracted Medication title from code.coding[].display: $title');
             return title;
           }
         }
@@ -288,7 +269,6 @@ class DemoDataExtractor {
       final code = resource['code'] as Map<String, dynamic>;
       if (code['text'] != null && code['text'] is String) {
         final title = code['text'] as String;
-        logger.d('🔍 Extracted Procedure title from code.text: $title');
         return title;
       }
       // Try code.coding[].display
@@ -301,8 +281,6 @@ class DemoDataExtractor {
           if (firstCoding['display'] != null &&
               firstCoding['display'] is String) {
             final title = firstCoding['display'] as String;
-            logger.d(
-                '🔍 Extracted Procedure title from code.coding[].display: $title');
             return title;
           }
         }
@@ -320,7 +298,6 @@ class DemoDataExtractor {
         if (textMap['div'] != null && textMap['div'] is String) {
           final title = _extractTextFromHtml(textMap['div'] as String);
           if (title.isNotEmpty) {
-            logger.d('🔍 Extracted generic title from text.div: $title');
             return title;
           }
         }
@@ -333,7 +310,6 @@ class DemoDataExtractor {
     if (resource['title'] != null && resource['title'] is String) {
       try {
         final title = resource['title'] as String;
-        logger.d('🔍 Extracted generic title from title field: $title');
         return title;
       } catch (e) {
         logger.w('⚠️ Error processing title field: $e');

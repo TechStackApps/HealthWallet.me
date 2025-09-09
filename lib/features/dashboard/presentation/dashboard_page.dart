@@ -9,8 +9,7 @@ import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-
-// import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -38,141 +37,165 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              FocusScope.of(context).unfocus();
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            children: [
-              HomePage(pageController: _pageController),
-              RecordsPage(pageController: _pageController),
-            ],
-          ),
-          // Bottom navigation bar
-          BlocBuilder<SyncBloc, SyncState>(
-            builder: (context, syncState) {
-              if (!_isKeyboardVisible) {
-                return Positioned(
-                  left: 8,
-                  right: 8,
-                  bottom: 24,
-                  child: SizedBox(
-                    height: 60,
-                    child: Stack(
-                      children: [
-                        // Glassmorphism background using BackdropFilter
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: context.isDarkMode
-                                    ? Colors.white.withOpacity(0.03)
-                                    : Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(100),
-                                border: Border.all(
+    return BlocListener<SyncBloc, SyncState>(
+      listenWhen: (previous, current) {
+        return current.demoDataConfirmed && !current.hasSyncedData;
+      },
+      listener: (context, syncState) async {
+        if (syncState.demoDataConfirmed && !syncState.hasSyncedData) {
+          final prefs = await SharedPreferences.getInstance();
+          final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
+
+          if (!onboardingShown) {
+            _pageController.animateToPage(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+            );
+
+            Future.delayed(const Duration(milliseconds: 400), () {
+              if (mounted && context.mounted) {
+                try {
+                  context.read<SyncBloc>().add(const TriggerTutorial());
+                } catch (e) {}
+              }
+            });
+          } else {}
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                FocusScope.of(context).unfocus();
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              children: [
+                HomePage(pageController: _pageController),
+                RecordsPage(pageController: _pageController),
+              ],
+            ),
+            // Bottom navigation bar
+            BlocBuilder<SyncBloc, SyncState>(
+              builder: (context, syncState) {
+                if (!_isKeyboardVisible) {
+                  return Positioned(
+                    left: 8,
+                    right: 8,
+                    bottom: 24,
+                    child: SizedBox(
+                      height: 60,
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                              child: Container(
+                                decoration: BoxDecoration(
                                   color: context.isDarkMode
-                                      ? Colors.white.withOpacity(0.08)
-                                      : Colors.white.withOpacity(0.2),
-                                  width: 1.0,
+                                      ? Colors.white.withOpacity(0.03)
+                                      : Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(
+                                    color: context.isDarkMode
+                                        ? Colors.white.withOpacity(0.08)
+                                        : Colors.white.withOpacity(0.2),
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: context.isDarkMode
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.05),
+                                            blurRadius: 8,
+                                            spreadRadius: 0,
+                                          ),
+                                        ]
+                                      : null,
                                 ),
-                                boxShadow: context.isDarkMode
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 8,
-                                          spreadRadius: 0,
-                                        ),
-                                      ]
-                                    : null,
                               ),
                             ),
                           ),
-                        ),
-                        // Foreground content
-                        Container(
-                          padding: const EdgeInsets.all(Insets.extraSmall),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                child: _buildNavItem(
-                                  icon: Assets.icons.dashboard.svg(
-                                    width: 24,
-                                    height: 24,
-                                    colorFilter: ColorFilter.mode(
-                                      _currentIndex == 0
-                                          ? (context.isDarkMode
-                                              ? Colors.white
-                                              : context.colorScheme.surface)
-                                          : context.colorScheme.onSurface,
-                                      BlendMode.srcIn,
+                          Container(
+                            padding: const EdgeInsets.all(Insets.extraSmall),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                  child: _buildNavItem(
+                                    icon: Assets.icons.dashboard.svg(
+                                      width: 24,
+                                      height: 24,
+                                      colorFilter: ColorFilter.mode(
+                                        _currentIndex == 0
+                                            ? (context.isDarkMode
+                                                ? Colors.white
+                                                : context.colorScheme.surface)
+                                            : context.colorScheme.onSurface,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
+                                    label: context.l10n.dashboardTitle,
+                                    isSelected: _currentIndex == 0,
+                                    onTap: () {
+                                      FocusScope.of(context).unfocus();
+                                      _pageController.animateToPage(
+                                        0,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.ease,
+                                      );
+                                    },
                                   ),
-                                  label: context.l10n.dashboardTitle,
-                                  isSelected: _currentIndex == 0,
-                                  onTap: () {
-                                    // Dismiss keyboard when tapping navigation
-                                    FocusScope.of(context).unfocus();
-                                    _pageController.animateToPage(
-                                      0,
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.ease,
-                                    );
-                                  },
                                 ),
-                              ),
-                              Expanded(
-                                child: _buildNavItem(
-                                  icon: Assets.icons.timeline.svg(
-                                    width: 24,
-                                    height: 24,
-                                    colorFilter: ColorFilter.mode(
-                                      _currentIndex == 1
-                                          ? (context.isDarkMode
-                                              ? Colors.white
-                                              : context.colorScheme.surface)
-                                          : context.colorScheme.onSurface,
-                                      BlendMode.srcIn,
+                                Expanded(
+                                  child: _buildNavItem(
+                                    icon: Assets.icons.timeline.svg(
+                                      width: 24,
+                                      height: 24,
+                                      colorFilter: ColorFilter.mode(
+                                        _currentIndex == 1
+                                            ? (context.isDarkMode
+                                                ? Colors.white
+                                                : context.colorScheme.surface)
+                                            : context.colorScheme.onSurface,
+                                        BlendMode.srcIn,
+                                      ),
                                     ),
+                                    label: context.l10n.recordsTitle,
+                                    isSelected: _currentIndex == 1,
+                                    onTap: () {
+                                      FocusScope.of(context).unfocus();
+                                      _pageController.animateToPage(
+                                        1,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.ease,
+                                      );
+                                    },
                                   ),
-                                  label: context.l10n.recordsTitle,
-                                  isSelected: _currentIndex == 1,
-                                  onTap: () {
-                                    // Dismiss keyboard when tapping navigation
-                                    FocusScope.of(context).unfocus();
-                                    _pageController.animateToPage(
-                                      1,
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.ease,
-                                    );
-                                  },
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -192,7 +215,6 @@ class _DashboardPageState extends State<DashboardPage> {
           borderRadius: BorderRadius.circular(100),
         ),
         child: Center(
-          // Ensures vertical centering of content
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

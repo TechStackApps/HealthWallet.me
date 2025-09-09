@@ -298,6 +298,36 @@ abstract class AppLocalizations {
   /// **'Sync successful!'**
   String get syncSuccessful;
 
+  /// No description provided for @syncDataLoadedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Your medical records have been synchronized. You will be redirected to the home page.'**
+  String get syncDataLoadedSuccessfully;
+
+  /// No description provided for @cancelSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Sync?'**
+  String get cancelSyncTitle;
+
+  /// No description provided for @cancelSyncMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel the synchronization? This will stop the current sync process.'**
+  String get cancelSyncMessage;
+
+  /// No description provided for @yesCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Cancel'**
+  String get yesCancel;
+
+  /// No description provided for @continueSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Sync'**
+  String get continueSync;
+
   /// No description provided for @syncAgain.
   ///
   /// In en, this message translates to:
@@ -933,12 +963,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disable Biometric Auth (FaceID / Passcode)'**
   String get disableBiometricAuth;
-
-  /// No description provided for @confirmDisableBiometricOnboarding.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to disable biometric authentication?'**
-  String get confirmDisableBiometricOnboarding;
 
   /// No description provided for @patient.
   ///

@@ -115,6 +115,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get syncSuccessful => 'Synchronisierung erfolgreich!';
 
   @override
+  String get syncDataLoadedSuccessfully =>
+      'Ihre medizinischen Aufzeichnungen wurden synchronisiert. Sie werden zur Startseite weitergeleitet.';
+
+  @override
+  String get cancelSyncTitle => 'Synchronisierung abbrechen?';
+
+  @override
+  String get cancelSyncMessage =>
+      'Sind Sie sicher, dass Sie die Synchronisierung abbrechen möchten? Dies wird den aktuellen Synchronisierungsprozess stoppen.';
+
+  @override
+  String get yesCancel => 'Ja, abbrechen';
+
+  @override
+  String get continueSync => 'Synchronisierung fortsetzen';
+
+  @override
   String get syncAgain => 'Erneut synchronisieren';
 
   @override
@@ -463,10 +480,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get disableBiometricAuth =>
       'Biometrische Authentifizierung deaktivieren (FaceID / Passcode)';
-
-  @override
-  String get confirmDisableBiometricOnboarding =>
-      'Sind Sie sicher, dass Sie die biometrische Authentifizierung deaktivieren möchten?';
 
   @override
   String get patient => 'Patient';

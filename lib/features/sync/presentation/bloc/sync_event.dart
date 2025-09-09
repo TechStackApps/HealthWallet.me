@@ -10,15 +10,10 @@ class SyncInitialised extends SyncEvent with _$SyncInitialised {
 }
 
 @freezed
-class SyncDataInitiated extends SyncEvent with _$SyncDataInitiated {
-  const factory SyncDataInitiated({
+class SyncData extends SyncEvent with _$SyncData {
+  const factory SyncData({
     required String qrData,
   }) = _SyncData;
-}
-
-@freezed
-class SyncRestoreState extends SyncEvent with _$SyncRestoreState {
-  const factory SyncRestoreState() = _SyncRestoreState;
 }
 
 @freezed
@@ -27,41 +22,40 @@ class SyncScanQRCode extends SyncEvent with _$SyncScanQRCode {
 }
 
 @freezed
-class SyncConnectWithQR extends SyncEvent with _$SyncConnectWithQR {
-  const factory SyncConnectWithQR() = _SyncConnectWithQR;
-}
-
-@freezed
 class SyncScanNewPressed extends SyncEvent with _$SyncScanNewPressed {
   const factory SyncScanNewPressed() = _SyncScanNewPressed;
 }
 
 @freezed
-class SyncCancelQRScanning extends SyncEvent with _$SyncCancelQRScanning {
-  const factory SyncCancelQRScanning() = _SyncCancelQRScanning;
+class SyncCancel extends SyncEvent with _$SyncCancel {
+  const factory SyncCancel() = _SyncCancel;
 }
 
 @freezed
-class SyncLoadDemoData extends SyncEvent with _$SyncLoadDemoData {
-  const factory SyncLoadDemoData() = _SyncLoadDemoData;
+class LoadDemoData extends SyncEvent with _$LoadDemoData {
+  const factory LoadDemoData() = _LoadDemoData;
 }
 
 @freezed
-class SyncDataCompleted extends SyncEvent with _$SyncDataCompleted {
-  const factory SyncDataCompleted({
+class DataHandled extends SyncEvent with _$DataHandled {
+  const factory DataHandled({
     required String sourceId,
     required bool isSuccess,
     String? errorMessage,
-  }) = _SyncDataCompleted;
+  }) = _DataHandled;
 }
 
 @freezed
-class OnboardingOverlayTriggered extends SyncEvent
-    with _$OnboardingOverlayTriggered {
-  const factory OnboardingOverlayTriggered() = _OnboardingOverlayTriggered;
+class TriggerTutorial extends SyncEvent with _$TriggerTutorial {
+  const factory TriggerTutorial() = _TriggerTutorial;
 }
 
 @freezed
-class SyncResetOnboarding extends SyncEvent with _$SyncResetOnboarding {
-  const factory SyncResetOnboarding() = _SyncResetOnboarding;
+class ResetTutorial extends SyncEvent with _$ResetTutorial {
+  const factory ResetTutorial() = _ResetTutorial;
+}
+
+@freezed
+class DemoDataConfirmed extends SyncEvent with _$DemoDataConfirmed {
+  const factory DemoDataConfirmed() = _DemoDataConfirmed;
 }
