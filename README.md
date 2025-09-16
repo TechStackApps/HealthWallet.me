@@ -26,14 +26,8 @@
   <a href="changelog.md">
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue" height="24">
   </a>
-  <a href="">
-    <img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="24"/>
-  </a>
   <a href="https://www.linkedin.com/company/techstackapps/">
     <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="24"/>
-  </a>
-  <a href="https://x.com/techstackapps">
-    <img src="https://img.shields.io/twitter/follow/techstackapps" alt="Follow @techstackapps" height="24"/>
   </a>
 </p>
 
