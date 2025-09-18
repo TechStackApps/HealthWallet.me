@@ -82,8 +82,8 @@
     
     "scanCode": "Code scannen",
     "or": "oder",
-    "manualSyncMessage": "Wenn Sie den QR-Code nicht scannen können, können Sie die Synchronisierungsdaten manuell einfügen:",
-    "pasteSyncDataHint": "Synchronisierungsdaten hier einfügen",
+    "manualSyncMessage": "Roher QR-Code",
+    "pasteSyncDataHint": "Fügen Sie den rohen QR-Code ein",
     "connect": "Verbinden",
     "scanNewQRCode": "Neuen QR-Code scannen",
     "loadDemoData": "Demo-Daten laden",
