@@ -86,8 +86,8 @@
     
     "scanCode": "Escanear código",
     "or": "o",
-    "manualSyncMessage": "Si no puedes escanear el código QR, puedes pegar manualmente los datos de sincronización:",
-    "pasteSyncDataHint": "Pegar datos de sincronización aquí",
+    "manualSyncMessage": "Código QR sin procesar",
+    "pasteSyncDataHint": "Pega el código QR sin procesar",
     "connect": "Conectar",
     "scanNewQRCode": "Escanear Nuevo Código QR",
     "loadDemoData": "Cargar Datos de Demostración",

@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
@@ -59,7 +61,12 @@ class _SyncPageState extends State<SyncPage> {
             },
           ),
         ),
-        body: _buildQRCodeTab(context),
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: _buildQRCodeTab(context),
+        ),
       ),
     );
   }
@@ -127,9 +134,10 @@ class _SyncPageState extends State<SyncPage> {
   }
 
   Widget _buildQRScannerSection(BuildContext context, SyncState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
         Assets.images.syncScanIlustration.svg(width: 140),
         const SizedBox(height: Insets.small),
         const Text(
@@ -253,7 +261,8 @@ class _SyncPageState extends State<SyncPage> {
         const SizedBox(height: 12),
         if (state.errorMessage != null)
           _buildResultCard(context, state.errorMessage!, AppColors.error)
-      ],
+        ],
+      ),
     );
   }
 
