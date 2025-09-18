@@ -7,12 +7,12 @@
   <div style="flex: 1; min-width: 280px; max-width: 500px; text-align: left;">
     <h3 style="font-size: clamp(1.5rem, 4vw, 2.5rem); margin-bottom: 16px; text-align: left;">One app. All your medical records, safe and ready.</h3>
     <p style="font-size: clamp(1rem, 2.5vw, 1.2rem); line-height: 1.6; margin-bottom: 20px; text-align: left;"><strong>No more forms. No more repeating yourself.</strong> With HealthWallet.me, your health info is always safe and easy to share.</p>
-    <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
-      <a href="https://apps.apple.com/app/healthwallet-me/id6748325588" style="background: #dee2fe; color: #2C2D30; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; font-size: clamp(0.9rem, 2vw, 1rem); min-width: fit-content;">
-        <img src="https://cdn.prod.website-files.com/68b5b2fd58ee49cc33802ba8/68b5b7adf1546febae6a43fa_image%201.svg" alt="iOS" width="20" style="margin-right: 8px;"> Download for iOS
+    <div align="center" style="margin-top: 20px;">
+      <a href="https://apps.apple.com/app/healthwallet-me/id6748325588">
+        <img src="assets/readme/apple_store.svg" alt="Download for iOS" width="200">
       </a>
-      <a href="https://play.google.com/store/apps/details?id=com.techstackapps.healthwallet" style="background: #dee2fe; color: #2C2D30; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.2); display: flex; align-items: center; font-size: clamp(0.9rem, 2vw, 1rem); min-width: fit-content;">
-        <img src="https://cdn.prod.website-files.com/68b5b2fd58ee49cc33802ba8/68b5b7aebbeb16f5c64f7139_image%202.svg" alt="Android" width="20" style="margin-right: 8px;"> Download for Android
+      <a href="https://play.google.com/store/apps/details?id=com.techstackapps.healthwallet">
+        <img src="assets/readme/playstore.svg" alt="Download for Android" width="200">
       </a>
     </div>
   </div>
@@ -33,14 +33,14 @@
 
 ## 📋 About
 
-**HealthWallet.me** is a **secure**, **patient-controlled**, **community-driven** health record platform that consolidates your medical data from multiple providers into one accessible app.
+**HealthWallet.me** is a **patient-controlled**, **community-driven** health record platform that consolidates your medical data from multiple providers into one accessible app.
 
 ### Key Benefits
 - **Patient-Centered** • **Privacy-First** • **FHIR Compliant** • **Offline Capable**
 
 ## ✨ Features
 
-- 🔐 **Secure Storage** - Biometric authentication
+- 🔐 **Login** - Biometric authentication
 - 🏥 **Health Records Management** - Comprehensive view of medical history
 - 📊 **Dashboard** - Centralized health information overview
 - 🌐 **Offline Support** - Access critical data without internet
@@ -59,31 +59,27 @@ The backend server aggregates medical records from healthcare providers and sync
 
 **Prerequisites:**
 - Docker installed on your computer ([Install Docker](https://docs.docker.com/get-docker/))
-- A computer/server that can run 24/7 (for automatic syncing)
 
 **Quick Setup:**
 
-1. **Download the necessary files:**
+1. **Download and run Fasten application**
    ```bash
    curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/docker-compose-prod.yml -o docker-compose.yml
    curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/set_env.sh -o set_env.sh
-   ```
-
-2. **Configure your environment:**
-   ```bash
    chmod +x ./set_env.sh
    ./set_env.sh
-   ```
-
-3. **Start the backend server:**
-   ```bash
    docker compose up -d
    ```
 
-4. **Access your FastenHealth dashboard:**
+   **Commands Breakdown**
+   - Downloads necessary files (**docker-compose.yml** and **set_env.sh**)
+   - The environment script automatically assigns your local IP so **Fasten** can be available on **your local network**
+   - Starts the Fasten application (**docker-compose up -d**)
+
+2. **Access Fasten:**
    Open your browser and go to `http://localhost:9090`
 
-5. **Create your account:**
+3. **Create your account:**
    - Click "Sign Up" on the login page
    - Choose a username and password (e.g., `testuser` / `testuser`)
 
@@ -93,7 +89,7 @@ The backend server aggregates medical records from healthcare providers and sync
 3. **Sync your health records** automatically
 
 <div align="center">
-  <img src="assets/readme/access_token.gif" alt="Access Token Setup Demo" style="border-radius: 20px; max-width: 100%; width: clamp(300px, 60vw, 600px); height: auto;">
+  <img src="assets/readme/generate_qr_code.gif" alt="Access Token Setup Demo" style="border-radius: 8px; max-width: 100%; width: clamp(300px, 60vw, 600px); height: auto;">
 </div>
 
 ## 🛠️ Development Setup
@@ -156,27 +152,25 @@ lib/
 
 
 
-## 🗺️ Roadmap
+## 🎯 Roadmap
 
-### Phase 1: Core Platform (Current)
-- ✅ Basic health record management
-- ✅ Authentication and security
-- ✅ Cross-platform support
+### Completed Features ✅
+- Basic health record management
+- Authentication and security
+- Cross-platform support
 
-### Phase 2: Advanced Features
-- 🔄 QR code sharing (SMART Health Cards)
-- 🔄 Proximity-based communication
-- 🔄 Document scanning & OCR
-- 🔄 File import & in-app viewing
-- 🔄 Responsive UI & CRDT backup system
-- 🔄 Wearable & health provider integration
-- 🔄 Internationalization
-- 🔄 AI health insights
+### In Progress 🚧
+- Document scanning & OCR
 
-### Phase 3: Ecosystem
-- 🔄 Family management
-- 🔄 Provider portal
-- 🔄 Analytics & integration
+### Future Plans 📋
+- QR code sharing (SMART Health Cards)
+- Proximity-based communication (Airdrop)
+- File import & in-app viewing
+- Responsive UI & CRDT backup system
+- Wearable & health provider integration
+- AI health insights
+- AI Note taking prescription
+- Family management
 
 
 ## 🤝 Contributing
