@@ -26,8 +26,20 @@
   <a href="changelog.md">
     <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue" height="24">
   </a>
+  <a href="https://github.com/techstackapps">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" height="24"/>
+  </a>
+  <a href="https://www.youtube.com/@TechStackAppsCo">
+    <img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="24"/>
+  </a>
+  <a href="https://www.facebook.com/techstackapps/">
+    <img src="https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white" height="24"/>
+  </a>
   <a href="https://www.linkedin.com/company/techstackapps/">
     <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="24"/>
+  </a>
+  <a href="https://x.com/techstackapps">
+    <img src="https://img.shields.io/twitter/follow/techstackapps" alt="Follow @techstackapps" height="24"/>
   </a>
 </p>
 
@@ -64,10 +76,10 @@ The backend server aggregates medical records from healthcare providers and sync
 
 1. **Download and run Fasten application**
    ```bash
-   curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/docker-compose-prod.yml -o docker-compose.yml
-   curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/set_env.sh -o set_env.sh
-   chmod +x ./set_env.sh
-   ./set_env.sh
+   curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/docker-compose-prod.yml -o docker-compose.yml && \
+   curl https://raw.githubusercontent.com/fastenhealth/fasten-onprem/refs/heads/main/set_env.sh -o set_env.sh && \
+   chmod +x ./set_env.sh && \
+   ./set_env.sh && \
    docker compose up -d
    ```
 
@@ -191,6 +203,10 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 - **Alex Szilagyi** - Initial Development - [@alexszilagyi](https://github.com/alexszilagyi)
 - **Jason Kulatunga** - Co-Author - [@AnalogJ](https://github.com/AnalogJ)
 
+# Licenses
+
+[![GitHub license](https://img.shields.io/github/license/fastenhealth/fasten-onprem?style=flat-square)](https://github.com/TechStackApps/HealthWallet.me/blob/master/LICENSE.md)
+
 ## 🙏 Acknowledgments 
 - **FHIR Community** - For the healthcare interoperability standards
 - **Open Source Contributors** - For the libraries and tools that make this possible
@@ -208,3 +224,38 @@ If you find **HealthWallet.me** helpful, please consider rating us in the app st
 </div>
 
 Your ratings help us improve and reach more people who need better health record management!
+
+## 🤝🏼 Sponsorship
+
+**HealthWallet.me** is an open-source project dedicated to improving healthcare accessibility and patient data management.
+
+### Corporate Sponsorship
+
+We'd like to thank the following Corporate Sponsors:
+
+<div align="center" style="margin: 20px 0;">
+
+<a href="https://lifevalue.com/" target="_blank">
+<img src="assets/readme/lifevalue.svg" alt="LifeValue" width="120" style="margin: 0 20px;">
+</a>
+<a href="https://www.fastenhealth.com/" target="_blank">
+<img src="assets/readme/fasten.svg" alt="Fasten" width="120" style="margin: 0 20px;">
+</a>
+
+</div>
+
+
+Interested in **corporate sponsorship** or **partnership opportunities**? We offer:
+
+- 🏢 **Enterprise features** and custom integrations
+- 📊 **White-label solutions** for healthcare organizations
+- 🤝 **Strategic partnerships** in the healthcare technology space
+- 📈 **Priority support** and dedicated resources
+
+[**Contact us**](https://lifevalue.com/company/contact)
+
+---
+
+**Thank you for supporting open-source healthcare innovation!** 🙏
+
+
