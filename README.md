@@ -143,7 +143,8 @@ The backend server aggregates medical records from healthcare providers and sync
 - **Code Generation**: Freezed, JSON Serializable
 - **Localization**: Flutter Intl
 
-### Project Structure
+<details>
+  <summary><strong>Project Structure</strong></summary>
 ```
 lib/
 ├── app/                    # App configuration and initialization
@@ -161,7 +162,7 @@ lib/
 │   └── profile/           # User profile management
 └── gen/                   # Generated code (assets, routes, etc.)
 ```
-
+</details>
 
 
 ## 🎯 Roadmap
