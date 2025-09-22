@@ -145,6 +145,7 @@ The backend server aggregates medical records from healthcare providers and sync
 
 <details>
   <summary><strong>Project Structure</strong></summary>
+
 ```
 lib/
 ├── app/                    # App configuration and initialization
