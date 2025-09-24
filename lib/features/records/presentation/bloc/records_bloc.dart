@@ -66,9 +66,13 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
           limit: 100,
         );
       } else {
+        final sourceIdToUse = state.activeFilters.contains(FhirType.Media) 
+          ? null 
+          : state.sourceId;
+      
         resources = await _recordsRepository.getResources(
           resourceTypes: state.activeFilters,
-          sourceId: state.sourceId,
+          sourceId: sourceIdToUse,
           limit: limit,
           offset: offset,
         );

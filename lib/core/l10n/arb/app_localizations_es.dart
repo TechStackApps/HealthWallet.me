@@ -603,4 +603,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get demoDataLoadedSuccessfully =>
       'Los datos de demostración se han cargado exitosamente. Serás redirigido a la página de inicio.';
+
+  @override
+  String get documentScanTitle => 'Scan Document';
 }

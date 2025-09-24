@@ -1203,6 +1203,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Demo data has been loaded successfully. You will be redirected to the home page.'**
   String get demoDataLoadedSuccessfully;
+
+  /// No description provided for @documentScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Document'**
+  String get documentScanTitle;
 }
 
 class _AppLocalizationsDelegate

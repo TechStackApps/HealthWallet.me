@@ -595,4 +595,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get demoDataLoadedSuccessfully =>
       'Demo data has been loaded successfully. You will be redirected to the home page.';
+
+  @override
+  String get documentScanTitle => 'Scan Document';
 }

@@ -211,5 +211,7 @@
     "sourceName": "Source name",
     "provideCustomLabel": "Provide a custom label for:",
     "success": "Success",
-    "demoDataLoadedSuccessfully": "Demo data has been loaded successfully. You will be redirected to the home page."
+    "demoDataLoadedSuccessfully": "Demo data has been loaded successfully. You will be redirected to the home page.",
+
+    "documentScanTitle": "Scan Document"
 }

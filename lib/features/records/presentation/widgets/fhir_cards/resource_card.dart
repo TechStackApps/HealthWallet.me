@@ -10,9 +10,11 @@ import 'package:health_wallet/features/records/presentation/bloc/records_bloc.da
 import 'package:health_wallet/core/theme/app_insets.dart';
 // Removed unused AppColors import; using theme-based colors from context
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/features/records/presentation/widgets/media_fullscreen_viewer.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_attachments/record_attachments_widget.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_notes/record_notes_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
+
 
 class ResourceCard extends StatefulWidget {
   final IFhirResource resource;
@@ -65,8 +67,20 @@ class _ResourceCardState extends State<ResourceCard> {
   Widget _buildMainResourceInfo() {
     return InkWell(
       onTap: () {
+      // Handle Media resources differently - open fullscreen viewer
+      if (widget.resource.fhirType == FhirType.Media) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => MediaFullscreenViewer(
+              media: widget.resource as Media,
+            ),
+          ),
+        );
+      } else {
+        // Default navigation for other resource types
         context.router.push(RecordDetailsRoute(resource: widget.resource));
-      },
+      }
+    },
       borderRadius: BorderRadius.circular(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
