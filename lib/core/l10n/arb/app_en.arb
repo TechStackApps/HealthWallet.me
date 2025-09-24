@@ -96,8 +96,8 @@
     
     "scanCode": "Scan code",
     "or": "or",
-    "manualSyncMessage": "If you can't scan the QR code, you can manually paste the sync data:",
-    "pasteSyncDataHint": "Paste sync data here",
+    "manualSyncMessage": "Raw QR Code",
+    "pasteSyncDataHint": "Paste the raw QR code",
     "connect": "Connect",
     "scanNewQRCode": "Scan New QR Code",
     "loadDemoData": "Load Demo Data",

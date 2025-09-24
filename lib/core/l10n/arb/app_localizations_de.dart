@@ -268,11 +268,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get or => 'oder';
 
   @override
-  String get manualSyncMessage =>
-      'Wenn Sie den QR-Code nicht scannen können, können Sie die Synchronisierungsdaten manuell einfügen:';
+  String get manualSyncMessage => 'Roher QR-Code';
 
   @override
-  String get pasteSyncDataHint => 'Synchronisierungsdaten hier einfügen';
+  String get pasteSyncDataHint => 'Fügen Sie den rohen QR-Code ein';
 
   @override
   String get connect => 'Verbinden';

@@ -265,11 +265,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get or => 'o';
 
   @override
-  String get manualSyncMessage =>
-      'Si no puedes escanear el código QR, puedes pegar manualmente los datos de sincronización:';
+  String get manualSyncMessage => 'Código QR sin procesar';
 
   @override
-  String get pasteSyncDataHint => 'Pegar datos de sincronización aquí';
+  String get pasteSyncDataHint => 'Pega el código QR sin procesar';
 
   @override
   String get connect => 'Conectar';

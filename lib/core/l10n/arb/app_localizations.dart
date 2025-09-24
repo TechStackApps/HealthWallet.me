@@ -583,13 +583,13 @@ abstract class AppLocalizations {
   /// No description provided for @manualSyncMessage.
   ///
   /// In en, this message translates to:
-  /// **'If you can\'t scan the QR code, you can manually paste the sync data:'**
+  /// **'Raw QR Code'**
   String get manualSyncMessage;
 
   /// No description provided for @pasteSyncDataHint.
   ///
   /// In en, this message translates to:
-  /// **'Paste sync data here'**
+  /// **'Paste the raw QR code'**
   String get pasteSyncDataHint;
 
   /// No description provided for @connect.

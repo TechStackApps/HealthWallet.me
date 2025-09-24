@@ -264,11 +264,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get or => 'or';
 
   @override
-  String get manualSyncMessage =>
-      'If you can\'t scan the QR code, you can manually paste the sync data:';
+  String get manualSyncMessage => 'Raw QR Code';
 
   @override
-  String get pasteSyncDataHint => 'Paste sync data here';
+  String get pasteSyncDataHint => 'Paste the raw QR code';
 
   @override
   String get connect => 'Connect';
