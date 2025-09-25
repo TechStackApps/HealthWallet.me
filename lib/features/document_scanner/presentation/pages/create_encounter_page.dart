@@ -1,11 +1,20 @@
 // create_encounter_page.dart
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:drift/drift.dart' hide Column;
 
 @RoutePage()
 class CreateEncounterPage extends StatefulWidget {
@@ -29,6 +38,40 @@ class _CreateEncounterPageState extends State<CreateEncounterPage> {
   bool _isCreating = false;
   int _currentPageIndex = 0;
   final PageController _pageController = PageController();
+  
+  // Services
+  late final AppDatabase _database;
+  late final MediaIntegrationService _mediaIntegrationService;
+  
+  // Current source and patient info
+  String? _currentSourceId;
+  String? _currentPatientId;
+  String? _currentPatientName;
+
+  @override
+  void initState() {
+    super.initState();
+    _database = GetIt.instance.get<AppDatabase>();
+    _mediaIntegrationService = GetIt.instance.get<MediaIntegrationService>();
+    _loadCurrentSourceAndPatient();
+  }
+  
+  void _loadCurrentSourceAndPatient() {
+    final homeState = context.read<HomeBloc>().state;
+    
+    // Get current source ID
+    _currentSourceId = homeState.selectedSource == 'All' ? null : homeState.selectedSource;
+    
+    // Get current patient info
+    final patient = homeState.patient;
+    if (patient != null) {
+      _currentPatientId = patient.resourceId;
+      _currentPatientName = patient.displayTitle;
+      
+      // Pre-fill patient name field
+      _patientNameController.text = _currentPatientName ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -387,46 +430,188 @@ class _CreateEncounterPageState extends State<CreateEncounterPage> {
     });
 
     try {
-      // TODO: Implement actual encounter creation logic here
-      // This would involve:
-      // 1. Creating a new Encounter resource with the form data
-      // 2. Creating Media resources for each scanned page
-      // 3. Linking the Media resources to the Encounter
-      // 4. Saving everything to your data store
-      
+      // Extract form data
       final encounterName = _encounterNameController.text.trim();
       final patientName = _patientNameController.text.trim();
       final doctorName = _doctorNameController.text.trim();
       final notes = _notesController.text.trim();
       
-      // Simulate async operation
-      await Future.delayed(const Duration(seconds: 2));
+      // Use current source and patient info
+      final sourceId = _currentSourceId ?? 'document-scanner';
+      final patientId = _currentPatientId ?? 'patient-default';
+      final effectivePatientName = patientName.isNotEmpty ? patientName : _currentPatientName ?? 'Unknown Patient';
       
-      // Show success message
+      // Generate encounter ID
+      final encounterId = _generateId();
+      
+      // Step 1: Create FHIR Encounter resource
+      final fhirEncounter = _createFhirR4Encounter(
+        encounterId: encounterId,
+        patientId: patientId,
+        title: encounterName,
+        patientName: effectivePatientName,
+        doctorName: doctorName,
+        notes: notes,
+      );
+      
+      // Step 2: Save encounter to database
+      await _saveEncounterToDatabase(
+        fhirEncounter: fhirEncounter,
+        sourceId: sourceId,
+        title: encounterName,
+      );
+      
+      // Step 3: Create Media resources for scanned images and link them to encounter
+      final mediaResourceIds = await _mediaIntegrationService.saveScannedImagesAsFhirRecords(
+        imagePaths: widget.imagePaths,
+        patientId: patientId,
+        encounterId: encounterId,
+        sourceId: sourceId,
+        title: encounterName,
+      );
+      
+      // Success!
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Encounter "$encounterName" created successfully!'),
+            content: Text(
+              'Encounter "$encounterName" created successfully with ${widget.imagePaths.length} attached document${widget.imagePaths.length > 1 ? 's' : ''}!',
+            ),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
           ),
         );
-        
-        // Return to previous screen with success result
         Navigator.of(context).pop(true);
       }
+      
     } catch (e) {
       setState(() {
         _isCreating = false;
       });
+      
+      print('Error creating encounter: $e'); // Debug log
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to create encounter: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
     }
+  }
+
+  /// Create a FHIR R4 Encounter resource
+  fhir_r4.Encounter _createFhirR4Encounter({
+    required String encounterId,
+    required String patientId,
+    required String title,
+    String? patientName,
+    String? doctorName,
+    String? notes,
+  }) {
+    final timestamp = DateTime.now();
+    
+    // Create participant list
+    final participants = <fhir_r4.EncounterParticipant>[];
+    
+    // Add doctor as participant if provided
+    if (doctorName != null && doctorName.isNotEmpty) {
+      participants.add(
+        fhir_r4.EncounterParticipant(
+          individual: fhir_r4.Reference(
+            display: fhir_r4.FhirString(doctorName),
+          ),
+          type: [
+            fhir_r4.CodeableConcept(
+              coding: [
+                fhir_r4.Coding(
+                  system: fhir_r4.FhirUri('http://terminology.hl7.org/CodeSystem/v3-ParticipationType'),
+                  code: fhir_r4.FhirCode('ATND'),
+                  display: fhir_r4.FhirString('attender'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return fhir_r4.Encounter(
+      id: fhir_r4.FhirString(encounterId),
+      status: fhir_r4.EncounterStatus.finished,
+      class_: fhir_r4.Coding(
+        system: fhir_r4.FhirUri('http://terminology.hl7.org/CodeSystem/v3-ActCode'),
+        code: fhir_r4.FhirCode('AMB'),
+        display: fhir_r4.FhirString('ambulatory'),
+      ),
+      type: [
+        fhir_r4.CodeableConcept(
+          coding: [
+            fhir_r4.Coding(
+              system: fhir_r4.FhirUri('http://snomed.info/sct'),
+              code: fhir_r4.FhirCode('308646001'),
+              display: fhir_r4.FhirString('Death certificate'),
+            ),
+          ],
+          text: fhir_r4.FhirString(title),
+        ),
+      ],
+      subject: fhir_r4.Reference(
+        reference: fhir_r4.FhirString('Patient/$patientId'),
+        display: fhir_r4.FhirString(patientName ?? 'Patient $patientId'),
+      ),
+      participant: participants.isNotEmpty ? participants : null,
+      period: fhir_r4.Period(
+        start: fhir_r4.FhirDateTime.fromString(timestamp.toIso8601String()),
+      ),
+      identifier: [
+        fhir_r4.Identifier(
+          system: fhir_r4.FhirUri('http://health-wallet.app/encounter-id'),
+          value: fhir_r4.FhirString(encounterId),
+          use: fhir_r4.IdentifierUse.usual,
+        ),
+      ],
+    );
+  }
+
+  /// Save FHIR Encounter resource to the local database
+  Future<void> _saveEncounterToDatabase({
+    required fhir_r4.Encounter fhirEncounter,
+    required String sourceId,
+    required String title,
+  }) async {
+    final resourceJson = fhirEncounter.toJson();
+    final resourceId = fhirEncounter.id!.valueString!;
+    
+    final dto = FhirResourceCompanion.insert(
+      id: '${sourceId}_$resourceId',
+      sourceId: Value(sourceId),
+      resourceId: Value(resourceId),
+      resourceType: Value('Encounter'),
+      title: Value(title),
+      date: Value(_extractDateFromEncounter(fhirEncounter)),
+      resourceRaw: jsonEncode(resourceJson),
+    );
+    
+    await _database.into(_database.fhirResource).insertOnConflictUpdate(dto);
+  }
+
+  /// Extract date from FHIR Encounter resource
+  DateTime _extractDateFromEncounter(fhir_r4.Encounter encounter) {
+    if (encounter.period?.start != null) {
+      try {
+        return DateTime.parse(encounter.period!.start!.valueString!);
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+    return DateTime.now();
+  }
+
+  String _generateId() {
+    return DateTime.now().millisecondsSinceEpoch.toString();
   }
 }

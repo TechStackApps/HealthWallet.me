@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:intl/intl.dart';
 
 class EncounterSelectorDialog extends StatefulWidget {
@@ -37,9 +38,14 @@ class _EncounterSelectorDialogState extends State<EncounterSelectorDialog> {
 
   Future<void> _loadEncounters() async {
     try {
-      // Load all encounters from the repository
+      // Get the current source ID from HomeBloc
+      final homeState = context.read<HomeBloc>().state;
+      final sourceId = homeState.selectedSource == 'All' ? null : homeState.selectedSource;
+      
+      // Load encounters for the active source
       final resources = await _recordsRepository.getResources(
         resourceTypes: [FhirType.Encounter],
+        sourceId: sourceId,
         limit: 100, // Adjust limit as needed
       );
       
@@ -70,6 +76,7 @@ class _EncounterSelectorDialogState extends State<EncounterSelectorDialog> {
         _filteredEncounters = _allEncounters
             .where((encounter) =>
                 encounter.title.toLowerCase().contains(query) ||
+                encounter.displayTitle.toLowerCase().contains(query) ||
                 encounter.id.toLowerCase().contains(query))
             .toList();
       }
@@ -119,6 +126,15 @@ class _EncounterSelectorDialogState extends State<EncounterSelectorDialog> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Create a new encounter first or select a different patient.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ],
                           ),
                         )
@@ -153,7 +169,7 @@ class _EncounterSelectorDialogState extends State<EncounterSelectorDialog> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'ID: ${encounter.id}',
+                                      'ID: ${encounter.resourceId}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -170,7 +186,7 @@ class _EncounterSelectorDialogState extends State<EncounterSelectorDialog> {
                                   ],
                                 ),
                                 onTap: () {
-                                  Navigator.of(context).pop(encounter.id);
+                                  Navigator.of(context).pop(encounter.resourceId);
                                 },
                               ),
                             );

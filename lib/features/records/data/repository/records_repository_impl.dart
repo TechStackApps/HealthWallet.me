@@ -41,18 +41,36 @@ class RecordsRepositoryImpl implements RecordsRepository {
   }
 
   /// Get related resources for an encounter
-  @override
-  Future<List<IFhirResource>> getRelatedResourcesForEncounter({
-    required String encounterId,
-    String? sourceId,
-  }) async {
-    final localDtos = await _datasource.getResourcesByEncounterId(
-      encounterId: encounterId,
-      sourceId: sourceId,
-    );
-
-    return localDtos.map(IFhirResource.fromLocalDto).toList();
-  }
+@override
+Future<List<IFhirResource>> getRelatedResourcesForEncounter({
+  required String encounterId,
+  String? sourceId,
+}) async {
+  // Get all Media resources for this source
+  final mediaResources = await getResources(
+    resourceTypes: [FhirType.Media],
+    sourceId: sourceId,
+    limit: 100, // Adjust as needed
+  );
+  
+  // Filter Media resources that reference this encounter
+  final relatedMedia = mediaResources.where((resource) {
+    if (resource.rawResource.isEmpty) return false;
+    
+    try {
+      final encounter = resource.rawResource['encounter'];
+      if (encounter != null && encounter is Map) {
+        final reference = encounter['reference'];
+        return reference == 'Encounter/$encounterId';
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }).toList();
+  
+  return relatedMedia;
+}
 
   @override
   Future<List<IFhirResource>> getRelatedResources({

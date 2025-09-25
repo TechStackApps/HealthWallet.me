@@ -2,7 +2,6 @@
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
-import 'package:health_wallet/features/document_scanner/presentation/pages/create_encounter_page.dart';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -16,6 +15,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/features/document_scanner/presentation/bloc/document_scanner_bloc.dart';
 import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
 import 'package:health_wallet/features/document_scanner/presentation/widgets/encounter_selector_dialog.dart';
+import 'package:health_wallet/features/document_scanner/presentation/pages/create_encounter_page.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 
 @RoutePage()
 class DocumentScannerPage extends StatelessWidget {
@@ -496,9 +497,20 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     );
 
     try {
-      // TODO: Implement attachment logic
-      // This would call your media integration service to attach the images to the selected encounter
-      await Future.delayed(const Duration(seconds: 1)); // Simulate async operation
+      // Get current source and patient info
+      final homeState = context.read<HomeBloc>().state;
+      final sourceId = homeState.selectedSource == 'All' ? null : homeState.selectedSource;
+      final patient = homeState.patient;
+      final patientId = patient?.resourceId ?? 'patient-default';
+      
+      // Create Media resources and attach them to the encounter
+      final resourceIds = await _mediaIntegrationService.saveScannedImagesAsFhirRecords(
+        imagePaths: imagePaths,
+        patientId: patientId,
+        encounterId: encounterId,
+        sourceId: sourceId ?? 'document-scanner',
+        title: 'Scanned Document',
+      );
       
       // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
@@ -519,9 +531,12 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
   }
 
   void _showAttachmentSuccessDialog(BuildContext context, int count, String encounterId) {
+    // Store the original context that has access to DocumentScannerBloc
+    final originalContext = context;
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green),
@@ -541,8 +556,9 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              context.read<DocumentScannerBloc>().add(
+              Navigator.of(dialogContext).pop(); // Use dialog context for navigation
+              // Use original context for bloc access
+              originalContext.read<DocumentScannerBloc>().add(
                 const DocumentScannerEvent.clearAllDocuments(),
               );
             },
@@ -550,8 +566,8 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              context.router.push(RecordsRoute());
+              Navigator.of(dialogContext).pop(); // Use dialog context for navigation
+              originalContext.router.push(RecordsRoute()); // Use original context for routing
             },
             child: const Text('View Records'),
           ),
