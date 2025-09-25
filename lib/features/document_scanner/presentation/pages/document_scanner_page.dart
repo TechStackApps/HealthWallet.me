@@ -307,20 +307,11 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     DialogHelper.showLoadingDialog(context, 'Attaching to encounter...');
 
     try {
-      // Get current source and patient info
-      final homeState = context.read<HomeBloc>().state;
-      final sourceId = homeState.selectedSource == 'All' ? null : homeState.selectedSource;
-      final patient = homeState.patient;
-      final patientId = patient?.resourceId ?? 'patient-default';
+      // TODO: Implement attachment logic
+      // This would call your media integration service to attach the images to the selected encounter
+      await Future.delayed(
+          const Duration(seconds: 1)); // Simulate async operation
 
-      // Create Media resources and attach them to the encounter
-      final resourceIds = await _mediaIntegrationService.saveScannedImagesAsFhirRecords(
-        imagePaths: imagePaths,
-        patientId: patientId,
-        encounterId: encounterId,
-        sourceId: sourceId ?? 'document-scanner',
-        title: 'Scanned Document',
-      );
       // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
 
