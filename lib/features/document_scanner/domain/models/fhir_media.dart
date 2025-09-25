@@ -19,7 +19,8 @@ class FhirMedia with _$FhirMedia {
     List<FhirIdentifier>? identifier,
   }) = _FhirMedia;
 
-  factory FhirMedia.fromJson(Map<String, dynamic> json) => _$FhirMediaFromJson(json);
+  factory FhirMedia.fromJson(Map<String, dynamic> json) =>
+      _$FhirMediaFromJson(json);
 }
 
 @freezed
@@ -29,7 +30,8 @@ class FhirReference with _$FhirReference {
     String? display,
   }) = _FhirReference;
 
-  factory FhirReference.fromJson(Map<String, dynamic> json) => _$FhirReferenceFromJson(json);
+  factory FhirReference.fromJson(Map<String, dynamic> json) =>
+      _$FhirReferenceFromJson(json);
 }
 
 @freezed
@@ -37,12 +39,13 @@ class FhirContent with _$FhirContent {
   const factory FhirContent({
     required String contentType,
     String? data, // Base64 encoded data
-    String? url,  // Alternative: URL reference
+    String? url, // Alternative: URL reference
     String? title,
     int? size,
   }) = _FhirContent;
 
-  factory FhirContent.fromJson(Map<String, dynamic> json) => _$FhirContentFromJson(json);
+  factory FhirContent.fromJson(Map<String, dynamic> json) =>
+      _$FhirContentFromJson(json);
 }
 
 @freezed
@@ -53,7 +56,8 @@ class FhirIdentifier with _$FhirIdentifier {
     String? use,
   }) = _FhirIdentifier;
 
-  factory FhirIdentifier.fromJson(Map<String, dynamic> json) => _$FhirIdentifierFromJson(json);
+  factory FhirIdentifier.fromJson(Map<String, dynamic> json) =>
+      _$FhirIdentifierFromJson(json);
 }
 
 // Helper class for creating FHIR Media resources from scanned documents
@@ -69,7 +73,7 @@ class FhirMediaFactory {
     final base64Data = base64Encode(bytes);
     final contentType = _getContentType(imagePath);
     final timestamp = DateTime.now().toIso8601String();
-    
+
     return FhirMedia(
       id: _generateId(),
       status: 'completed',
@@ -78,12 +82,12 @@ class FhirMediaFactory {
         reference: 'Patient/$patientId',
         display: 'Patient $patientId',
       ),
-      encounter: encounterId != null 
-        ? FhirReference(
-            reference: 'Encounter/$encounterId',
-            display: 'Encounter $encounterId',
-          )
-        : null,
+      encounter: encounterId != null
+          ? FhirReference(
+              reference: 'Encounter/$encounterId',
+              display: 'Encounter $encounterId',
+            )
+          : null,
       content: FhirContent(
         contentType: contentType,
         data: base64Data,

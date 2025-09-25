@@ -13,17 +13,19 @@ part 'document_scanner_event.dart';
 part 'document_scanner_bloc.freezed.dart';
 
 @Injectable()
-class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerState> {
+class DocumentScannerBloc
+    extends Bloc<DocumentScannerEvent, DocumentScannerState> {
   final PdfStorageService _pdfStorageService;
-  static DocumentScannerState? _persistentState;
 
-  DocumentScannerBloc(this._pdfStorageService) : super(const DocumentScannerState()) {
+  DocumentScannerBloc(this._pdfStorageService)
+      : super(const DocumentScannerState()) {
     on<DocumentScannerInitialised>(_onDocumentScannerInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DeleteDocument>(_onDeleteDocument);
     on<ClearAllDocuments>(_onClearAllDocuments);
     on<DeletePdf>(_onDeletePdf);
     on<LoadSavedPdfs>(_onLoadSavedPdfs);
+    on<DocumentImported>(_onDocumentImported);
   }
 
   Future<void> _onDocumentScannerInitialised(
@@ -39,31 +41,34 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
     Emitter<DocumentScannerState> emit,
   ) async {
     emit(state.copyWith(status: const DocumentScannerStatus.loading()));
-    
-    try {      
+
+    try {
       if (event.mode == ScanMode.pdf) {
         // Scan as PDF
         final scannedPdf = await FlutterDocScanner().getScannedDocumentAsPdf();
-        
-        if (scannedPdf != null && !scannedPdf.contains('Failed') && !scannedPdf.contains('Unknown')) {
+
+        if (scannedPdf != null &&
+            !scannedPdf.contains('Failed') &&
+            !scannedPdf.contains('Unknown')) {
           // Save PDF to permanent storage
           final savedPath = await _pdfStorageService.savePdfToStorage(
             sourcePdfPath: scannedPdf,
-            customFileName: 'health_document_${DateTime.now().millisecondsSinceEpoch}.pdf',
+            customFileName:
+                'health_document_${DateTime.now().millisecondsSinceEpoch}.pdf',
           );
-          
+
           if (savedPath != null) {
             final updatedPdfs = [...state.savedPdfPaths, savedPath];
-            
+
             emit(state.copyWith(
               status: const DocumentScannerStatus.success(),
               savedPdfPaths: updatedPdfs,
               lastCreatedPdfPath: savedPath,
             ));
-            
           } else {
             emit(state.copyWith(
-              status: const DocumentScannerStatus.failure(error: 'Failed to save PDF'),
+              status: const DocumentScannerStatus.failure(
+                  error: 'Failed to save PDF'),
             ));
           }
         } else {
@@ -71,13 +76,14 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
         }
       } else {
         // Scan as images (existing functionality)
-        final scannedDocuments = await FlutterDocScanner().getScannedDocumentAsImages(
+        final scannedDocuments =
+            await FlutterDocScanner().getScannedDocumentAsImages(
           page: event.maxPages,
         );
-        
+
         if (scannedDocuments != null) {
           List<String> imagePaths = [];
-          
+
           if (scannedDocuments is List) {
             imagePaths = scannedDocuments.cast<String>();
           } else if (scannedDocuments is String) {
@@ -85,15 +91,16 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
           } else {
             imagePaths = [scannedDocuments.toString()];
           }
-          
-          if (imagePaths.isNotEmpty && !imagePaths.first.contains('Failed') && !imagePaths.first.contains('Unknown')) {
+
+          if (imagePaths.isNotEmpty &&
+              !imagePaths.first.contains('Failed') &&
+              !imagePaths.first.contains('Unknown')) {
             final updatedPaths = [...state.scannedImagePaths, ...imagePaths];
-            
+
             emit(state.copyWith(
               status: const DocumentScannerStatus.success(),
               scannedImagePaths: updatedPaths,
             ));
-            
           } else {
             emit(state.copyWith(status: const DocumentScannerStatus.initial()));
           }
@@ -118,14 +125,13 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
     DeletePdf event,
     Emitter<DocumentScannerState> emit,
   ) async {
-    try {      
+    try {
       final success = await _pdfStorageService.deletePdf(event.pdfPath);
-      
+
       if (success) {
-        final updatedPdfs = state.savedPdfPaths
-            .where((path) => path != event.pdfPath)
-            .toList();
-        
+        final updatedPdfs =
+            state.savedPdfPaths.where((path) => path != event.pdfPath).toList();
+
         emit(state.copyWith(savedPdfPaths: updatedPdfs));
       }
     } catch (e) {
@@ -145,28 +151,64 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
     }
   }
 
+  Future<void> _onDocumentImported(
+    DocumentImported event,
+    Emitter<DocumentScannerState> emit,
+  ) async {
+    try {
+      final file = File(event.filePath);
+      if (await file.exists()) {
+        // Check if it's a PDF or image and store appropriately
+        final fileName = event.filePath.toLowerCase();
+
+        if (fileName.endsWith('.pdf')) {
+          // Handle PDF import - store in savedPdfPaths for display
+          final updatedPdfs = [...state.savedPdfPaths, event.filePath];
+          emit(state.copyWith(
+            status: const DocumentScannerStatus.success(),
+            savedPdfPaths: updatedPdfs,
+          ));
+        } else {
+          // Handle image import - store in scannedImagePaths
+          final updatedPaths = [...state.scannedImagePaths, event.filePath];
+          emit(state.copyWith(
+            status: const DocumentScannerStatus.success(),
+            scannedImagePaths: updatedPaths,
+          ));
+        }
+      } else {
+        emit(state.copyWith(
+          status: DocumentScannerStatus.failure(error: 'File does not exist'),
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        status: DocumentScannerStatus.failure(
+            error: 'Failed to import document: $e'),
+      ));
+    }
+  }
+
   Future<void> _onDeleteDocument(
     DeleteDocument event,
     Emitter<DocumentScannerState> emit,
   ) async {
     try {
-      
       final file = File(event.imagePath);
       if (await file.exists()) {
         await file.delete();
       }
-      
+
       final updatedPaths = state.scannedImagePaths
           .where((path) => path != event.imagePath)
           .toList();
-      
+
       emit(state.copyWith(scannedImagePaths: updatedPaths));
-      
     } catch (e) {
       final updatedPaths = state.scannedImagePaths
           .where((path) => path != event.imagePath)
           .toList();
-      
+
       emit(state.copyWith(scannedImagePaths: updatedPaths));
     }
   }
@@ -175,7 +217,7 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
     ClearAllDocuments event,
     Emitter<DocumentScannerState> emit,
   ) async {
-    try {      
+    try {
       for (final imagePath in state.scannedImagePaths) {
         try {
           final file = File(imagePath);
@@ -186,9 +228,8 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
           print('Failed to delete file $imagePath: $e');
         }
       }
-      
-      emit(state.copyWith(scannedImagePaths: []));  
-          
+
+      emit(state.copyWith(scannedImagePaths: []));
     } catch (e) {
       emit(state.copyWith(scannedImagePaths: []));
     }
@@ -197,12 +238,13 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
   String _parsePlatformError(PlatformException error) {
     final code = error.code.toLowerCase();
     final message = error.message?.toLowerCase() ?? '';
-    
+
     if (code.contains('permission') || message.contains('permission')) {
       return 'Camera permission is required. Please allow camera access when prompted.';
     } else if (code.contains('cancel') || message.contains('cancel')) {
       return 'Document scanning was cancelled';
-    } else if (code.contains('unavailable') || message.contains('unavailable')) {
+    } else if (code.contains('unavailable') ||
+        message.contains('unavailable')) {
       return 'Document scanner is not available on this device';
     } else {
       return 'Scanner error: ${error.message ?? 'Unknown error occurred'}';
@@ -211,7 +253,7 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
 
   String _parseGeneralError(dynamic error) {
     final errorString = error.toString().toLowerCase();
-    
+
     if (errorString.contains('user') && errorString.contains('cancel')) {
       return 'Document scanning was cancelled';
     } else if (errorString.contains('permission')) {
@@ -221,15 +263,5 @@ class DocumentScannerBloc extends Bloc<DocumentScannerEvent, DocumentScannerStat
     } else {
       return 'Failed to scan document. Please try again.';
     }
-  }
-
-  Future<void> emit(DocumentScannerState state) async {
-    _persistentState = state; // Persist state changes
-    return super.emit(state);
-  }
-
-  // Add method to clear persistence when needed
-  void clearPersistentState() {
-    _persistentState = null;
   }
 }

@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  file_selector_linux
   flutter_doc_scanner
   open_file_linux
   sqlite3_flutter_libs
