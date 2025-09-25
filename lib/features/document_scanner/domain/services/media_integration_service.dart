@@ -25,13 +25,12 @@ class MediaIntegrationService {
     String? title,
   }) async {
     try {
-      
       final List<String> savedResourceIds = [];
-      
+
       for (int i = 0; i < imagePaths.length; i++) {
         final imagePath = imagePaths[i];
         final documentTitle = title ?? 'Scanned Document ${i + 1}';
-        
+
         // Create FHIR R4 Media resource
         final fhirMedia = await _createFhirR4Media(
           imagePath: imagePath,
@@ -39,19 +38,18 @@ class MediaIntegrationService {
           encounterId: encounterId,
           title: documentTitle,
         );
-        
+
         // Save to database
         final resourceId = await _saveFhirMediaToDatabase(
           fhirMedia: fhirMedia,
           sourceId: sourceId ?? 'scanner-app',
           title: documentTitle,
         );
-        
+
         savedResourceIds.add(resourceId);
       }
-      
+
       return savedResourceIds;
-      
     } catch (e) {
       throw Exception('Failed to create FHIR Media records: $e');
     }
@@ -69,14 +67,15 @@ class MediaIntegrationService {
     final base64Data = base64Encode(bytes);
     final contentType = _getContentType(imagePath);
     final timestamp = DateTime.now();
-    
+
     return fhir_r4.Media(
       id: fhir_r4.FhirString(_generateId()),
       status: fhir_r4.EventStatus.completed,
       type: fhir_r4.CodeableConcept(
         coding: [
           fhir_r4.Coding(
-            system: fhir_r4.FhirUri('http://terminology.hl7.org/CodeSystem/media-type'),
+            system: fhir_r4.FhirUri(
+                'http://terminology.hl7.org/CodeSystem/media-type'),
             code: fhir_r4.FhirCode('image'),
             display: fhir_r4.FhirString('Image'),
           ),
@@ -87,12 +86,12 @@ class MediaIntegrationService {
         reference: fhir_r4.FhirString('Patient/$patientId'),
         display: fhir_r4.FhirString('Patient $patientId'),
       ),
-      encounter: encounterId != null 
-        ? fhir_r4.Reference(
-            reference: fhir_r4.FhirString('Encounter/$encounterId'),
-            display: fhir_r4.FhirString('Encounter $encounterId'),
-          )
-        : null,
+      encounter: encounterId != null
+          ? fhir_r4.Reference(
+              reference: fhir_r4.FhirString('Encounter/$encounterId'),
+              display: fhir_r4.FhirString('Encounter $encounterId'),
+            )
+          : null,
       createdX: fhir_r4.FhirDateTime.fromString(timestamp.toIso8601String()),
       content: fhir_r4.Attachment(
         contentType: fhir_r4.FhirCode(contentType),
@@ -118,7 +117,7 @@ class MediaIntegrationService {
   }) async {
     final resourceJson = fhirMedia.toJson();
     final resourceId = fhirMedia.id!.valueString!;
-    
+
     final dto = FhirResourceCompanion.insert(
       id: '${sourceId}_$resourceId',
       sourceId: Value(sourceId),
@@ -128,9 +127,9 @@ class MediaIntegrationService {
       date: Value(_extractDateFromMedia(fhirMedia)),
       resourceRaw: jsonEncode(resourceJson), // Add this required field
     );
-    
+
     await _database.into(_database.fhirResource).insertOnConflictUpdate(dto);
-    
+
     return resourceId;
   }
 
@@ -157,11 +156,11 @@ class MediaIntegrationService {
   }) async {
     var query = (_database.select(_database.fhirResource)
       ..where((tbl) => tbl.resourceType.equals('Media')));
-    
+
     if (sourceId != null) {
       query = query..where((tbl) => tbl.sourceId.equals(sourceId));
     }
-    
+
     return query.get();
   }
 
@@ -171,7 +170,7 @@ class MediaIntegrationService {
     String? sourceId,
   }) async {
     final allMedia = await getAllMediaResources(sourceId: sourceId);
-    
+
     return allMedia.where((media) {
       try {
         final resourceJson = jsonDecode(media.resourceRaw);
@@ -194,31 +193,32 @@ class MediaIntegrationService {
   }) async {
     try {
       final mediaQuery = _database.select(_database.fhirResource)
-        ..where((tbl) => tbl.id.equals('${sourceId ?? 'scanner-app'}_$mediaResourceId'));
-      
+        ..where((tbl) =>
+            tbl.id.equals('${sourceId ?? 'scanner-app'}_$mediaResourceId'));
+
       final media = await mediaQuery.getSingleOrNull();
-      
+
       if (media == null) {
         throw Exception('Media resource not found');
       }
-      
-      final resourceJson = jsonDecode(media.resourceRaw) as Map<String, dynamic>;
-      
+
+      final resourceJson =
+          jsonDecode(media.resourceRaw) as Map<String, dynamic>;
+
       // Add encounter reference
       resourceJson['encounter'] = {
         'reference': 'Encounter/$encounterId',
         'display': 'Encounter $encounterId',
       };
-      
+
       final updateCompanion = FhirResourceCompanion(
         id: Value(media.id),
         resourceRaw: Value(jsonEncode(resourceJson)),
       );
-      
+
       await (_database.update(_database.fhirResource)
-        ..where((tbl) => tbl.id.equals(media.id)))
-        .write(updateCompanion);
-      
+            ..where((tbl) => tbl.id.equals(media.id)))
+          .write(updateCompanion);
     } catch (e) {
       throw Exception('Failed to link Media to Encounter: $e');
     }
