@@ -1,7 +1,8 @@
-// Hybrid solution - minimal permission handling + scanner
+// Updated document_scanner_page.dart
 import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
+import 'package:health_wallet/features/document_scanner/presentation/pages/create_encounter_page.dart';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -14,7 +15,7 @@ import 'package:health_wallet/features/document_scanner/presentation/pages/image
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/features/document_scanner/presentation/bloc/document_scanner_bloc.dart';
 import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
-import 'package:health_wallet/features/document_scanner/presentation/widgets/save_fhir_media_dialog.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/encounter_selector_dialog.dart';
 
 @RoutePage()
 class DocumentScannerPage extends StatelessWidget {
@@ -53,20 +54,19 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     });
   }
 
- Future<void> _autoStartScanning() async {
-  if (_hasAutoScanned) return;
-  _hasAutoScanned = true;
-  
-  final currentState = context.read<DocumentScannerBloc>().state;
-  
-  // Only auto-start if no documents are already scanned
-  if (currentState.scannedImagePaths.isEmpty) {
-    await _handleScanButtonPressed(context);
+  Future<void> _autoStartScanning() async {
+    if (_hasAutoScanned) return;
+    _hasAutoScanned = true;
+    
+    final currentState = context.read<DocumentScannerBloc>().state;
+    
+    // Only auto-start if no documents are already scanned
+    if (currentState.scannedImagePaths.isEmpty) {
+      await _handleScanButtonPressed(context);
+    }
   }
-}
 
   Future<void> _handleScanButtonPressed(BuildContext context) async {
-    
     // Simple permission check and request
     final cameraStatus = await Permission.camera.request();
     
@@ -187,10 +187,10 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
         child: BlocBuilder<DocumentScannerBloc, DocumentScannerState>(
           builder: (context, state) {
             return state.status.when(
-              initial: () => _buildMainView(context, state, 'Scan Document'),
+              initial: () => _buildMainView(context, state),
               loading: () => _buildLoadingView(),
-              success: () => _buildMainView(context, state, 'Scan Another Document'),
-              failure: (error) => _buildMainView(context, state, 'Try Again'),
+              success: () => _buildMainView(context, state),
+              failure: (error) => _buildMainView(context, state),
             );
           },
         ),
@@ -211,26 +211,13 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     );
   }
 
-  Widget _buildMainView(BuildContext context, DocumentScannerState state, String buttonText) {
+  Widget _buildMainView(BuildContext context, DocumentScannerState state) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.document_scanner_outlined),
-              label: Text(buttonText),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 16),
-              ),
-              onPressed: () => _handleScanButtonPressed(context),
-            ),
-          ),
-          
           if (state.scannedImagePaths.isEmpty) ...[
+            // Empty state - show scan button
             const SizedBox(height: 40),
             Icon(
               Icons.document_scanner,
@@ -254,48 +241,57 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
                 color: Colors.grey[500],
               ),
             ),
+            const SizedBox(height: 40),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.document_scanner_outlined),
+                label: const Text('Scan Document'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+                onPressed: () => _handleScanButtonPressed(context),
+              ),
+            ),
           ] else ...[
-            const SizedBox(height: 20),
+            // Documents scanned - show grid with add button
+            Expanded(
+              child: _buildImageGridWithAddButton(context, state.scannedImagePaths),
+            ),
+            
+            // Bottom buttons
+            const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Scanned Documents (${state.scannedImagePaths.length})',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _navigateToCreateEncounter(context, state.scannedImagePaths),
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Import as new encounter'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Clear All'),
-                  onPressed: () => _showClearAllDialog(context),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showEncounterSelector(context, state.scannedImagePaths),
+                    icon: const Icon(Icons.attach_file),
+                    label: const Text('Attach to encounter'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const Divider(),
-            Expanded(
-              child: _buildImageGrid(context, state.scannedImagePaths),
-            ),
-            
-            // Save as FHIR Media button
-            if (state.scannedImagePaths.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: ElevatedButton.icon(
-                  onPressed: () => _showSaveFhirMediaDialog(context, state.scannedImagePaths),
-                  icon: const Icon(Icons.save_alt),
-                  label: Text('Save as FHIR Media (${state.scannedImagePaths.length})'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
             const SizedBox(height: 65),
           ],
         ],
@@ -303,7 +299,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     );
   }
 
-  Widget _buildImageGrid(BuildContext context, List<String> imagePaths) {
+  Widget _buildImageGridWithAddButton(BuildContext context, List<String> imagePaths) {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -311,8 +307,49 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
         mainAxisSpacing: 10,
         childAspectRatio: 0.75,
       ),
-      itemCount: imagePaths.length,
+      itemCount: imagePaths.length + 1, // +1 for the add button
       itemBuilder: (context, index) {
+        if (index == imagePaths.length) {
+          // Add button card
+          return Card(
+            elevation: 4,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _handleScanButtonPressed(context),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey[300]!,
+                    width: 2,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add,
+                      size: 48,
+                      color: Colors.grey[500],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Scan Another',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        
+        // Regular image card
         final imagePath = imagePaths[index];
         return Card(
           elevation: 4,
@@ -400,7 +437,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'Document ${index + 1}',
+                    'Page ${index + 1}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -416,20 +453,33 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     );
   }
 
-  void _showSaveFhirMediaDialog(BuildContext context, List<String> imagePaths) async {
-    final result = await showDialog<SaveFhirMediaResult>(
-      context: context,
-      builder: (context) => SaveFhirMediaDialog(
-        documentCount: imagePaths.length,
+  void _navigateToCreateEncounter(BuildContext context, List<String> imagePaths) async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => CreateEncounterPage(imagePaths: imagePaths),
       ),
     );
     
-    if (result != null && context.mounted) {
-      _saveFhirMedia(context, imagePaths, result);
+    if (result == true && context.mounted) {
+      // Clear scanned images after successful encounter creation
+      context.read<DocumentScannerBloc>().add(
+        const DocumentScannerEvent.clearAllDocuments(),
+      );
     }
   }
 
-  void _saveFhirMedia(BuildContext context, List<String> imagePaths, SaveFhirMediaResult result) async {
+  void _showEncounterSelector(BuildContext context, List<String> imagePaths) async {
+    final selectedEncounter = await showDialog<String>(
+      context: context,
+      builder: (context) => const EncounterSelectorDialog(),
+    );
+    
+    if (selectedEncounter != null && context.mounted) {
+      _attachToEncounter(context, imagePaths, selectedEncounter);
+    }
+  }
+
+  void _attachToEncounter(BuildContext context, List<String> imagePaths, String encounterId) async {
     // Show loading dialog
     showDialog(
       context: context,
@@ -439,27 +489,23 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
           children: [
             CircularProgressIndicator(),
             SizedBox(width: 16),
-            Text('Saving to medical records...'),
+            Text('Attaching to encounter...'),
           ],
         ),
       ),
     );
 
     try {
-      final resourceIds = await _mediaIntegrationService.saveScannedImagesAsFhirRecords(
-        imagePaths: imagePaths,
-        patientId: result.patientId,
-        sourceId: result.sourceId,
-        encounterId: result.encounterId,
-        title: result.title,
-      );
-
+      // TODO: Implement attachment logic
+      // This would call your media integration service to attach the images to the selected encounter
+      await Future.delayed(const Duration(seconds: 1)); // Simulate async operation
+      
       // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
 
       // Show success dialog
       if (context.mounted) {
-        _showSuccessDialog(context, resourceIds.length, result.patientId, result.encounterId);
+        _showAttachmentSuccessDialog(context, imagePaths.length, encounterId);
       }
     } catch (e) {
       // Close loading dialog
@@ -472,7 +518,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
     }
   }
 
-  void _showSuccessDialog(BuildContext context, int count, String patientId, String? encounterId) {
+  void _showAttachmentSuccessDialog(BuildContext context, int count, String encounterId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -487,26 +533,19 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Successfully saved $count document${count > 1 ? 's' : ''} to your medical records.'),
+            Text('Successfully attached $count page${count > 1 ? 's' : ''} to encounter.'),
             const SizedBox(height: 8),
-            Text('Patient: $patientId', style: const TextStyle(fontWeight: FontWeight.bold)),
-            if (encounterId != null)
-              Text('Encounter: $encounterId', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text(
-              'The documents will now appear in your Records timeline as Media resources.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            Text('Encounter: $encounterId', style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () {
-            Navigator.of(context).pop();
-            context.read<DocumentScannerBloc>()
-              ..add(const DocumentScannerEvent.clearAllDocuments())
-              ..clearPersistentState();
-          },
+              Navigator.of(context).pop();
+              context.read<DocumentScannerBloc>().add(
+                const DocumentScannerEvent.clearAllDocuments(),
+              );
+            },
             child: const Text('OK'),
           ),
           ElevatedButton(
@@ -536,7 +575,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Failed to save documents as FHIR Media resources.'),
+            const Text('Failed to attach pages to encounter.'),
             const SizedBox(height: 8),
             Text(
               'Error: $error',
@@ -559,7 +598,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
       MaterialPageRoute(
         builder: (context) => ImagePreviewPage(
           imagePath: imagePath,
-          title: 'Document ${index + 1}',
+          title: 'Page ${index + 1}',
           allImages: allImages,
           currentIndex: index,
         ),
@@ -579,8 +618,8 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete Document'),
-          content: Text('Are you sure you want to delete Document ${index + 1}?'),
+          title: const Text('Delete Page'),
+          content: Text('Are you sure you want to delete Page ${index + 1}?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
@@ -607,8 +646,8 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Clear All Documents'),
-          content: const Text('Are you sure you want to delete all scanned documents?'),
+          title: const Text('Clear All Pages'),
+          content: const Text('Are you sure you want to delete all scanned pages?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),

@@ -35,7 +35,6 @@ class PdfStorageService {
       // Copy the file to permanent storage
       await sourceFile.copy(newPath);
 
-      print('PDF saved to permanent storage: $newPath');
       return newPath;
 
     } catch (e) {
