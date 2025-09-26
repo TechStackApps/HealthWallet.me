@@ -17,8 +17,9 @@ class DocumentScannerBloc
     extends Bloc<DocumentScannerEvent, DocumentScannerState> {
   final PdfStorageService _pdfStorageService;
 
-  DocumentScannerBloc(this._pdfStorageService)
-      : super(const DocumentScannerState()) {
+  DocumentScannerBloc(
+    this._pdfStorageService,
+  ) : super(const DocumentScannerState()) {
     on<DocumentScannerInitialised>(_onDocumentScannerInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DeleteDocument>(_onDeleteDocument);

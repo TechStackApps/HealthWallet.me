@@ -2,10 +2,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/document_scanner/domain/services/text_recognition_service.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/patient_source_info_widget.dart';
 
 @RoutePage()
 class ProcessToFHIRPage extends StatefulWidget {
@@ -397,12 +400,16 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: Insets.large),
                     ],
 
                     // Step 5: FHIR Processing Information (shown after OCR)
                     if (_ocrCompleted) ...[
+                      // Patient & Source Information
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: Insets.normal),
+                        child: PatientSourceInfoWidget(),
+                      ),
+
                       Form(
                         key: _formKey,
                         child: Column(
@@ -505,6 +512,10 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
     });
 
     try {
+      final encounterName = _encounterNameController.text.trim();
+      final homeState = context.read<HomeBloc>().state;
+      final patient = homeState.patient;
+
       // TODO: Implement actual encounter creation logic here
       // This would involve:
       // 1. Creating a new Encounter resource with the form data
@@ -512,7 +523,10 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
       // 3. Linking the Media resources to the Encounter
       // 4. Saving everything to your data store
 
-      final encounterName = _encounterNameController.text.trim();
+      print('Creating encounter: $encounterName');
+      print('Patient: ${patient?.displayTitle ?? 'No patient'}');
+      print('Source: ${homeState.selectedSource}');
+      print('Image paths: ${widget.imagePaths}');
 
       // Simulate async operation
       await Future.delayed(const Duration(seconds: 2));

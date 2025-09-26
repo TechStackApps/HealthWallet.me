@@ -78,7 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 HomePage(pageController: _pageController),
                 RecordsPage(pageController: _pageController),
-                DocumentScannerPage(pageController: _pageController,)
+                DocumentScannerPage(pageController: _pageController),
               ],
             ),
             // Bottom navigation bar

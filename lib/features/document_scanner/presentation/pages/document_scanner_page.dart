@@ -7,7 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:health_wallet/features/document_scanner/presentation/pages/image_preview_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/features/document_scanner/presentation/bloc/document_scanner_bloc.dart';
-import 'package:health_wallet/features/document_scanner/presentation/widgets/encounter_selector_dialog.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/attach_to_encounter_sheet.dart';
 import 'package:open_file/open_file.dart';
 import 'package:health_wallet/features/document_scanner/presentation/widgets/add_document_bottom_sheet.dart';
 import 'package:health_wallet/features/document_scanner/presentation/widgets/document_grid.dart';
@@ -282,10 +282,7 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
       // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
 
-      final selectedEncounter = await showDialog<String>(
-        context: context,
-        builder: (context) => const EncounterSelectorDialog(),
-      );
+      final selectedEncounter = await AttachToEncounterSheet.show(context);
 
       if (selectedEncounter != null && context.mounted) {
         _attachToEncounter(context, allImagePaths, selectedEncounter);
@@ -317,8 +314,14 @@ class _DocumentScannerViewState extends State<DocumentScannerView> {
 
       // Show success dialog
       if (context.mounted) {
-        DialogHelper.showAttachmentSuccessDialog(
-            context, imagePaths.length, encounterId);
+        showDialog(
+          context: context,
+          builder: (context) => BlocProvider.value(
+            value: context.read<DocumentScannerBloc>(),
+            child: DialogHelper.buildAttachmentSuccessDialog(
+                context, imagePaths.length, encounterId),
+          ),
+        );
       }
     } catch (e) {
       // Close loading dialog
