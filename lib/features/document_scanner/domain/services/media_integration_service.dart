@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
+import 'package:health_wallet/features/document_scanner/presentation/services/pdf_generation_service.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
 import 'package:injectable/injectable.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
@@ -13,12 +14,14 @@ import 'package:health_wallet/features/document_scanner/domain/services/fhir_med
 class MediaIntegrationService {
   final AppDatabase _database;
   final FhirMediaService _fhirMediaService;
+  final PdfGenerationService _pdfGenerationService;
 
-  MediaIntegrationService(this._database, this._fhirMediaService);
+  MediaIntegrationService(this._database, this._fhirMediaService, this._pdfGenerationService,);
 
-  /// Convert scanned documents to proper FHIR Media resources and save them to the database
-  Future<List<String>> saveScannedImagesAsFhirRecords({
-    required List<String> imagePaths,
+  Future<List<String>> saveGroupedDocumentsAsFhirRecords({
+    required List<String> scannedImages,
+    required List<String> importedImages,
+    required List<String> importedPdfs,
     required String patientId,
     String? encounterId,
     String? sourceId,
@@ -26,33 +29,90 @@ class MediaIntegrationService {
   }) async {
     try {
       final List<String> savedResourceIds = [];
-
-      for (int i = 0; i < imagePaths.length; i++) {
-        final imagePath = imagePaths[i];
-        final documentTitle = title ?? 'Scanned Document ${i + 1}';
-
-        // Create FHIR R4 Media resource
-        final fhirMedia = await _createFhirR4Media(
-          imagePath: imagePath,
+      
+      // Group and convert documents to PDFs
+      final documentGroups = await _pdfGenerationService.groupAndConvertDocuments(
+        scannedImages: scannedImages,
+        importedImages: importedImages,
+        importedPdfs: importedPdfs,
+      );
+      
+      // Create FHIR Media resource for each group
+      for (int i = 0; i < documentGroups.length; i++) {
+        final group = documentGroups[i];
+        
+        final fhirMedia = await _createFhirR4MediaFromPdf(
+          pdfPath: group.pdfPath,
           patientId: patientId,
           encounterId: encounterId,
-          title: documentTitle,
+          title: group.title,
         );
-
-        // Save to database
+        
         final resourceId = await _saveFhirMediaToDatabase(
           fhirMedia: fhirMedia,
           sourceId: sourceId ?? 'scanner-app',
-          title: documentTitle,
+          title: group.title,
         );
-
+        
         savedResourceIds.add(resourceId);
       }
-
+      
       return savedResourceIds;
+      
     } catch (e) {
-      throw Exception('Failed to create FHIR Media records: $e');
+      throw Exception('Failed to create grouped FHIR Media records: $e');
     }
+  }
+
+    Future<fhir_r4.Media> _createFhirR4MediaFromPdf({
+    required String pdfPath,
+    required String patientId,
+    String? encounterId,
+    required String title,
+  }) async {
+    final file = File(pdfPath);
+    final bytes = await file.readAsBytes();
+    final base64Data = base64Encode(bytes);
+    final timestamp = DateTime.now();
+    
+    return fhir_r4.Media(
+      id: fhir_r4.FhirString(_generateId()),
+      status: fhir_r4.EventStatus.completed,
+      type: fhir_r4.CodeableConcept(
+        coding: [
+          fhir_r4.Coding(
+            system: fhir_r4.FhirUri('http://terminology.hl7.org/CodeSystem/media-type'),
+            code: fhir_r4.FhirCode('document'),
+            display: fhir_r4.FhirString('Document'),
+          ),
+        ],
+        text: fhir_r4.FhirString('Medical Document'),
+      ),
+      subject: fhir_r4.Reference(
+        reference: fhir_r4.FhirString('Patient/$patientId'),
+        display: fhir_r4.FhirString('Patient $patientId'),
+      ),
+      encounter: encounterId != null 
+        ? fhir_r4.Reference(
+            reference: fhir_r4.FhirString('Encounter/$encounterId'),
+            display: fhir_r4.FhirString('Encounter $encounterId'),
+          )
+        : null,
+      createdX: fhir_r4.FhirDateTime.fromString(timestamp.toIso8601String()),
+      content: fhir_r4.Attachment(
+        contentType: fhir_r4.FhirCode('application/pdf'),
+        data: fhir_r4.FhirBase64Binary(base64Data),
+        title: fhir_r4.FhirString(title),
+        size: fhir_r4.FhirUnsignedInt(bytes.length.toString()),
+      ),
+      identifier: [
+        fhir_r4.Identifier(
+          system: fhir_r4.FhirUri('http://health-wallet.app/media-id'),
+          value: fhir_r4.FhirString(_generateId()),
+          use: fhir_r4.IdentifierUse.usual,
+        ),
+      ],
+    );
   }
 
   /// Create a FHIR R4 Media resource from an image file

@@ -152,43 +152,41 @@ class DocumentScannerBloc
     }
   }
 
-  Future<void> _onDocumentImported(
-    DocumentImported event,
-    Emitter<DocumentScannerState> emit,
-  ) async {
-    try {
-      final file = File(event.filePath);
-      if (await file.exists()) {
-        // Check if it's a PDF or image and store appropriately
-        final fileName = event.filePath.toLowerCase();
-
-        if (fileName.endsWith('.pdf')) {
-          // Handle PDF import - store in savedPdfPaths for display
-          final updatedPdfs = [...state.savedPdfPaths, event.filePath];
-          emit(state.copyWith(
-            status: const DocumentScannerStatus.success(),
-            savedPdfPaths: updatedPdfs,
-          ));
-        } else {
-          // Handle image import - store in scannedImagePaths
-          final updatedPaths = [...state.scannedImagePaths, event.filePath];
-          emit(state.copyWith(
-            status: const DocumentScannerStatus.success(),
-            scannedImagePaths: updatedPaths,
-          ));
-        }
-      } else {
+Future<void> _onDocumentImported(
+  DocumentImported event,
+  Emitter<DocumentScannerState> emit,
+) async {
+  try {
+    final file = File(event.filePath);
+    if (await file.exists()) {
+      final lowerPath = event.filePath.toLowerCase();
+      if (lowerPath.endsWith('.pdf')) {
+        // Store PDFs in savedPdfPaths
+        final updatedPdfs = [...state.savedPdfPaths, event.filePath];
         emit(state.copyWith(
-          status: DocumentScannerStatus.failure(error: 'File does not exist'),
+          status: const DocumentScannerStatus.success(),
+          savedPdfPaths: updatedPdfs,
+        ));
+      } else {
+        // Store imported images separately in importedImagePaths
+        final updatedImportedImages = [...state.importedImagePaths, event.filePath];
+        emit(state.copyWith(
+          status: const DocumentScannerStatus.success(),
+          importedImagePaths: updatedImportedImages,
         ));
       }
-    } catch (e) {
+    } else {
       emit(state.copyWith(
-        status: DocumentScannerStatus.failure(
-            error: 'Failed to import document: $e'),
+        status: DocumentScannerStatus.failure(error: 'File does not exist'),
       ));
     }
+  } catch (e) {
+    emit(state.copyWith(
+      status: DocumentScannerStatus.failure(error: 'Failed to import document: $e'),
+    ));
   }
+}
+
 
   Future<void> _onDeleteDocument(
     DeleteDocument event,
