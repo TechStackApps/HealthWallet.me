@@ -15,7 +15,6 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
-import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
 import 'package:health_wallet/features/home/presentation/widgets/section_info_modal.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
@@ -38,18 +37,9 @@ class HomePage extends StatelessWidget {
       listeners: [
         BlocListener<PatientBloc, PatientState>(
           listenWhen: (previous, current) =>
-              previous.selectedPatientSourceId !=
-                  current.selectedPatientSourceId ||
               (current.status.toString().contains('Success') &&
                   !current.isEditingPatient),
           listener: (context, patientState) {
-            if (patientState.selectedPatientSourceId != null &&
-                patientState.selectedPatientSourceId != 'All') {
-              context.read<HomeBloc>().add(
-                    HomeSourceChanged(patientState.selectedPatientSourceId!),
-                  );
-            }
-
             if (patientState.status.toString().contains('Success') &&
                 !patientState.isEditingPatient) {
               context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
@@ -274,7 +264,13 @@ class HomeViewState extends State<HomeView> {
 
     final hasRecent = state.recentRecords.isNotEmpty;
 
-    if (!hasVitalDataLoaded && !hasOverviewDataLoaded && !hasRecent) {
+    // Don't show sync placeholder for Wallet source - always show dashboard
+    final isWalletSource = state.selectedSource == 'wallet';
+
+    if (!hasVitalDataLoaded &&
+        !hasOverviewDataLoaded &&
+        !hasRecent &&
+        !isWalletSource) {
       return SyncPlaceholderWidget(
         pageController: widget.pageController,
         onSyncPressed: () {
@@ -412,17 +408,16 @@ class HomeViewState extends State<HomeView> {
                                           .add(HomeSourceChanged(sourceId));
                                     },
                                     currentPatient: state.patient,
-                                    onSourceTap: (source) {
-                                      SourceLabelEditDialog.show(
-                                        context,
-                                        source,
-                                        (newLabel) {
-                                          context.read<HomeBloc>().add(
-                                                HomeSourceLabelUpdated(
-                                                    source.id, newLabel),
-                                              );
-                                        },
-                                      );
+                                    onSourceLabelEdit: (source) {
+                                      context.read<HomeBloc>().add(
+                                            HomeSourceLabelUpdated(source.id,
+                                                source.labelSource ?? ''),
+                                          );
+                                    },
+                                    onSourceDelete: (source) {
+                                      context.read<HomeBloc>().add(
+                                            HomeSourceDeleted(source.id),
+                                          );
                                     },
                                   )
                                 : null,

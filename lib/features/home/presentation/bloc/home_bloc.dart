@@ -48,6 +48,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(state.copyWith(vitalsExpanded: !state.vitalsExpanded)));
     on<HomeRefreshPreservingOrder>(_onRefreshPreservingOrder);
     on<HomeSourceLabelUpdated>(_onSourceLabelUpdated);
+    on<HomeSourceDeleted>(_onSourceDeleted);
   }
 
   bool hasData({
@@ -211,16 +212,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<List<Source>> _fetchSources(String? patientSourceId) async {
-    if (patientSourceId != null) {
-      final allSources = await _getSourcesUseCase();
-      final patientSource = allSources.firstWhere(
-        (s) => s.id == patientSourceId,
-        orElse: () => Source(id: patientSourceId, name: patientSourceId),
-      );
-      return [patientSource];
-    } else {
-      return await _getSourcesUseCase();
-    }
+    // Always return all sources regardless of patient selection
+    return await _getSourcesUseCase();
   }
 
   Future<
@@ -411,29 +404,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final reorderedCards =
           await _applyOverviewCardsOrder(overview.overviewCards);
 
-      if (patientResources.isNotEmpty) {
-        final hasData = this.hasData(
-          patientVitals: vitalsData.patientVitals,
-          overviewCards: reorderedCards,
-          recentRecords: overview.allEnabledResources.take(3).toList(),
-        );
+      // Always emit state, even when no patient resources (e.g., Wallet source with no data)
+      final hasData = this.hasData(
+        patientVitals: vitalsData.patientVitals,
+        overviewCards: reorderedCards,
+        recentRecords: overview.allEnabledResources.take(3).toList(),
+      );
 
-        emit(state.copyWith(
-          status: const HomeStatus.success(),
-          sources: sources,
-          selectedSource: sourceId ?? 'All',
-          patient: patientResources.isNotEmpty
-              ? patientResources.first as Patient
-              : null,
-          overviewCards: reorderedCards,
-          recentRecords: overview.allEnabledResources.take(3).toList(),
-          allAvailableVitals: vitalsData.allAvailableVitals,
-          patientVitals: vitalsData.patientVitals,
-          selectedVitals: vitalsData.selectedVitals,
-          selectedRecordTypes: overview.selectedRecordTypes,
-          hasDataLoaded: hasData,
-        ));
-      }
+      emit(state.copyWith(
+        status: const HomeStatus.success(),
+        sources: sources,
+        selectedSource: sourceId ?? 'All',
+        patient: patientResources.isNotEmpty
+            ? patientResources.first as Patient
+            : null,
+        overviewCards: reorderedCards,
+        recentRecords: overview.allEnabledResources.take(3).toList(),
+        allAvailableVitals: vitalsData.allAvailableVitals,
+        patientVitals: vitalsData.patientVitals,
+        selectedVitals: vitalsData.selectedVitals,
+        selectedRecordTypes: overview.selectedRecordTypes,
+        hasDataLoaded: hasData,
+      ));
     } catch (err, stackTrace) {
       logger.e('reloadHomeData error: $err');
       logger.e('reloadHomeData stack trace: $stackTrace');
@@ -447,6 +439,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   String? _resolveSourceId(String? input) {
     if (input == null || input == 'All') return null;
     if (input == _demoSourceId) return _demoSourceId;
+    if (input == 'wallet') return 'wallet';
     return input;
   }
 
@@ -476,6 +469,39 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       logger.e('Error updating source label: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _onSourceDeleted(
+    HomeSourceDeleted event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      // Delete the source from the database
+      await _syncRepository.deleteSource(event.sourceId);
+
+      // Remove the source from the current sources list
+      final updatedSources =
+          state.sources.where((source) => source.id != event.sourceId).toList();
+
+      // If the deleted source was currently selected, switch to 'All' or first available source
+      String? newSelectedSource = state.selectedSource;
+      if (state.selectedSource == event.sourceId) {
+        newSelectedSource =
+            updatedSources.isNotEmpty ? updatedSources.first.id : 'All';
+      }
+
+      emit(state.copyWith(
+        sources: updatedSources,
+        selectedSource: newSelectedSource,
+      ));
+
+      // Refresh the home data with the new source selection
+      await _reloadHomeData(emit,
+          force: true, overrideSourceId: newSelectedSource);
+    } catch (e) {
+      logger.e('Error deleting source: $e');
+      // You might want to show an error message to the user here
     }
   }
 }

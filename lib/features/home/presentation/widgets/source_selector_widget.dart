@@ -3,6 +3,8 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_list_dialog.dart';
+import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
 
 class SourceSelectorWidget extends StatelessWidget {
   final List<Source> sources;
@@ -10,6 +12,8 @@ class SourceSelectorWidget extends StatelessWidget {
   final Function(String) onSourceChanged;
   final Patient? currentPatient;
   final Function(Source)? onSourceTap;
+  final Function(Source)? onSourceLabelEdit;
+  final Function(Source)? onSourceDelete;
 
   const SourceSelectorWidget({
     super.key,
@@ -18,6 +22,8 @@ class SourceSelectorWidget extends StatelessWidget {
     required this.onSourceChanged,
     this.currentPatient,
     this.onSourceTap,
+    this.onSourceLabelEdit,
+    this.onSourceDelete,
   });
 
   @override
@@ -35,7 +41,7 @@ class SourceSelectorWidget extends StatelessWidget {
       return Container(
         constraints: const BoxConstraints(maxWidth: 150),
         child: InkWell(
-          onTap: () => onSourceTap?.call(source),
+          onTap: () => _showSourceListDialog(context),
           borderRadius: BorderRadius.circular(4),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
@@ -66,32 +72,45 @@ class SourceSelectorWidget extends StatelessWidget {
         ),
       );
     } else {
-      // Multiple sources per patient - show dropdown
+      // Multiple sources per patient - show tappable text that opens dialog
       return Container(
         constraints: const BoxConstraints(maxWidth: 150),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.l10n.homeSource,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+        child: InkWell(
+          onTap: () => _showSourceListDialog(context),
+          borderRadius: BorderRadius.circular(4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.l10n.homeSource,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(width: Insets.small),
+                Flexible(
+                  child: Text(
+                    _getSelectedSourceDisplayName(context),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 16,
+                  color: colorScheme.primary,
+                ),
+              ],
             ),
-            const SizedBox(width: Insets.small),
-            Flexible(
-              child: DropdownButton<String>(
-                value: selectedSource ?? _getDefaultSourceId(),
-                isExpanded: false,
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    onSourceChanged(newValue);
-                  }
-                },
-                items: _buildDropdownItems(context, patientSources, textTheme),
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -114,67 +133,61 @@ class SourceSelectorWidget extends StatelessWidget {
 
   /// Get sources for the current patient based on patient's sourceId
   List<Source> _getPatientSources() {
-    if (currentPatient == null || currentPatient!.sourceId.isEmpty) {
-      // If no patient or no sourceId, return all sources
-      return sources.where((source) => source.id != 'All').toList();
-    }
+    // Always return all sources (excluding 'All') regardless of patient selection
+    final allSources = sources.where((source) => source.id != 'All').toList();
 
-    // Filter sources to only include the current patient's source
-    return sources
-        .where((source) => source.id == currentPatient!.sourceId)
-        .toList();
+    // Sort to put Wallet first, then others
+    allSources.sort((a, b) {
+      if (a.id == 'wallet') return -1;
+      if (b.id == 'wallet') return 1;
+      return a.id.compareTo(b.id);
+    });
+
+    return allSources;
   }
 
-  /// Get the default source ID for the dropdown
-  String _getDefaultSourceId() {
-    if (currentPatient != null && currentPatient!.sourceId.isNotEmpty) {
-      // Use patient's sourceId as default
-      return currentPatient!.sourceId;
-    }
-
-    // Fallback to 'All' if no patient source
+  /// Show source list dialog
+  void _showSourceListDialog(BuildContext context) {
     final patientSources = _getPatientSources();
-    if (patientSources.isNotEmpty) {
-      return patientSources.first.id;
-    }
 
-    return 'All';
+    SourceListDialog.show(
+      context,
+      patientSources,
+      selectedSource,
+      (source) {
+        // Change the source
+        onSourceChanged(source.id);
+      },
+      onSourceEdit: onSourceLabelEdit != null
+          ? (source) {
+              SourceLabelEditDialog.show(
+                context,
+                source,
+                (newLabel) {
+                  onSourceLabelEdit!(source);
+                  // Close the source list dialog after successful edit
+                  Navigator.of(context).pop();
+                },
+              );
+            }
+          : null,
+      onSourceDelete: onSourceDelete,
+    );
   }
 
-  /// Build dropdown items for multiple sources
-  List<DropdownMenuItem<String>> _buildDropdownItems(
-    BuildContext context,
-    List<Source> patientSources,
-    TextTheme textTheme,
-  ) {
-    // Create dropdown items for each patient source
-    final sourceItems = patientSources.map((source) {
-      return DropdownMenuItem<String>(
-        value: source.id,
-        child: Text(
-          _getSourceDisplayName(context, source),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          style: textTheme.bodySmall,
-        ),
-      );
-    }).toList();
+  /// Get the display name for the currently selected source
+  String _getSelectedSourceDisplayName(BuildContext context) {
+    final patientSources = _getPatientSources();
+    final currentSource = patientSources.firstWhere(
+      (source) => source.id == selectedSource,
+      orElse: () =>
+          patientSources.isNotEmpty ? patientSources.first : Source(id: 'All'),
+    );
 
-    if (patientSources.length > 1) {
-      sourceItems.insert(
-        0,
-        DropdownMenuItem<String>(
-          value: 'All',
-          child: Text(
-            'All',
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            style: textTheme.bodySmall,
-          ),
-        ),
-      );
+    if (selectedSource == 'All') {
+      return 'All';
     }
 
-    return sourceItems;
+    return _getSourceDisplayName(context, currentSource);
   }
 }

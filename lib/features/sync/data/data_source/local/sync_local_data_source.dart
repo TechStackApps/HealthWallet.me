@@ -18,6 +18,8 @@ abstract class SyncLocalDataSource {
   Future<void> deleteAllSources();
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
   Future<void> updateSourceLabel(String sourceId, String newLabel);
+  Future<void> createWalletSource();
+  Future<void> deleteSource(String sourceId);
 }
 
 @Injectable(as: SyncLocalDataSource)
@@ -108,20 +110,30 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         .toSet()
         .toList();
 
+    // Get all sources from Sources table (including those without resources)
+    final allSources = await _appDatabase.select(_appDatabase.sources).get();
+    final allSourceIds = allSources.map((source) => source.id).toSet();
+
+    // Combine source IDs from both FHIR resources and Sources table
+    final combinedSourceIds = {...uniqueSourceIds, ...allSourceIds}.toList();
+
     // Get source labels from Sources table
-    final sourceLabels = await _appDatabase.select(_appDatabase.sources).get();
     final sourceLabelMap = {
-      for (final source in sourceLabels) source.id: source.labelSource
+      for (final source in allSources) source.id: source.labelSource
     };
 
-    return uniqueSourceIds
+    return combinedSourceIds
         .map(
           (sourceId) => Source(
             id: sourceId,
             name: sourceId,
             logo: null,
             labelSource: sourceLabelMap[sourceId] ??
-                (sourceId == 'demo_data' ? 'Demo' : null),
+                (sourceId == 'demo_data'
+                    ? 'Demo'
+                    : sourceId == 'wallet'
+                        ? 'Wallet'
+                        : null),
           ),
         )
         .toList();
@@ -155,5 +167,36 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
       logger.e('Error updating source label in database: $e');
       rethrow;
     }
+  }
+
+  @override
+  Future<void> createWalletSource() async {
+    // Create Wallet source in sources table
+    await _appDatabase.into(_appDatabase.sources).insert(
+          db.SourcesCompanion.insert(
+            id: 'wallet',
+            name: Value('Wallet'),
+            labelSource: Value('Wallet'),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  @override
+  Future<void> deleteSource(String sourceId) async {
+    // Don't allow deletion of wallet source
+    if (sourceId == 'wallet') {
+      throw Exception('Cannot delete the Wallet source');
+    }
+
+    // Delete from sources table
+    await (_appDatabase.delete(_appDatabase.sources)
+          ..where((tbl) => tbl.id.equals(sourceId)))
+        .go();
+
+    // Delete all FHIR resources associated with this source
+    await (_appDatabase.delete(_appDatabase.fhirResource)
+          ..where((tbl) => tbl.sourceId.equals(sourceId)))
+        .go();
   }
 }

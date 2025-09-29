@@ -102,6 +102,16 @@ class SyncRepositoryImpl implements SyncRepository {
     return _localDataSource.updateSourceLabel(sourceId, newLabel);
   }
 
+  @override
+  Future<void> createWalletSource() async {
+    return _localDataSource.createWalletSource();
+  }
+
+  @override
+  Future<void> deleteSource(String sourceId) async {
+    return _localDataSource.deleteSource(sourceId);
+  }
+
   Future<void> clearToken() async {
     log("remove");
     await _prefs.remove(_tokenKey);

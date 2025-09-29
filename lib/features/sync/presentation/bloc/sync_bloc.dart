@@ -73,6 +73,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       final qrDataJson = jsonDecode(event.qrData) as Map<String, dynamic>;
       final syncQrData = SyncQrData.fromJson(qrDataJson);
 
+      // Create Wallet source first
+      await _syncRepository.createWalletSource();
+
       await _recordsRepository.clearDemoData();
 
       Exception? exception;
@@ -165,6 +168,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   Future<void> _onLoadDemoData(
       LoadDemoData event, Emitter<SyncState> emit) async {
     try {
+      // Create Wallet source first
+      await _syncRepository.createWalletSource();
+
       await _recordsRepository.loadDemoData();
       final hasDemoData = await _recordsRepository.hasDemoData();
 

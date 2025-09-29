@@ -55,7 +55,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Patient ID field (required)
                 TextFormField(
                   controller: _patientIdController,
@@ -73,7 +73,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Source ID field (optional but pre-filled)
                 TextFormField(
                   controller: _sourceIdController,
@@ -85,7 +85,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Encounter ID field (optional)
                 TextFormField(
                   controller: _encounterIdController,
@@ -97,7 +97,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Title field (optional)
                 TextFormField(
                   controller: _titleController,
@@ -109,7 +109,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Info box
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -123,7 +123,8 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                          Icon(Icons.info_outline,
+                              size: 16, color: Colors.blue),
                           SizedBox(width: 8),
                           Text(
                             'FHIR Media Records',
@@ -166,17 +167,17 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
     if (_formKey.currentState!.validate()) {
       final result = SaveFhirMediaResult(
         patientId: _patientIdController.text.trim(),
-        sourceId: _sourceIdController.text.trim().isNotEmpty 
-            ? _sourceIdController.text.trim() 
+        sourceId: _sourceIdController.text.trim().isNotEmpty
+            ? _sourceIdController.text.trim()
             : 'document-scanner',
-        encounterId: _encounterIdController.text.trim().isNotEmpty 
-            ? _encounterIdController.text.trim() 
+        encounterId: _encounterIdController.text.trim().isNotEmpty
+            ? _encounterIdController.text.trim()
             : null,
-        title: _titleController.text.trim().isNotEmpty 
-            ? _titleController.text.trim() 
+        title: _titleController.text.trim().isNotEmpty
+            ? _titleController.text.trim()
             : null,
       );
-      
+
       Navigator.of(context).pop(result);
     }
   }

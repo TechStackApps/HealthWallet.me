@@ -62,3 +62,8 @@ class HomeSourceLabelUpdated extends HomeEvent with _$HomeSourceLabelUpdated {
   const factory HomeSourceLabelUpdated(String sourceId, String newLabel) =
       _HomeSourceLabelUpdated;
 }
+
+class HomeSourceDeleted extends HomeEvent {
+  final String sourceId;
+  const HomeSourceDeleted(this.sourceId);
+}

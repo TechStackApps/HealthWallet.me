@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
-import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_notes/bloc/record_notes_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/delete_confirmation_dialog.dart';
 
 class RecordNotesWidget extends StatefulWidget {
   const RecordNotesWidget({required this.resource, super.key});
@@ -303,130 +303,11 @@ class _RecordNotesWidgetState extends State<RecordNotesWidget> {
   }
 
   void _showDeleteConfirmationDialog(BuildContext context, RecordNote note) {
-    final textColor =
-        context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final borderColor =
-        context.isDarkMode ? AppColors.borderDark : AppColors.border;
-
-    showDialog(
+    DeleteConfirmationDialog.show(
       context: context,
-      builder: (BuildContext context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(Insets.normal),
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderColor, width: 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(Insets.normal),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Content
-                    Text(
-                      'Are you sure you want to delete this note?',
-                      style: AppTextStyle.labelLarge.copyWith(color: textColor),
-                    ),
-
-                    const SizedBox(height: Insets.small),
-
-                    Container(
-                      padding: const EdgeInsets.all(Insets.small),
-                      decoration: BoxDecoration(
-                        color: (context.colorScheme.error ?? Colors.red)
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: (context.colorScheme.error ?? Colors.red)
-                              .withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            color: context.colorScheme.error ?? Colors.red,
-                            size: 20,
-                          ),
-                          const SizedBox(width: Insets.small),
-                          Expanded(
-                            child: Text(
-                              context.l10n.actionCannotBeUndone,
-                              style: AppTextStyle.bodySmall.copyWith(
-                                color: context.colorScheme.error ?? Colors.red,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: Insets.normal),
-
-                    // Action buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: BorderSide.none,
-                              padding: const EdgeInsets.all(8),
-                              fixedSize: const Size.fromHeight(36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
-                            child: Text(
-                              'Cancel',
-                              style: AppTextStyle.buttonSmall.copyWith(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              _bloc.add(RecordNotesNoteDeleted(note: note));
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  context.colorScheme.error ?? Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.all(8),
-                              fixedSize: const Size.fromHeight(36),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              'Delete',
-                              style: AppTextStyle.buttonSmall
-                                  .copyWith(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
+      title: 'Are you sure you want to delete this note?',
+      onConfirm: () {
+        _bloc.add(RecordNotesNoteDeleted(note: note));
       },
     );
   }
