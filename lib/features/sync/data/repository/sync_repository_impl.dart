@@ -56,7 +56,7 @@ class SyncRepositoryImpl implements SyncRepository {
         // Record exists, so check if it has been updated
         final localResource = currentResourcesMap[resourceId]!;
 
-        // Compare the 'date' field as our 'lastUpdated' timestamp.
+        // Compare the 'lastUpdated' timestamp.
         // We only update if the incoming date is newer than the local one.
         final incomingDate = incomingResource.updatedAt;
         final localDate = localResource.updatedAt;
