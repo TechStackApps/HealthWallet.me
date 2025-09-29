@@ -27,13 +27,56 @@ class SyncRepositoryImpl implements SyncRepository {
 
   @override
   Future<void> syncResources({required String endpoint}) async {
-    List<FhirResourceDto> resources =
+    // Fetch incoming data and current local data
+    final List<FhirResourceDto> incomingResources =
         await _remoteDataSource.getResources(endpoint: endpoint);
+    final List<FhirResourceDto> currentResources =
+        await _localDataSource.getAllFhirResources();
 
-    await _localDataSource.cacheFhirResources(resources
-        .map((resource) =>
-            resource.populateEncounterIdFromRaw().populateSubjectIdFromRaw())
-        .toList());
+    // Organize current data into a Map for efficient lookups
+    final Map<String, FhirResourceDto> currentResourcesMap = {
+      for (var resource in currentResources)
+        if (resource.resourceId != null) resource.resourceId!: resource
+    };
+
+    // Process incoming data with the lastUpdated check
+    final List<FhirResourceDto> resourcesToUpsert = [];
+
+    final processedIncoming = incomingResources
+        .map((res) =>
+            res.populateEncounterIdFromRaw().populateSubjectIdFromRaw())
+        .toList();
+
+    for (final incomingResource in processedIncoming) {
+      if (incomingResource.resourceId == null) continue;
+
+      final resourceId = incomingResource.resourceId!;
+
+     if (currentResourcesMap.containsKey(resourceId)) {
+        // Record exists, so check if it has been updated
+        final localResource = currentResourcesMap[resourceId]!;
+
+        // Compare the 'date' field as our 'lastUpdated' timestamp.
+        // We only update if the incoming date is newer than the local one.
+        final incomingDate = incomingResource.updatedAt;
+        final localDate = localResource.updatedAt;
+
+        if (incomingDate != null &&
+            (localDate == null || incomingDate.isAfter(localDate))) {
+          // The incoming record is newer, so add it for an update.
+          resourcesToUpsert.add(incomingResource);
+        }
+        // If the incoming record is not newer, we do nothing, skipping the unnecessary write.
+      } else {
+        // Record does not exist locally, so it's new.
+        resourcesToUpsert.add(incomingResource);
+      }
+    }
+
+    if (resourcesToUpsert.isNotEmpty) {
+      await _localDataSource.cacheFhirResources(resourcesToUpsert);
+    }
+
     await _localDataSource
         .setLastSyncTimestamp(DateTime.now().toIso8601String());
   }

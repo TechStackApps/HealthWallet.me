@@ -18,6 +18,7 @@ abstract class SyncLocalDataSource {
   Future<void> deleteAllSources();
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
   Future<void> updateSourceLabel(String sourceId, String newLabel);
+  Future<List<FhirResourceDto>> getAllFhirResources();
 }
 
 @Injectable(as: SyncLocalDataSource)
@@ -54,6 +55,26 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   @override
   Future<void> deleteAllFhirResources() {
     return _appDatabase.delete(_appDatabase.fhirResource).go();
+  }
+
+  @override
+  Future<List<FhirResourceDto>> getAllFhirResources() async {
+    final query = _appDatabase.select(_appDatabase.fhirResource);
+    final results = await query.get();
+    return results.map((row) {
+      return FhirResourceDto(
+        id: row.id,
+        resourceType: row.resourceType,
+        resourceId: row.resourceId,
+        sourceId: row.sourceId,
+        title: row.title,
+        date: row.date,   
+        resourceRaw: jsonDecode(row.resourceRaw),
+        encounterId: row.encounterId,
+        subjectId: row.subjectId,
+        updatedAt: row.updatedAt,
+      );
+    }).toList();
   }
 
   @override

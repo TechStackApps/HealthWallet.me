@@ -24,6 +24,7 @@ class FhirResourceDto with _$FhirResourceDto {
     @JsonKey(name: "deleted_at", fromJson: dateTimeFromJson)
     DateTime? deletedAt,
     @JsonKey(name: "change_type") String? changeType,
+    @JsonKey(name: "updated_at", fromJson: dateTimeFromJson) final DateTime? updatedAt,
   }) = _FhirResourceDto;
 
   factory FhirResourceDto.fromJson(Map<String, dynamic> json) =>
