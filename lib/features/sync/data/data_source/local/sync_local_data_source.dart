@@ -41,6 +41,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         resourceRaw: jsonEncode(e.resourceRaw),
         encounterId: Value(e.encounterId),
         subjectId: Value(e.subjectId),
+        updatedAt: Value(e.updatedAt),
       );
     }).toList();
     await _appDatabase.batch((batch) {

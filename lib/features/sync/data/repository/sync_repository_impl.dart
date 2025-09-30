@@ -27,19 +27,22 @@ class SyncRepositoryImpl implements SyncRepository {
 
   @override
   Future<void> syncResources({required String endpoint}) async {
-    // Fetch incoming data and current local data
     final List<FhirResourceDto> incomingResources =
         await _remoteDataSource.getResources(endpoint: endpoint);
     final List<FhirResourceDto> currentResources =
         await _localDataSource.getAllFhirResources();
 
-    // Organize current data into a Map for efficient lookups
+    // Build a map for quick lookup
     final Map<String, FhirResourceDto> currentResourcesMap = {
       for (var resource in currentResources)
         if (resource.resourceId != null) resource.resourceId!: resource
     };
 
-    // Process incoming data with the lastUpdated check
+    // Fallback subject = first subject found in any local resource
+    final Map<String, dynamic>? fallbackSubject = currentResources
+        .map((res) => res.resourceRaw?['subject'] as Map<String, dynamic>?)
+        .firstWhere((subject) => subject != null, orElse: () => null);
+
     final List<FhirResourceDto> resourcesToUpsert = [];
 
     final processedIncoming = incomingResources
@@ -52,7 +55,7 @@ class SyncRepositoryImpl implements SyncRepository {
 
       final resourceId = incomingResource.resourceId!;
 
-     if (currentResourcesMap.containsKey(resourceId)) {
+      if (currentResourcesMap.containsKey(resourceId)) {
         // Record exists, so check if it has been updated
         final localResource = currentResourcesMap[resourceId]!;
 
@@ -69,7 +72,24 @@ class SyncRepositoryImpl implements SyncRepository {
         // If the incoming record is not newer, we do nothing, skipping the unnecessary write.
       } else {
         // Record does not exist locally, so it's new.
-        resourcesToUpsert.add(incomingResource);
+        // New resource
+        var newResource = incomingResource;
+
+        // If subject is missing, attach fallback subject
+        if ((newResource.resourceRaw?['subject'] == null) &&
+            fallbackSubject != null) {
+
+          final newRaw =
+              Map<String, dynamic>.from(newResource.resourceRaw ?? {});
+          newRaw['subject'] = Map<String, dynamic>.from(fallbackSubject);
+
+          newResource = newResource.copyWith(
+            resourceRaw: newRaw,
+            subjectId: fallbackSubject['reference'] as String?,
+          );
+        }
+
+        resourcesToUpsert.add(newResource);
       }
     }
 
