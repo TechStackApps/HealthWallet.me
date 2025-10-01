@@ -17,7 +17,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -36,6 +36,9 @@ class AppDatabase extends _$AppDatabase {
           },
           from3To4: (m, schema) async {
             await m.addColumn(schema.sources, schema.sources.labelSource);
+          },
+          from4To5: (m, schema) async {
+            await m.addColumn(schema.fhirResource, schema.fhirResource.updatedAt);
           },
         ),
       );
