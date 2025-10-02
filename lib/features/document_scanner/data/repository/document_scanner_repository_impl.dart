@@ -199,27 +199,62 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
     }
   }
 
-  @override
-  Future<void> clearAllDocuments() async {
-    try {      
-      final directory = await getApplicationDocumentsDirectory();
-      final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
-      
-      if (await scanDir.exists()) {
-        await scanDir.delete(recursive: true);
-      } else {
-        print('ℹ️ Repository: Scan directory does not exist');
-      }
-    } catch (e) {
-      throw Exception('Failed to clear all documents: $e');
+ @override
+Future<void> clearAllDocuments({
+  List<String>? scannedImagePaths,
+  List<String>? importedImagePaths,
+  List<String>? importedPdfPaths,
+}) async {
+  try {
+    // Delete scanned images directory (original approach)
+    final directory = await getApplicationDocumentsDirectory();
+    final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
+    
+    if (await scanDir.exists()) {
+      await scanDir.delete(recursive: true);
+      print('✓ Deleted scanned documents directory');
     }
-  }
 
-  bool _isValidDocumentFile(String filePath) {
-    final extension = path.extension(filePath).toLowerCase();
-    return extension == '.jpg' || 
-           extension == '.jpeg' || 
-           extension == '.png' || 
-           extension == '.pdf';
+    // Delete specific imported images
+    if (importedImagePaths != null) {
+      for (var imagePath in importedImagePaths) {
+        try {
+          final file = File(imagePath);
+          if (await file.exists()) {
+            await file.delete();
+            print('✓ Deleted imported image: $imagePath');
+          }
+        } catch (e) {
+          print('⚠️ Failed to delete imported image: $imagePath - $e');
+        }
+      }
+    }
+
+    // Delete specific imported PDFs
+    if (importedPdfPaths != null) {
+      for (var pdfPath in importedPdfPaths) {
+        try {
+          final file = File(pdfPath);
+          if (await file.exists()) {
+            await file.delete();
+            print('✓ Deleted imported PDF: $pdfPath');
+          }
+        } catch (e) {
+          print('⚠️ Failed to delete imported PDF: $pdfPath - $e');
+        }
+      }
+    }
+
+  } catch (e) {
+    throw Exception('Failed to clear all documents: $e');
   }
+}
+
+bool _isValidDocumentFile(String filePath) {
+  final extension = path.extension(filePath).toLowerCase();
+  return extension == '.jpg' || 
+         extension == '.jpeg' || 
+         extension == '.png' || 
+         extension == '.pdf';
+}
 }

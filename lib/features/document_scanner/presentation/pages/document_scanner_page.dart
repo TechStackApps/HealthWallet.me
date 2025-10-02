@@ -1,10 +1,12 @@
 // Updated document_scanner_page.dart
 import 'package:auto_route/auto_route.dart';
+import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
 import 'package:health_wallet/features/document_scanner/presentation/pages/process_to_fhir_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:health_wallet/features/document_scanner/presentation/pages/image_preview_page.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/features/document_scanner/presentation/bloc/document_scanner_bloc.dart';
 import 'package:health_wallet/features/document_scanner/presentation/widgets/attach_to_encounter_sheet.dart';
@@ -231,39 +233,69 @@ void _navigateToCreateEncounter(BuildContext context,
 }
 
 
-  void _showEncounterSelector(
-    BuildContext context, 
-    List<String> scannedImages, 
-    List<String> importedImages,
-    List<String> savedPdfs,
+void _showEncounterSelector(
+  BuildContext context, 
+  List<String> scannedImages, 
+  List<String> importedImages,
+  List<String> savedPdfs,
+) async {
+  final selectedEncounter = await AttachToEncounterSheet.show(context);
+
+  if (selectedEncounter != null && context.mounted) {
+    _attachToEncounter(
+      context, 
+      scannedImages, 
+      importedImages, 
+      savedPdfs, 
+      selectedEncounter
+    );
+  }
+}
+
+void _attachToEncounter(
+  BuildContext context, 
+  List<String> scannedImages,
+  List<String> importedImages,
+  List<String> savedPdfs,
+  String encounterId,
 ) async {
   // Show loading dialog
-  DialogHelper.showLoadingDialog(context, 'Converting PDFs to images...');
+  DialogHelper.showLoadingDialog(context, 'Attaching documents to encounter...');
 
   try {
-    final allImagePaths = <String>[];
+    final homeState = context.read<HomeBloc>().state;
+    final patient = homeState.patient;
+    final patientId = patient?.resourceId ?? 'patient-default';
+    final sourceId = homeState.selectedSource == 'All' ? null : homeState.selectedSource;
+    final effectiveSourceId = sourceId ?? 'document-scanner';
 
-    // Add scanned images and imported images both
-    allImagePaths.addAll(scannedImages);
-    allImagePaths.addAll(importedImages);
-
-    // Convert PDFs to images
-    final textRecognitionService = TextRecognitionService();
-
-    for (final pdfPath in savedPdfs) {
-      print('Converting PDF to images: $pdfPath');
-      final convertedImages = await textRecognitionService.convertPdfToImages(pdfPath);
-      allImagePaths.addAll(convertedImages);
-      print('Converted PDF to ${convertedImages.length} images');
-    }
+    // Use MediaIntegrationService to save all documents grouped by type
+    final mediaIntegrationService = GetIt.instance.get<MediaIntegrationService>();
+    
+    final resourceIds = await mediaIntegrationService.saveGroupedDocumentsAsFhirRecords(
+      scannedImages: scannedImages,
+      importedImages: importedImages,
+      importedPdfs: savedPdfs,
+      patientId: patientId,
+      encounterId: encounterId,
+      sourceId: effectiveSourceId,
+      title: 'Attached Documents',
+    );
 
     // Close loading dialog
     if (context.mounted) Navigator.of(context).pop();
 
-    final selectedEncounter = await AttachToEncounterSheet.show(context);
-
-    if (selectedEncounter != null && context.mounted) {
-      _attachToEncounter(context, allImagePaths, selectedEncounter);
+    // Show success dialog
+    if (context.mounted) {
+      final bloc = context.read<DocumentScannerBloc>();
+      final totalDocuments = scannedImages.length + importedImages.length + savedPdfs.length;
+      
+      DialogHelper.showAttachmentSuccessDialog(
+        context, 
+        totalDocuments,
+        encounterId,
+        bloc,
+      );
     }
   } catch (e) {
     // Close loading dialog
@@ -271,47 +303,10 @@ void _navigateToCreateEncounter(BuildContext context,
 
     // Show error dialog
     if (context.mounted) {
-      DialogHelper.showErrorDialog(context, 'Failed to convert PDFs: $e');
+      DialogHelper.showErrorDialog(context, 'Failed to attach documents: $e');
     }
   }
 }
-
-
-  void _attachToEncounter(
-      BuildContext context, List<String> imagePaths, String encounterId) async {
-    // Show loading dialog
-    DialogHelper.showLoadingDialog(context, 'Attaching to encounter...');
-
-    try {
-      // TODO: Implement attachment logic
-      // This would call your media integration service to attach the images to the selected encounter
-      await Future.delayed(
-          const Duration(seconds: 1)); // Simulate async operation
-
-      // Close loading dialog
-      if (context.mounted) Navigator.of(context).pop();
-
-      // Show success dialog
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => BlocProvider.value(
-            value: context.read<DocumentScannerBloc>(),
-            child: DialogHelper.buildAttachmentSuccessDialog(
-                context, imagePaths.length, encounterId),
-          ),
-        );
-      }
-    } catch (e) {
-      // Close loading dialog
-      if (context.mounted) Navigator.of(context).pop();
-
-      // Show error dialog
-      if (context.mounted) {
-        DialogHelper.showErrorDialog(context, e.toString());
-      }
-    }
-  }
 
   void _handleDocumentTap(BuildContext context, String filePath, int index) {
     final state = context.read<DocumentScannerBloc>().state;

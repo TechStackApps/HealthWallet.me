@@ -217,6 +217,7 @@ Future<void> _onDocumentImported(
     Emitter<DocumentScannerState> emit,
   ) async {
     try {
+      // Delete scanned images
       for (final imagePath in state.scannedImagePaths) {
         try {
           final file = File(imagePath);
@@ -224,13 +225,46 @@ Future<void> _onDocumentImported(
             await file.delete();
           }
         } catch (e) {
-          print('Failed to delete file $imagePath: $e');
+          print('Failed to delete scanned image $imagePath: $e');
         }
       }
 
-      emit(state.copyWith(scannedImagePaths: []));
+      // Delete imported images
+      for (final imagePath in state.importedImagePaths) {
+        try {
+          final file = File(imagePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          print('Failed to delete imported image $imagePath: $e');
+        }
+      }
+
+      // Delete imported PDFs
+      for (final pdfPath in state.savedPdfPaths) {
+        try {
+          final file = File(pdfPath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          print('Failed to delete PDF $pdfPath: $e');
+        }
+      }
+
+      emit(state.copyWith(
+        scannedImagePaths: [],
+        importedImagePaths: [],
+        savedPdfPaths: [],
+      ));
     } catch (e) {
-      emit(state.copyWith(scannedImagePaths: []));
+      // Even if there's an error, clear the state to avoid showing deleted files
+      emit(state.copyWith(
+        scannedImagePaths: [],
+        importedImagePaths: [],
+        savedPdfPaths: [],
+      ));
     }
   }
 

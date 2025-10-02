@@ -42,6 +42,7 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
   @override
   void initState() {
     super.initState();
+    print("This is the encounter sheet");
     _searchController.addListener(_filterEncounters);
     _searchController.addListener(_updateSearchIcon);
     _loadEncounters();
