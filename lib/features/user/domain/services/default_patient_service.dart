@@ -4,17 +4,14 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
-import 'package:health_wallet/features/user/domain/services/wallet_holder_service.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class DefaultPatientService {
   final RecordsRepository _recordsRepository;
-  final WalletHolderService _walletHolderService;
   final SyncLocalDataSource _syncLocalDataSource;
 
-  DefaultPatientService(this._recordsRepository, this._walletHolderService,
-      this._syncLocalDataSource);
+  DefaultPatientService(this._recordsRepository, this._syncLocalDataSource);
 
   Future<Patient> createDefaultWalletHolder() async {
     // Create a basic patient with placeholder data
@@ -49,10 +46,14 @@ class DefaultPatientService {
 
   Future<void> createAndSetAsMain() async {
     try {
-      // Check if wallet holder already exists
-      final existingWalletHolder = await _walletHolderService.getWalletHolder();
-      if (existingWalletHolder != null) {
-        return; // Already exists, don't create another
+      // Check if any patients already exist
+      final existingPatients = await _recordsRepository.getResources(
+        resourceTypes: [FhirType.Patient],
+        limit: 1,
+      );
+      
+      if (existingPatients.isNotEmpty) {
+        return; // Already has patients, don't create another
       }
 
       // Create default patient
@@ -72,10 +73,6 @@ class DefaultPatientService {
 
       // Save to database using the sync local data source
       await _syncLocalDataSource.cacheFhirResources([fhirResourceDto]);
-
-      // Set as wallet holder
-      await _walletHolderService.setWalletHolder(
-          defaultPatient.id, defaultPatient.sourceId);
     } catch (e) {
       // Log error but don't throw - this is a convenience feature
     }
