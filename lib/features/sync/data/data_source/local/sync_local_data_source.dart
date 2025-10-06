@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:health_wallet/core/data/local/app_database.dart' as db;
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
-import 'package:health_wallet/features/sync/domain/entities/source.dart';
+import 'package:health_wallet/features/sync/domain/entities/source.dart'
+    as domain;
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,12 +14,13 @@ abstract class SyncLocalDataSource {
   Future<void> deleteAllFhirResources();
   Future<String?> getLastSyncTimestamp();
   Future<void> setLastSyncTimestamp(String timestamp);
-  Future<void> cacheSources(List<Source> sources);
-  Future<List<Source>> getSources({String? patientId});
+  Future<void> cacheSources(List<domain.Source> sources);
+  Future<List<domain.Source>> getSources({String? patientId});
   Future<void> deleteAllSources();
   Future<void> markResourcesAsDeleted(List<FhirResourceDto> deletions);
   Future<void> updateSourceLabel(String sourceId, String newLabel);
   Future<void> createWalletSource();
+  Future<void> createDemoDataSource();
   Future<void> deleteSource(String sourceId);
 }
 
@@ -69,12 +71,15 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   }
 
   @override
-  Future<void> cacheSources(List<Source> sources) async {
+  Future<void> cacheSources(List<domain.Source> sources) async {
     final sourceEntries = sources.map((e) {
       return db.SourcesCompanion.insert(
         id: e.id,
         name: Value(e.name),
         logo: Value(e.logo),
+        labelSource: Value(e.labelSource),
+        createdAt: Value(e.createdAt),
+        updatedAt: Value(e.updatedAt),
       );
     }).toList();
     await _appDatabase.batch((batch) {
@@ -92,7 +97,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   }
 
   @override
-  Future<List<Source>> getSources({String? patientId}) async {
+  Future<List<domain.Source>> getSources({String? patientId}) async {
     // First get unique source IDs from FHIR resources
     final query = _appDatabase.select(_appDatabase.fhirResource);
 
@@ -122,21 +127,41 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
       for (final source in allSources) source.id: source.labelSource
     };
 
-    return combinedSourceIds
-        .map(
-          (sourceId) => Source(
-            id: sourceId,
-            name: sourceId,
-            logo: null,
-            labelSource: sourceLabelMap[sourceId] ??
-                (sourceId == 'demo_data'
-                    ? 'Demo'
-                    : sourceId == 'wallet'
-                        ? 'Wallet'
-                        : null),
-          ),
-        )
-        .toList();
+    final sources = combinedSourceIds.map(
+      (sourceId) {
+        final dbSource = allSources.cast<db.Source?>().firstWhere(
+              (s) => s?.id == sourceId,
+              orElse: () => null,
+            );
+
+        return domain.Source(
+          id: sourceId,
+          name: _getSourceName(sourceId),
+          logo: null,
+          labelSource: sourceLabelMap[sourceId] ??
+              (sourceId == 'demo_data'
+                  ? 'Demo'
+                  : sourceId == 'wallet'
+                      ? 'Wallet'
+                      : null),
+          createdAt: dbSource?.createdAt,
+          updatedAt: dbSource?.updatedAt,
+        );
+      },
+    ).toList();
+
+    return sources;
+  }
+
+  String? _getSourceName(String sourceId) {
+    switch (sourceId) {
+      case 'wallet':
+        return 'Wallet';
+      case 'demo_data':
+        return 'manual';
+      default:
+        return null;
+    }
   }
 
   @override
@@ -171,15 +196,39 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
 
   @override
   Future<void> createWalletSource() async {
-    // Create Wallet source in sources table
-    await _appDatabase.into(_appDatabase.sources).insert(
-          db.SourcesCompanion.insert(
-            id: 'wallet',
-            name: Value('Wallet'),
-            labelSource: Value('Wallet'),
-          ),
-          mode: InsertMode.insertOrReplace,
-        );
+    try {
+      // Create Wallet source in sources table
+      await _appDatabase.into(_appDatabase.sources).insert(
+            db.SourcesCompanion.insert(
+              id: 'wallet',
+              name: Value('Wallet'),
+              labelSource: Value('Wallet'),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+    } catch (e) {
+      logger.e('Error creating wallet source: $e');
+      rethrow;
+    }
+  }
+
+  /// Create demo_data source in the database with proper name and label
+  Future<void> createDemoDataSource() async {
+    try {
+      // Create demo_data source in sources table with correct name for display logic
+      await _appDatabase.into(_appDatabase.sources).insert(
+            db.SourcesCompanion.insert(
+              id: 'demo_data',
+              name: Value(
+                  'manual'), // This will display as "Uploaded [date]" in the UI
+              labelSource: Value('Demo Data'), // Custom display label
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+    } catch (e) {
+      logger.e('Error creating demo data source: $e');
+      rethrow;
+    }
   }
 
   @override

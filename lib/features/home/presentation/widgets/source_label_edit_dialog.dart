@@ -175,7 +175,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
                   ),
                   const SizedBox(height: Insets.small),
                   Text(
-                    widget.source.name ?? widget.source.id,
+                    widget.source.id,
                     style: AppTextStyle.bodySmall.copyWith(
                       color: textColor,
                     ),

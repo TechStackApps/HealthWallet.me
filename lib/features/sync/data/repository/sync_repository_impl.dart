@@ -3,10 +3,12 @@ import 'dart:developer';
 
 import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/sync_remote_data_source.dart';
+import 'package:health_wallet/features/sync/data/data_source/remote/source_remote_data_source.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,11 +17,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SyncRepositoryImpl implements SyncRepository {
   final SyncRemoteDataSource _remoteDataSource;
   final SyncLocalDataSource _localDataSource;
+  final SourceRemoteDataSource _sourceRemoteDataSource;
   final SharedPreferences _prefs;
 
   SyncRepositoryImpl(
     this._remoteDataSource,
     this._localDataSource,
+    this._sourceRemoteDataSource,
     this._prefs,
   );
 
@@ -45,17 +49,59 @@ class SyncRepositoryImpl implements SyncRepository {
 
   @override
   Future<List<entity.Source>> getSources() async {
-    final sources = await _localDataSource.getSources();
-    return sources
+    // Always get local sources first to ensure wallet source is preserved
+    final localSources = await _localDataSource.getSources();
+
+    try {
+      // Try to get sources from backend API
+      final backendSources = await _sourceRemoteDataSource.getSources();
+
+      if (backendSources.isNotEmpty) {
+        // Use backend sources directly
+        final enrichedSources = backendSources;
+
+        // Merge backend sources with local sources, preserving local sources
+        final mergedSources = <entity.Source>[];
+
+        // Add all backend sources
+        mergedSources.addAll(enrichedSources);
+
+        // Add local sources that are not in backend (like wallet)
+        for (final localSource in localSources) {
+          if (!enrichedSources
+              .any((backendSource) => backendSource.id == localSource.id)) {
+            mergedSources.add(entity.Source(
+              id: localSource.id,
+              name: localSource.name,
+              logo: localSource.logo,
+              labelSource: localSource.labelSource,
+            ));
+          }
+        }
+
+        // Cache backend sources to local database for persistence
+        final localSourcesToCache = enrichedSources;
+        await _localDataSource.cacheSources(localSourcesToCache);
+
+        return mergedSources;
+      }
+    } catch (e) {
+      // If backend is not available, fall back to local sources
+    }
+
+    // Fallback to local sources only
+    final mappedSources = localSources
         .map(
           (e) => entity.Source(
             id: e.id,
-            name: e.name ?? '',
+            name: e.name,
             logo: e.logo,
             labelSource: e.labelSource,
           ),
         )
         .toList();
+
+    return mappedSources;
   }
 
   @override
@@ -64,11 +110,13 @@ class SyncRepositoryImpl implements SyncRepository {
       baseUrl += "/";
     }
     _remoteDataSource.updateBaseUrl(baseUrl);
+    _sourceRemoteDataSource.updateBaseUrl(baseUrl);
   }
 
   @override
   void setBearerToken(String token) {
     _remoteDataSource.updateAuthorizationToken(token);
+    _sourceRemoteDataSource.updateAuthorizationToken(token);
   }
 
   @override
@@ -105,6 +153,11 @@ class SyncRepositoryImpl implements SyncRepository {
   @override
   Future<void> createWalletSource() async {
     return _localDataSource.createWalletSource();
+  }
+
+  @override
+  Future<void> createDemoDataSource() async {
+    return _localDataSource.createDemoDataSource();
   }
 
   @override

@@ -59,3 +59,8 @@ class ResetTutorial extends SyncEvent with _$ResetTutorial {
 class DemoDataConfirmed extends SyncEvent with _$DemoDataConfirmed {
   const factory DemoDataConfirmed() = _DemoDataConfirmed;
 }
+
+@freezed
+class CreateWalletSource extends SyncEvent with _$CreateWalletSource {
+  const factory CreateWalletSource() = _CreateWalletSource;
+}

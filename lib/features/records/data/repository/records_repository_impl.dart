@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:fhir_ips_export/fhir_ips_export.dart';
-import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
@@ -27,50 +26,64 @@ class RecordsRepositoryImpl implements RecordsRepository {
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
     String? sourceId,
+    List<String>? sourceIds,
     int limit = 20,
     int offset = 0,
   }) async {
     final localDtos = await _datasource.getResources(
       resourceTypes: resourceTypes.map((fhirType) => fhirType.name).toList(),
       sourceId: sourceId,
+      sourceIds: sourceIds,
       limit: limit,
       offset: offset,
     );
 
-    return localDtos.map(IFhirResource.fromLocalDto).toList();
+    // Filter out resources that fail to parse to prevent app crashes
+    final validResources = <IFhirResource>[];
+    for (final dto in localDtos) {
+      try {
+        final resource = IFhirResource.fromLocalDto(dto);
+        validResources.add(resource);
+      } catch (e) {
+        logger.w(
+            'Failed to parse resource ${dto.id} of type ${dto.resourceType}: $e');
+        // Skip this resource and continue with others
+      }
+    }
+    return validResources;
   }
 
   /// Get related resources for an encounter
-@override
-Future<List<IFhirResource>> getRelatedResourcesForEncounter({
-  required String encounterId,
-  String? sourceId,
-}) async {
-  // Get all Media resources for this source
-  final mediaResources = await getResources(
-    resourceTypes: [FhirType.Media],
-    sourceId: sourceId,
-    limit: 100, // Adjust as needed
-  );
-  
-  // Filter Media resources that reference this encounter
-  final relatedMedia = mediaResources.where((resource) {
-    if (resource.rawResource.isEmpty) return false;
-    
-    try {
-      final encounter = resource.rawResource['encounter'];
-      if (encounter != null && encounter is Map) {
-        final reference = encounter['reference'];
-        return reference == 'Encounter/$encounterId';
+  @override
+  Future<List<IFhirResource>> getRelatedResourcesForEncounter({
+    required String encounterId,
+    String? sourceId,
+  }) async {
+    // Get all Media resources for this source
+    final mediaResources = await getResources(
+      resourceTypes: [FhirType.Media],
+      sourceId: sourceId,
+      limit: 100, // Adjust as needed
+    );
+
+    // Filter Media resources that reference this encounter
+    final relatedMedia = mediaResources.where((resource) {
+      if (resource.rawResource.isEmpty) return false;
+
+      try {
+        final encounter = resource.rawResource['encounter'];
+        if (encounter != null && encounter is Map) {
+          final reference = encounter['reference'];
+          return reference == 'Encounter/$encounterId';
+        }
+        return false;
+      } catch (e) {
+        return false;
       }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }).toList();
-  
-  return relatedMedia;
-}
+    }).toList();
+
+    return relatedMedia;
+  }
 
   @override
   Future<List<IFhirResource>> getRelatedResources({
@@ -148,6 +161,9 @@ Future<List<IFhirResource>> getRelatedResourcesForEncounter({
   @override
   Future<void> loadDemoData() async {
     try {
+      // Create demo_data source first
+      await _syncLocalDataSource.createDemoDataSource();
+
       // Load demo data from assets
       final String demoDataJson =
           await rootBundle.loadString('assets/demo_data.json');
@@ -185,15 +201,19 @@ Future<List<IFhirResource>> getRelatedResourcesForEncounter({
 
       _syncLocalDataSource.cacheFhirResources(processedResources);
     } catch (e, stackTrace) {
-      logger.e('❌ Failed to load demo data: $e');
-      logger.e('❌ Stack trace: $stackTrace');
+      logger.e('Failed to load demo data: $e');
+      logger.e('Stack trace: $stackTrace');
       throw Exception('Failed to load demo data: $e');
     }
   }
 
   @override
   Future<void> clearDemoData() async {
+    // Delete all FHIR resources for demo_data source
     await _datasource.deleteResourcesBySourceId('demo_data');
+
+    // Delete the demo_data source itself
+    await _syncLocalDataSource.deleteSource('demo_data');
   }
 
   @override

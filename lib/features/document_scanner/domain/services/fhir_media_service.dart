@@ -90,7 +90,7 @@ class FhirMediaService {
           final media = FhirMedia.fromJson(jsonData);
           mediaResources.add(media);
         } catch (e) {
-          print('⚠️ Failed to parse FHIR Media file: ${file.path}, error: $e');
+          print('Failed to parse FHIR Media file: ${file.path}, error: $e');
         }
       }
 

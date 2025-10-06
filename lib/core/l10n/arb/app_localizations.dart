@@ -706,6 +706,24 @@ abstract class AppLocalizations {
   /// **'Error saving patient data'**
   String get errorSavingPatientData;
 
+  /// No description provided for @walletHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet Holder'**
+  String get walletHolder;
+
+  /// No description provided for @walletHolderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This patient is the primary owner of this health wallet'**
+  String get walletHolderDescription;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStarted;
+
   /// No description provided for @failedToUpdateDisplayName.
   ///
   /// In en, this message translates to:
@@ -945,12 +963,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get continueButton;
-
-  /// No description provided for @getStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Get started'**
-  String get getStarted;
 
   /// No description provided for @enableBiometricAuth.
   ///

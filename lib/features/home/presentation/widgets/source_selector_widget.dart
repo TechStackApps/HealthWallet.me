@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_list_dialog.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 
 class SourceSelectorWidget extends StatelessWidget {
   final List<Source> sources;
   final String? selectedSource;
-  final Function(String) onSourceChanged;
+  final Function(String, List<String>?) onSourceChanged;
   final Patient? currentPatient;
   final Function(Source)? onSourceTap;
   final Function(Source)? onSourceLabelEdit;
@@ -31,7 +33,7 @@ class SourceSelectorWidget extends StatelessWidget {
     final textTheme = context.textTheme;
     final colorScheme = context.colorScheme;
 
-    final patientSources = _getPatientSources();
+    final patientSources = _getPatientSources(context);
 
     if (patientSources.isEmpty) {
       return const SizedBox.shrink();
@@ -132,31 +134,96 @@ class SourceSelectorWidget extends StatelessWidget {
   }
 
   /// Get sources for the current patient based on patient's sourceId
-  List<Source> _getPatientSources() {
-    // Always return all sources (excluding 'All') regardless of patient selection
+  /// Only show sources that have the selected patient
+  List<Source> _getPatientSources(BuildContext context) {
     final allSources = sources.where((source) => source.id != 'All').toList();
 
-    // Sort to put Wallet first, then others
-    allSources.sort((a, b) {
-      if (a.id == 'wallet') return -1;
-      if (b.id == 'wallet') return 1;
-      return a.id.compareTo(b.id);
-    });
+    // Try to get the currently selected patient from PatientBloc
+    try {
+      final patientBloc = context.read<PatientBloc>();
+      final patientState = patientBloc.state;
 
-    return allSources;
+      // Use the selected patient ID from PatientBloc, not from currentPatient
+      // This ensures we always have the latest patient selection
+      final selectedPatientId = patientState.selectedPatientId;
+
+      if (selectedPatientId == null || patientState.patientGroups.isEmpty) {
+        // No patient selected or no groups available, show all sources
+        return _sortSources(allSources);
+      }
+
+      // Find the patient group for the selected patient
+      // This now includes orphan sources for the default wallet holder
+      final patientGroup = patientState.patientGroups[selectedPatientId];
+
+      if (patientGroup == null || patientGroup.sourceIds.isEmpty) {
+        // If no group found, return all sources
+        return _sortSources(allSources);
+      }
+
+      // Filter sources: only sources that have this patient
+      final filteredSources = allSources.where((source) {
+        return patientGroup.sourceIds.contains(source.id);
+      }).toList();
+
+      // If there are multiple sources, add an "All" option at the beginning
+      if (filteredSources.length > 1) {
+        final allSources = List<Source>.from(filteredSources);
+        allSources.insert(
+            0,
+            Source(
+              id: 'All',
+              name: 'All Sources',
+              labelSource: 'All Sources',
+            ));
+        return allSources;
+      }
+
+      return _sortSources(filteredSources);
+    } catch (e) {
+      // If PatientBloc is not available, return all sources
+      return _sortSources(allSources);
+    }
+  }
+
+  /// Sort sources alphabetically
+  List<Source> _sortSources(List<Source> sources) {
+    final sortedSources = List<Source>.from(sources);
+    sortedSources.sort((a, b) => a.id.compareTo(b.id));
+    return sortedSources;
   }
 
   /// Show source list dialog
   void _showSourceListDialog(BuildContext context) {
-    final patientSources = _getPatientSources();
+    final patientSources = _getPatientSources(context);
 
     SourceListDialog.show(
       context,
       patientSources,
       selectedSource,
       (source) {
-        // Change the source
-        onSourceChanged(source.id);
+        // Get patient source IDs when "All" is selected
+        List<String>? patientSourceIds;
+        if (source.id == 'All') {
+          try {
+            final patientBloc = context.read<PatientBloc>();
+            final patientState = patientBloc.state;
+            final selectedPatientId = patientState.selectedPatientId;
+
+            if (selectedPatientId != null &&
+                patientState.patientGroups.isNotEmpty) {
+              final patientGroup =
+                  patientState.patientGroups[selectedPatientId];
+              if (patientGroup != null) {
+                patientSourceIds = patientGroup.sourceIds;
+              }
+            }
+          } catch (e) {
+            // Error getting patient source IDs
+          }
+        }
+
+        onSourceChanged(source.id, patientSourceIds);
       },
       onSourceEdit: onSourceLabelEdit != null
           ? (source) {
@@ -177,17 +244,38 @@ class SourceSelectorWidget extends StatelessWidget {
 
   /// Get the display name for the currently selected source
   String _getSelectedSourceDisplayName(BuildContext context) {
-    final patientSources = _getPatientSources();
-    final currentSource = patientSources.firstWhere(
-      (source) => source.id == selectedSource,
-      orElse: () =>
-          patientSources.isNotEmpty ? patientSources.first : Source(id: 'All'),
-    );
-
+    // Handle "All" option first
     if (selectedSource == 'All') {
       return 'All';
     }
 
-    return _getSourceDisplayName(context, currentSource);
+    final patientSources = _getPatientSources(context);
+
+    // Try to find the selected source in patient sources
+    try {
+      final currentSource = patientSources.firstWhere(
+        (source) => source.id == selectedSource,
+      );
+      return _getSourceDisplayName(context, currentSource);
+    } catch (e) {
+      // If selected source is not found in patient sources,
+      // try to find it in all sources
+      try {
+        final allSources =
+            sources.where((source) => source.id != 'All').toList();
+        final currentSource = allSources.firstWhere(
+          (source) => source.id == selectedSource,
+        );
+        return _getSourceDisplayName(context, currentSource);
+      } catch (e) {
+        // If still not found, return the selected source ID or fallback
+        if (selectedSource != null && selectedSource!.isNotEmpty) {
+          return selectedSource!;
+        }
+        return patientSources.isNotEmpty
+            ? _getSourceDisplayName(context, patientSources.first)
+            : 'All';
+      }
+    }
   }
 }

@@ -10,6 +10,7 @@ class FhirResourceDatasource {
   Future<List<FhirResourceLocalDto>> getResources({
     required List<String> resourceTypes,
     String? sourceId,
+    List<String>? sourceIds,
     int? limit,
     int? offset,
   }) async {
@@ -18,6 +19,8 @@ class FhirResourceDatasource {
 
     if (sourceId != null) {
       query.where((f) => f.sourceId.equals(sourceId));
+    } else if (sourceIds != null && sourceIds.isNotEmpty) {
+      query.where((f) => f.sourceId.isIn(sourceIds));
     }
 
     if (resourceTypes.isNotEmpty) {

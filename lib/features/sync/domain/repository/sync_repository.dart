@@ -11,5 +11,6 @@ abstract class SyncRepository {
   Future<SyncQrData?> getCurrentSyncQrData();
   Future<void> updateSourceLabel(String sourceId, String newLabel);
   Future<void> createWalletSource();
+  Future<void> createDemoDataSource();
   Future<void> deleteSource(String sourceId);
 }

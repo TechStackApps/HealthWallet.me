@@ -11,6 +11,8 @@ class Source with _$Source {
     String? name,
     String? logo,
     String? labelSource,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _Source;
 
   factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);

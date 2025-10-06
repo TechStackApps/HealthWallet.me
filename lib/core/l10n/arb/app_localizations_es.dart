@@ -335,6 +335,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get errorSavingPatientData => 'Error al guardar datos del paciente';
 
   @override
+  String get walletHolder => 'Wallet Holder';
+
+  @override
+  String get walletHolderDescription =>
+      'This patient is the primary owner of this health wallet';
+
+  @override
+  String get getStarted => 'Empezar';
+
+  @override
   String get failedToUpdateDisplayName =>
       'Error al actualizar nombre para mostrar';
 
@@ -462,9 +472,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get continueButton => 'Continuar';
-
-  @override
-  String get getStarted => 'Empezar';
 
   @override
   String get enableBiometricAuth =>

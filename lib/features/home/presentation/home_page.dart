@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_dialog_controller.dart';
 import 'package:onboarding_overlay/onboarding_overlay.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/core/utils/patient_source_utils.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -36,14 +37,15 @@ class HomePage extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<PatientBloc, PatientState>(
-          listenWhen: (previous, current) =>
-              (current.status.toString().contains('Success') &&
-                  !current.isEditingPatient),
+          listenWhen: (previous, current) {
+            // Only listen when patient selection actually changes
+            final patientChanged =
+                previous.selectedPatientId != current.selectedPatientId;
+
+            return patientChanged;
+          },
           listener: (context, patientState) {
-            if (patientState.status.toString().contains('Success') &&
-                !patientState.isEditingPatient) {
-              context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-            }
+            PatientSourceUtils.handlePatientChange(context, patientState);
           },
         ),
       ],
@@ -264,13 +266,15 @@ class HomeViewState extends State<HomeView> {
 
     final hasRecent = state.recentRecords.isNotEmpty;
 
-    // Don't show sync placeholder for Wallet source - always show dashboard
-    final isWalletSource = state.selectedSource == 'wallet';
+    final hasAnyMeaningfulData =
+        hasVitalDataLoaded || hasOverviewDataLoaded || hasRecent;
 
-    if (!hasVitalDataLoaded &&
-        !hasOverviewDataLoaded &&
-        !hasRecent &&
-        !isWalletSource) {
+    // Show sync placeholder when there's no meaningful data
+    // Exception: Wallet source should never show placeholder (it's for manual records)
+    final shouldShowPlaceholder =
+        !hasAnyMeaningfulData && state.selectedSource != 'wallet';
+
+    if (shouldShowPlaceholder) {
       return SyncPlaceholderWidget(
         pageController: widget.pageController,
         onSyncPressed: () {
@@ -402,10 +406,12 @@ class HomeViewState extends State<HomeView> {
                                 ? SourceSelectorWidget(
                                     sources: state.sources,
                                     selectedSource: state.selectedSource,
-                                    onSourceChanged: (sourceId) {
-                                      context
-                                          .read<HomeBloc>()
-                                          .add(HomeSourceChanged(sourceId));
+                                    onSourceChanged:
+                                        (sourceId, patientSourceIds) {
+                                      context.read<HomeBloc>().add(
+                                          HomeSourceChanged(sourceId,
+                                              patientSourceIds:
+                                                  patientSourceIds));
                                     },
                                     currentPatient: state.patient,
                                     onSourceLabelEdit: (source) {

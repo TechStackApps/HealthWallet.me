@@ -148,10 +148,10 @@ class TextRecognitionService {
               allText += recognizedText.text;
               allText += '\n\n';
               print(
-                '✅ Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
+                'Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
               );
             } else {
-              print('❌ No text found on page ${pageIndex + 1}');
+              print('No text found on page ${pageIndex + 1}');
             }
           } else {
             print('Failed to convert page ${pageIndex + 1} to image');
@@ -176,9 +176,9 @@ File Details:
 • Text Length: ${allText.length} characters
 
 Processing Method:
-✅ PDF converted to images using pdf_to_image_converter
-✅ Each page processed with Google ML Kit text recognition
-✅ Text combined from all pages
+PDF converted to images using pdf_to_image_converter
+Each page processed with Google ML Kit text recognition
+Text combined from all pages
 
 Extracted Text:
 ────────────────────────────────────────
@@ -187,7 +187,7 @@ $allText
 
 ────────────────────────────────────────
 
-✅ Text extraction completed successfully using PDF-to-image-to-OCR pipeline.''';
+Text extraction completed successfully using PDF-to-image-to-OCR pipeline.''';
       } else {
         return '''📸 PDF Text Extraction Complete
 
@@ -210,7 +210,7 @@ Try with a higher quality PDF or different document.''';
       }
     } catch (e) {
       print('Error extracting text from PDF: $e');
-      return '''❌ PDF Text Extraction Error
+      return '''PDF Text Extraction Error
 
 File Details:
 • Path: $pdfPath
@@ -286,7 +286,7 @@ Please try with a different PDF file.''';
             );
 
             print(
-              '✅ Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
+              'Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
             );
           } else {
             print('Failed to convert page ${pageIndex + 1} to image');

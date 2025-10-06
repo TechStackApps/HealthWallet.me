@@ -7,17 +7,24 @@ import 'package:health_wallet/features/records/data/datasource/tables/record_att
 import 'package:health_wallet/features/records/data/datasource/tables/record_notes.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/tables/source_table.dart';
+import 'package:health_wallet/features/user/data/datasource/tables/wallet_holder_table.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [FhirResource, Sources, RecordAttachments, RecordNotes])
+@DriftDatabase(tables: [
+  FhirResource,
+  Sources,
+  RecordAttachments,
+  RecordNotes,
+  WalletHolderConfig
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

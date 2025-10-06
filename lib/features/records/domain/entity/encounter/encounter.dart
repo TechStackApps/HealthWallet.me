@@ -53,41 +53,56 @@ class Encounter with _$Encounter implements IFhirResource {
   FhirType get fhirType => FhirType.Encounter;
 
   factory Encounter.fromLocalData(FhirResourceLocalDto data) {
-    final resourceJson = jsonDecode(data.resourceRaw);
-    final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
+    try {
+      final resourceJson = jsonDecode(data.resourceRaw);
+      final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
 
-    return Encounter(
-      id: data.id,
-      sourceId: data.sourceId ?? '',
-      resourceId: data.resourceId ?? '',
-      title: data.title ?? '',
-      date: data.date,
-      rawResource: resourceJson,
-      text: fhirEncounter.text,
-      identifier: fhirEncounter.identifier,
-      status: fhirEncounter.status,
-      statusHistory: fhirEncounter.statusHistory,
-      class_: fhirEncounter.class_,
-      classHistory: fhirEncounter.classHistory,
-      type: fhirEncounter.type,
-      serviceType: fhirEncounter.serviceType,
-      priority: fhirEncounter.priority,
-      subject: fhirEncounter.subject,
-      episodeOfCare: fhirEncounter.episodeOfCare,
-      basedOn: fhirEncounter.basedOn,
-      participant: fhirEncounter.participant,
-      appointment: fhirEncounter.appointment,
-      period: fhirEncounter.period,
-      length: fhirEncounter.length,
-      reasonCode: fhirEncounter.reasonCode,
-      reasonReference: fhirEncounter.reasonReference,
-      diagnosis: fhirEncounter.diagnosis,
-      account: fhirEncounter.account,
-      hospitalization: fhirEncounter.hospitalization,
-      location: fhirEncounter.location,
-      serviceProvider: fhirEncounter.serviceProvider,
-      partOf: fhirEncounter.partOf,
-    );
+      return Encounter(
+        id: data.id,
+        sourceId: data.sourceId ?? '',
+        resourceId: data.resourceId ?? '',
+        title: data.title ?? '',
+        date: data.date,
+        rawResource: resourceJson,
+        text: fhirEncounter.text,
+        identifier: fhirEncounter.identifier,
+        status: fhirEncounter.status,
+        statusHistory: fhirEncounter.statusHistory,
+        class_: fhirEncounter.class_,
+        classHistory: fhirEncounter.classHistory,
+        type: fhirEncounter.type,
+        serviceType: fhirEncounter.serviceType,
+        priority: fhirEncounter.priority,
+        subject: fhirEncounter.subject,
+        episodeOfCare: fhirEncounter.episodeOfCare,
+        basedOn: fhirEncounter.basedOn,
+        participant: fhirEncounter.participant,
+        appointment: fhirEncounter.appointment,
+        period: fhirEncounter.period,
+        length: fhirEncounter.length,
+        reasonCode: fhirEncounter.reasonCode,
+        reasonReference: fhirEncounter.reasonReference,
+        diagnosis: fhirEncounter.diagnosis,
+        account: fhirEncounter.account,
+        hospitalization: fhirEncounter.hospitalization,
+        location: fhirEncounter.location,
+        serviceProvider: fhirEncounter.serviceProvider,
+        partOf: fhirEncounter.partOf,
+      );
+    } catch (e) {
+      // If parsing fails, create a minimal Encounter with available data
+      // This allows the resource to be stored and displayed even if FHIR parsing fails
+      print(
+          'Warning: Failed to parse Encounter ${data.id}, creating minimal entity: $e');
+      return Encounter(
+        id: data.id,
+        sourceId: data.sourceId ?? '',
+        resourceId: data.resourceId ?? '',
+        title: data.title ?? 'Encounter',
+        date: data.date,
+        rawResource: jsonDecode(data.resourceRaw),
+      );
+    }
   }
 
   @override

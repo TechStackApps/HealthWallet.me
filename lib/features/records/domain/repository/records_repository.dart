@@ -7,6 +7,7 @@ abstract class RecordsRepository {
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
     String? sourceId,
+    List<String>? sourceIds,
     int limit = 20,
     int offset = 0,
   });

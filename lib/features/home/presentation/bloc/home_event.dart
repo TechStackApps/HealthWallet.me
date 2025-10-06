@@ -11,7 +11,8 @@ class HomeInitialised extends HomeEvent with _$HomeInitialised {
 
 @freezed
 class HomeSourceChanged extends HomeEvent with _$HomeSourceChanged {
-  const factory HomeSourceChanged(String source) = _HomeSourceChanged;
+  const factory HomeSourceChanged(String source,
+      {List<String>? patientSourceIds}) = _HomeSourceChanged;
 }
 
 @freezed

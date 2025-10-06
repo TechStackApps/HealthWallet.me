@@ -4,6 +4,7 @@ import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/utils/date_format_utils.dart';
 import 'package:health_wallet/core/widgets/delete_confirmation_dialog.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -128,11 +129,12 @@ class _SourceListDialogState extends State<SourceListDialog> {
               child: ListView.builder(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: Insets.small),
-                itemCount: widget.sources.length,
+                itemCount: _getSortedSources().length,
                 itemBuilder: (context, index) {
-                  final source = widget.sources[index];
+                  final source = _getSortedSources()[index];
                   final isSelected = source.id == widget.selectedSource;
                   final isWallet = source.id == 'wallet';
+                  final isAll = source.id == 'All';
 
                   return InkWell(
                     onTap: () {
@@ -170,6 +172,7 @@ class _SourceListDialogState extends State<SourceListDialog> {
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   _getSourceDisplayName(context, source),
@@ -182,11 +185,15 @@ class _SourceListDialogState extends State<SourceListDialog> {
                                         : textColor,
                                   ),
                                 ),
-                                if (source.id != 'wallet')
+                                // Show upload date for manual sources
+                                if (source.name == 'manual' &&
+                                    source.createdAt != null)
                                   Text(
-                                    source.id,
+                                    'Uploaded ${DateFormatUtils.humanReadable(source.createdAt)}',
                                     style: AppTextStyle.bodySmall.copyWith(
-                                      color: iconColor,
+                                      color: context.isDarkMode
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
                               ],
@@ -197,7 +204,9 @@ class _SourceListDialogState extends State<SourceListDialog> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // Edit button
-                              if (widget.onSourceEdit != null && !isWallet)
+                              if (widget.onSourceEdit != null &&
+                                  !isWallet &&
+                                  !isAll)
                                 Padding(
                                   padding: const EdgeInsets.all(6),
                                   child: GestureDetector(
@@ -213,7 +222,8 @@ class _SourceListDialogState extends State<SourceListDialog> {
                                 ),
                               // Delete button
                               if (widget.onSourceDelete != null &&
-                                  !isWallet) ...[
+                                  !isWallet &&
+                                  !isAll) ...[
                                 const SizedBox(width: 16),
                                 Padding(
                                   padding: const EdgeInsets.all(6),
@@ -243,8 +253,34 @@ class _SourceListDialogState extends State<SourceListDialog> {
     );
   }
 
+  /// Get sources sorted in the desired order: All, Wallet, then alphabetical
+  List<Source> _getSortedSources() {
+    final sources = List<Source>.from(widget.sources);
+
+    // Separate sources by type
+    final allSource = sources.where((s) => s.id == 'All').toList();
+    final walletSource = sources.where((s) => s.id == 'wallet').toList();
+    final otherSources =
+        sources.where((s) => s.id != 'All' && s.id != 'wallet').toList();
+
+    // Sort other sources alphabetically by display name
+    otherSources.sort((a, b) {
+      final nameA = _getSourceDisplayName(context, a).toLowerCase();
+      final nameB = _getSourceDisplayName(context, b).toLowerCase();
+      return nameA.compareTo(nameB);
+    });
+
+    // Combine in desired order: All, Wallet, then alphabetical
+    return [...allSource, ...walletSource, ...otherSources];
+  }
+
   /// Get the display name for a source (labelSource > name > id)
   String _getSourceDisplayName(BuildContext context, Source source) {
+    // Special case: "All" source should always display as "All"
+    if (source.id == 'All') {
+      return 'All';
+    }
+
     if (source.labelSource?.isNotEmpty == true) {
       return source.labelSource!;
     }

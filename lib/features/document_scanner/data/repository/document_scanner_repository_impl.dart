@@ -10,28 +10,27 @@ import 'package:health_wallet/features/document_scanner/domain/repository/docume
 
 @LazySingleton(as: DocumentScannerRepository)
 class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
-  
   @override
   Future<List<String>> scanDocuments() async {
     try {
-      
       // Use getScannedDocumentAsImages for consistent image output
-      final scannedResult = await FlutterDocScanner().getScannedDocumentAsImages(
+      final scannedResult =
+          await FlutterDocScanner().getScannedDocumentAsImages(
         page: 10, // Allow up to 10 pages
       );
-      
+
       if (scannedResult == null) {
         return [];
       }
-      
+
       List<String> imagePaths = [];
-      
+
       // Handle different return types
       if (scannedResult is List) {
         imagePaths = scannedResult.cast<String>();
       } else if (scannedResult is String) {
         // Check if it's an error message
-        if (scannedResult.contains('Failed') || 
+        if (scannedResult.contains('Failed') ||
             scannedResult.contains('Unknown') ||
             scannedResult.contains('platform documents')) {
           throw Exception('Scanner error: $scannedResult');
@@ -40,16 +39,16 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
       } else {
         imagePaths = [scannedResult.toString()];
       }
-      
+
       // Filter out any invalid paths
-      final validPaths = imagePaths.where((path) => 
-        path.isNotEmpty && 
-        !path.contains('Failed') && 
-        !path.contains('Unknown')
-      ).toList();
-      
+      final validPaths = imagePaths
+          .where((path) =>
+              path.isNotEmpty &&
+              !path.contains('Failed') &&
+              !path.contains('Unknown'))
+          .toList();
+
       return validPaths;
-      
     } on PlatformException catch (e) {
       throw Exception('Scanner platform error: ${e.message ?? e.code}');
     } catch (e) {
@@ -59,23 +58,23 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
 
   @override
   Future<List<String>> scanDocumentsAsPdf({int maxPages = 5}) async {
-    try {      
+    try {
       final scannedResult = await FlutterDocScanner().getScannedDocumentAsPdf(
         page: maxPages,
       );
-      
+
       if (scannedResult == null) {
         return [];
       }
-      
-      if (scannedResult is String && 
-          (scannedResult.contains('Failed') || scannedResult.contains('Unknown'))) {
+
+      if (scannedResult is String &&
+          (scannedResult.contains('Failed') ||
+              scannedResult.contains('Unknown'))) {
         throw Exception('PDF scanner error: $scannedResult');
       }
-      
+
       final pdfPath = scannedResult.toString();
       return [pdfPath];
-      
     } on PlatformException catch (e) {
       throw Exception('PDF Scanner platform error: ${e.message ?? e.code}');
     } catch (e) {
@@ -89,32 +88,33 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
       final scannedResult = await FlutterDocScanner().getScanDocuments(
         page: maxPages,
       );
-      
+
       if (scannedResult == null) {
         return [];
       }
-      
+
       List<String> documentPaths = [];
-      
+
       if (scannedResult is List) {
         documentPaths = scannedResult.cast<String>();
       } else if (scannedResult is String) {
-        if (scannedResult.contains('Failed') || scannedResult.contains('Unknown')) {
+        if (scannedResult.contains('Failed') ||
+            scannedResult.contains('Unknown')) {
           throw Exception('Default scanner error: $scannedResult');
         }
         documentPaths = [scannedResult];
       } else {
         documentPaths = [scannedResult.toString()];
       }
-      
-      final validPaths = documentPaths.where((path) => 
-        path.isNotEmpty && 
-        !path.contains('Failed') && 
-        !path.contains('Unknown')
-      ).toList();
-      
+
+      final validPaths = documentPaths
+          .where((path) =>
+              path.isNotEmpty &&
+              !path.contains('Failed') &&
+              !path.contains('Unknown'))
+          .toList();
+
       return validPaths;
-      
     } on PlatformException catch (e) {
       throw Exception('Default Scanner platform error: ${e.message ?? e.code}');
     } catch (e) {
@@ -124,26 +124,26 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
 
   @override
   Future<String> saveScannedDocument(String sourcePath) async {
-    try {      
+    try {
       final directory = await getApplicationDocumentsDirectory();
       final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
-      
+
       if (!await scanDir.exists()) {
         await scanDir.create(recursive: true);
       }
-      
+
       final sourceFile = File(sourcePath);
       if (!await sourceFile.exists()) {
         throw Exception('Source file does not exist: $sourcePath');
       }
-      
+
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final extension = path.extension(sourcePath);
       final newFileName = 'document_$timestamp$extension';
       final newPath = path.join(scanDir.path, newFileName);
-      
+
       await sourceFile.copy(newPath);
-      
+
       return newPath;
     } catch (e) {
       throw Exception('Failed to save document: $e');
@@ -155,31 +155,30 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
-      
+
       if (!await scanDir.exists()) {
         return [];
       }
-      
+
       final files = await scanDir
           .list()
           .where((entity) => entity is File)
           .cast<File>()
           .toList();
-      
+
       final documentPaths = files
           .map((file) => file.path)
           .where((path) => _isValidDocumentFile(path))
           .toList();
-      
+
       // Sort by modification date (newest first)
       documentPaths.sort((a, b) {
         final aFile = File(a);
         final bFile = File(b);
         return bFile.lastModifiedSync().compareTo(aFile.lastModifiedSync());
       });
-      
+
       return documentPaths;
-      
     } catch (e) {
       return [];
     }
@@ -187,12 +186,12 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
 
   @override
   Future<void> deleteDocument(String imagePath) async {
-    try {      
+    try {
       final file = File(imagePath);
       if (await file.exists()) {
         await file.delete();
       } else {
-        print('⚠️ Repository: File does not exist, cannot delete: $imagePath');
+        print('Repository: File does not exist, cannot delete: $imagePath');
       }
     } catch (e) {
       throw Exception('Failed to delete document: $e');
@@ -201,10 +200,10 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
 
   @override
   Future<void> clearAllDocuments() async {
-    try {      
+    try {
       final directory = await getApplicationDocumentsDirectory();
       final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
-      
+
       if (await scanDir.exists()) {
         await scanDir.delete(recursive: true);
       } else {
@@ -217,9 +216,9 @@ class DocumentScannerRepositoryImpl implements DocumentScannerRepository {
 
   bool _isValidDocumentFile(String filePath) {
     final extension = path.extension(filePath).toLowerCase();
-    return extension == '.jpg' || 
-           extension == '.jpeg' || 
-           extension == '.png' || 
-           extension == '.pdf';
+    return extension == '.jpg' ||
+        extension == '.jpeg' ||
+        extension == '.png' ||
+        extension == '.pdf';
   }
 }

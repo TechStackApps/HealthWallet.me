@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/user/domain/services/default_patient_service.dart';
 
 part 'sync_event.dart';
 part 'sync_state.dart';
@@ -16,10 +17,12 @@ part 'sync_bloc.freezed.dart';
 class SyncBloc extends Bloc<SyncEvent, SyncState> {
   final SyncRepository _syncRepository;
   final RecordsRepository _recordsRepository;
+  final DefaultPatientService _defaultPatientService;
 
   SyncBloc(
     this._syncRepository,
     this._recordsRepository,
+    this._defaultPatientService,
   ) : super(const SyncState()) {
     on<SyncInitialised>(_onSyncInitialised);
     on<SyncData>(_onSyncData);
@@ -32,6 +35,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     on<TriggerTutorial>(_onTriggerTutorial);
     on<ResetTutorial>(_onResetTutorial);
     on<DemoDataConfirmed>(_onDemoDataConfirmed);
+    on<CreateWalletSource>(_onCreateWalletSource);
   }
 
   _onSyncInitialised(
@@ -75,6 +79,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
       // Create Wallet source first
       await _syncRepository.createWalletSource();
+
+      // Create default patient owner (wallet holder) if needed
+      await _defaultPatientService.createAndSetAsMain();
 
       await _recordsRepository.clearDemoData();
 
@@ -168,9 +175,10 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
   Future<void> _onLoadDemoData(
       LoadDemoData event, Emitter<SyncState> emit) async {
     try {
-      // Create Wallet source first
+      // Create Wallet source to ensure it exists
       await _syncRepository.createWalletSource();
 
+      // Load demo data - it includes demo patient with source 'demo_data'
       await _recordsRepository.loadDemoData();
       final hasDemoData = await _recordsRepository.hasDemoData();
 
@@ -183,7 +191,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         isSuccess: true,
       ));
     } catch (e) {
-      logger.e('❌ Failed to load demo data: $e');
+      logger.e('Failed to load demo data: $e');
 
       add(DataHandled(
         sourceId: 'demo_data',
@@ -230,5 +238,14 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     emit(state.copyWith(
       demoDataConfirmed: true,
     ));
+  }
+
+  Future<void> _onCreateWalletSource(
+      CreateWalletSource event, Emitter<SyncState> emit) async {
+    try {
+      await _syncRepository.createWalletSource();
+    } catch (e) {
+      logger.e('Error creating wallet source: $e');
+    }
   }
 }
