@@ -212,7 +212,6 @@ Future<void> clearAllDocuments({
     
     if (await scanDir.exists()) {
       await scanDir.delete(recursive: true);
-      print('✓ Deleted scanned documents directory');
     }
 
     // Delete specific imported images

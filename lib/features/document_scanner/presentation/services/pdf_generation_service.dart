@@ -9,9 +9,7 @@ import 'package:path/path.dart' as path;
 
 @injectable
 class PdfGenerationService {
-  
-  /// Convert a list of image paths to a single PDF
-  Future<String> createPdfFromImages({
+    Future<String> createPdfFromImages({
     required List<String> imagePaths,
     required String fileName,
     String? title,
@@ -68,7 +66,6 @@ class PdfGenerationService {
     }
   }
 
-  /// Copy PDF to temporary location with proper naming
   Future<String> copyPdfWithNewName({
     required String sourcePdfPath,
     required String fileName,
@@ -93,7 +90,6 @@ class PdfGenerationService {
     }
   }
 
-  /// Group documents by type and create PDFs
   Future<List<DocumentGroup>> groupAndConvertDocuments({
     required List<String> scannedImages,
     required List<String> importedImages, 
@@ -102,7 +98,6 @@ class PdfGenerationService {
     final List<DocumentGroup> groups = [];
     
     try {
-      // Group 1: Scanned images -> Single PDF
       if (scannedImages.isNotEmpty) {
         final pdfPath = await createPdfFromImages(
           imagePaths: scannedImages,
@@ -118,7 +113,6 @@ class PdfGenerationService {
         ));
       }
 
-      // Group 2: Imported images -> Single PDF
       if (importedImages.isNotEmpty) {
         final pdfPath = await createPdfFromImages(
           imagePaths: importedImages,
@@ -134,7 +128,6 @@ class PdfGenerationService {
         ));
       }
 
-      // Group 3: Imported PDFs -> Keep individual PDFs
       for (int i = 0; i < importedPdfs.length; i++) {
         final originalPdfPath = importedPdfs[i];
         final fileName = path.basenameWithoutExtension(originalPdfPath);

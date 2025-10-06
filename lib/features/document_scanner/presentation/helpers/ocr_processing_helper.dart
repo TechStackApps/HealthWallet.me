@@ -1,4 +1,3 @@
-// helpers/ocr_processing_helper.dart
 import 'package:health_wallet/features/document_scanner/domain/services/text_recognition_service.dart';
 
 class OcrProcessingHelper {
@@ -13,10 +12,8 @@ class OcrProcessingHelper {
     final convertedImages = <String>[];
 
     for (final pdfPath in pdfPaths) {
-      print('Converting PDF for preview: $pdfPath');
       final images = await _textRecognitionService.convertPdfToImages(pdfPath);
       convertedImages.addAll(images);
-      print('Converted PDF to ${images.length} images for preview');
     }
 
     return convertedImages;
@@ -28,7 +25,6 @@ class OcrProcessingHelper {
 
     for (int i = 0; i < imagePaths.length; i++) {
       final imagePath = imagePaths[i];
-      print('Processing OCR for image ${i + 1}/${imagePaths.length}: $imagePath');
 
       final text = await _textRecognitionService.recognizeTextFromImage(imagePath);
 
