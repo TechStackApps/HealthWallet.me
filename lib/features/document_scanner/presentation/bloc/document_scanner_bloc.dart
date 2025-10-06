@@ -17,8 +17,9 @@ class DocumentScannerBloc
     extends Bloc<DocumentScannerEvent, DocumentScannerState> {
   final PdfStorageService _pdfStorageService;
 
-  DocumentScannerBloc(this._pdfStorageService)
-      : super(const DocumentScannerState()) {
+  DocumentScannerBloc(
+    this._pdfStorageService,
+  ) : super(const DocumentScannerState()) {
     on<DocumentScannerInitialised>(_onDocumentScannerInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DeleteDocument>(_onDeleteDocument);
@@ -151,43 +152,41 @@ class DocumentScannerBloc
     }
   }
 
-  Future<void> _onDocumentImported(
-    DocumentImported event,
-    Emitter<DocumentScannerState> emit,
-  ) async {
-    try {
-      final file = File(event.filePath);
-      if (await file.exists()) {
-        // Check if it's a PDF or image and store appropriately
-        final fileName = event.filePath.toLowerCase();
-
-        if (fileName.endsWith('.pdf')) {
-          // Handle PDF import - store in savedPdfPaths for display
-          final updatedPdfs = [...state.savedPdfPaths, event.filePath];
-          emit(state.copyWith(
-            status: const DocumentScannerStatus.success(),
-            savedPdfPaths: updatedPdfs,
-          ));
-        } else {
-          // Handle image import - store in scannedImagePaths
-          final updatedPaths = [...state.scannedImagePaths, event.filePath];
-          emit(state.copyWith(
-            status: const DocumentScannerStatus.success(),
-            scannedImagePaths: updatedPaths,
-          ));
-        }
-      } else {
+Future<void> _onDocumentImported(
+  DocumentImported event,
+  Emitter<DocumentScannerState> emit,
+) async {
+  try {
+    final file = File(event.filePath);
+    if (await file.exists()) {
+      final lowerPath = event.filePath.toLowerCase();
+      if (lowerPath.endsWith('.pdf')) {
+        // Store PDFs in savedPdfPaths
+        final updatedPdfs = [...state.savedPdfPaths, event.filePath];
         emit(state.copyWith(
-          status: DocumentScannerStatus.failure(error: 'File does not exist'),
+          status: const DocumentScannerStatus.success(),
+          savedPdfPaths: updatedPdfs,
+        ));
+      } else {
+        // Store imported images separately in importedImagePaths
+        final updatedImportedImages = [...state.importedImagePaths, event.filePath];
+        emit(state.copyWith(
+          status: const DocumentScannerStatus.success(),
+          importedImagePaths: updatedImportedImages,
         ));
       }
-    } catch (e) {
+    } else {
       emit(state.copyWith(
-        status: DocumentScannerStatus.failure(
-            error: 'Failed to import document: $e'),
+        status: DocumentScannerStatus.failure(error: 'File does not exist'),
       ));
     }
+  } catch (e) {
+    emit(state.copyWith(
+      status: DocumentScannerStatus.failure(error: 'Failed to import document: $e'),
+    ));
   }
+}
+
 
   Future<void> _onDeleteDocument(
     DeleteDocument event,
@@ -218,6 +217,7 @@ class DocumentScannerBloc
     Emitter<DocumentScannerState> emit,
   ) async {
     try {
+      // Delete scanned images
       for (final imagePath in state.scannedImagePaths) {
         try {
           final file = File(imagePath);
@@ -225,13 +225,46 @@ class DocumentScannerBloc
             await file.delete();
           }
         } catch (e) {
-          print('Failed to delete file $imagePath: $e');
+          print('Failed to delete scanned image $imagePath: $e');
         }
       }
 
-      emit(state.copyWith(scannedImagePaths: []));
+      // Delete imported images
+      for (final imagePath in state.importedImagePaths) {
+        try {
+          final file = File(imagePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          print('Failed to delete imported image $imagePath: $e');
+        }
+      }
+
+      // Delete imported PDFs
+      for (final pdfPath in state.savedPdfPaths) {
+        try {
+          final file = File(pdfPath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          print('Failed to delete PDF $pdfPath: $e');
+        }
+      }
+
+      emit(state.copyWith(
+        scannedImagePaths: [],
+        importedImagePaths: [],
+        savedPdfPaths: [],
+      ));
     } catch (e) {
-      emit(state.copyWith(scannedImagePaths: []));
+      // Even if there's an error, clear the state to avoid showing deleted files
+      emit(state.copyWith(
+        scannedImagePaths: [],
+        importedImagePaths: [],
+        savedPdfPaths: [],
+      ));
     }
   }
 

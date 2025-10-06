@@ -32,6 +32,14 @@ class DocumentGrid extends StatelessWidget {
           });
         }
 
+        for (String imagePath in state.importedImagePaths) {
+          allDocuments.add({
+            'path': imagePath,
+            'type': 'image',
+            'name': imagePath.split('/').last,
+          });
+        }
+
         // Add PDFs
         for (String pdfPath in state.savedPdfPaths) {
           allDocuments.add({

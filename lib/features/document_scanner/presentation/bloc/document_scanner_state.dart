@@ -14,6 +14,7 @@ class DocumentScannerState with _$DocumentScannerState {
     @Default(DocumentScannerStatus.initial()) DocumentScannerStatus status,
     @Default([]) List<String> scannedImagePaths,
     @Default([]) List<String> savedPdfPaths,
+    @Default([]) List<String> importedImagePaths,
     String? lastCreatedPdfPath,
   }) = _DocumentScannerState;
 }

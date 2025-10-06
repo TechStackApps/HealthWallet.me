@@ -135,48 +135,63 @@ class DialogHelper {
     );
   }
 
+static Widget buildAttachmentSuccessDialog(
+    BuildContext context, 
+    int count, 
+    String encounterId,
+    DocumentScannerBloc bloc) {
+  return AlertDialog(
+    title: const Row(
+      children: [
+        Icon(Icons.check_circle, color: Colors.green),
+        SizedBox(width: 8),
+        Text('Success!'),
+      ],
+    ),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Successfully attached $count document${count > 1 ? 's' : ''} to the encounter.',
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Documents have been grouped by type (scanned, imported images, PDFs) and saved as FHIR Media resources.',
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Encounter: $encounterId',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+          bloc.add(const DocumentScannerEvent.clearAllDocuments());
+        },
+        child: const Text('OK'),
+      ),
+      ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+          context.router.push(RecordsRoute());
+        },
+        child: const Text('View Records'),
+      ),
+    ],
+  );
+}
+
   static void showAttachmentSuccessDialog(
-      BuildContext context, int count, String encounterId) {
+      BuildContext context, int count, String encounterId, DocumentScannerBloc bloc) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Success!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                'Successfully attached $count page${count > 1 ? 's' : ''} to encounter.'),
-            const SizedBox(height: 8),
-            Text('Encounter: $encounterId',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.read<DocumentScannerBloc>().add(
-                    const DocumentScannerEvent.clearAllDocuments(),
-                  );
-            },
-            child: const Text('OK'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.router.push(RecordsRoute());
-            },
-            child: const Text('View Records'),
-          ),
-        ],
-      ),
+      builder: (context) =>
+          buildAttachmentSuccessDialog(context, count, encounterId, bloc),
     );
   }
 

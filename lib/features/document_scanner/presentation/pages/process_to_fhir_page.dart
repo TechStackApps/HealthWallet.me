@@ -1,19 +1,33 @@
-// process_to_fhir_page.dart
-import 'dart:io';
+// process_to_fhir_page.dart (REFACTORED)
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/features/document_scanner/domain/services/text_recognition_service.dart';
+import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/document_scanner/presentation/helpers/fhir_encounter_helper.dart';
+import 'package:health_wallet/features/document_scanner/presentation/helpers/ocr_processing_helper.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/document_preview_card.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/document_summary_card.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/empty_document_warning.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/encounter_form_widget.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/ocr_widgets.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/document_scanner/presentation/widgets/patient_source_info_widget.dart';
 
 @RoutePage()
 class ProcessToFHIRPage extends StatefulWidget {
-  final List<String> imagePaths;
+  final List<String> scannedImages;
+  final List<String> importedImages;
+  final List<String> importedPdfs;
 
   const ProcessToFHIRPage({
     super.key,
-    required this.imagePaths,
+    this.scannedImages = const [],
+    this.importedImages = const [],
+    this.importedPdfs = const [],
   });
 
   @override
@@ -23,13 +37,23 @@ class ProcessToFHIRPage extends StatefulWidget {
 class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
   final _formKey = GlobalKey<FormState>();
   final _encounterNameController = TextEditingController();
+  final _pageController = PageController();
+  final _ocrHelper = OcrProcessingHelper();
+
   bool _isCreating = false;
   bool _isProcessingOCR = false;
   bool _ocrCompleted = false;
+  bool _isConvertingPdfs = false;
   String _extractedText = '';
-  List<String> _extractedTextsPerPage = []; // Store text for each page
+  List<String> _extractedTextsPerPage = [];
+  List<String> _allImagePathsForOCR = [];
   int _currentPageIndex = 0;
-  final PageController _pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    _prepareImagesForOCR();
+  }
 
   @override
   void dispose() {
@@ -38,30 +62,43 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
     super.dispose();
   }
 
-  Future<void> _processOCR() async {
-    setState(() {
-      _isProcessingOCR = true;
-    });
+  Future<void> _prepareImagesForOCR() async {
+    setState(() => _isConvertingPdfs = true);
 
     try {
-      final textRecognitionService = TextRecognitionService();
-      List<String> pageTexts = [];
+      final allImages = await _ocrHelper.prepareAllImages(
+        scannedImages: widget.scannedImages,
+        importedImages: widget.importedImages,
+        importedPdfs: widget.importedPdfs,
+      );
 
-      // Process each image for OCR
-      for (int i = 0; i < widget.imagePaths.length; i++) {
-        final imagePath = widget.imagePaths[i];
-        print(
-            'Processing OCR for image ${i + 1}/${widget.imagePaths.length}: $imagePath');
+      setState(() {
+        _allImagePathsForOCR = allImages;
+        _isConvertingPdfs = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isConvertingPdfs = false;
+        _allImagePathsForOCR = [
+          ...widget.scannedImages,
+          ...widget.importedImages,
+        ];
+      });
 
-        final text =
-            await textRecognitionService.recognizeTextFromImage(imagePath);
-
-        if (text.isNotEmpty && !text.startsWith('Error recognizing text:')) {
-          pageTexts.add(text);
-        } else {
-          pageTexts.add('No text could be extracted from this page.');
-        }
+      if (mounted) {
+        _showSnackBar(
+          'Warning: Could not convert PDFs for preview. PDFs will still be included in the encounter.',
+          Colors.orange,
+        );
       }
+    }
+  }
+
+  Future<void> _processOCR() async {
+    setState(() => _isProcessingOCR = true);
+
+    try {
+      final pageTexts = await _ocrHelper.processOcrForImages(_allImagePathsForOCR);
 
       setState(() {
         _extractedTextsPerPage = pageTexts;
@@ -73,11 +110,9 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('OCR processing completed successfully!'),
-            backgroundColor: Colors.green,
-          ),
+        _showSnackBar(
+          'OCR processing completed successfully!',
+          Colors.green,
         );
       }
     } catch (e) {
@@ -88,14 +123,115 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('OCR processing failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showSnackBar('OCR processing failed: $e', Colors.red);
       }
     }
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentPageIndex = index;
+      if (_ocrCompleted &&
+          _extractedTextsPerPage.isNotEmpty &&
+          index < _extractedTextsPerPage.length) {
+        _extractedText = _extractedTextsPerPage[index];
+      }
+    });
+  }
+
+  Future<void> _createEncounter() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isCreating = true);
+
+    try {
+      final encounterName = _encounterNameController.text.trim();
+      final homeState = context.read<HomeBloc>().state;
+      
+      final sourceId = homeState.selectedSource == 'All' 
+          ? null 
+          : homeState.selectedSource;
+      final patient = homeState.patient;
+      final patientId = patient?.resourceId ?? 'patient-default';
+      final effectiveSourceId = sourceId ?? 'document-scanner';
+      final encounterId = FhirEncounterHelper.generateEncounterId();
+
+      // Create FHIR Encounter
+      final fhirEncounter = FhirEncounterHelper.createEncounter(
+        encounterId: encounterId,
+        patientId: patientId,
+        title: encounterName,
+        patientName: patient?.displayTitle ?? 'Unknown Patient',
+      );
+
+      // Save to database
+      await FhirEncounterHelper.saveToDatabase(
+        fhirEncounter: fhirEncounter,
+        sourceId: effectiveSourceId,
+        title: encounterName,
+      );
+
+      // Save documents as FHIR Media resources
+      final mediaIntegrationService = GetIt.instance.get<MediaIntegrationService>();
+      
+      _logDocumentPaths();
+      
+      final resourceIds = await mediaIntegrationService.saveGroupedDocumentsAsFhirRecords(
+        scannedImages: widget.scannedImages,
+        importedImages: widget.importedImages,
+        importedPdfs: widget.importedPdfs,
+        patientId: patientId,
+        encounterId: encounterId,
+        sourceId: effectiveSourceId,
+        title: encounterName,
+      );
+
+      print('Created encounter: $encounterName with ${resourceIds.length} document groups');
+
+      if (mounted) {
+        _showSuccessAndNavigateBack(encounterName, resourceIds.length);
+      }
+    } catch (e) {
+      setState(() => _isCreating = false);
+      print('Error creating encounter: $e');
+
+      if (mounted) {
+        _showSnackBar('Failed to create encounter: $e', Colors.red, duration: 4);
+      }
+    }
+  }
+
+  void _logDocumentPaths() {
+    print('DEBUG - Scanned images: ${widget.scannedImages.length}');
+    print('DEBUG - Imported images: ${widget.importedImages.length}');
+    print('DEBUG - Imported PDFs: ${widget.importedPdfs.length}');
+    widget.scannedImages.forEach((path) => print('  Scanned: $path'));
+    widget.importedImages.forEach((path) => print('  Imported: $path'));
+    widget.importedPdfs.forEach((path) => print('  PDF: $path'));
+  }
+
+  void _showSuccessAndNavigateBack(String encounterName, int groupCount) {
+    final totalDocuments = widget.scannedImages.length +
+        widget.importedImages.length +
+        widget.importedPdfs.length;
+    
+    _showSnackBar(
+      'Encounter "$encounterName" created successfully with $totalDocuments documents grouped into $groupCount PDF${groupCount > 1 ? 's' : ''}!',
+      Colors.green,
+      duration: 3,
+    );
+    
+    Navigator.of(context).pop(true);
+  }
+
+  void _showSnackBar(String message, Color backgroundColor, {int duration = 2}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: Duration(seconds: duration),
+      ),
+    );
   }
 
   @override
@@ -103,446 +239,121 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
     return Scaffold(
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
-        title: Text(
-          'Process to FHIR',
-          style: AppTextStyle.titleMedium,
-        ),
+        title: Text('Process to FHIR', style: AppTextStyle.titleMedium),
         backgroundColor: context.colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: _isCreating
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Adding to Wallet...'),
-                ],
-              ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(Insets.normal),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Document preview card
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: context.theme.dividerColor),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Page indicator
-                        if (widget.imagePaths.length > 1)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.onSurface
-                                  .withOpacity(0.05),
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                // Left arrow (invisible placeholder when not needed)
-                                SizedBox(
-                                  width: 32,
-                                  child: _currentPageIndex > 0
-                                      ? IconButton(
-                                          icon: const Icon(Icons.chevron_left,
-                                              size: 16),
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 32,
-                                            minHeight: 24,
-                                          ),
-                                          onPressed: () {
-                                            _pageController.previousPage(
-                                              duration: const Duration(
-                                                  milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                            );
-                                          },
-                                        )
-                                      : null,
-                                ),
-                                // Centered text
-                                Expanded(
-                                  child: Center(
-                                    child: Text(
-                                      'Page ${_currentPageIndex + 1} of ${widget.imagePaths.length}',
-                                      style: AppTextStyle.bodySmall.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Right arrow (invisible placeholder when not needed)
-                                SizedBox(
-                                  width: 32,
-                                  child: _currentPageIndex <
-                                          widget.imagePaths.length - 1
-                                      ? IconButton(
-                                          icon: const Icon(Icons.chevron_right,
-                                              size: 16),
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(
-                                            minWidth: 32,
-                                            minHeight: 24,
-                                          ),
-                                          onPressed: () {
-                                            _pageController.nextPage(
-                                              duration: const Duration(
-                                                  milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                            );
-                                          },
-                                        )
-                                      : null,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        // Image preview
-                        Container(
-                          height: 400,
-                          width: double.infinity,
-                          child: PageView.builder(
-                            controller: _pageController,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentPageIndex = index;
-                                // Update extracted text to show current page's text
-                                if (_ocrCompleted &&
-                                    _extractedTextsPerPage.isNotEmpty) {
-                                  _extractedText =
-                                      _extractedTextsPerPage[index];
-                                }
-                              });
-                            },
-                            itemCount: widget.imagePaths.length,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                margin: const EdgeInsets.all(Insets.normal),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(widget.imagePaths[index]),
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey[200],
-                                        child: const Center(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.error,
-                                                  size: 40, color: Colors.red),
-                                              SizedBox(height: 8),
-                                              Text('Failed to load image'),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: Insets.large),
-
-                  // Step 1: Process OCR button (shown initially)
-                  if (!_ocrCompleted && !_isProcessingOCR) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _processOCR,
-                        icon: const Icon(Icons.text_fields),
-                        label: const Text(
-                          'Process OCR',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: context.colorScheme.primary,
-                          foregroundColor: context.colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  // Step 2: OCR Processing indicator
-                  if (_isProcessingOCR) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(Insets.normal),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primaryContainer
-                            .withOpacity(0.3),
-                        border: Border.all(
-                            color:
-                                context.colorScheme.primary.withOpacity(0.3)),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(
-                            color: context.colorScheme.primary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Processing OCR...',
-                            style: AppTextStyle.bodyMedium.copyWith(
-                              color: context.colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  // Step 3: Extracted text (shown after OCR completion)
-                  if (_ocrCompleted) ...[
-                    Text(
-                      'Extracted Text - Page ${_currentPageIndex + 1}',
-                      style: AppTextStyle.titleMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: Insets.normal),
-
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(Insets.normal),
-                      decoration: BoxDecoration(
-                        color:
-                            context.colorScheme.surfaceVariant.withOpacity(0.5),
-                        border: Border.all(
-                            color:
-                                context.colorScheme.outline.withOpacity(0.3)),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _extractedText,
-                        style: AppTextStyle.bodyMedium.copyWith(
-                          color: context.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: Insets.large),
-
-                    // Step 4: Additional Information (shown after OCR)
-                    if (_ocrCompleted) ...[
-                      // OCR Information
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(Insets.normal),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.surfaceVariant
-                              .withOpacity(0.5),
-                          border: Border.all(
-                              color:
-                                  context.colorScheme.outline.withOpacity(0.3)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.text_fields,
-                                    color: context.colorScheme.primary,
-                                    size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'OCR to FHIR format',
-                                  style: AppTextStyle.bodyMedium.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: context.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Here will be implemented here to automatically extract and populate text from the scanned documents.',
-                              style: AppTextStyle.bodySmall.copyWith(
-                                color: context.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: Insets.large),
-                    ],
-
-                    // Step 5: FHIR Processing Information (shown after OCR)
-                    if (_ocrCompleted) ...[
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Encounter name',
-                              style: AppTextStyle.titleMedium.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: context.colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: Insets.normal),
-
-                            // Encounter name field
-                            TextFormField(
-                              controller: _encounterNameController,
-                              style: TextStyle(
-                                  color: context.colorScheme.onSurface),
-                              decoration: InputDecoration(
-                                labelText: 'Add as a new encounter *',
-                                labelStyle: TextStyle(
-                                    color:
-                                        context.colorScheme.onSurfaceVariant),
-                                hintText:
-                                    'e.g., Lab Results, X-Ray Report, Medical Document',
-                                hintStyle: TextStyle(
-                                    color: context.colorScheme.onSurfaceVariant
-                                        .withOpacity(0.6)),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: context.colorScheme.outline),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: context.colorScheme.outline),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: context.colorScheme.primary),
-                                ),
-                                prefixIcon: Icon(Icons.medical_information,
-                                    color: context.colorScheme.primary),
-                                filled: true,
-                                fillColor: context.colorScheme.surface,
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Encounter name is required';
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: Insets.large),
-
-                            // Add into Wallet button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _createEncounter,
-                                icon: const Icon(Icons.add_circle_outline),
-                                label: Text(
-                                  'Add to Wallet',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: context.colorScheme.primary,
-                                  foregroundColor:
-                                      context.colorScheme.onPrimary,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-
-                  // Add some bottom padding
-                  const SizedBox(height: Insets.large),
-                ],
-              ),
-            ),
+      body: _buildBody(),
     );
   }
 
-  Future<void> _createEncounter() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+  Widget _buildBody() {
+    if (_isCreating) {
+      return _buildLoadingIndicator('Adding to Wallet...');
     }
 
-    setState(() {
-      _isCreating = true;
-    });
-
-    try {
-      // TODO: Implement actual encounter creation logic here
-      // This would involve:
-      // 1. Creating a new Encounter resource with the form data
-      // 2. Creating Media resources for each scanned page
-      // 3. Linking the Media resources to the Encounter
-      // 4. Saving everything to your data store
-
-      final encounterName = _encounterNameController.text.trim();
-
-      // Simulate async operation
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Encounter "$encounterName" added to wallet successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Return to previous screen with success result
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      setState(() {
-        _isCreating = false;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add encounter to wallet: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (_isConvertingPdfs) {
+      return _buildLoadingIndicator('Converting PDFs for preview...');
     }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(Insets.normal),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDocumentSummary(),
+          const SizedBox(height: Insets.normal),
+          _buildDocumentPreview(),
+          const SizedBox(height: Insets.large),
+          _buildOcrSection(),
+          _buildEncounterFormSection(),
+          const SizedBox(height: Insets.large),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingIndicator(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(message),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentSummary() {
+    return DocumentSummaryCard(
+      scannedCount: widget.scannedImages.length,
+      importedImagesCount: widget.importedImages.length,
+      importedPdfsCount: widget.importedPdfs.length,
+      totalPagesForOcr: _allImagePathsForOCR.length,
+    );
+  }
+
+  Widget _buildDocumentPreview() {
+    if (_allImagePathsForOCR.isEmpty) return const SizedBox.shrink();
+
+    return DocumentPreviewCard(
+      imagePaths: _allImagePathsForOCR,
+      currentPageIndex: _currentPageIndex,
+      pageController: _pageController,
+      onPageChanged: _onPageChanged,
+    );
+  }
+
+  Widget _buildOcrSection() {
+    if (_allImagePathsForOCR.isEmpty && !_isConvertingPdfs) {
+      return const EmptyDocumentWarning();
+    }
+
+    if (!_ocrCompleted && !_isProcessingOCR && _allImagePathsForOCR.isNotEmpty) {
+      return ProcessOcrButton(onPressed: _processOCR);
+    }
+
+    if (_isProcessingOCR) {
+      return const OcrProcessingIndicator();
+    }
+
+    if (_ocrCompleted) {
+      return Column(
+        children: [
+          ExtractedTextDisplay(
+            extractedText: _extractedText,
+            currentPageIndex: _currentPageIndex,
+          ),
+          const SizedBox(height: Insets.large),
+          const FhirProcessingInfoCard(),
+          const SizedBox(height: Insets.large),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildEncounterFormSection() {
+    // Show form after OCR completion OR if no images available
+    if (!_ocrCompleted && _allImagePathsForOCR.isNotEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        const PatientSourceInfoWidget(),
+        const SizedBox(height: Insets.normal),
+        EncounterFormWidget(
+          formKey: _formKey,
+          encounterNameController: _encounterNameController,
+          onSubmit: _createEncounter,
+        ),
+      ],
+    );
   }
 }

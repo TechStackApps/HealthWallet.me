@@ -1,11 +1,13 @@
-// health_wallet/features/records/presentation/widgets/media_fullscreen_viewer.dart
-
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart' as entities;
 import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MediaFullscreenViewer extends StatelessWidget {
   final entities.Media media;
@@ -58,73 +60,70 @@ class MediaFullscreenViewer extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: _buildMediaContent(context),
+        child: _buildPdfViewer(context),
       ),
     );
   }
 
-  Widget _buildMediaContent(BuildContext context) {
-    final contentType = media.content?.contentType?.valueString;
-    
-    if (_isImage(contentType)) {
-      return _buildImageViewer(context);
-    } else {
-      return _buildFileViewer(context);
+  Widget _buildPdfViewer(BuildContext context) {
+    if (media.content?.contentType?.valueString?.toLowerCase() != 'application/pdf' ||
+        media.content?.data?.valueString == null) {
+      return _buildPlaceholder(context, Icons.picture_as_pdf, 'No PDF data available');
     }
+    return FutureBuilder<File>(
+      future: _createTempPdfFile(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
+            return PDFView(
+              filePath: snapshot.data!.path,
+              enableSwipe: true,
+              swipeHorizontal: true,
+              autoSpacing: true,
+              pageFling: true,
+              onError: (error) {
+                debugPrint('PDFView error: $error');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error loading PDF: $error')),
+                  );
+                }
+              },
+              onPageError: (page, error) {
+                debugPrint('PDFView page error ($page): $error');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error on page $page: $error')),
+                  );
+                }
+              },
+            );
+
+          } else {
+            return _buildPlaceholder(context, Icons.picture_as_pdf, 'Failed to load PDF document');
+          }
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
+    );
   }
 
-  Widget _buildImageViewer(BuildContext context) {
-    if (media.content?.data?.valueString == null) {
-      return _buildPlaceholder(context, Icons.image, 'No image data available');
+Future<File> _createTempPdfFile() async {
+  try {
+    final bytes = base64Decode(media.content!.data!.valueString!);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/${media.displayTitle.replaceAll(' ', '_')}.pdf');
+    await file.writeAsBytes(bytes, flush: true);
+    if (!await file.exists()) {
+      throw Exception('Failed to create PDF file on disk');
     }
-
-    try {
-      final Uint8List imageBytes = base64Decode(media.content!.data!.valueString!);
-      return InteractiveViewer(
-        panEnabled: true,
-        boundaryMargin: const EdgeInsets.all(20),
-        minScale: 0.5,
-        maxScale: 4.0,
-        child: Image.memory(
-          imageBytes,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return _buildPlaceholder(context, Icons.broken_image, 'Failed to load image');
-          },
-        ),
-      );
-    } catch (e) {
-      return _buildPlaceholder(context, Icons.broken_image, 'Invalid image data');
-    }
+    return file;
+  } catch (e) {
+    debugPrint('Error creating temp PDF file: $e');
+    rethrow;
   }
-
-  Widget _buildFileViewer(BuildContext context) {
-    final contentType = media.content?.contentType?.valueString ?? 'unknown';
-    IconData icon;
-    String message;
-
-    switch (contentType.toLowerCase()) {
-      case 'application/pdf':
-        icon = Icons.picture_as_pdf;
-        message = 'PDF Document\nTap info for details';
-        break;
-      case 'video/mp4':
-      case 'video/avi':
-        icon = Icons.video_file;
-        message = 'Video File\nPlayback not supported in viewer';
-        break;
-      case 'audio/mp3':
-      case 'audio/wav':
-        icon = Icons.audio_file;
-        message = 'Audio File\nPlayback not supported in viewer';
-        break;
-      default:
-        icon = Icons.file_present;
-        message = 'File Preview\nNot available for this format';
-    }
-
-    return _buildPlaceholder(context, icon, message);
-  }
+}
 
   Widget _buildPlaceholder(BuildContext context, IconData icon, String message) {
     return Column(
@@ -183,71 +182,6 @@ class MediaFullscreenViewer extends StatelessWidget {
     );
   }
 
-  void _showLinkToEncounterDialog(BuildContext context) {
-    final encounterController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Link to Encounter'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Link this media resource to an encounter:'),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: encounterController,
-              decoration: const InputDecoration(
-                labelText: 'Encounter ID',
-                hintText: 'e.g., encounter-123',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (encounterController.text.trim().isNotEmpty) {
-                try {
-                  await GetIt.instance.get<MediaIntegrationService>().linkMediaToEncounter(
-                    mediaResourceId: media.resourceId,
-                    encounterId: encounterController.text.trim(),
-                    sourceId: media.sourceId,
-                  );
-                  
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Media linked to encounter successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to link media: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              }
-            },
-            child: const Text('Link'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -283,7 +217,70 @@ class MediaFullscreenViewer extends StatelessWidget {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
-  bool _isImage(String? contentType) {
-    return contentType?.startsWith('image/') ?? false;
+  void _showLinkToEncounterDialog(BuildContext context) {
+    final encounterController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Link to Encounter'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Link this media resource to an encounter:'),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: encounterController,
+              decoration: const InputDecoration(
+                labelText: 'Encounter ID',
+                hintText: 'e.g., encounter-123',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (encounterController.text.trim().isNotEmpty) {
+                try {
+                  await GetIt.instance
+                      .get<MediaIntegrationService>()
+                      .linkMediaToEncounter(
+                        mediaResourceId: media.resourceId,
+                        encounterId: encounterController.text.trim(),
+                        sourceId: media.sourceId,
+                      );
+
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Media linked to encounter successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to link media: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Link'),
+          ),
+        ],
+      ),
+    );
   }
 }
