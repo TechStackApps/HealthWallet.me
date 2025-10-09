@@ -22,7 +22,6 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
-    final routeObserver = getIt<AppRouteObserver>();
 
     return MultiBlocProvider(
       providers: [
@@ -60,7 +59,7 @@ class App extends StatelessWidget {
               themeMode:
                   state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               routerConfig:
-                  router.config(navigatorObservers: () => [routeObserver]),
+                  router.config(navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) => child!,

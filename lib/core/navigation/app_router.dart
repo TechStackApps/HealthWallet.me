@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/dashboard/presentation/dashboard_page.dart';
+import 'package:health_wallet/features/fhir_mapper/fhir_mapper.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 
 import 'package:health_wallet/features/onboarding/presentation/pages/onboarding_page.dart';
@@ -31,5 +32,13 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: RecordDetailsRoute.page),
         AutoRoute(page: SyncRoute.page),
         AutoRoute(page: PrivacyPolicyRoute.page),
+        AutoRoute(
+          page: FhirMapperRoute.page,
+          children: [
+            AutoRoute(page: ModelLoaderRoute.page, path: ''),
+            AutoRoute(page: TextInputRoute.page),
+            AutoRoute(page: MappingResultRoute.page),
+          ],
+        )
       ];
 }

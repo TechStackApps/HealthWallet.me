@@ -40,7 +40,7 @@ class _SplashPageState extends State<SplashPage> {
         await _userRepository.isBiometricAuthEnabled();
 
     if (!isBiometricAuthEnabled) {
-      context.appRouter.replace(const DashboardRoute());
+      context.appRouter.replace(const FhirMapperRoute());
       return;
     }
 
@@ -48,13 +48,13 @@ class _SplashPageState extends State<SplashPage> {
         await _biometricAuthService.isBiometricAvailable();
 
     if (!isBiometricAvailable) {
-      context.appRouter.replace(const DashboardRoute());
+      context.appRouter.replace(const FhirMapperRoute());
       return;
     }
 
     final didAuthenticate = await _biometricAuthService.authenticate();
     final targetRoute =
-        didAuthenticate ? const DashboardRoute() : const OnboardingRoute();
+        didAuthenticate ? const FhirMapperRoute() : const OnboardingRoute();
     context.appRouter.replace(targetRoute);
   }
 
