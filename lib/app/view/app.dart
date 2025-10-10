@@ -23,7 +23,7 @@ import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case
 class App extends StatelessWidget {
   App({super.key});
 
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> dialogNavigatorKey = GlobalKey<NavigatorState>();  // ADD THIS
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +69,14 @@ class App extends StatelessWidget {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) {
-                final wrapped = ShareIntentHandler(child: child!);
-                return DeepLinkHandler(
-                  navigatorKey: navKey,
-                  child: wrapped,
+                return Navigator(  // WRAP WITH NEW NAVIGATOR
+                  key: App.dialogNavigatorKey,  // USE NEW KEY
+                  onGenerateRoute: (_) => MaterialPageRoute(
+                    builder: (_) => DeepLinkHandler(
+                      navigatorKey: App.dialogNavigatorKey,  // PASS NEW KEY
+                      child: child!,
+                    ),
+                  ),
                 );
               },
             );
