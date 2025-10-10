@@ -64,6 +64,8 @@ dependencies:
   fhir_ips_export:
     git:
       url: ssh://git@git.techstackapps.com:2822/mobile/health-wallet/fhir-ips-export.git
+  receive_sharing_intent: ^1.8.1
+  app_links: ^6.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

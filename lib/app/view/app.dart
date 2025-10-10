@@ -5,6 +5,7 @@ import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
+import 'package:health_wallet/core/widgets/deep_link_handler.dart';
 
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
@@ -17,13 +18,16 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+  App({super.key});
+
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
     final routeObserver = getIt<AppRouteObserver>();
-
+    final navigatorKey = router.navigatorKey;
+    
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -57,13 +61,16 @@ class App extends StatelessWidget {
               title: 'HealthWallet.me',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode:
-                  state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              routerConfig:
-                  router.config(navigatorObservers: () => [routeObserver]),
+              themeMode: state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              routerConfig: router.config(navigatorObservers: () => [routeObserver]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              builder: (context, child) => child!,
+              builder: (context, child) {
+                return DeepLinkHandler(
+                  navigatorKey: navigatorKey,
+                  child: child!,
+                );
+              },
             );
           },
         ),
