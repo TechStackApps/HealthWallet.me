@@ -7,6 +7,7 @@ import 'package:health_wallet/core/navigation/observers/order_route_observer.dar
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/core/utils/patient_source_utils.dart';
 import 'package:health_wallet/core/widgets/share_intent_handler.dart';
+import 'package:health_wallet/core/widgets/deep_link_handler.dart';
 
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
@@ -20,21 +21,23 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'package:health_wallet/features/sync/domain/use_case/get_sources_use_case.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+  App({super.key});
+
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
+    final routeObserver = getIt<AppRouteObserver>();
+    // Use the router's navigatorKey if it exists; otherwise fall back to our own
+    final navKey = router.navigatorKey ?? navigatorKey;
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-            create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
-        BlocProvider(
-            create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
+        BlocProvider(create: (_) => getIt<UserBloc>()..add(const UserInitialised())),
+        BlocProvider(create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
         BlocProvider(create: (_) => getIt<RecordsBloc>()),
-        BlocProvider(
-            create: (_) => getIt<ScanBloc>()..add(const ScanInitialised())),
+        BlocProvider(create: (_) => getIt<ScanBloc>()..add(const ScanInitialised())),
         BlocProvider(
           create: (_) => HomeBloc(
             getIt<GetSourcesUseCase>(),
@@ -43,9 +46,7 @@ class App extends StatelessWidget {
             getIt<SyncRepository>(),
           )..add(const HomeInitialised()),
         ),
-        BlocProvider(
-          create: (_) => getIt<PatientBloc>()..add(const PatientInitialised()),
-        ),
+        BlocProvider(create: (_) => getIt<PatientBloc>()..add(const PatientInitialised())),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -61,15 +62,18 @@ class App extends StatelessWidget {
               title: 'HealthWallet.me',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode:
-                  state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              themeMode: state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               routerConfig: router.config(
-                  navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
+                navigatorObservers: () => [routeObserver],
+              ),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) {
-                // Wrap with ShareIntentHandler here, inside MaterialApp
-                return ShareIntentHandler(child: child!);
+                final wrapped = ShareIntentHandler(child: child!);
+                return DeepLinkHandler(
+                  navigatorKey: navKey,
+                  child: wrapped,
+                );
               },
             );
           },
@@ -100,8 +104,7 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (context.mounted) {
         final homeState = context.read<HomeBloc>().state;
-        final currentSource =
-            homeState.selectedSource.isEmpty ? 'All' : homeState.selectedSource;
+        final currentSource = homeState.selectedSource.isEmpty ? 'All' : homeState.selectedSource;
         PatientSourceUtils.reloadHomeWithPatientFilter(context, currentSource);
       }
     });
