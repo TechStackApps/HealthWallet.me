@@ -103,7 +103,6 @@ Future<void> _showImportDialog(BuildContext navigatorContext, DeepLinkData data)
 
   Future<void> _downloadAndImport(BuildContext context, DeepLinkData data) async {
     final navigatorContext = widget.navigatorKey.currentContext!;
-    // Show loading
     showDialog(
       context: navigatorContext,
       barrierDismissible: false,
@@ -187,7 +186,7 @@ class ImportDocumentDialog extends StatelessWidget {
         children: [
           Icon(Icons.medical_information, color: Colors.blue),
           SizedBox(width: 8),
-          Text('Import Medical Document'),
+          Text('Import Document'),
         ],
       ),
       content: Column(
