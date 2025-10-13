@@ -70,12 +70,6 @@ class SourceTypeService {
     String? patientName,
     required List<Source> availableSources,
   }) async {
-    // DEBUG: Log available sources
-    print(
-        '🔍 DEBUG: ensureWalletSourceForPatient called for patientId: $patientId');
-    print(
-        '🔍 DEBUG: Available sources: ${availableSources.map((s) => '${s.id}(${s.platformType})').toList()}');
-
     // Check if patient already has a patient-specific wallet source
     final existingWallet = availableSources
         .where(

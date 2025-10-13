@@ -45,7 +45,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
   @override
   void initState() {
     super.initState();
-    print("This is the encounter sheet");
     _searchController.addListener(_filterEncounters);
     _searchController.addListener(_updateSearchIcon);
     _loadEncounters();
@@ -83,9 +82,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
       final currentPatientId = selectedPatient?.resourceId;
       final currentSourceId = selectedPatient?.sourceId;
 
-      print(
-          '🔄 Loading encounters for patient: $currentPatientId, source: $currentSourceId');
-
       final recordsRepository = getIt<RecordsRepository>();
       final resources = await recordsRepository.getResources(
         resourceTypes: [FhirType.Encounter],
@@ -108,7 +104,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
       setState(() {
         _isLoading = false;
       });
-      print('Error loading encounters: $e');
     }
   }
 
@@ -128,8 +123,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
 
     if (_currentPatientId != currentPatientId ||
         _currentSourceId != currentSourceId) {
-      print(
-          '🔄 Patient/Source changed from $_currentPatientId/$_currentSourceId to $currentPatientId/$currentSourceId - reloading encounters');
       // Patient or source has changed, reload encounters
       _loadEncounters();
     }

@@ -262,26 +262,9 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         title: encounterName,
       );
 
-      logger
-          .d('✅ Encounter saved to database with sourceId: $effectiveSourceId');
-      logger.d('✅ Encounter ID: $encounterId');
-      logger.d('✅ Patient ID: $patientId');
-
       // Save documents as FHIR Media resources
       final mediaIntegrationService =
           GetIt.instance.get<MediaIntegrationService>();
-
-      _logDocumentPaths();
-
-      logger.d(
-          '🚀 Calling MediaIntegrationService.saveGroupedDocumentsAsFhirRecords');
-      logger.d('  - patientId: $patientId');
-      logger.d('  - encounterId: $encounterId');
-      logger.d('  - effectiveSourceId: $effectiveSourceId');
-      logger.d('  - encounterName: $encounterName');
-      logger.d('  - scannedImages: ${widget.scannedImages.length}');
-      logger.d('  - importedImages: ${widget.importedImages.length}');
-      logger.d('  - importedPdfs: ${widget.importedPdfs.length}');
 
       final resourceIds =
           await mediaIntegrationService.saveGroupedDocumentsAsFhirRecords(
@@ -294,30 +277,18 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         title: encounterName,
       );
 
-      logger.d(
-          'Created encounter: $encounterName with ${resourceIds.length} document groups');
-
       if (mounted) {
         _showSuccessAndNavigateBack(encounterName, resourceIds.length);
       }
     } catch (e) {
       setState(() => _isCreating = false);
-      logger.d('Error creating encounter: $e');
+      logger.e('Error creating encounter: $e');
 
       if (mounted) {
         _showSnackBar('Failed to create encounter: $e', Colors.red,
             duration: 4);
       }
     }
-  }
-
-  void _logDocumentPaths() {
-    logger.d('DEBUG - Scanned images: ${widget.scannedImages.length}');
-    logger.d('DEBUG - Imported images: ${widget.importedImages.length}');
-    logger.d('DEBUG - Imported PDFs: ${widget.importedPdfs.length}');
-    widget.scannedImages.forEach((path) => logger.d('  Scanned: $path'));
-    widget.importedImages.forEach((path) => logger.d('  Imported: $path'));
-    widget.importedPdfs.forEach((path) => logger.d('  PDF: $path'));
   }
 
   void _showSuccessAndNavigateBack(String encounterName, int groupCount) {
@@ -508,9 +479,6 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
 
       // Save to database
       await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-
-      logger.d(
-          '✅ Duplicated Patient ${patient.id} to wallet source $walletSourceId');
     } catch (e) {
       logger.e('❌ Failed to duplicate Patient to wallet source: $e');
     }

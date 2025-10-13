@@ -57,7 +57,6 @@ class OcrProcessingHelper {
         final convertedImages = await convertPdfsToImages(importedPdfs);
         allImages.addAll(convertedImages);
       } catch (e) {
-        print('Error converting PDFs for preview: $e');
         // Continue without PDF images
       }
     }

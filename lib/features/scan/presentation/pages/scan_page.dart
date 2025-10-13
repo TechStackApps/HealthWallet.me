@@ -292,14 +292,10 @@ class _ScanViewState extends State<ScanView> {
         availableSources: homeState.sources,
       );
 
-      // DEBUG: Check if wallet source was newly created
       final existingSources = homeState.sources.map((s) => s.id).toList();
       final isNewWalletSource = !existingSources.contains(walletSource.id);
 
       if (isNewWalletSource && patient != null) {
-        // DEBUG: Duplicate patient to new wallet source
-        print(
-            '🔄 DEBUG: Duplicating patient ${patient.id} to new wallet source ${walletSource.id}');
         await _duplicatePatientToWalletSource(patient, walletSource.id);
       }
 
@@ -499,8 +495,6 @@ class _ScanViewState extends State<ScanView> {
     );
   }
 
-  /// Duplicates a Patient resource to a new wallet source
-  /// This ensures the wallet source has a Patient resource, preventing it from being treated as orphan
   Future<void> _duplicatePatientToWalletSource(
       Patient? patient, String walletSourceId) async {
     if (patient == null) return;
@@ -538,15 +532,11 @@ class _ScanViewState extends State<ScanView> {
 
       // Save to database
       await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-
-      print(
-          '✅ DEBUG: Duplicated Patient ${patient.id} to wallet source $walletSourceId');
     } catch (e) {
-      print('❌ DEBUG: Failed to duplicate Patient to wallet source: $e');
+      // Error handling for patient duplication
     }
   }
 
-  /// Handle direct scan action from placeholder (no bottom sheet)
   Future<void> _handleDirectScan(BuildContext context) async {
     final cameraStatus = await Permission.camera.request();
 
@@ -564,7 +554,6 @@ class _ScanViewState extends State<ScanView> {
     }
   }
 
-  /// Handle direct import action from placeholder (no bottom sheet)
   Future<void> _handleDirectImport(BuildContext context) async {
     try {
       // Add a small delay to ensure any previous file operations are complete

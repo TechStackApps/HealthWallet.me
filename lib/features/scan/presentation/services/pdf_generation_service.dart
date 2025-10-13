@@ -9,7 +9,7 @@ import 'package:path/path.dart' as path;
 
 @injectable
 class PdfGenerationService {
-    Future<String> createPdfFromImages({
+  Future<String> createPdfFromImages({
     required List<String> imagePaths,
     required String fileName,
     String? title,
@@ -20,13 +20,12 @@ class PdfGenerationService {
 
     try {
       final pdf = pw.Document();
-      
+
       for (int i = 0; i < imagePaths.length; i++) {
         final imagePath = imagePaths[i];
         final file = File(imagePath);
-        
+
         if (!await file.exists()) {
-          print('Warning: Image file not found: $imagePath');
           continue;
         }
 
@@ -55,12 +54,11 @@ class PdfGenerationService {
       final tempDir = await getTemporaryDirectory();
       final pdfPath = path.join(tempDir.path, '$fileName.pdf');
       final pdfFile = File(pdfPath);
-      
+
       final pdfBytes = await pdf.save();
       await pdfFile.writeAsBytes(pdfBytes);
-      
+
       return pdfPath;
-      
     } catch (e) {
       throw Exception('Failed to create PDF from images: $e');
     }
@@ -72,7 +70,7 @@ class PdfGenerationService {
   }) async {
     try {
       final sourceFile = File(sourcePdfPath);
-      
+
       if (!await sourceFile.exists()) {
         throw Exception('Source PDF not found: $sourcePdfPath');
       }
@@ -80,11 +78,10 @@ class PdfGenerationService {
       final tempDir = await getTemporaryDirectory();
       final newPdfPath = path.join(tempDir.path, '$fileName.pdf');
       final newPdfFile = File(newPdfPath);
-      
+
       await sourceFile.copy(newPdfPath);
-      
+
       return newPdfPath;
-      
     } catch (e) {
       throw Exception('Failed to copy PDF: $e');
     }
@@ -92,11 +89,11 @@ class PdfGenerationService {
 
   Future<List<DocumentGroup>> groupAndConvertDocuments({
     required List<String> scannedImages,
-    required List<String> importedImages, 
+    required List<String> importedImages,
     required List<String> importedPdfs,
   }) async {
     final List<DocumentGroup> groups = [];
-    
+
     try {
       if (scannedImages.isNotEmpty) {
         final pdfPath = await createPdfFromImages(
@@ -104,7 +101,7 @@ class PdfGenerationService {
           fileName: 'scanned_documents_${_generateId()}',
           title: 'Scanned Documents',
         );
-        
+
         groups.add(DocumentGroup(
           type: DocumentGroupType.scannedImages,
           pdfPath: pdfPath,
@@ -119,7 +116,7 @@ class PdfGenerationService {
           fileName: 'imported_images_${_generateId()}',
           title: 'Imported Images',
         );
-        
+
         groups.add(DocumentGroup(
           type: DocumentGroupType.importedImages,
           pdfPath: pdfPath,
@@ -131,12 +128,12 @@ class PdfGenerationService {
       for (int i = 0; i < importedPdfs.length; i++) {
         final originalPdfPath = importedPdfs[i];
         final fileName = path.basenameWithoutExtension(originalPdfPath);
-        
+
         final pdfPath = await copyPdfWithNewName(
           sourcePdfPath: originalPdfPath,
           fileName: 'pdf_${_generateId()}_$fileName',
         );
-        
+
         groups.add(DocumentGroup(
           type: DocumentGroupType.importedPdf,
           pdfPath: pdfPath,
@@ -144,9 +141,8 @@ class PdfGenerationService {
           originalCount: 1,
         ));
       }
-      
+
       return groups;
-      
     } catch (e) {
       throw Exception('Failed to group and convert documents: $e');
     }

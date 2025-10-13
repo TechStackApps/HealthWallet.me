@@ -30,16 +30,6 @@ class MediaIntegrationService {
     String? title,
   }) async {
     try {
-      logger.d(
-          '🔍 MediaIntegrationService.saveGroupedDocumentsAsFhirRecords called');
-      logger.d('  - patientId: $patientId');
-      logger.d('  - encounterId: $encounterId');
-      logger.d('  - sourceId: $sourceId');
-      logger.d('  - title: $title');
-      logger.d('  - scannedImages: ${scannedImages.length}');
-      logger.d('  - importedImages: ${importedImages.length}');
-      logger.d('  - importedPdfs: ${importedPdfs.length}');
-
       final List<String> savedResourceIds = [];
 
       // Get or create patient record
@@ -47,8 +37,6 @@ class MediaIntegrationService {
         patientId: patientId,
         sourceId: sourceId,
       );
-
-      logger.d('📋 Patient record: ${patientRecord.id}');
 
       // Group and convert documents to PDFs
       final documentGroups =
@@ -58,12 +46,9 @@ class MediaIntegrationService {
         importedPdfs: importedPdfs,
       );
 
-      logger.d('📄 Document groups created: ${documentGroups.length}');
-
       // Create FHIR Media resource and FHIR-compliant attachment for each group
       for (int i = 0; i < documentGroups.length; i++) {
         final group = documentGroups[i];
-        logger.d('📄 Processing group $i: ${group.title}');
 
         // Create FHIR Media resource
         final fhirMedia = await _createFhirR4MediaFromPdf(
@@ -73,22 +58,12 @@ class MediaIntegrationService {
           title: group.title,
         );
 
-        logger.d('🏥 FHIR Media created for group $i');
-        logger.d('  - Media ID: ${fhirMedia.id?.valueString}');
-        logger.d(
-            '  - Encounter reference: ${fhirMedia.encounter?.reference?.valueString}');
-        logger.d(
-            '  - Subject reference: ${fhirMedia.subject?.reference?.valueString}');
-
         // Save FHIR Media resource to database
         final resourceId = await _saveFhirMediaToDatabase(
           fhirMedia: fhirMedia,
           sourceId: sourceId, // Use the provided wallet sourceId
           title: group.title,
         );
-
-        logger
-            .d('💾 FHIR Media saved to database with resourceId: $resourceId');
 
         // Create FHIR-compliant attachment
         final attachmentId = await _recordsRepository.addRecordAttachment(
@@ -108,12 +83,8 @@ class MediaIntegrationService {
           identifierUse: 'usual',
         );
 
-        logger.d('📎 FHIR-compliant attachment created with ID: $attachmentId');
         savedResourceIds.add(resourceId);
       }
-
-      logger.d(
-          '✅ All FHIR Media records and attachments saved successfully. Total: ${savedResourceIds.length}');
 
       return savedResourceIds;
     } catch (e) {
@@ -128,19 +99,12 @@ class MediaIntegrationService {
     String? encounterId,
     required String title,
   }) async {
-    logger.d('🏗️ Creating FHIR Media from PDF');
-    logger.d('  - pdfPath: $pdfPath');
-    logger.d('  - patientId: $patientId');
-    logger.d('  - encounterId: $encounterId');
-    logger.d('  - title: $title');
-
     final file = File(pdfPath);
     final bytes = await file.readAsBytes();
     final base64Data = base64Encode(bytes);
     final timestamp = DateTime.now();
 
     final mediaId = _generateId();
-    logger.d('  - Generated Media ID: $mediaId');
 
     final encounterReference = encounterId != null
         ? fhir_r4.Reference(
@@ -153,11 +117,6 @@ class MediaIntegrationService {
       reference: fhir_r4.FhirString('Patient/$patientId'),
       display: fhir_r4.FhirString('Patient $patientId'),
     );
-
-    logger.d(
-        '  - Encounter reference: ${encounterReference?.reference?.valueString}');
-    logger
-        .d('  - Subject reference: ${subjectReference.reference?.valueString}');
 
     return fhir_r4.Media(
       id: fhir_r4.FhirString(mediaId),

@@ -11,7 +11,6 @@ import 'package:health_wallet/features/scan/domain/models/fhir_media.dart';
 class FhirMediaService {
   static const String _fhirMediaDirectory = 'fhir_media';
 
-  /// Save scanned images as FHIR Media resources
   Future<List<FhirMedia>> saveScannedImagesAsFhirMedia({
     required List<String> imagePaths,
     required String patientId,
@@ -44,7 +43,6 @@ class FhirMediaService {
     }
   }
 
-  /// Save a single FHIR Media resource to local storage
   Future<void> _saveFhirMediaToStorage(FhirMedia media) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -65,7 +63,6 @@ class FhirMediaService {
     }
   }
 
-  /// Get all saved FHIR Media resources
   Future<List<FhirMedia>> getSavedFhirMedia() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -89,9 +86,7 @@ class FhirMediaService {
           final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
           final media = FhirMedia.fromJson(jsonData);
           mediaResources.add(media);
-        } catch (e) {
-          print('Failed to parse FHIR Media file: ${file.path}, error: $e');
-        }
+        } catch (e) {}
       }
 
       // Sort by creation date (newest first)
@@ -107,7 +102,6 @@ class FhirMediaService {
     }
   }
 
-  /// Get FHIR Media resources for a specific encounter
   Future<List<FhirMedia>> getFhirMediaForEncounter(String encounterId) async {
     final allMedia = await getSavedFhirMedia();
     return allMedia
@@ -116,7 +110,6 @@ class FhirMediaService {
         .toList();
   }
 
-  /// Get FHIR Media resources for a specific patient
   Future<List<FhirMedia>> getFhirMediaForPatient(String patientId) async {
     final allMedia = await getSavedFhirMedia();
     return allMedia
@@ -124,7 +117,6 @@ class FhirMediaService {
         .toList();
   }
 
-  /// Delete a FHIR Media resource
   Future<void> deleteFhirMedia(String mediaId) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
@@ -140,7 +132,6 @@ class FhirMediaService {
     }
   }
 
-  /// Update encounter reference for existing FHIR Media
   Future<void> attachFhirMediaToEncounter({
     required String mediaId,
     required String encounterId,

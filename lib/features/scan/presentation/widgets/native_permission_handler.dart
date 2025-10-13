@@ -9,7 +9,8 @@ class NativePermissionHandler {
   static Future<bool> checkCameraPermission() async {
     if (Platform.isIOS) {
       try {
-        final bool hasPermission = await _channel.invokeMethod('checkCameraPermission');
+        final bool hasPermission =
+            await _channel.invokeMethod('checkCameraPermission');
         return hasPermission;
       } on PlatformException catch (e) {
         return false;
@@ -22,7 +23,8 @@ class NativePermissionHandler {
   static Future<bool> requestCameraPermission() async {
     if (Platform.isIOS) {
       try {
-        final bool granted = await _channel.invokeMethod('requestCameraPermission');
+        final bool granted =
+            await _channel.invokeMethod('requestCameraPermission');
         return granted;
       } on PlatformException catch (e) {
         return false;
@@ -35,9 +37,7 @@ class NativePermissionHandler {
     if (Platform.isIOS) {
       try {
         await _channel.invokeMethod('openSettings');
-      } on PlatformException catch (e) {
-        print('Failed to open settings: ${e.message}');
-      }
+      } on PlatformException catch (e) {}
     }
   }
 }

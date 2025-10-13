@@ -242,13 +242,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       // Orphan sources = sources with resources but no Patient resources
       final orphanSourceIds = allSourceIds.difference(sourcesWithPatients);
 
-      // DEBUG: Log orphan sources
-      if (orphanSourceIds.isNotEmpty) {
-        print('🔍 DEBUG: Found orphan sources: $orphanSourceIds');
-        print('🔍 DEBUG: Sources with patients: $sourcesWithPatients');
-        print('🔍 DEBUG: All source IDs: $allSourceIds');
-      }
-
       if (orphanSourceIds.isEmpty) {
         return patientGroups; // No orphan sources, return as is
       }

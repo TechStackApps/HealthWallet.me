@@ -1,4 +1,3 @@
-// Updated scan bloc with PDF storage
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -134,7 +133,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         emit(state.copyWith(savedPdfPaths: updatedPdfs));
       }
     } catch (e) {
-      print('Failed to delete PDF: $e');
+      // Failed to delete PDF
     }
   }
 
@@ -146,7 +145,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       final savedPdfs = await _pdfStorageService.getSavedPdfs();
       emit(state.copyWith(savedPdfPaths: savedPdfs));
     } catch (e) {
-      print('Failed to load saved PDFs: $e');
+      // Failed to load saved PDFs
     }
   }
 
@@ -225,7 +224,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          print('Failed to delete scanned image $imagePath: $e');
+          // Failed to delete scanned image
         }
       }
 
@@ -237,7 +236,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          print('Failed to delete imported image $imagePath: $e');
+          // Failed to delete imported image
         }
       }
 
@@ -249,7 +248,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          print('Failed to delete PDF $pdfPath: $e');
+          // Failed to delete PDF
         }
       }
 

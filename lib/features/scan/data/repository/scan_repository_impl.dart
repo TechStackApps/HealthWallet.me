@@ -190,8 +190,6 @@ class ScanRepositoryImpl implements ScanRepository {
       final file = File(imagePath);
       if (await file.exists()) {
         await file.delete();
-      } else {
-        print('⚠️ Repository: File does not exist, cannot delete: $imagePath');
       }
     } catch (e) {
       throw Exception('Failed to delete document: $e');
@@ -220,10 +218,9 @@ class ScanRepositoryImpl implements ScanRepository {
             final file = File(imagePath);
             if (await file.exists()) {
               await file.delete();
-              print('✓ Deleted imported image: $imagePath');
             }
           } catch (e) {
-            print('⚠️ Failed to delete imported image: $imagePath - $e');
+            // Failed to delete imported image
           }
         }
       }
@@ -235,10 +232,9 @@ class ScanRepositoryImpl implements ScanRepository {
             final file = File(pdfPath);
             if (await file.exists()) {
               await file.delete();
-              print('✓ Deleted imported PDF: $pdfPath');
             }
           } catch (e) {
-            print('⚠️ Failed to delete imported PDF: $pdfPath - $e');
+            // Failed to delete imported PDF
           }
         }
       }

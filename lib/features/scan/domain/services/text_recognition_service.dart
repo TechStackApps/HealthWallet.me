@@ -18,7 +18,6 @@ class TextRecognitionService {
       );
       return recognizedText.text;
     } catch (e) {
-      print('Error recognizing text from image: $e');
       return 'Error recognizing text: ${e.toString()}';
     }
   }
@@ -32,7 +31,6 @@ class TextRecognitionService {
       );
       return recognizedText.text;
     } catch (e) {
-      print('Error recognizing text from XFile: $e');
       return 'Error recognizing text: ${e.toString()}';
     }
   }
@@ -40,53 +38,36 @@ class TextRecognitionService {
   /// Convert PDF to images and return the image file paths
   Future<List<String>> convertPdfToImages(String pdfPath) async {
     try {
-      print('Converting PDF to images: $pdfPath');
-
       // Step 1: Convert PDF to images using pdf_to_image_converter
       final converter = PdfImageConverter();
       await converter.openPdf(pdfPath);
-
-      print('PDF opened successfully. Pages: ${converter.pageCount}');
 
       List<String> imagePaths = [];
       final tempDir = await getTemporaryDirectory();
 
       // Step 2: Convert each page to image and save to temporary files
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
-        print('Converting page ${pageIndex + 1}/${converter.pageCount}');
-
         try {
           // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            print(
-              'Page ${pageIndex + 1} converted to image (${imageBytes.length} bytes)',
-            );
-
             // Save image bytes to temporary file
             final tempFile = File(
               '${tempDir.path}/pdf_page_${DateTime.now().millisecondsSinceEpoch}_${pageIndex + 1}.png',
             );
             await tempFile.writeAsBytes(imageBytes);
 
-            print('Saved page ${pageIndex + 1} image to: ${tempFile.path}');
             imagePaths.add(tempFile.path);
-          } else {
-            print('Failed to convert page ${pageIndex + 1} to image');
-          }
-        } catch (e) {
-          print('Error converting page ${pageIndex + 1}: $e');
-        }
+          } else {}
+        } catch (e) {}
       }
 
       // Clean up
       await converter.closePdf();
 
-      print('Successfully converted PDF to ${imagePaths.length} images');
       return imagePaths;
     } catch (e) {
-      print('Error converting PDF to images: $e');
       return [];
     }
   }
@@ -94,30 +75,20 @@ class TextRecognitionService {
   /// Convert PDF to images and extract text using Google ML Kit
   Future<String> extractTextFromPDF(String pdfPath) async {
     try {
-      print('Converting PDF to images: $pdfPath');
-
       // Step 1: Convert PDF to images using pdf_to_image_converter
       final converter = PdfImageConverter();
       await converter.openPdf(pdfPath);
-
-      print('PDF opened successfully. Pages: ${converter.pageCount}');
 
       String allText = '';
       final textRecognizer = TextRecognizer();
 
       // Step 2: Process each page as an image with Google ML Kit
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
-        print('Processing page ${pageIndex + 1}/${converter.pageCount}');
-
         try {
           // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            print(
-              'Page ${pageIndex + 1} converted to image (${imageBytes.length} bytes)',
-            );
-
             // Save image bytes to temporary file and use InputImage.fromFilePath
             final tempDir = await getTemporaryDirectory();
             final tempFile = File(
@@ -125,18 +96,12 @@ class TextRecognitionService {
             );
             await tempFile.writeAsBytes(imageBytes);
 
-            print('Saved page ${pageIndex + 1} image to: ${tempFile.path}');
-
             // Use InputImage.fromFilePath which is more reliable
             final inputImage = InputImage.fromFilePath(tempFile.path);
 
             final recognizedText = await textRecognizer.processImage(
               inputImage,
             );
-
-            print('ML Kit processing result for page ${pageIndex + 1}:');
-            print('- Text length: ${recognizedText.text.length}');
-            print('- Blocks count: ${recognizedText.blocks.length}');
 
             // Clean up temporary file
             if (await tempFile.exists()) {
@@ -147,17 +112,9 @@ class TextRecognitionService {
               allText += '--- Page ${pageIndex + 1} ---\n';
               allText += recognizedText.text;
               allText += '\n\n';
-              print(
-                'Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
-              );
-            } else {
-              print('No text found on page ${pageIndex + 1}');
-            }
-          } else {
-            print('Failed to convert page ${pageIndex + 1} to image');
-          }
+            } else {}
+          } else {}
         } catch (e) {
-          print('Error processing page ${pageIndex + 1}: $e');
           allText += '--- Page ${pageIndex + 1} (Error) ---\n';
           allText += 'Error processing this page: $e\n\n';
         }
@@ -209,7 +166,6 @@ This could mean:
 Try with a higher quality PDF or different document.''';
       }
     } catch (e) {
-      print('Error extracting text from PDF: $e');
       return '''PDF Text Extraction Error
 
 File Details:
@@ -230,29 +186,19 @@ Please try with a different PDF file.''';
   /// Extract text from PDF pages individually for page-by-page comparison
   Future<List<String>> extractTextFromPDFPages(String pdfPath) async {
     try {
-      print('Extracting text from PDF pages individually: $pdfPath');
-
       final converter = PdfImageConverter();
       await converter.openPdf(pdfPath);
-
-      print('PDF opened successfully. Pages: ${converter.pageCount}');
 
       List<String> pageTexts = [];
       final textRecognizer = TextRecognizer();
 
       // Process each page individually
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
-        print('Processing page ${pageIndex + 1}/${converter.pageCount}');
-
         try {
           // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            print(
-              'Page ${pageIndex + 1} converted to image (${imageBytes.length} bytes)',
-            );
-
             // Save image bytes to temporary file and use InputImage.fromFilePath
             final tempDir = await getTemporaryDirectory();
             final tempFile = File(
@@ -260,18 +206,12 @@ Please try with a different PDF file.''';
             );
             await tempFile.writeAsBytes(imageBytes);
 
-            print('Saved page ${pageIndex + 1} image to: ${tempFile.path}');
-
             // Use InputImage.fromFilePath which is more reliable
             final inputImage = InputImage.fromFilePath(tempFile.path);
 
             final recognizedText = await textRecognizer.processImage(
               inputImage,
             );
-
-            print('ML Kit processing result for page ${pageIndex + 1}:');
-            print('- Text length: ${recognizedText.text.length}');
-            print('- Blocks count: ${recognizedText.blocks.length}');
 
             // Clean up temporary file
             if (await tempFile.exists()) {
@@ -284,16 +224,10 @@ Please try with a different PDF file.''';
                   ? recognizedText.text
                   : 'No text found on this page',
             );
-
-            print(
-              'Extracted ${recognizedText.text.length} characters from page ${pageIndex + 1}',
-            );
           } else {
-            print('Failed to convert page ${pageIndex + 1} to image');
             pageTexts.add('Failed to process this page');
           }
         } catch (e) {
-          print('Error processing page ${pageIndex + 1}: $e');
           pageTexts.add('Error processing this page: $e');
         }
       }
@@ -302,10 +236,8 @@ Please try with a different PDF file.''';
       await converter.closePdf();
       await textRecognizer.close();
 
-      print('Extracted text from ${pageTexts.length} pages');
       return pageTexts;
     } catch (e) {
-      print('Error extracting text from PDF pages: $e');
       return ['Error processing PDF: ${e.toString()}'];
     }
   }

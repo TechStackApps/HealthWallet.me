@@ -212,6 +212,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
             db.SourcesCompanion(
               id: Value(sourceId),
               labelSource: Value(newLabel.isEmpty ? null : newLabel),
+              updatedAt: Value(DateTime.now()),
             ),
           );
     } catch (e) {
@@ -223,6 +224,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   @override
   Future<void> createWalletSource() async {
     try {
+      final now = DateTime.now();
       // Create Wallet source in sources table
       await _appDatabase.into(_appDatabase.sources).insert(
             db.SourcesCompanion.insert(
@@ -230,6 +232,8 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               platformName: Value('wallet'),
               labelSource: Value('Wallet'),
               platformType: const Value('wallet'), // WALLET source type
+              createdAt: Value(now),
+              updatedAt: Value(now),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -242,6 +246,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   /// Create demo_data source in the database with proper name and label
   Future<void> createDemoDataSource() async {
     try {
+      final now = DateTime.now();
       // Create demo_data source in sources table with correct name for display logic
       await _appDatabase.into(_appDatabase.sources).insert(
             db.SourcesCompanion.insert(
@@ -250,6 +255,8 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               labelSource: Value('Demo Data'), // Custom display label
               platformType:
                   const Value('wallet'), // Demo data source is wallet type
+              createdAt: Value(now),
+              updatedAt: Value(now),
             ),
             mode: InsertMode.insertOrReplace,
           );
