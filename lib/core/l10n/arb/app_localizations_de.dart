@@ -618,5 +618,5 @@ class AppLocalizationsDe extends AppLocalizations {
       'Demo-Daten wurden erfolgreich geladen. Sie werden zur Startseite weitergeleitet.';
 
   @override
-  String get documentScanTitle => 'Scan Document';
+  String get documentScanTitle => 'Scan';
 }

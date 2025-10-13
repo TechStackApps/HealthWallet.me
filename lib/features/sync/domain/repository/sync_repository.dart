@@ -13,4 +13,5 @@ abstract class SyncRepository {
   Future<void> createWalletSource();
   Future<void> createDemoDataSource();
   Future<void> deleteSource(String sourceId);
+  Future<void> cacheSources(List<Source> sources);
 }

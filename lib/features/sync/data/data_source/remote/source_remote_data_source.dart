@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/sync/data/dto/source_dto.dart';
 import 'package:health_wallet/features/sync/data/mappers/source_mapper.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
@@ -36,6 +37,7 @@ class SourceRemoteDataSource {
 
       return [];
     } catch (e) {
+      logger.e('Error fetching sources: $e');
       return [];
     }
   }

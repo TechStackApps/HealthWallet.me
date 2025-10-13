@@ -74,58 +74,12 @@ class FhirResourceDatasource {
     return null;
   }
 
-  Future<int> addRecordAttachment({
-    required String resourceId,
-    required String filePath,
-  }) async {
-    return db.recordAttachments
-        .insertOnConflictUpdate(RecordAttachmentsCompanion.insert(
-      resourceId: resourceId,
-      filePath: filePath,
-      timestamp: DateTime.now(),
-    ));
-  }
+  // Legacy methods - commented out until migration is implemented
+  // These methods used the old structure with resourceId
+  // New methods should use patientRecordId instead
 
-  Future<List<RecordAttachmentDto>> getRecordAttachments(
-      String resourceId) async {
-    return (db.select(db.recordAttachments)
-          ..where((f) => f.resourceId.equals(resourceId))
-          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
-        .get();
-  }
-
-  Future<int> deleteRecordAttachment(int id) async {
-    return (db.delete(db.recordAttachments)..where((f) => f.id.equals(id)))
-        .go();
-  }
-
-  Future<int> addRecordNote({
-    required String resourceId,
-    required String content,
-  }) async {
-    return db.recordNotes.insertOnConflictUpdate(RecordNotesCompanion.insert(
-      resourceId: resourceId,
-      content: content,
-      timestamp: DateTime.now(),
-    ));
-  }
-
-  Future<List<RecordNoteDto>> getRecordNotes(String resourceId) async {
-    return (db.select(db.recordNotes)
-          ..where((f) => f.resourceId.equals(resourceId))
-          ..orderBy([(f) => OrderingTerm.desc(f.timestamp)]))
-        .get();
-  }
-
-  Future<int> updateRecordNote(
-      {required int id, required String content}) async {
-    return (db.update(db.recordNotes)..where((f) => f.id.equals(id)))
-        .write(RecordNotesCompanion(content: Value(content)));
-  }
-
-  Future<int> deleteRecordNote(int id) async {
-    return (db.delete(db.recordNotes)..where((f) => f.id.equals(id))).go();
-  }
+  // TODO: Implement legacy methods that work with old data during migration
+  // or remove if not needed
 
   Future<int> insertResource(FhirResourceLocalDto resource) async {
     return db.fhirResource.insertOnConflictUpdate(
@@ -137,8 +91,12 @@ class FhirResourceDatasource {
         title: Value(resource.title),
         date: Value(resource.date),
         resourceRaw: resource.resourceRaw,
-        encounterId: Value(resource.encounterId),
-        subjectId: Value(resource.subjectId),
+        encounterId: resource.encounterId != null
+            ? Value(resource.encounterId)
+            : const Value.absent(),
+        subjectId: resource.subjectId != null
+            ? Value(resource.subjectId)
+            : const Value.absent(),
       ),
     );
   }

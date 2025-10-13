@@ -8,7 +8,6 @@ import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as entity;
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:injectable/injectable.dart';
 import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,9 +71,10 @@ class SyncRepositoryImpl implements SyncRepository {
               .any((backendSource) => backendSource.id == localSource.id)) {
             mergedSources.add(entity.Source(
               id: localSource.id,
-              name: localSource.name,
+              platformName: localSource.platformName,
               logo: localSource.logo,
               labelSource: localSource.labelSource,
+              platformType: localSource.platformType,
             ));
           }
         }
@@ -94,9 +94,10 @@ class SyncRepositoryImpl implements SyncRepository {
         .map(
           (e) => entity.Source(
             id: e.id,
-            name: e.name,
+            platformName: e.platformName,
             logo: e.logo,
             labelSource: e.labelSource,
+            platformType: e.platformType,
           ),
         )
         .toList();
@@ -163,6 +164,11 @@ class SyncRepositoryImpl implements SyncRepository {
   @override
   Future<void> deleteSource(String sourceId) async {
     return _localDataSource.deleteSource(sourceId);
+  }
+
+  @override
+  Future<void> cacheSources(List<entity.Source> sources) async {
+    return _localDataSource.cacheSources(sources);
   }
 
   Future<void> clearToken() async {

@@ -49,7 +49,7 @@ class _SourceLabelEditDialogState extends State<SourceLabelEditDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: widget.source.labelSource ?? widget.source.name ?? '',
+      text: widget.source.labelSource ?? widget.source.platformName ?? '',
     );
   }
 

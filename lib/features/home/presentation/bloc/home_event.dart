@@ -11,8 +11,10 @@ class HomeInitialised extends HomeEvent with _$HomeInitialised {
 
 @freezed
 class HomeSourceChanged extends HomeEvent with _$HomeSourceChanged {
-  const factory HomeSourceChanged(String source,
-      {List<String>? patientSourceIds}) = _HomeSourceChanged;
+  const factory HomeSourceChanged(
+    String source, {
+    List<String>? patientSourceIds,
+  }) = _HomeSourceChanged;
 }
 
 @freezed
@@ -43,7 +45,8 @@ class HomeVitalsFiltersChanged extends HomeEvent
 class HomeRecordsFiltersChanged extends HomeEvent
     with _$HomeRecordsFiltersChanged {
   const factory HomeRecordsFiltersChanged(
-      Map<HomeRecordsCategory, bool> filters) = _HomeRecordsFiltersChanged;
+    Map<HomeRecordsCategory, bool> filters,
+  ) = _HomeRecordsFiltersChanged;
 }
 
 @freezed

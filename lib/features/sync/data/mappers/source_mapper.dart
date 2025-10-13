@@ -11,15 +11,9 @@ abstract class SourceMapper {
 class SourceMapperImpl implements SourceMapper {
   @override
   Source mapToEntity(SourceDto dto) {
-    final platformType = dto.platformType;
-    final display = dto.display;
-
-    String? labelSource = display?.isNotEmpty == true ? display : null;
-    if (platformType == 'fasten') {
-      labelSource ??= 'Fasten Health';
-    } else if (platformType == 'manual') {
-      labelSource ??= 'Manual Entry';
-    }
+    String platformName = _generatePlatformName(dto.platformType ?? 'fasten');
+    String? labelSource = platformName;
+    String platformType = 'fasten';
 
     DateTime? createdAt;
     DateTime? updatedAt;
@@ -38,9 +32,10 @@ class SourceMapperImpl implements SourceMapper {
 
     return Source(
       id: dto.id,
-      name: platformType,
+      platformName: platformName,
       logo: dto.logo,
       labelSource: labelSource,
+      platformType: platformType,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -49,5 +44,22 @@ class SourceMapperImpl implements SourceMapper {
   @override
   List<Source> mapToEntities(List<SourceDto> dtos) {
     return dtos.map(mapToEntity).toList();
+  }
+
+  String _generatePlatformName(String platformType) {
+    switch (platformType) {
+      case 'manual':
+        return 'Manual Entry';
+      case 'fasten':
+        return 'Fasten';
+      case 'epic':
+        return 'Epic';
+      case 'cerner':
+        return 'Cerner';
+      case 'allscripts':
+        return 'Allscripts';
+      default:
+        return 'Fasten';
+    }
   }
 }

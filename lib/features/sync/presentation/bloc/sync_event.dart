@@ -11,9 +11,7 @@ class SyncInitialised extends SyncEvent with _$SyncInitialised {
 
 @freezed
 class SyncData extends SyncEvent with _$SyncData {
-  const factory SyncData({
-    required String qrData,
-  }) = _SyncData;
+  const factory SyncData({required String qrData}) = _SyncData;
 }
 
 @freezed

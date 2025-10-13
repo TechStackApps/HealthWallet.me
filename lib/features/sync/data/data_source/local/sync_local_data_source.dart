@@ -42,8 +42,10 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         title: Value(e.title),
         date: Value(e.date),
         resourceRaw: jsonEncode(e.resourceRaw),
-        encounterId: Value(e.encounterId),
-        subjectId: Value(e.subjectId),
+        encounterId:
+            e.encounterId != null ? Value(e.encounterId) : const Value.absent(),
+        subjectId:
+            e.subjectId != null ? Value(e.subjectId) : const Value.absent(),
       );
     }).toList();
     await _appDatabase.batch((batch) {
@@ -75,9 +77,10 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
     final sourceEntries = sources.map((e) {
       return db.SourcesCompanion.insert(
         id: e.id,
-        name: Value(e.name),
+        platformName: Value(e.platformName),
         logo: Value(e.logo),
         labelSource: Value(e.labelSource),
+        platformType: Value(e.platformType),
         createdAt: Value(e.createdAt),
         updatedAt: Value(e.updatedAt),
       );
@@ -136,7 +139,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
 
         return domain.Source(
           id: sourceId,
-          name: _getSourceName(sourceId),
+          platformName: _getSourcePlatformName(sourceId),
           logo: null,
           labelSource: sourceLabelMap[sourceId] ??
               (sourceId == 'demo_data'
@@ -144,6 +147,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
                   : sourceId == 'wallet'
                       ? 'Wallet'
                       : null),
+          platformType: _getSourcePlatformType(sourceId, dbSource),
           createdAt: dbSource?.createdAt,
           updatedAt: dbSource?.updatedAt,
         );
@@ -153,14 +157,36 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
     return sources;
   }
 
-  String? _getSourceName(String sourceId) {
+  String? _getSourcePlatformName(String sourceId) {
     switch (sourceId) {
       case 'wallet':
-        return 'Wallet';
+        return 'wallet';
       case 'demo_data':
-        return 'manual';
+        return 'wallet-manual';
       default:
-        return null;
+        // For external sources, use the sourceId as platformName
+        return sourceId;
+    }
+  }
+
+  /// Determines the platform type based on source ID and database record
+  /// Following the clean architecture:
+  /// - WALLET sources (wallet, demo_data) are 'wallet' type
+  /// - All other sources (from Fasten API) are 'fasten' type
+  String _getSourcePlatformType(String sourceId, db.Source? dbSource) {
+    // Check if database has explicit platformType
+    if (dbSource?.platformType != null) {
+      return dbSource!.platformType;
+    }
+
+    // Fallback to source ID-based logic
+    switch (sourceId) {
+      case 'wallet':
+      case 'demo_data':
+        return 'wallet'; // WALLET sources
+      default:
+        // All other sources (from Fasten API) are fasten type
+        return 'fasten';
     }
   }
 
@@ -201,8 +227,9 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
       await _appDatabase.into(_appDatabase.sources).insert(
             db.SourcesCompanion.insert(
               id: 'wallet',
-              name: Value('Wallet'),
+              platformName: Value('wallet'),
               labelSource: Value('Wallet'),
+              platformType: const Value('wallet'), // WALLET source type
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -219,9 +246,10 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
       await _appDatabase.into(_appDatabase.sources).insert(
             db.SourcesCompanion.insert(
               id: 'demo_data',
-              name: Value(
-                  'manual'), // This will display as "Uploaded [date]" in the UI
+              platformName: Value('wallet-manual'), // Platform name
               labelSource: Value('Demo Data'), // Custom display label
+              platformType:
+                  const Value('wallet'), // Demo data source is wallet type
             ),
             mode: InsertMode.insertOrReplace,
           );

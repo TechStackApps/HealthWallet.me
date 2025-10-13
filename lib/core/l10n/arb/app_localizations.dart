@@ -1219,7 +1219,7 @@ abstract class AppLocalizations {
   /// No description provided for @documentScanTitle.
   ///
   /// In en, this message translates to:
-  /// **'Scan Document'**
+  /// **'Scan'**
   String get documentScanTitle;
 }
 

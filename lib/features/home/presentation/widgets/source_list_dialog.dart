@@ -149,7 +149,7 @@ class _SourceListDialogState extends State<SourceListDialog> {
                           const EdgeInsets.symmetric(vertical: Insets.small),
                       child: Row(
                         children: [
-                          // Source icon
+                          // Source icon with writable indicator
                           Container(
                             width: 32,
                             height: 32,
@@ -157,14 +157,36 @@ class _SourceListDialogState extends State<SourceListDialog> {
                               color: Colors.transparent,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Icon(
-                              isWallet
-                                  ? Icons.account_balance_wallet
-                                  : Icons.source,
-                              size: 16,
-                              color: isSelected
-                                  ? context.colorScheme.primary
-                                  : iconColor,
+                            child: Stack(
+                              children: [
+                                Icon(
+                                  isWallet
+                                      ? Icons.account_balance_wallet
+                                      : Icons.source,
+                                  size: 16,
+                                  color: isSelected
+                                      ? context.colorScheme.primary
+                                      : iconColor,
+                                ),
+                                // Writable indicator (green dot for wallet sources)
+                                if (source.platformType == 'wallet')
+                                  Positioned(
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: context.colorScheme.surface,
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: Insets.small),
@@ -186,7 +208,7 @@ class _SourceListDialogState extends State<SourceListDialog> {
                                   ),
                                 ),
                                 // Show upload date for manual sources
-                                if (source.name == 'manual' &&
+                                if (source.platformName == 'wallet-manual' &&
                                     source.createdAt != null)
                                   Text(
                                     'Uploaded ${DateFormatUtils.humanReadable(source.createdAt)}',
@@ -196,6 +218,20 @@ class _SourceListDialogState extends State<SourceListDialog> {
                                           : AppColors.textSecondary,
                                     ),
                                   ),
+                                // Show platform type status (skip for "All" option)
+                                if (source.id != 'All' &&
+                                    source.platformType != 'all')
+                                  Text(
+                                    source.platformType == 'wallet'
+                                        ? 'Writable'
+                                        : 'Read-only',
+                                    style: AppTextStyle.bodySmall.copyWith(
+                                      color: source.platformType == 'wallet'
+                                          ? Colors.green
+                                          : Colors.orange,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -203,10 +239,12 @@ class _SourceListDialogState extends State<SourceListDialog> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Edit button
+                              // Edit button - only show for wallet sources (exclude "All" option)
                               if (widget.onSourceEdit != null &&
+                                  source.platformType == 'wallet' &&
                                   !isWallet &&
-                                  !isAll)
+                                  !isAll &&
+                                  source.platformType != 'all')
                                 Padding(
                                   padding: const EdgeInsets.all(6),
                                   child: GestureDetector(
@@ -220,10 +258,12 @@ class _SourceListDialogState extends State<SourceListDialog> {
                                     ),
                                   ),
                                 ),
-                              // Delete button
+                              // Delete button - only show for wallet sources (exclude "All" option)
                               if (widget.onSourceDelete != null &&
+                                  source.platformType == 'wallet' &&
                                   !isWallet &&
-                                  !isAll) ...[
+                                  !isAll &&
+                                  source.platformType != 'all') ...[
                                 const SizedBox(width: 16),
                                 Padding(
                                   padding: const EdgeInsets.all(6),
@@ -284,8 +324,8 @@ class _SourceListDialogState extends State<SourceListDialog> {
     if (source.labelSource?.isNotEmpty == true) {
       return source.labelSource!;
     }
-    if (source.name?.isNotEmpty == true) {
-      return source.name!;
+    if (source.platformName?.isNotEmpty == true) {
+      return source.platformName!;
     }
     // If source ID is too long, don't display it
     if (source.id.length > 20) {

@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -90,10 +90,8 @@ class Encounter with _$Encounter implements IFhirResource {
         partOf: fhirEncounter.partOf,
       );
     } catch (e) {
-      // If parsing fails, create a minimal Encounter with available data
-      // This allows the resource to be stored and displayed even if FHIR parsing fails
-      print(
-          'Warning: Failed to parse Encounter ${data.id}, creating minimal entity: $e');
+      logger.e(
+          'Failed to parse Encounter ${data.id}, creating minimal entity: $e');
       return Encounter(
         id: data.id,
         sourceId: data.sourceId ?? '',

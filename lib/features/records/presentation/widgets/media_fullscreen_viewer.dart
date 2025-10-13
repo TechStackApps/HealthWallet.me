@@ -3,8 +3,9 @@ import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:health_wallet/features/records/domain/entity/entity.dart' as entities;
-import 'package:health_wallet/features/document_scanner/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/records/domain/entity/entity.dart'
+    as entities;
+import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -66,9 +67,11 @@ class MediaFullscreenViewer extends StatelessWidget {
   }
 
   Widget _buildPdfViewer(BuildContext context) {
-    if (media.content?.contentType?.valueString?.toLowerCase() != 'application/pdf' ||
+    if (media.content?.contentType?.valueString?.toLowerCase() !=
+            'application/pdf' ||
         media.content?.data?.valueString == null) {
-      return _buildPlaceholder(context, Icons.picture_as_pdf, 'No PDF data available');
+      return _buildPlaceholder(
+          context, Icons.picture_as_pdf, 'No PDF data available');
     }
     return FutureBuilder<File>(
       future: _createTempPdfFile(),
@@ -98,9 +101,9 @@ class MediaFullscreenViewer extends StatelessWidget {
                 }
               },
             );
-
           } else {
-            return _buildPlaceholder(context, Icons.picture_as_pdf, 'Failed to load PDF document');
+            return _buildPlaceholder(
+                context, Icons.picture_as_pdf, 'Failed to load PDF document');
           }
         } else {
           return const Center(child: CircularProgressIndicator());
@@ -109,23 +112,25 @@ class MediaFullscreenViewer extends StatelessWidget {
     );
   }
 
-Future<File> _createTempPdfFile() async {
-  try {
-    final bytes = base64Decode(media.content!.data!.valueString!);
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/${media.displayTitle.replaceAll(' ', '_')}.pdf');
-    await file.writeAsBytes(bytes, flush: true);
-    if (!await file.exists()) {
-      throw Exception('Failed to create PDF file on disk');
+  Future<File> _createTempPdfFile() async {
+    try {
+      final bytes = base64Decode(media.content!.data!.valueString!);
+      final dir = await getTemporaryDirectory();
+      final file =
+          File('${dir.path}/${media.displayTitle.replaceAll(' ', '_')}.pdf');
+      await file.writeAsBytes(bytes, flush: true);
+      if (!await file.exists()) {
+        throw Exception('Failed to create PDF file on disk');
+      }
+      return file;
+    } catch (e) {
+      debugPrint('Error creating temp PDF file: $e');
+      rethrow;
     }
-    return file;
-  } catch (e) {
-    debugPrint('Error creating temp PDF file: $e');
-    rethrow;
   }
-}
 
-  Widget _buildPlaceholder(BuildContext context, IconData icon, String message) {
+  Widget _buildPlaceholder(
+      BuildContext context, IconData icon, String message) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -156,15 +161,20 @@ Future<File> _createTempPdfFile() async {
             children: [
               _buildInfoRow('Title:', media.displayTitle),
               if (media.content?.contentType?.valueString != null)
-                _buildInfoRow('Type:', media.content!.contentType!.valueString!),
+                _buildInfoRow(
+                    'Type:', media.content!.contentType!.valueString!),
               if (media.statusDisplay.isNotEmpty)
                 _buildInfoRow('Status:', media.statusDisplay),
               if (media.subject?.display?.valueString != null)
                 _buildInfoRow('Patient:', media.subject!.display!.valueString!),
               if (media.encounter?.display?.valueString != null)
-                _buildInfoRow('Encounter:', media.encounter!.display!.valueString!),
+                _buildInfoRow(
+                    'Encounter:', media.encounter!.display!.valueString!),
               if (media.content?.size?.valueString != null)
-                _buildInfoRow('File Size:', _formatFileSize(_parseFileSize(media.content!.size!.valueString!))),
+                _buildInfoRow(
+                    'File Size:',
+                    _formatFileSize(
+                        _parseFileSize(media.content!.size!.valueString!))),
               if (media.date != null)
                 _buildInfoRow('Created:', media.date!.toString().split(' ')[0]),
               _buildInfoRow('Resource ID:', media.resourceId),
