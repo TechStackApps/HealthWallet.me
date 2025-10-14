@@ -12,11 +12,13 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
+// incoming additions
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
   final int initialPage;
-
   const DashboardPage({
     super.key,
     @queryParam this.initialPage = 0,
@@ -37,6 +39,18 @@ class _DashboardPageState extends State<DashboardPage> {
       initialPage: widget.initialPage,
     );
     _navigationController.currentPageNotifier.addListener(_onPageChanged);
+
+    // Adopt incoming deep link file check to jump to Scan tab after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForDeepLinkFile();
+    });
+  }
+
+  void _checkForDeepLinkFile() {
+    if (DeepLinkFileCache.instance.hasFile()) {
+      // Jump to Scan tab (index 2) using your controller to keep logic unified
+      _navigationController.jumpToPage(2);
+    }
   }
 
   void _onPageChanged() {
@@ -67,9 +81,36 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return current.shouldShowTutorial && !previous.shouldShowTutorial;
+        // Combine: your original tutorial trigger and incoming demoDataConfirmed/onboarding flow
+        final incomingTrigger = current.demoDataConfirmed && !current.hasSyncedData;
+        final yourTrigger = current.shouldShowTutorial && !previous.shouldShowTutorial;
+        return incomingTrigger || yourTrigger;
       },
       listener: (context, syncState) async {
+        // Incoming behavior: if demo data confirmed and onboarding not shown, animate to page 0 then trigger tutorial
+        if (syncState.demoDataConfirmed && !syncState.hasSyncedData) {
+          final prefs = await SharedPreferences.getInstance();
+          final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
+
+          if (!onboardingShown) {
+            _navigationController.pageController.animateToPage(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+            );
+
+            Future.delayed(const Duration(milliseconds: 400), () {
+              if (mounted && context.mounted) {
+                try {
+                  context.read<SyncBloc>().add(const TriggerTutorial());
+                } catch (_) {}
+              }
+            });
+            return;
+          }
+        }
+
+        // Your existing tutorial trigger behavior remains
         if (syncState.shouldShowTutorial) {
           _navigationController.navigateToPage(0);
         }
@@ -94,6 +135,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       pageController: _navigationController.pageController,
                     );
                   case 2:
+                    // Keep your ScanPage API that expects navigationController
                     return ScanPage(
                       navigationController: _navigationController,
                     );
@@ -136,8 +178,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   boxShadow: context.isDarkMode
                                       ? [
                                           BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.05),
+                                            color: Colors.black.withOpacity(0.05),
                                             blurRadius: 8,
                                             spreadRadius: 0,
                                           ),
