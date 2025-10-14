@@ -1,5 +1,3 @@
-// health_wallet/features/document_scanner/domain/services/media_integration_service.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
@@ -26,19 +24,17 @@ class MediaIntegrationService {
     required List<String> importedPdfs,
     required String patientId,
     String? encounterId,
-    required String sourceId, // Now required - must be a valid wallet sourceId
+    required String sourceId,
     String? title,
   }) async {
     try {
       final List<String> savedResourceIds = [];
 
-      // Get or create patient record
       final patientRecord = await _recordsRepository.getOrCreatePatientRecord(
         patientId: patientId,
         sourceId: sourceId,
       );
 
-      // Group and convert documents to PDFs
       final documentGroups =
           await _pdfGenerationService.groupAndConvertDocuments(
         scannedImages: scannedImages,
@@ -46,11 +42,9 @@ class MediaIntegrationService {
         importedPdfs: importedPdfs,
       );
 
-      // Create FHIR Media resource and FHIR-compliant attachment for each group
       for (int i = 0; i < documentGroups.length; i++) {
         final group = documentGroups[i];
 
-        // Create FHIR Media resource
         final fhirMedia = await _createFhirR4MediaFromPdf(
           pdfPath: group.pdfPath,
           patientId: patientId,
@@ -58,14 +52,12 @@ class MediaIntegrationService {
           title: group.title,
         );
 
-        // Save FHIR Media resource to database
         final resourceId = await _saveFhirMediaToDatabase(
           fhirMedia: fhirMedia,
-          sourceId: sourceId, // Use the provided wallet sourceId
+          sourceId: sourceId,
           title: group.title,
         );
 
-        // Create FHIR-compliant attachment
         final attachmentId = await _recordsRepository.addRecordAttachment(
           patientRecordId: patientRecord.id,
           mediaId: fhirMedia.id!.valueString!,
@@ -77,7 +69,7 @@ class MediaIntegrationService {
           encounterReference: fhirMedia.encounter?.reference?.valueString,
           mediaType: 'document',
           mediaSubtype: 'medical-document',
-          identifierSystem: 'http://health-wallet.app/media-id',
+          identifierSystem: 'http://healthwallet.me/media-id',
           identifierValue:
               fhirMedia.identifier?.first.value?.valueString ?? _generateId(),
           identifierUse: 'usual',
@@ -124,8 +116,7 @@ class MediaIntegrationService {
       type: fhir_r4.CodeableConcept(
         coding: [
           fhir_r4.Coding(
-            system: fhir_r4.FhirUri(
-                'http://terminology.hl7.org/CodeSystem/media-type'),
+            system: fhir_r4.FhirUri('http://loinc.org'),
             code: fhir_r4.FhirCode('document'),
             display: fhir_r4.FhirString('Document'),
           ),
@@ -143,7 +134,7 @@ class MediaIntegrationService {
       ),
       identifier: [
         fhir_r4.Identifier(
-          system: fhir_r4.FhirUri('http://health-wallet.app/media-id'),
+          system: fhir_r4.FhirUri('http://healthwallet.me/media-id'),
           value: fhir_r4.FhirString(_generateId()),
           use: fhir_r4.IdentifierUse.usual,
         ),
@@ -151,7 +142,6 @@ class MediaIntegrationService {
     );
   }
 
-  /// Save FHIR Media resource to the local database
   Future<String> _saveFhirMediaToDatabase({
     required fhir_r4.Media fhirMedia,
     required String sourceId,
@@ -160,7 +150,6 @@ class MediaIntegrationService {
     final resourceJson = fhirMedia.toJson();
     final resourceId = fhirMedia.id!.valueString!;
 
-    // Extract encounterId and subjectId from FHIR references
     String? encounterId;
     String? subjectId;
 
@@ -191,10 +180,8 @@ class MediaIntegrationService {
     return resourceId;
   }
 
-  /// Extract date from FHIR Media resource
   DateTime? _extractDateFromMedia(fhir_r4.Media media) {
     if (media.createdX != null) {
-      // Handle different types of createdX
       if (media.createdX is fhir_r4.FhirDateTime) {
         try {
           final dateTime = media.createdX as fhir_r4.FhirDateTime;
@@ -203,12 +190,10 @@ class MediaIntegrationService {
           return null;
         }
       }
-      // Add other cases if needed (like Period)
     }
-    return DateTime.now(); // Fallback to current time
+    return DateTime.now();
   }
 
-  /// Get all Media resources from database
   Future<List<FhirResourceLocalDto>> getAllMediaResources({
     String? sourceId,
   }) async {
@@ -222,7 +207,6 @@ class MediaIntegrationService {
     return query.get();
   }
 
-  /// Get Media resources for a specific encounter
   Future<List<FhirResourceLocalDto>> getMediaResourcesForEncounter({
     required String encounterId,
     String? sourceId,
@@ -243,7 +227,6 @@ class MediaIntegrationService {
     }).toList();
   }
 
-  /// Update Media resource to reference an encounter
   Future<void> linkMediaToEncounter({
     required String mediaResourceId,
     required String encounterId,
@@ -263,7 +246,6 @@ class MediaIntegrationService {
       final resourceJson =
           jsonDecode(media.resourceRaw) as Map<String, dynamic>;
 
-      // Add encounter reference
       resourceJson['encounter'] = {
         'reference': 'Encounter/$encounterId',
         'display': 'Encounter $encounterId',

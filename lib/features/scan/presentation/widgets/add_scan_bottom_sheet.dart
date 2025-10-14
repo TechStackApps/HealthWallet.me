@@ -21,7 +21,7 @@ class AddScanBottomSheet extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
+
               Container(
                 width: 40,
                 height: 4,
@@ -32,7 +32,7 @@ class AddScanBottomSheet extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Title
+
               Text(
                 'Add Scan',
                 style: TextStyle(

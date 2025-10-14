@@ -1,4 +1,3 @@
-// scan_event.dart
 part of 'scan_bloc.dart';
 
 @freezed
@@ -28,6 +27,6 @@ class ScanEvent with _$ScanEvent {
 }
 
 enum ScanMode {
-  images, // getScannedDocumentAsImages()
-  pdf, // getScannedDocumentAsPdf()
+  images,
+  pdf,
 }

@@ -43,13 +43,13 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
     try {
       if (event.mode == ScanMode.pdf) {
-        // Scan as PDF
+
         final scannedPdf = await FlutterDocScanner().getScannedDocumentAsPdf();
 
         if (scannedPdf != null &&
             !scannedPdf.contains('Failed') &&
             !scannedPdf.contains('Unknown')) {
-          // Save PDF to permanent storage
+
           final savedPath = await _pdfStorageService.savePdfToStorage(
             sourcePdfPath: scannedPdf,
             customFileName:
@@ -73,7 +73,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           emit(state.copyWith(status: const ScanStatus.initial()));
         }
       } else {
-        // Scan as images (existing functionality)
+
         final scannedDocuments =
             await FlutterDocScanner().getScannedDocumentAsImages(
           page: event.maxPages,
@@ -133,7 +133,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         emit(state.copyWith(savedPdfPaths: updatedPdfs));
       }
     } catch (e) {
-      // Failed to delete PDF
+
     }
   }
 
@@ -145,7 +145,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       final savedPdfs = await _pdfStorageService.getSavedPdfs();
       emit(state.copyWith(savedPdfPaths: savedPdfs));
     } catch (e) {
-      // Failed to load saved PDFs
+
     }
   }
 
@@ -158,14 +158,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       if (await file.exists()) {
         final lowerPath = event.filePath.toLowerCase();
         if (lowerPath.endsWith('.pdf')) {
-          // Store PDFs in savedPdfPaths
+
           final updatedPdfs = [...state.savedPdfPaths, event.filePath];
           emit(state.copyWith(
             status: const ScanStatus.success(),
             savedPdfPaths: updatedPdfs,
           ));
         } else {
-          // Store imported images separately in importedImagePaths
+
           final updatedImportedImages = [
             ...state.importedImagePaths,
             event.filePath
@@ -216,7 +216,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     Emitter<ScanState> emit,
   ) async {
     try {
-      // Delete scanned images
+
       for (final imagePath in state.scannedImagePaths) {
         try {
           final file = File(imagePath);
@@ -224,11 +224,11 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          // Failed to delete scanned image
+
         }
       }
 
-      // Delete imported images
+
       for (final imagePath in state.importedImagePaths) {
         try {
           final file = File(imagePath);
@@ -236,11 +236,11 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          // Failed to delete imported image
+
         }
       }
 
-      // Delete imported PDFs
+
       for (final pdfPath in state.savedPdfPaths) {
         try {
           final file = File(pdfPath);
@@ -248,7 +248,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             await file.delete();
           }
         } catch (e) {
-          // Failed to delete PDF
+
         }
       }
 
@@ -258,7 +258,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         savedPdfPaths: [],
       ));
     } catch (e) {
-      // Even if there's an error, clear the state to avoid showing deleted files
+
       emit(state.copyWith(
         scannedImagePaths: [],
         importedImagePaths: [],

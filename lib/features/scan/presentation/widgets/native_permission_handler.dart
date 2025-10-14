@@ -1,4 +1,3 @@
-// Native permission handler using platform channels
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +15,6 @@ class NativePermissionHandler {
         return false;
       }
     }
-    // For Android, assume permission is granted (handled by the scanner package)
     return true;
   }
 

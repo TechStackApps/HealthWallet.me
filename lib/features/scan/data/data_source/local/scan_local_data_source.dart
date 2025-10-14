@@ -7,15 +7,5 @@ abstract class ScanLocalDataSource {
   Future<void> cacheScan(ScanDto scanDto);
 }
 
-// @LazySingleton(as: ScanLocalDataSource)
-// class ScanLocalDataSourceImpl
-//     implements ScanLocalDataSource {
-//   DocumentScannerLocalDataSourceImpl();
 
-//   @override
-//   Future<ScanDto> getCachedScan() async {}
 
-//   @override
-//   Future<void> cacheScan(
-//       ScanDto scanDto) async {}
-// }

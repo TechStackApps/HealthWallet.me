@@ -1,4 +1,3 @@
-// health_wallet/features/scan/data/repository/scan_repository_impl.dart
 
 import 'dart:io';
 import 'package:injectable/injectable.dart';
@@ -13,10 +12,10 @@ class ScanRepositoryImpl implements ScanRepository {
   @override
   Future<List<String>> scanDocuments() async {
     try {
-      // Use getScannedDocumentAsImages for consistent image output
+
       final scannedResult =
           await FlutterDocScanner().getScannedDocumentAsImages(
-        page: 10, // Allow up to 10 pages
+        page: 10,
       );
 
       if (scannedResult == null) {
@@ -25,11 +24,11 @@ class ScanRepositoryImpl implements ScanRepository {
 
       List<String> imagePaths = [];
 
-      // Handle different return types
+
       if (scannedResult is List) {
         imagePaths = scannedResult.cast<String>();
       } else if (scannedResult is String) {
-        // Check if it's an error message
+
         if (scannedResult.contains('Failed') ||
             scannedResult.contains('Unknown') ||
             scannedResult.contains('platform documents')) {
@@ -40,7 +39,7 @@ class ScanRepositoryImpl implements ScanRepository {
         imagePaths = [scannedResult.toString()];
       }
 
-      // Filter out any invalid paths
+
       final validPaths = imagePaths
           .where((path) =>
               path.isNotEmpty &&
@@ -171,7 +170,7 @@ class ScanRepositoryImpl implements ScanRepository {
           .where((path) => _isValidDocumentFile(path))
           .toList();
 
-      // Sort by modification date (newest first)
+
       documentPaths.sort((a, b) {
         final aFile = File(a);
         final bFile = File(b);
@@ -203,7 +202,7 @@ class ScanRepositoryImpl implements ScanRepository {
     List<String>? importedPdfPaths,
   }) async {
     try {
-      // Delete scanned images directory (original approach)
+
       final directory = await getApplicationDocumentsDirectory();
       final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
 
@@ -211,7 +210,7 @@ class ScanRepositoryImpl implements ScanRepository {
         await scanDir.delete(recursive: true);
       }
 
-      // Delete specific imported images
+
       if (importedImagePaths != null) {
         for (var imagePath in importedImagePaths) {
           try {
@@ -220,12 +219,12 @@ class ScanRepositoryImpl implements ScanRepository {
               await file.delete();
             }
           } catch (e) {
-            // Failed to delete imported image
+
           }
         }
       }
 
-      // Delete specific imported PDFs
+
       if (importedPdfPaths != null) {
         for (var pdfPath in importedPdfPaths) {
           try {
@@ -234,7 +233,7 @@ class ScanRepositoryImpl implements ScanRepository {
               await file.delete();
             }
           } catch (e) {
-            // Failed to delete imported PDF
+
           }
         }
       }

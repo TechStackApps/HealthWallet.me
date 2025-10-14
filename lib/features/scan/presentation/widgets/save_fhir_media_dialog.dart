@@ -1,4 +1,3 @@
-// health_wallet/features/scan/presentation/widgets/save_fhir_media_dialog.dart
 
 import 'package:flutter/material.dart';
 
@@ -24,7 +23,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
   @override
   void initState() {
     super.initState();
-    // Set default source ID to wallet
+
     _sourceIdController.text = 'wallet';
   }
 
@@ -56,7 +55,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // Patient ID field (required)
+
                 TextFormField(
                   controller: _patientIdController,
                   decoration: const InputDecoration(
@@ -74,7 +73,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Source ID field (optional but pre-filled)
+
                 TextFormField(
                   controller: _sourceIdController,
                   decoration: const InputDecoration(
@@ -86,7 +85,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Encounter ID field (optional)
+
                 TextFormField(
                   controller: _encounterIdController,
                   decoration: const InputDecoration(
@@ -98,7 +97,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                 ),
                 const SizedBox(height: 12),
 
-                // Title field (optional)
+
                 TextFormField(
                   controller: _titleController,
                   decoration: const InputDecoration(
@@ -110,7 +109,7 @@ class _SaveFhirMediaDialogState extends State<SaveFhirMediaDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // Info box
+
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(

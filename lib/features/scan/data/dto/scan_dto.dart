@@ -10,8 +10,8 @@ class ScanDto with _$ScanDto {
 
   const factory ScanDto() = _ScanDto;
 
-  // factory DocumentScannerDto.fromJson(Map<String, dynamic> json) =>
-  //     _$DocumentScannerDtoFromJson(json);
+
+
 
   factory ScanDto.fromEntity(Scan scan) => ScanDto();
 

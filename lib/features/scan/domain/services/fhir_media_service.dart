@@ -1,5 +1,3 @@
-// health_wallet/features/document_scanner/domain/services/fhir_media_service.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:injectable/injectable.dart';
@@ -31,7 +29,6 @@ class FhirMediaService {
           title: documentTitle,
         );
 
-        // Save the FHIR Media resource to local storage
         await _saveFhirMediaToStorage(media);
 
         mediaResources.add(media);
@@ -89,7 +86,6 @@ class FhirMediaService {
         } catch (e) {}
       }
 
-      // Sort by creation date (newest first)
       mediaResources.sort((a, b) {
         final aTime = a.createdDateTime ?? '';
         final bTime = b.createdDateTime ?? '';

@@ -38,8 +38,8 @@ class FhirReference with _$FhirReference {
 class FhirContent with _$FhirContent {
   const factory FhirContent({
     required String contentType,
-    String? data, // Base64 encoded data
-    String? url, // Alternative: URL reference
+    String? data,
+    String? url,
     String? title,
     int? size,
   }) = _FhirContent;
@@ -60,7 +60,6 @@ class FhirIdentifier with _$FhirIdentifier {
       _$FhirIdentifierFromJson(json);
 }
 
-// Helper class for creating FHIR Media resources from scanned documents
 class FhirMediaFactory {
   static Future<FhirMedia> createFromImage({
     required String imagePath,
@@ -97,7 +96,7 @@ class FhirMediaFactory {
       createdDateTime: timestamp,
       identifier: [
         FhirIdentifier(
-          system: 'http://health-wallet.app/media-id',
+          system: 'http://healthwallet.me/media-id',
           value: _generateId(),
           use: 'usual',
         ),

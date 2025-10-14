@@ -1,4 +1,3 @@
-// widgets/document_preview_card.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';

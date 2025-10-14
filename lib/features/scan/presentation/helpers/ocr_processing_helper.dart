@@ -7,7 +7,7 @@ class OcrProcessingHelper {
       : _textRecognitionService =
             textRecognitionService ?? TextRecognitionService();
 
-  /// Convert PDFs to images for OCR preview
+
   Future<List<String>> convertPdfsToImages(List<String> pdfPaths) async {
     final convertedImages = <String>[];
 
@@ -19,7 +19,7 @@ class OcrProcessingHelper {
     return convertedImages;
   }
 
-  /// Process OCR for all images and return extracted text per page
+
   Future<List<String>> processOcrForImages(List<String> imagePaths) async {
     final pageTexts = <String>[];
 
@@ -39,7 +39,7 @@ class OcrProcessingHelper {
     return pageTexts;
   }
 
-  /// Prepare all images for OCR (including converted PDFs)
+
   Future<List<String>> prepareAllImages({
     required List<String> scannedImages,
     required List<String> importedImages,
@@ -47,17 +47,17 @@ class OcrProcessingHelper {
   }) async {
     final allImages = <String>[];
 
-    // Add existing images
+
     allImages.addAll(scannedImages);
     allImages.addAll(importedImages);
 
-    // Convert PDFs to images for OCR preview
+
     if (importedPdfs.isNotEmpty) {
       try {
         final convertedImages = await convertPdfsToImages(importedPdfs);
         allImages.addAll(convertedImages);
       } catch (e) {
-        // Continue without PDF images
+
       }
     }
 

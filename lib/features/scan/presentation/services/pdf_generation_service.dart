@@ -1,4 +1,3 @@
-// pdf_generation_service.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:injectable/injectable.dart';
@@ -50,7 +49,6 @@ class PdfGenerationService {
         );
       }
 
-      // Save PDF to temporary directory
       final tempDir = await getTemporaryDirectory();
       final pdfPath = path.join(tempDir.path, '$fileName.pdf');
       final pdfFile = File(pdfPath);

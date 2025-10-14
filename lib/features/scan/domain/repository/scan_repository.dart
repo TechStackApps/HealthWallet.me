@@ -1,5 +1,3 @@
-// health_wallet/features/scan/domain/repository/scan_repository.dart
-
 abstract class ScanRepository {
   Future<List<String>> scanDocuments();
 

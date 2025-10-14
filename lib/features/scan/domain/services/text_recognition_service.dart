@@ -9,7 +9,6 @@ class TextRecognitionService {
     script: TextRecognitionScript.latin,
   );
 
-  /// Extract text from an image file
   Future<String> recognizeTextFromImage(String imagePath) async {
     try {
       final inputImage = InputImage.fromFilePath(imagePath);
@@ -22,7 +21,6 @@ class TextRecognitionService {
     }
   }
 
-  /// Extract text from an XFile (from image picker)
   Future<String> recognizeTextFromXFile(XFile image) async {
     try {
       final inputImage = InputImage.fromFilePath(image.path);
@@ -35,24 +33,19 @@ class TextRecognitionService {
     }
   }
 
-  /// Convert PDF to images and return the image file paths
   Future<List<String>> convertPdfToImages(String pdfPath) async {
     try {
-      // Step 1: Convert PDF to images using pdf_to_image_converter
       final converter = PdfImageConverter();
       await converter.openPdf(pdfPath);
 
       List<String> imagePaths = [];
       final tempDir = await getTemporaryDirectory();
 
-      // Step 2: Convert each page to image and save to temporary files
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
         try {
-          // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            // Save image bytes to temporary file
             final tempFile = File(
               '${tempDir.path}/pdf_page_${DateTime.now().millisecondsSinceEpoch}_${pageIndex + 1}.png',
             );
@@ -63,7 +56,6 @@ class TextRecognitionService {
         } catch (e) {}
       }
 
-      // Clean up
       await converter.closePdf();
 
       return imagePaths;
@@ -72,38 +64,31 @@ class TextRecognitionService {
     }
   }
 
-  /// Convert PDF to images and extract text using Google ML Kit
   Future<String> extractTextFromPDF(String pdfPath) async {
     try {
-      // Step 1: Convert PDF to images using pdf_to_image_converter
       final converter = PdfImageConverter();
       await converter.openPdf(pdfPath);
 
       String allText = '';
       final textRecognizer = TextRecognizer();
 
-      // Step 2: Process each page as an image with Google ML Kit
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
         try {
-          // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            // Save image bytes to temporary file and use InputImage.fromFilePath
             final tempDir = await getTemporaryDirectory();
             final tempFile = File(
               '${tempDir.path}/pdf_page_${pageIndex + 1}.png',
             );
             await tempFile.writeAsBytes(imageBytes);
 
-            // Use InputImage.fromFilePath which is more reliable
             final inputImage = InputImage.fromFilePath(tempFile.path);
 
             final recognizedText = await textRecognizer.processImage(
               inputImage,
             );
 
-            // Clean up temporary file
             if (await tempFile.exists()) {
               await tempFile.delete();
             }
@@ -120,7 +105,6 @@ class TextRecognitionService {
         }
       }
 
-      // Clean up
       await converter.closePdf();
       await textRecognizer.close();
 
@@ -183,7 +167,6 @@ Please try with a different PDF file.''';
     }
   }
 
-  /// Extract text from PDF pages individually for page-by-page comparison
   Future<List<String>> extractTextFromPDFPages(String pdfPath) async {
     try {
       final converter = PdfImageConverter();
@@ -192,33 +175,27 @@ Please try with a different PDF file.''';
       List<String> pageTexts = [];
       final textRecognizer = TextRecognizer();
 
-      // Process each page individually
       for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
         try {
-          // Convert PDF page to image
           final imageBytes = await converter.renderPage(pageIndex);
 
           if (imageBytes != null && imageBytes.isNotEmpty) {
-            // Save image bytes to temporary file and use InputImage.fromFilePath
             final tempDir = await getTemporaryDirectory();
             final tempFile = File(
               '${tempDir.path}/pdf_page_${pageIndex + 1}.png',
             );
             await tempFile.writeAsBytes(imageBytes);
 
-            // Use InputImage.fromFilePath which is more reliable
             final inputImage = InputImage.fromFilePath(tempFile.path);
 
             final recognizedText = await textRecognizer.processImage(
               inputImage,
             );
 
-            // Clean up temporary file
             if (await tempFile.exists()) {
               await tempFile.delete();
             }
 
-            // Add page text to list
             pageTexts.add(
               recognizedText.text.isNotEmpty
                   ? recognizedText.text
@@ -232,7 +209,6 @@ Please try with a different PDF file.''';
         }
       }
 
-      // Clean up
       await converter.closePdf();
       await textRecognizer.close();
 
@@ -242,12 +218,10 @@ Please try with a different PDF file.''';
     }
   }
 
-  /// Check if file is a PDF
   bool isPDF(String filePath) {
     return filePath.toLowerCase().endsWith('.pdf');
   }
 
-  /// Check if file is an image
   bool isImage(String filePath) {
     final imageExtensions = [
       '.jpg',
@@ -262,7 +236,6 @@ Please try with a different PDF file.''';
     return imageExtensions.any((ext) => lowerPath.endsWith(ext));
   }
 
-  /// Extract text from any file (PDF or image)
   Future<String> extractTextFromFile(String filePath) async {
     if (isPDF(filePath)) {
       return await extractTextFromPDF(filePath);

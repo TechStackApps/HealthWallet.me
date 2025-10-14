@@ -1,4 +1,3 @@
-// widgets/encounter_form_widget.dart
 import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';

@@ -20,10 +20,10 @@ class ScanGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
-        // Combine images and PDFs for display
+
         final allScans = <Map<String, dynamic>>[];
 
-        // Add images
+
         for (String imagePath in state.scannedImagePaths) {
           allScans.add({
             'path': imagePath,
@@ -40,7 +40,7 @@ class ScanGrid extends StatelessWidget {
           });
         }
 
-        // Add PDFs
+
         for (String pdfPath in state.savedPdfPaths) {
           allScans.add({
             'path': pdfPath,
@@ -58,14 +58,14 @@ class ScanGrid extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 0.75,
           ),
-          itemCount: allScans.length + 1, // +1 for the add button
+          itemCount: allScans.length + 1,
           itemBuilder: (context, index) {
             if (index == allScans.length) {
-              // Add button card
+
               return AddButtonCard(onTap: onAddScan);
             }
 
-            // Regular scan card (image or PDF)
+
             final scan = allScans[index];
             final isImage = scan['type'] == 'image';
 
@@ -171,7 +171,7 @@ class ScanCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // View indicator overlay
+
                   Positioned(
                     bottom: 8,
                     left: 8,

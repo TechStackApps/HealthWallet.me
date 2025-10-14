@@ -6,11 +6,4 @@ abstract class ScanNetworkDataSource {
   Future<ScanDto> fetchScan();
 }
 
-// @LazySingleton(as: ScanNetworkDataSource)
-// class ScanNetworkDataSourceImpl
-//     implements ScanNetworkDataSource {
-//   DocumentScannerNetworkDataSourceImpl();
 
-//   @override
-//   Future<ScanDto> fetchScan() async {}
-// }

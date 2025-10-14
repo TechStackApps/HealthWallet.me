@@ -1,4 +1,3 @@
-// attach_to_encounter_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,9 +57,7 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
   }
 
   void _updateSearchIcon() {
-    setState(() {
-      // This will trigger a rebuild to update the suffix icon
-    });
+    setState(() {});
   }
 
   Future<void> _loadEncounters() async {
@@ -71,7 +68,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
 
       final patientState = context.read<PatientBloc>().state;
 
-      // Get the selected patient from PatientBloc
       final selectedPatient = patientState.patients.isNotEmpty
           ? patientState.patients.firstWhere(
               (p) => p.id == patientState.selectedPatientId,
@@ -97,8 +93,7 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
         _isLoading = false;
         _currentPatientId = currentPatientId;
         _currentSourceId = currentSourceId;
-        _selectedEncounter =
-            null; // Reset selection when patient/source changes
+        _selectedEncounter = null;
       });
     } catch (e) {
       setState(() {
@@ -110,7 +105,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
   void _checkForPatientChange() {
     final patientState = context.read<PatientBloc>().state;
 
-    // Get the selected patient from PatientBloc
     final selectedPatient = patientState.patients.isNotEmpty
         ? patientState.patients.firstWhere(
             (p) => p.id == patientState.selectedPatientId,
@@ -123,7 +117,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
 
     if (_currentPatientId != currentPatientId ||
         _currentSourceId != currentSourceId) {
-      // Patient or source has changed, reload encounters
       _loadEncounters();
     }
   }
@@ -173,13 +166,11 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
       listeners: [
         BlocListener<HomeBloc, HomeState>(
           listener: (context, state) {
-            // Check for patient changes and reload encounters if needed
             _checkForPatientChange();
           },
         ),
         BlocListener<PatientBloc, PatientState>(
           listener: (context, state) {
-            // Check for patient changes and reload encounters if needed
             _checkForPatientChange();
           },
         ),
@@ -194,7 +185,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
         ),
         child: Column(
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: Insets.normal, vertical: Insets.small),
@@ -237,16 +227,12 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
                 ],
               ),
             ),
-
-            // Fixed Patient & Source Information (non-scrollable)
             const Padding(
               padding: const EdgeInsets.symmetric(vertical: Insets.normal),
               child: PatientSourceInfoWidget(
                 title: 'Current Patient & Source',
               ),
             ),
-
-            // Search field (non-scrollable)
             Padding(
               padding: const EdgeInsets.only(bottom: Insets.normal),
               child: SizedBox(
@@ -310,8 +296,6 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
                 ),
               ),
             ),
-
-            // Scrollable Encounters list
             Expanded(
               child: _isLoading
                   ? Center(
@@ -417,15 +401,13 @@ class _AttachToEncounterSheetState extends State<AttachToEncounterSheet> {
                           },
                         ),
             ),
-
-            // Footer
             Container(height: 1, color: borderColor),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 Insets.normal,
                 Insets.normal,
                 Insets.normal,
-                Insets.large, // Extra bottom padding to move buttons up
+                Insets.large,
               ),
               child: Row(
                 children: [

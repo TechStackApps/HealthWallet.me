@@ -31,7 +31,7 @@ class ImagePreviewPage extends StatelessWidget {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(
-          allImages != null 
+          allImages != null
             ? '${(currentIndex ?? 0) + 1} of ${allImages!.length}'
             : title,
         ),
@@ -141,7 +141,7 @@ class ImagePreviewPage extends StatelessWidget {
   void _showImageInfo(BuildContext context, String path) {
     final file = File(path);
     final fileName = path.split('/').last;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -154,7 +154,7 @@ class ImagePreviewPage extends StatelessWidget {
               final sizeInBytes = stat.size;
               final sizeInMB = (sizeInBytes / (1024 * 1024)).toStringAsFixed(2);
               final modified = stat.modified.toString().split('.').first;
-              
+
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,8 +217,8 @@ class ImagePreviewPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Return to previous screen with delete flag
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),

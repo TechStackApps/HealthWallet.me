@@ -1,4 +1,3 @@
-// helpers/fhir_encounter_helper.dart
 import 'dart:convert';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:drift/drift.dart';
@@ -7,7 +6,6 @@ import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/fhir_reference_utils.dart';
 
 class FhirEncounterHelper {
-  /// Create a FHIR R4 Encounter resource
   static fhir_r4.Encounter createEncounter({
     required String encounterId,
     required String patientId,
@@ -47,7 +45,7 @@ class FhirEncounterHelper {
       ),
       identifier: [
         fhir_r4.Identifier(
-          system: fhir_r4.FhirUri('http://health-wallet.app/encounter-id'),
+          system: fhir_r4.FhirUri('http://healthwallet.me/encounter-id'),
           value: fhir_r4.FhirString(encounterId),
           use: fhir_r4.IdentifierUse.usual,
         ),
@@ -55,7 +53,6 @@ class FhirEncounterHelper {
     );
   }
 
-  /// Save FHIR Encounter resource to the local database
   static Future<void> saveToDatabase({
     required fhir_r4.Encounter fhirEncounter,
     required String sourceId,
@@ -65,7 +62,6 @@ class FhirEncounterHelper {
     final resourceJson = fhirEncounter.toJson();
     final resourceId = fhirEncounter.id!.valueString!;
 
-    // Extract subjectId from FHIR Encounter
     String? subjectId;
     if (fhirEncounter.subject?.reference?.valueString != null) {
       subjectId = FhirReferenceUtils.extractReferenceId(
@@ -80,14 +76,13 @@ class FhirEncounterHelper {
       title: Value(title),
       date: Value(extractDate(fhirEncounter)),
       resourceRaw: jsonEncode(resourceJson),
-      encounterId: const Value.absent(), // Encounters don't have encounterId
+      encounterId: const Value.absent(),
       subjectId: subjectId != null ? Value(subjectId) : const Value.absent(),
     );
 
     await database.into(database.fhirResource).insertOnConflictUpdate(dto);
   }
 
-  /// Extract date from FHIR Encounter resource
   static DateTime extractDate(fhir_r4.Encounter encounter) {
     if (encounter.period?.start != null) {
       try {
@@ -99,7 +94,6 @@ class FhirEncounterHelper {
     return DateTime.now();
   }
 
-  /// Generate a unique encounter ID
   static String generateEncounterId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }

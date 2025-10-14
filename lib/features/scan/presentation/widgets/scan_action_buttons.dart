@@ -112,13 +112,13 @@ class ScanActionButtons extends StatelessWidget {
   }
 
   Future<void> _handleScanDocument(BuildContext context) async {
-    // Call custom callback if provided
+
     if (onScanDocument != null) {
       onScanDocument!();
       return;
     }
 
-    // Default implementation
+
     final cameraStatus = await Permission.camera.request();
 
     if (cameraStatus.isGranted) {
@@ -134,28 +134,28 @@ class ScanActionButtons extends StatelessWidget {
       );
     }
 
-    // Close bottom sheet AFTER processing (if in bottom sheet context)
+
     if (style == ScanActionButtonStyle.bottomSheet && context.mounted) {
       Navigator.of(context).pop();
     }
   }
 
   Future<void> _handleImportDocument(BuildContext context) async {
-    // Call custom callback if provided
+
     if (onImportDocument != null) {
       onImportDocument!();
       return;
     }
 
-    // Default implementation
+
     try {
-      // Add a small delay to ensure any previous file operations are complete
+
       await Future.delayed(const Duration(milliseconds: 100));
 
       final result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, // Enable multiple file selection
+        allowMultiple: true,
         allowCompression: false,
-        withData: false, // Changed to false to avoid memory issues
+        withData: false,
         withReadStream: false,
         type: FileType.custom,
         allowedExtensions: [
@@ -171,35 +171,35 @@ class ScanActionButtons extends StatelessWidget {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        // Process each selected file
+
         for (final file in result.files) {
           String finalFilePath = '';
 
-          // Handle file based on platform
+
           if (file.path != null) {
-            // Mobile platforms - use the original path
+
             finalFilePath = file.path!;
           } else {
-            // Web platform - this shouldn't happen with withData: false
+
             continue;
           }
 
-          // Verify file exists and add to bloc
+
           if (finalFilePath.isNotEmpty) {
             final fileExists = await File(finalFilePath).exists();
 
             if (fileExists) {
               if (context.mounted) {
-                // Check if it's a PDF that needs to be converted to images
+
                 if (finalFilePath.toLowerCase().endsWith('.pdf')) {
-                  // For now, we'll treat PDFs as images by adding them directly
-                  // In a production app, you would use a PDF-to-image converter here
-                  // For this implementation, we'll store the PDF path as an image
+
+
+
                   context.read<ScanBloc>().add(
                         ScanEvent.documentImported(filePath: finalFilePath),
                       );
                 } else {
-                  // Handle regular images
+
                   context.read<ScanBloc>().add(
                         ScanEvent.documentImported(filePath: finalFilePath),
                       );
@@ -210,38 +210,38 @@ class ScanActionButtons extends StatelessWidget {
         }
       } else {}
     } catch (e) {
-      // Error handling - no UI feedback needed
+
     }
 
-    // Close bottom sheet AFTER processing (if in bottom sheet context)
+
     if (style == ScanActionButtonStyle.bottomSheet && context.mounted) {
       Navigator.of(context).pop();
     }
   }
 
   Future<void> _handlePickImage(BuildContext context) async {
-    // Call custom callback if provided
+
     if (onPickImage != null) {
       onPickImage!();
       return;
     }
 
-    // Default implementation
+
     try {
-      // Add a small delay to ensure any previous file operations are complete
+
       await Future.delayed(const Duration(milliseconds: 100));
 
       final ImagePicker picker = ImagePicker();
 
-      // Simple gallery pick - let the plugin handle everything
+
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        // Verify file exists before adding
+
         final fileExists = await File(image.path).exists();
 
         if (fileExists) {
-          // Add the image to the scanned documents
+
           if (context.mounted) {
             try {
               context.read<ScanBloc>().add(
@@ -250,16 +250,16 @@ class ScanActionButtons extends StatelessWidget {
             } catch (e) {}
           } else {}
         } else {
-          // Image file not found - no UI feedback needed
+
         }
       } else {}
 
-      // Close bottom sheet AFTER processing the image (if in bottom sheet context)
+
       if (style == ScanActionButtonStyle.bottomSheet && context.mounted) {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      // Image picker error - no UI feedback needed
+
     }
   }
 }

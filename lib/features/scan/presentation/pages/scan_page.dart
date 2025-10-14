@@ -1,4 +1,3 @@
-// Updated scan_page.dart
 import 'package:auto_route/auto_route.dart';
 import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
 import 'package:health_wallet/features/scan/presentation/pages/process_to_fhir_page.dart';
@@ -66,14 +65,12 @@ class _ScanViewState extends State<ScanView> {
 
     final currentState = context.read<ScanBloc>().state;
 
-    // Only auto-start if no scans are already scanned
     if (currentState.scannedImagePaths.isEmpty) {
       await _handleScanButtonPressed(context);
     }
   }
 
   Future<void> _handleScanButtonPressed(BuildContext context) async {
-    // Simple permission check and request
     final cameraStatus = await Permission.camera.request();
 
     if (cameraStatus.isGranted) {
@@ -192,7 +189,6 @@ class _ScanViewState extends State<ScanView> {
                     _showDeleteConfirmation(context, filePath, index),
               ),
             ),
-            // Bottom action buttons
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ActionButtons(
@@ -208,7 +204,7 @@ class _ScanViewState extends State<ScanView> {
                   state.importedImagePaths,
                   state.savedPdfPaths,
                 ),
-                onExtractText: null, // as before
+                onExtractText: null,
               ),
             ),
           ]
@@ -264,7 +260,6 @@ class _ScanViewState extends State<ScanView> {
     List<String> savedPdfs,
     String encounterId,
   ) async {
-    // Show loading dialog
     DialogHelper.showLoadingDialog(
         context, 'Attaching documents to encounter...');
 
@@ -272,7 +267,6 @@ class _ScanViewState extends State<ScanView> {
       final homeState = context.read<HomeBloc>().state;
       final patientState = context.read<PatientBloc>().state;
 
-      // Get the selected patient
       final selectedPatient = patientState.patients.isNotEmpty
           ? patientState.patients.firstWhere(
               (p) => p.id == patientState.selectedPatientId,
@@ -284,7 +278,6 @@ class _ScanViewState extends State<ScanView> {
       final patientId = patient?.resourceId ?? 'patient-default';
       final patientName = patient?.displayTitle ?? 'Unknown Patient';
 
-      // Ensure we have a wallet source for this patient
       final sourceTypeService = GetIt.instance.get<SourceTypeService>();
       final walletSource = await sourceTypeService.getWritableSourceForPatient(
         patientId: patientId,
@@ -299,14 +292,12 @@ class _ScanViewState extends State<ScanView> {
         await _duplicatePatientToWalletSource(patient, walletSource.id);
       }
 
-      // Trigger a reload of patient data to include the new wallet source
       if (context.mounted) {
         context.read<PatientBloc>().add(
               PatientPatientsLoaded(),
             );
       }
 
-      // Use MediaIntegrationService to save all documents grouped by type
       final mediaIntegrationService =
           GetIt.instance.get<MediaIntegrationService>();
 
@@ -320,10 +311,8 @@ class _ScanViewState extends State<ScanView> {
         title: 'Attached Documents',
       );
 
-      // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
 
-      // Show success dialog
       if (context.mounted) {
         final bloc = context.read<ScanBloc>();
         final totalDocuments =
@@ -337,10 +326,8 @@ class _ScanViewState extends State<ScanView> {
         );
       }
     } catch (e) {
-      // Close loading dialog
       if (context.mounted) Navigator.of(context).pop();
 
-      // Show error dialog
       if (context.mounted) {
         DialogHelper.showErrorDialog(context, 'Failed to attach documents: $e');
       }
@@ -359,7 +346,6 @@ class _ScanViewState extends State<ScanView> {
         state.scannedImagePaths.indexOf(filePath),
       );
     } else {
-      // For PDFs, open directly with system app
       _openPdfWithSystemApp(context, filePath);
     }
   }
@@ -377,7 +363,6 @@ class _ScanViewState extends State<ScanView> {
       ),
     );
 
-    // If user deleted the image from preview, trigger deletion in bloc
     if (result == true) {
       context.read<ScanBloc>().add(
             ScanEvent.deleteDocument(imagePath: imagePath),
@@ -502,17 +487,14 @@ class _ScanViewState extends State<ScanView> {
     try {
       final database = GetIt.instance.get<AppDatabase>();
 
-      // Create a new Patient resource for the wallet source
       final walletPatient = patient.copyWith(
-        id: patient.id, // Keep the same patient ID
-        sourceId: walletSourceId, // Set the new wallet source ID
+        id: patient.id,
+        sourceId: walletSourceId,
       );
 
-      // Convert to FHIR JSON
       final patientJson = patient.rawResource;
       final resourceId = patient.id;
 
-      // Create FHIR resource entry
       final dto = FhirResourceCompanion.insert(
         id: '${walletSourceId}_$resourceId',
         sourceId: drift.Value(walletSourceId),
@@ -524,17 +506,12 @@ class _ScanViewState extends State<ScanView> {
                 DateTime.now()
             : DateTime.now()),
         resourceRaw: jsonEncode(patientJson),
-        encounterId:
-            const drift.Value.absent(), // Patients don't have encounterId
-        subjectId: drift.Value(
-            resourceId), // Patient's subjectId is their own resourceId
+        encounterId: const drift.Value.absent(),
+        subjectId: drift.Value(resourceId),
       );
 
-      // Save to database
       await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-    } catch (e) {
-      // Error handling for patient duplication
-    }
+    } catch (e) {}
   }
 
   Future<void> _handleDirectScan(BuildContext context) async {
@@ -556,13 +533,12 @@ class _ScanViewState extends State<ScanView> {
 
   Future<void> _handleDirectImport(BuildContext context) async {
     try {
-      // Add a small delay to ensure any previous file operations are complete
       await Future.delayed(const Duration(milliseconds: 100));
 
       final result = await FilePicker.platform.pickFiles(
-        allowMultiple: true, // Enable multiple file selection
+        allowMultiple: true,
         allowCompression: false,
-        withData: false, // Changed to false to avoid memory issues
+        withData: false,
         withReadStream: false,
         type: FileType.custom,
         allowedExtensions: [
@@ -578,35 +554,25 @@ class _ScanViewState extends State<ScanView> {
       );
 
       if (result != null && result.files.isNotEmpty) {
-        // Process each selected file
         for (final file in result.files) {
           String finalFilePath = '';
 
-          // Handle file based on platform
           if (file.path != null) {
-            // Mobile platforms - use the original path
             finalFilePath = file.path!;
           } else {
-            // Web platform - this shouldn't happen with withData: false
             continue;
           }
 
-          // Verify file exists and add to bloc
           if (finalFilePath.isNotEmpty) {
             final fileExists = await File(finalFilePath).exists();
 
             if (fileExists) {
               if (context.mounted) {
-                // Check if it's a PDF that needs to be converted to images
                 if (finalFilePath.toLowerCase().endsWith('.pdf')) {
-                  // For now, we'll treat PDFs as images by adding them directly
-                  // In a production app, you would use a PDF-to-image converter here
-                  // For this implementation, we'll store the PDF path as an image
                   context.read<ScanBloc>().add(
                         ScanEvent.documentImported(filePath: finalFilePath),
                       );
                 } else {
-                  // Handle regular images
                   context.read<ScanBloc>().add(
                         ScanEvent.documentImported(filePath: finalFilePath),
                       );
@@ -616,8 +582,6 @@ class _ScanViewState extends State<ScanView> {
           }
         }
       }
-    } catch (e) {
-      // Error handling - no UI feedback needed
-    }
+    } catch (e) {}
   }
 }
