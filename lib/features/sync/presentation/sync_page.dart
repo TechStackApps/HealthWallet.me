@@ -421,13 +421,13 @@ class _SyncPageState extends State<SyncPage> {
       title: context.l10n.success,
       message: context.l10n.syncDataLoadedSuccessfully,
       onOkPressed: () {
-        context.read<SyncBloc>().add(const ResetTutorial());
-
+        // Navigate to home first
         context.router.pushAndPopUntil(
           const DashboardRoute(),
           predicate: (_) => false,
         );
 
+        // Trigger tutorial if not shown before
         if (!onboardingShown) {
           Future.delayed(const Duration(milliseconds: 400), () {
             try {

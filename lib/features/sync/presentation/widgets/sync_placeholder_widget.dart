@@ -12,6 +12,7 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/user/domain/services/default_patient_service.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 
 class SyncPlaceholderWidget extends StatefulWidget {
   final PageController? pageController;
@@ -113,7 +114,6 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
       child: Column(
         children: [
           if (!hasAnyMeaningfulData) ...[
-            // Get Started button - primary action
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -145,7 +145,6 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
               ),
             ),
             const SizedBox(height: Insets.small),
-            // Load Demo Data button - secondary action
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -178,7 +177,6 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
             ),
             const SizedBox(height: Insets.small),
           ],
-          // Sync Data button - always visible
           SizedBox(
             width: double.infinity,
             child: hasAnyMeaningfulData
@@ -254,143 +252,67 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
   void _handleLoadDemoData(BuildContext context) async {
     try {
-      print('🔵 [DEMO] Step 1: Loading demo data...');
-      // 1. Load demo data FIRST (creates demo_data source with demo patient)
       _hasInitiatedDemoDataLoading = true;
       context.read<SyncBloc>().add(const LoadDemoData());
 
-      // 2. Wait for demo data to load
-      await Future.delayed(const Duration(milliseconds: 800));
-      print('🔵 [DEMO] Step 2: Demo data loaded');
+      await Future.delayed(const Duration(milliseconds: 1000));
 
-      // 3. Create wallet source and default patient (for later use)
-      // Note: Widget may unmount when dialog shows, so we catch errors
-      print('🔵 [DEMO] Step 3: Creating wallet source...');
-      try {
-        await _createWalletSourceAndDefaultPatient();
-        await Future.delayed(const Duration(milliseconds: 200));
-        print('🔵 [DEMO] Step 4: Wallet source created');
-      } catch (e) {
-        // Widget unmounted - wallet will be created in _handleDemoDataCompletion
-        print('🟡 [DEMO] Widget unmounted during wallet creation (OK)');
+      if (mounted && context.mounted) {
+        _handleDemoDataCompletion(context);
       }
-
-      // DON'T do patient/source selection here - widget gets unmounted when dialog shows
-      // It will be done in _handleDemoDataCompletion after user clicks OK
-      print('🔵 [DEMO] ✅ Data loaded, waiting for user to click OK...');
     } catch (e) {
-      print('🔴 [DEMO] Error: $e');
-      _hasInitiatedDemoDataLoading = true;
-      if (context.mounted) {
-        context.read<SyncBloc>().add(const LoadDemoData());
-      }
+      logger.e('Error loading demo data: $e');
     }
   }
 
   void _handleDemoDataCompletion(BuildContext context) async {
-    // Do ALL setup BEFORE showing the dialog
-    // Ensure wallet source exists (in case widget was unmounted during creation)
-    print('🔵 [DEMO] Step 4.5: Ensuring wallet source exists...');
-    try {
-      if (context.mounted) {
-        context.read<SyncBloc>().add(const CreateWalletSource());
-      }
-      await Future.delayed(const Duration(milliseconds: 100));
-      final defaultPatientService = getIt<DefaultPatientService>();
-      await defaultPatientService.createAndSetAsMain();
-      print('🔵 [DEMO] Step 4.6: Wallet source ensured');
-    } catch (e) {
-      print('🟡 [DEMO] Wallet source might already exist: $e');
-    }
-
     if (!mounted || !context.mounted) return;
 
-    // Show dialog immediately - do NOT change sources/patients yet
-    print('🔵 [DEMO] Showing success dialog...');
-
-    // Capture bloc references before showing dialog
     final patientBloc = context.read<PatientBloc>();
     final homeBloc = context.read<HomeBloc>();
-    final pageControllerRef = widget.pageController;
+    final syncBloc = context.read<SyncBloc>();
 
     SuccessDialog.show(
       context: context,
       title: context.l10n.success,
       message: context.l10n.demoDataLoadedSuccessfully,
       onOkPressed: () async {
-        print(
-            '🔵 [DEMO] User clicked OK - setting up demo patient and source...');
-
         if (_syncBloc != null) {
           try {
             _syncBloc!.add(const DemoDataConfirmed());
           } catch (e) {}
         }
 
-        // Do patient/source setup BEFORE closing dialog
-        print('🔵 [DEMO] Step 5: Reloading patients...');
         patientBloc.add(const PatientInitialised());
 
         await Future.delayed(const Duration(milliseconds: 600));
 
         final patientState = patientBloc.state;
-        print(
-            '🔵 [DEMO] Step 6: Selected patient: ${patientState.selectedPatientId}');
-        print(
-            '🔵 [DEMO] Step 6: Patient groups: ${patientState.patientGroups.keys}');
-        print(
-            '🔵 [DEMO] Step 6: All patients: ${patientState.patients.map((p) => '${p.id} (${p.sourceId})').toList()}');
 
-        // Check if demo patient is selected, if not, select it explicitly
-        print('🔵 [DEMO] Step 6.1: Looking for demo patient...');
         final demoPatients = patientState.patients
             .where((p) => p.sourceId == 'demo_data')
             .toList();
-        print(
-            '🔵 [DEMO] Step 6.2: Found ${demoPatients.length} demo patients: ${demoPatients.map((p) => '${p.id} (${p.sourceId})').toList()}');
 
-        if (demoPatients.isEmpty) {
-          print(
-              '🔵 [DEMO] Step 6.3: No demo patients found! Available patients: ${patientState.patients.map((p) => '${p.id} (${p.sourceId})').toList()}');
-        } else {
+        if (demoPatients.isNotEmpty) {
           final demoPatient = demoPatients.first;
-          print(
-              '🔵 [DEMO] Step 6.4: Demo patient found: ${demoPatient.id} (${demoPatient.sourceId})');
 
           if (patientState.selectedPatientId != demoPatient.id) {
-            print(
-                '🔵 [DEMO] Step 6.5: Demo patient not selected, selecting it explicitly...');
-            print(
-                '🔵 [DEMO] Step 6.6: Current selected: ${patientState.selectedPatientId}, selecting: ${demoPatient.id}');
             patientBloc.add(PatientSelectionChanged(patientId: demoPatient.id));
             await Future.delayed(const Duration(milliseconds: 300));
-
-            // Verify selection
-            final newPatientState = patientBloc.state;
-            print(
-                '🔵 [DEMO] Step 6.7: After selection - Selected patient: ${newPatientState.selectedPatientId}');
-          } else {
-            print(
-                '🔵 [DEMO] Step 6.5: Demo patient already selected: ${demoPatient.id}');
           }
         }
 
-        // Switch to demo_data source - ONLY demo data
-        print('🔵 [DEMO] Step 7: Switching to demo_data source...');
         homeBloc.add(
           const HomeSourceChanged('demo_data', patientSourceIds: ['demo_data']),
         );
 
         await Future.delayed(const Duration(milliseconds: 300));
 
-        print('  - Patient groups: ${finalPatientState.patientGroups.keys}');
-
-        // Close dialog AFTER all setup is complete
         if (context.mounted) {
           Navigator.of(context).pop();
         }
 
-        // Navigate to home page
+        final pageControllerRef = widget.pageController;
         if (pageControllerRef != null) {
           pageControllerRef.animateToPage(0,
               duration: const Duration(milliseconds: 300), curve: Curves.ease);
@@ -398,7 +320,13 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
           context.router.pop();
         }
 
-        print('🔵 [DEMO] ✅ Complete! Now viewing demo data.');
+        Future.delayed(const Duration(milliseconds: 400), () {
+          try {
+            syncBloc.add(const TriggerTutorial());
+          } catch (e) {
+            logger.e('Failed to trigger tutorial: $e');
+          }
+        });
       },
     );
   }
@@ -411,10 +339,11 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
   void _handleGetStarted(BuildContext context) async {
     try {
+      final syncBloc = context.read<SyncBloc>();
+
       await _createWalletSourceAndDefaultPatient();
       context.read<HomeBloc>().add(const HomeSourceChanged('wallet'));
 
-      // Reload PatientBloc to pick up the new wallet holder patient
       try {
         context.read<PatientBloc>().add(const PatientInitialised());
       } catch (e) {
@@ -432,6 +361,14 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
           context.router.pop();
         }
       }
+
+      Future.delayed(const Duration(milliseconds: 400), () {
+        try {
+          syncBloc.add(const TriggerTutorial());
+        } catch (e) {
+          logger.e('Failed to trigger tutorial: $e');
+        }
+      });
     } catch (e) {
       final pageController = widget.pageController;
       if (pageController != null) {
@@ -447,7 +384,6 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
   Future<void> _createWalletSourceAndDefaultPatient() async {
     if (!mounted) {
-      print('🟡 [DEMO] Skipping wallet creation - widget unmounted');
       return;
     }
     context.read<SyncBloc>().add(const CreateWalletSource());

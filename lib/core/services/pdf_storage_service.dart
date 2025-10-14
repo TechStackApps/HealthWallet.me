@@ -1,44 +1,38 @@
-// services/pdf_storage_service.dart
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:injectable/injectable.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 
 @Injectable()
 class PdfStorageService {
-  
   /// Save a PDF file to permanent storage and return the new path
   Future<String?> savePdfToStorage({
     required String sourcePdfPath,
     String? customFileName,
   }) async {
     try {
-      // Request storage permission
       final hasPermission = await _requestStoragePermission();
       if (!hasPermission) {
         throw Exception('Storage permission denied');
       }
 
-      // Check if source file exists
       final sourceFile = File(sourcePdfPath);
       if (!await sourceFile.exists()) {
         throw Exception('Source PDF file not found');
       }
 
-      // Generate filename
-      final fileName = customFileName ?? 'health_document_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      
-      // Get the documents directory (permanent storage)
+      final fileName = customFileName ??
+          'health_document_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
       final directory = await getApplicationDocumentsDirectory();
       final newPath = '${directory.path}/$fileName';
 
-      // Copy the file to permanent storage
       await sourceFile.copy(newPath);
 
       return newPath;
-
     } catch (e) {
-      print('Error saving PDF: $e');
+      logger.e('Error saving PDF: $e');
       return null;
     }
   }
@@ -48,13 +42,13 @@ class PdfStorageService {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final files = directory.listSync();
-      
+
       return files
           .where((file) => file.path.toLowerCase().endsWith('.pdf'))
           .map((file) => file.path)
           .toList();
     } catch (e) {
-      print('Error getting saved PDFs: $e');
+      logger.e('Error getting saved PDFs: $e');
       return [];
     }
   }
@@ -69,7 +63,7 @@ class PdfStorageService {
       }
       return false;
     } catch (e) {
-      print('Error deleting PDF: $e');
+      logger.e('Error deleting PDF: $e');
       return false;
     }
   }
@@ -100,12 +94,11 @@ class PdfStorageService {
       if (status.isGranted) {
         return true;
       }
-      
+
       final result = await Permission.storage.request();
       return result.isGranted;
     }
-    
-    // iOS doesn't require explicit storage permission for app documents
+
     return true;
   }
 
@@ -113,7 +106,8 @@ class PdfStorageService {
   String _formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024)
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }

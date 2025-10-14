@@ -44,25 +44,16 @@ class PatientSourceUtils {
       String currentSource, List<String>? patientSourceIds) {
     final source = currentSource.isEmpty ? 'All' : currentSource;
 
-    print('🔴 [PATIENT_SOURCE_UTILS] Validating source:');
-    print('  - Input source: $currentSource');
-    print('  - Normalized source: $source');
-    print('  - Patient source IDs: $patientSourceIds');
-
     // If source is "All" or patient has no sources, keep it
     if (source == 'All' ||
         patientSourceIds == null ||
         patientSourceIds.isEmpty) {
-      print(
-          '🔴 [PATIENT_SOURCE_UTILS] Keeping source (All or no patient sources): $source');
       return source;
     }
 
     // If source exists for patient, keep it; otherwise fallback to "All"
     final isValid = patientSourceIds.contains(source);
     final result = isValid ? source : 'All';
-    print(
-        '🔴 [PATIENT_SOURCE_UTILS] Source validation result: $result (isValid: $isValid)');
     return result;
   }
 
@@ -75,18 +66,9 @@ class PatientSourceUtils {
     // Get the new patient's source IDs
     final patientSourceIds = getPatientSourceIdsFromState(patientState);
 
-    print('🔴 [PATIENT_SOURCE_UTILS] Patient change detected:');
-    print('  - Current source: $currentSource');
-    print('  - Selected patient: ${patientState.selectedPatientId}');
-    print('  - Patient source IDs: $patientSourceIds');
-    print('  - Patient groups: ${patientState.patientGroups.keys}');
-
     // Validate that the current source exists for the new patient
     final validSource =
         validateSourceForPatient(currentSource, patientSourceIds);
-
-    print('🔴 [PATIENT_SOURCE_UTILS] Source validation:');
-    print('  - Valid source: $validSource');
 
     // Reload home with validated source and new patient's sources
     context.read<HomeBloc>().add(

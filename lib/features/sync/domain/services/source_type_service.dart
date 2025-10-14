@@ -78,12 +78,10 @@ class SourceTypeService {
         .firstOrNull;
 
     if (existingWallet != null) {
-      print('✅ DEBUG: Found existing wallet source: ${existingWallet.id}');
       return existingWallet;
     }
 
     // Create new wallet source via WalletPatientService
-    print('🔄 DEBUG: Creating new wallet source for patient: $patientId');
     final walletSource =
         await _walletPatientService.createWalletSourceForPatient(
       patientId,
@@ -92,7 +90,6 @@ class SourceTypeService {
 
     // Save the wallet source to the database
     await _syncRepository.cacheSources([walletSource]);
-    print('✅ DEBUG: Created and saved wallet source: ${walletSource.id}');
 
     return walletSource;
   }

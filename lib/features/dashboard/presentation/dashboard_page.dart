@@ -10,7 +10,6 @@ import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -40,28 +39,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return current.demoDataConfirmed && !current.hasSyncedData;
+        // Only listen for tutorial trigger to ensure we're on home page
+        return current.shouldShowTutorial && !previous.shouldShowTutorial;
       },
       listener: (context, syncState) async {
-        if (syncState.demoDataConfirmed && !syncState.hasSyncedData) {
-          final prefs = await SharedPreferences.getInstance();
-          final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
-
-          if (!onboardingShown) {
-            _pageController.animateToPage(
-              0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.ease,
-            );
-
-            Future.delayed(const Duration(milliseconds: 400), () {
-              if (mounted && context.mounted) {
-                try {
-                  context.read<SyncBloc>().add(const TriggerTutorial());
-                } catch (e) {}
-              }
-            });
-          } else {}
+        if (syncState.shouldShowTutorial) {
+          // Ensure we're on home page for tutorial
+          _pageController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.ease,
+          );
         }
       },
       child: Scaffold(

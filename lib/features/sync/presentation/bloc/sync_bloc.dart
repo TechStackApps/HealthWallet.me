@@ -178,6 +178,9 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       // Create Wallet source to ensure it exists
       await _syncRepository.createWalletSource();
 
+      // Create default patient for wallet
+      await _defaultPatientService.createAndSetAsMain();
+
       // Load demo data - it includes demo patient with source 'demo_data'
       await _recordsRepository.loadDemoData();
       final hasDemoData = await _recordsRepository.hasDemoData();

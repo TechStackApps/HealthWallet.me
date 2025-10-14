@@ -425,8 +425,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     Emitter<PatientState> emit,
   ) async {
     try {
-      print('🟡 [PATIENT] Selection changed to: ${event.patientId}');
-
       await _saveSelectedPatient(event.patientId);
 
       // Update the state with the new selection
@@ -434,10 +432,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
         selectedPatientId: event.patientId,
         expandedPatientIds: {event.patientId},
       ));
-
-      print('🟡 [PATIENT] Selection change complete. New state:');
-      print('  - Selected patient: ${state.selectedPatientId}');
-      print('  - Patient groups: ${state.patientGroups.keys}');
     } catch (e) {
       logger.e('Error in _onSelectionChanged: $e');
       emit(state.copyWith(
