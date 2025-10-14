@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/services/pdf_preview_service.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
@@ -27,6 +28,7 @@ class RecordAttachmentsWidget extends StatefulWidget {
 
 class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
   final _bloc = getIt.get<RecordAttachmentsBloc>();
+  final _pdfPreviewService = getIt<PdfPreviewService>();
 
   @override
   void initState() {
@@ -154,7 +156,9 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    basename(attachment.file.path),
+                    attachment.file != null
+                        ? basename(attachment.file!.path)
+                        : attachment.displayName,
                     style: AppTextStyle.labelLarge,
                   ),
                 )
@@ -163,16 +167,33 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
           ),
           Row(
             children: [
+              if (attachment.contentType == 'application/pdf' &&
+                  attachment.file != null)
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: GestureDetector(
+                    onTap: () => _pdfPreviewService.previewPdfFromFile(
+                        context, attachment.file!.path),
+                    child: Assets.icons.information
+                        .svg(width: 24, color: context.theme.iconTheme.color),
+                  ),
+                ),
+              if (attachment.contentType == 'application/pdf' &&
+                  attachment.file != null)
+                const SizedBox(width: 16),
               Padding(
                 padding: const EdgeInsets.all(6),
                 child: GestureDetector(
-                  onTap: () => SharePlus.instance
-                      .share(ShareParams(files: [XFile(attachment.file.path)])),
+                  onTap: () => attachment.file != null
+                      ? SharePlus.instance.share(
+                          ShareParams(files: [XFile(attachment.file!.path)]))
+                      : null,
                   child: Assets.icons.download
                       .svg(width: 24, color: context.theme.iconTheme.color),
                 ),
               ),
               const SizedBox(width: 16),
+              // Delete icon
               Padding(
                 padding: const EdgeInsets.all(6),
                 child: GestureDetector(
@@ -217,7 +238,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                   children: [
                     // Content
                     Text(
-                      'Are you sure you want to delete "${basename(attachment.file.path)}"?',
+                      'Are you sure you want to delete "${attachment.file != null ? basename(attachment.file!.path) : attachment.displayName}"?',
                       style: AppTextStyle.labelLarge.copyWith(color: textColor),
                     ),
 
@@ -226,12 +247,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     Container(
                       padding: const EdgeInsets.all(Insets.small),
                       decoration: BoxDecoration(
-                        color: (context.colorScheme.error ?? Colors.red)
-                            .withValues(alpha: 0.1),
+                        color: context.colorScheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: (context.colorScheme.error ?? Colors.red)
-                              .withValues(alpha: 0.3),
+                          color:
+                              context.colorScheme.error.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -239,7 +259,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                         children: [
                           Icon(
                             Icons.warning_amber_rounded,
-                            color: context.colorScheme.error ?? Colors.red,
+                            color: context.colorScheme.error,
                             size: 20,
                           ),
                           const SizedBox(width: Insets.small),
@@ -247,7 +267,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                             child: Text(
                               context.l10n.actionCannotBeUndone,
                               style: AppTextStyle.bodySmall.copyWith(
-                                color: context.colorScheme.error ?? Colors.red,
+                                color: context.colorScheme.error,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -290,8 +310,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                                   RecordAttachmentsFileDeleted(attachment));
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  context.colorScheme.error ?? Colors.red,
+                              backgroundColor: context.colorScheme.error,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.all(8),
                               fixedSize: const Size.fromHeight(36),

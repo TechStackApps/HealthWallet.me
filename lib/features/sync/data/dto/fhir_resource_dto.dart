@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:health_wallet/core/utils/custom_from_json.dart';
 import 'package:health_wallet/core/utils/demo_data_identifier.dart';
+import 'package:health_wallet/core/utils/fhir_reference_utils.dart';
 
 part 'fhir_resource_dto.freezed.dart';
 part 'fhir_resource_dto.g.dart';
@@ -52,10 +53,8 @@ class FhirResourceDto with _$FhirResourceDto {
     String? refString = reference.reference?.valueString;
     if (refString == null) return null;
 
-    List<String> splitString = refString.split(":");
-    if (splitString.length < 3) return null;
-
-    return splitString[2];
+    // Use the existing utility class that handles all FHIR reference formats correctly
+    return FhirReferenceUtils.extractReferenceId(refString);
   }
 
   /// Check if this resource represents a deletion

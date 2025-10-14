@@ -108,9 +108,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onSourceChanged(
       HomeSourceChanged e, Emitter<HomeState> emit) async {
-    print('🟢 [HOME] Source changed to: ${e.source}');
-    print('🟢 [HOME] Patient source IDs: ${e.patientSourceIds}');
-
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('home_selected_source_id', e.source);
 
@@ -119,9 +116,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         force: true,
         overrideSourceId: e.source,
         patientSourceIds: e.patientSourceIds);
-
-    print('🟢 [HOME] Source change complete. New state:');
-    print('  - Selected source: ${state.selectedSource}');
   }
 
   Future<void> _onVitalsFiltersChanged(

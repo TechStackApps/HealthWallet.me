@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
-import 'package:health_wallet/features/document_scanner/presentation/pages/image_preview_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
@@ -67,23 +67,23 @@ class _ResourceCardState extends State<ResourceCard> {
     );
   }
 
- Widget _buildMainResourceInfo() {
-  return InkWell(
-    onTap: () {
-      // Handle Media resources differently - open fullscreen viewer
-      if (widget.resource.fhirType == FhirType.Media) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => MediaFullscreenViewer(
-              media: widget.resource as Media,
+  Widget _buildMainResourceInfo() {
+    return InkWell(
+      onTap: () {
+        // Handle Media resources differently - open fullscreen viewer
+        if (widget.resource.fhirType == FhirType.Media) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => MediaFullscreenViewer(
+                media: widget.resource as Media,
+              ),
             ),
-          ),
-        );
-      } else {
-        // Default navigation for other resource types
-        context.router.push(RecordDetailsRoute(resource: widget.resource));
-      }
-    },
+          );
+        } else {
+          // Default navigation for other resource types
+          context.router.push(RecordDetailsRoute(resource: widget.resource));
+        }
+      },
       borderRadius: BorderRadius.circular(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

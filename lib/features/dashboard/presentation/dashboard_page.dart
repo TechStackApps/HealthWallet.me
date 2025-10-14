@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
-import 'package:health_wallet/features/document_scanner/presentation/pages/document_scanner_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
@@ -78,7 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 HomePage(pageController: _pageController),
                 RecordsPage(pageController: _pageController),
-                DocumentScannerPage(pageController: _pageController),
+                ScanPage(pageController: _pageController),
               ],
             ),
             // Bottom navigation bar

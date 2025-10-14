@@ -123,8 +123,8 @@ class SourceSelectorWidget extends StatelessWidget {
     if (source.labelSource?.isNotEmpty == true) {
       return source.labelSource!;
     }
-    if (source.name?.isNotEmpty == true) {
-      return source.name!;
+    if (source.platformName?.isNotEmpty == true) {
+      return source.platformName!;
     }
     // If source ID is too long, don't display it
     if (source.id.length > 20) {
@@ -173,8 +173,10 @@ class SourceSelectorWidget extends StatelessWidget {
             0,
             Source(
               id: 'All',
-              name: 'All Sources',
+              platformName: 'All Sources',
               labelSource: 'All Sources',
+              platformType:
+                  'all', // Special type to indicate this is a filter option, not a real source
             ));
         return allSources;
       }

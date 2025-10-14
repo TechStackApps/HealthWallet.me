@@ -383,15 +383,6 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
         await Future.delayed(const Duration(milliseconds: 300));
 
-        // Debug: Check final state
-        final finalHomeState = homeBloc.state;
-        final finalPatientState = patientBloc.state;
-        print('🔵 [DEMO] Step 8: Final HomeBloc state:');
-        print('  - Selected source: ${finalHomeState.selectedSource}');
-        print(
-            '  - Sources available: ${finalHomeState.sources.map((s) => '${s.id} (${s.labelSource})').toList()}');
-        print('🔵 [DEMO] Step 8: Final PatientBloc state:');
-        print('  - Selected patient: ${finalPatientState.selectedPatientId}');
         print('  - Patient groups: ${finalPatientState.patientGroups.keys}');
 
         // Close dialog AFTER all setup is complete

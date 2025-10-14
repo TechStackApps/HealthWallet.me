@@ -14,8 +14,10 @@ class RecordsLoadMore extends RecordsEvent with _$RecordsLoadMore {
 
 @freezed
 class RecordsSourceChanged extends RecordsEvent with _$RecordsSourceChanged {
-  const factory RecordsSourceChanged(String? sourceId,
-      {List<String>? sourceIds}) = _RecordsSourceChanged;
+  const factory RecordsSourceChanged(
+    String? sourceId, {
+    List<String>? sourceIds,
+  }) = _RecordsSourceChanged;
 }
 
 @freezed

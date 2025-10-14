@@ -7,17 +7,15 @@ abstract class RecordNotesEvent {
 @freezed
 class RecordNotesInitialised extends RecordNotesEvent
     with _$RecordNotesInitialised {
-  const factory RecordNotesInitialised({
-    required IFhirResource resource,
-  }) = _RecordNotesInitialised;
+  const factory RecordNotesInitialised({required IFhirResource resource}) =
+      _RecordNotesInitialised;
 }
 
 @freezed
 class RecordNotesInputInitialised extends RecordNotesEvent
     with _$RecordNotesInputInitialised {
-  const factory RecordNotesInputInitialised({
-    RecordNote? editNote,
-  }) = _RecordNotesInputInitialised;
+  const factory RecordNotesInputInitialised({RecordNote? editNote}) =
+      _RecordNotesInputInitialised;
 }
 
 @freezed

@@ -7,13 +7,15 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/core/services/pdf_preview_service.dart';
 import 'package:health_wallet/core/di/injection.dart';
 
 @RoutePage()
 class RecordDetailsPage extends StatelessWidget {
   final IFhirResource resource;
+  final PdfPreviewService _pdfPreviewService = getIt<PdfPreviewService>();
 
-  const RecordDetailsPage({
+  RecordDetailsPage({
     super.key,
     required this.resource,
   });
@@ -168,7 +170,33 @@ class RecordDetailsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(resource.displayTitle, style: AppTextStyle.labelLarge),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(resource.displayTitle,
+                            style: AppTextStyle.labelLarge),
+                      ),
+                      // VIEW button for PDF preview (if it's a Media resource)
+                      if (resource.fhirType == FhirType.Media)
+                        TextButton(
+                          onPressed: () => _pdfPreviewService
+                              .previewPdfFromResource(context, resource),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'VIEW',
+                            style: AppTextStyle.labelSmall.copyWith(
+                              color: context.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                   _buildRelatedResourceInfo(context, resource),
                   const SizedBox(height: 16),
                 ],
