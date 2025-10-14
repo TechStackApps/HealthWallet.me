@@ -34,5 +34,6 @@ class AppRouter extends _$AppRouter {
         AutoRoute(page: RecordDetailsRoute.page),
         AutoRoute(page: SyncRoute.page),
         AutoRoute(page: PrivacyPolicyRoute.page),
+        //AutoRoute(page: ScanRoute.page, path: '/scan'),
       ];
 }

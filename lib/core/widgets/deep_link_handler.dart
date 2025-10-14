@@ -1,7 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/services/deep_link_service.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 
 /// Widget that listens to deep links and shows import dialog
 class DeepLinkHandler extends StatefulWidget {
@@ -25,7 +31,6 @@ class _DeepLinkHandlerState extends State<DeepLinkHandler> {
   @override
   void initState() {
     super.initState();
-    // Delay initialization until after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeDeepLinks();
     });
@@ -47,115 +52,106 @@ class _DeepLinkHandlerState extends State<DeepLinkHandler> {
     );
   }
 
-Future<void> _handleDeepLink(DeepLinkData data) async {
-  // Wait until navigator context becomes available or widget disposed
-  while (mounted && widget.navigatorKey.currentContext == null) {
-    debugPrint('⚠️ Waiting for Navigator context...');
-    await Future.delayed(const Duration(milliseconds: 100));
-  }
-
-  if (!mounted) return;
-
-  final navigatorContext = widget.navigatorKey.currentContext!;
-  
-  debugPrint('✅ Navigator context ready, showing dialog...');
-  
-  // Validate trusted provider
-  if (!_deepLinkService.isTrustedProvider(data.fileUrl)) {
-    ScaffoldMessenger.of(navigatorContext).showSnackBar(
-      const SnackBar(
-        content: Text('Untrusted provider.'),
-        backgroundColor: Colors.red,
-      ),
-    );
-    return;
-  }
-  
-  _showImportDialog(navigatorContext, data);
-}
-
-
-Future<void> _showImportDialog(BuildContext navigatorContext, DeepLinkData data) async {
-  debugPrint('🔍 About to show dialog...');
-  debugPrint('🔍 Context mounted: ${navigatorContext.mounted}');
-  
-  try {
-    debugPrint('🔍 Calling dialog');
-    final shouldImport = await showDialog<bool>(
-      context: navigatorContext,
-      barrierDismissible: false,
-      useRootNavigator: true,
-      builder: (context) {
-        debugPrint('🔍 Dialog builder called!');
-        return ImportDocumentDialog(data: data);
-      },
-    );
-    
-    debugPrint('🔍 Dialog returned: $shouldImport');
-
-    if (shouldImport == true) {
-      await _downloadAndImport(navigatorContext, data);
+  Future<void> _handleDeepLink(DeepLinkData data) async {
+    // Wait until navigator context becomes available
+    while (mounted && widget.navigatorKey.currentContext == null) {
+      debugPrint('⚠️ Waiting for Navigator context...');
+      await Future.delayed(const Duration(milliseconds: 100));
     }
-  } catch (e) {
-    debugPrint('❌ Dialog error: $e');
-  }
-}
 
-  Future<void> _downloadAndImport(BuildContext context, DeepLinkData data) async {
+    if (!mounted) return;
+
     final navigatorContext = widget.navigatorKey.currentContext!;
-    showDialog(
-      context: navigatorContext,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Downloading document...'),
-              ],
-            ),
+
+    debugPrint('✅ Navigator context ready, showing dialog...');
+
+    // Validate trusted provider
+    if (!_deepLinkService.isTrustedProvider(data.fileUrl)) {
+      ScaffoldMessenger.of(navigatorContext).showSnackBar(
+        const SnackBar(
+          content: Text('Untrusted provider.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    _showImportDialog(navigatorContext, data);
+  }
+
+  Future<void> _showImportDialog(BuildContext navigatorContext, DeepLinkData data) async {
+    debugPrint('🔍 About to show dialog...');
+
+    try {
+      final shouldImport = await showDialog<bool>(
+        context: navigatorContext,
+        barrierDismissible: false,
+        builder: (context) => ImportDocumentDialog(data: data),
+      );
+
+      debugPrint('🔍 Dialog returned: $shouldImport');
+
+      if (shouldImport == true) {
+        await _downloadAndAddToScan(navigatorContext, data);
+      }
+    } catch (e) {
+      debugPrint('❌ Dialog error: $e');
+    }
+  }
+
+Future<void> _downloadAndAddToScan(BuildContext navigatorContext, DeepLinkData data) async {
+  showDialog(
+    context: navigatorContext,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Downloading document...'),
+            ],
           ),
         ),
       ),
+    ),
+  );
+
+  try {
+    final filePath = await _deepLinkService.downloadFile(
+      data.fileUrl,
+      customFileName: data.documentName,
     );
 
-    try {
-      // Download the file
-      final filePath = await _deepLinkService.downloadFile(
-        data.fileUrl,
-        customFileName: data.documentName,
-      );
+    if (!mounted) return;
+    Navigator.of(navigatorContext).pop();
 
-      if (!mounted) return;
-      Navigator.of(navigatorContext).pop(); // Close loading dialog
+    debugPrint('📁 Downloaded: $filePath');
 
-      ScaffoldMessenger.of(navigatorContext).showSnackBar(
-        const SnackBar(
-          content: Text('Document downloaded successfully! Ready to add to your records.'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
-        ),
-      );
+    // Store in cache
+    DeepLinkFileCache.instance.setFile(
+      filePath: filePath,
+      providerName: data.providerName,
+    );
 
-      debugPrint('Downloaded file path: $filePath');
-      debugPrint('Provider: ${data.providerName}');
-      debugPrint('Document type: ${data.documentType}');
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.of(navigatorContext).pop(); // Close loading dialog
-      ScaffoldMessenger.of(navigatorContext).showSnackBar(
-        SnackBar(
-          content: Text('Failed to download document: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
+    // Navigate to Dashboard
+    final router = getIt<AppRouter>();
+    router.push(const DashboardRoute());
+    
+  } catch (e) {
+    if (!mounted) return;
+    Navigator.of(navigatorContext).pop();
+    ScaffoldMessenger.of(navigatorContext).showSnackBar(
+      SnackBar(
+        content: Text('Failed: ${e.toString()}'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 
   @override
   void dispose() {
@@ -180,7 +176,6 @@ class ImportDocumentDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔍 Building ImportDocumentDialog');
     return AlertDialog(
       title: const Row(
         children: [
@@ -223,7 +218,7 @@ class ImportDocumentDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'This document will be downloaded and added to your medical records.',
+                    'This document will be added to your scan page where you can attach it to an encounter.',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),

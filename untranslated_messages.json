@@ -1,9 +1,13 @@
 {
   "de": [
+    "walletHolder",
+    "walletHolderDescription",
     "documentScanTitle"
   ],
 
   "es": [
+    "walletHolder",
+    "walletHolderDescription",
     "documentScanTitle"
   ]
 }

@@ -11,6 +11,7 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -24,6 +25,26 @@ class _DashboardPageState extends State<DashboardPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
   bool _isKeyboardVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for deep link files after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForDeepLinkFile();
+    });
+  }
+
+  void _checkForDeepLinkFile() {
+    // CHECK but don't clear - let ScanPage read and clear it
+    if (DeepLinkFileCache.instance.hasFile()) {
+      // Jump to scan tab (index 2)
+      _pageController.jumpToPage(2);
+      setState(() {
+        _currentIndex = 2;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 } catch (e) {}
               }
             });
-          } else {}
+          }
         }
       },
       child: Scaffold(
@@ -81,7 +102,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ScanPage(pageController: _pageController),
               ],
             ),
-            // Bottom navigation bar
+            // Rest of your existing code...
             BlocBuilder<SyncBloc, SyncState>(
               builder: (context, syncState) {
                 if (!_isKeyboardVisible) {
@@ -112,8 +133,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   boxShadow: context.isDarkMode
                                       ? [
                                           BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.05),
+                                            color: Colors.black.withOpacity(0.05),
                                             blurRadius: 8,
                                             spreadRadius: 0,
                                           ),
@@ -151,8 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       FocusScope.of(context).unfocus();
                                       _pageController.animateToPage(
                                         0,
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                        duration: const Duration(milliseconds: 300),
                                         curve: Curves.ease,
                                       );
                                     },
@@ -178,8 +197,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       FocusScope.of(context).unfocus();
                                       _pageController.animateToPage(
                                         1,
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                        duration: const Duration(milliseconds: 300),
                                         curve: Curves.ease,
                                       );
                                     },
@@ -205,8 +223,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       FocusScope.of(context).unfocus();
                                       _pageController.animateToPage(
                                         2,
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                        duration: const Duration(milliseconds: 300),
                                         curve: Curves.ease,
                                       );
                                     },

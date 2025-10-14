@@ -1,5 +1,6 @@
 // Updated scan_page.dart
 import 'package:auto_route/auto_route.dart';
+import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
 import 'package:health_wallet/features/scan/presentation/pages/process_to_fhir_page.dart';
 import 'package:flutter/material.dart';
@@ -28,22 +29,40 @@ import 'package:health_wallet/features/records/domain/entity/patient/patient.dar
 @RoutePage()
 class ScanPage extends StatelessWidget {
   final PageController? pageController;
+  final String? importedFilePath;  // ADD
+  final String? providerName;      // ADD
 
-  const ScanPage({super.key, this.pageController});
+  const ScanPage({
+    super.key,
+    this.pageController,
+    @QueryParam() this.importedFilePath,  // ADD @QueryParam
+    @QueryParam() this.providerName,       // ADD @QueryParam
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => GetIt.instance.get<ScanBloc>(),
-      child: ScanView(pageController: pageController),
+      child: ScanView(
+        pageController: pageController,
+        importedFilePath: importedFilePath,
+        providerName: providerName,
+      ),
     );
   }
 }
 
 class ScanView extends StatefulWidget {
   final PageController? pageController;
+  final String? importedFilePath;
+  final String? providerName;
 
-  const ScanView({super.key, this.pageController});
+  const ScanView({
+    super.key,
+    this.pageController,
+    this.importedFilePath,
+    this.providerName,
+  });
 
   @override
   State<ScanView> createState() => _ScanViewState();
@@ -51,22 +70,68 @@ class ScanView extends StatefulWidget {
 
 class _ScanViewState extends State<ScanView> {
   bool _hasAutoScanned = false;
+  bool _hasImportedDeepLink = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleDeepLinkImport();
       _autoStartScanning();
     });
   }
 
+  Future<void> _handleDeepLinkImport() async {
+    if (_hasImportedDeepLink) return;
+    
+    // Check for cached deep link file
+    final cachedFile = DeepLinkFileCache.instance.getAndClearFile();
+    
+    debugPrint('🔍 Checking for cached file: $cachedFile');
+    
+    if (cachedFile != null && cachedFile['filePath'] != null) {
+      _hasImportedDeepLink = true;
+      
+      final filePath = cachedFile['filePath']!;
+      debugPrint('📥 Found cached file: $filePath');
+      
+      // Verify file exists
+      final fileExists = await File(filePath).exists();
+      debugPrint('📁 File exists: $fileExists');
+      
+      if (fileExists) {
+        // Add to ScanBloc
+        context.read<ScanBloc>().add(
+          ScanEvent.documentImported(filePath: filePath),
+        );
+        
+        debugPrint('✅ File added to ScanBloc');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Document from ${cachedFile['providerName'] ?? "provider"} imported!',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        debugPrint('❌ File does not exist at path: $filePath');
+      }
+    } else {
+      debugPrint('ℹ️ No cached file found');
+    }
+  }
+
   Future<void> _autoStartScanning() async {
-    if (_hasAutoScanned) return;
+    if (_hasAutoScanned || _hasImportedDeepLink) return;  // Don't scan if deep link file exists
     _hasAutoScanned = true;
 
     final currentState = context.read<ScanBloc>().state;
 
-    // Only auto-start if no scans are already scanned
     if (currentState.scannedImagePaths.isEmpty) {
       await _handleScanButtonPressed(context);
     }
