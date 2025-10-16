@@ -46,6 +46,10 @@ class Patient with _$Patient implements IFhirResource {
 
   factory Patient.fromLocalData(FhirResourceLocalDto data) {
     final resourceJson = jsonDecode(data.resourceRaw);
+
+    // Clean up problematic Epic-specific fields that cause parsing errors
+    _cleanEpicExtensions(resourceJson);
+
     final fhirPatient = fhir_r4.Patient.fromJson(resourceJson);
 
     return Patient(
@@ -133,4 +137,17 @@ class Patient with _$Patient implements IFhirResource {
   @override
   String get statusDisplay =>
       active?.valueBoolean == true ? 'Active' : 'Inactive';
+
+  /// Clean up Epic-specific extensions that cause FHIR parsing errors
+  static void _cleanEpicExtensions(Map<String, dynamic> resourceJson) {
+    // Remove problematic _given fields from name entries
+    if (resourceJson['name'] is List) {
+      final nameList = resourceJson['name'] as List;
+      for (final name in nameList) {
+        if (name is Map<String, dynamic>) {
+          name.remove('_given');
+        }
+      }
+    }
+  }
 }

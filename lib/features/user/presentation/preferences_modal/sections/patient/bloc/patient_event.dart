@@ -51,6 +51,5 @@ class PatientSelectionChanged extends PatientEvent
     with _$PatientSelectionChanged {
   const factory PatientSelectionChanged({
     required String patientId,
-    required String sourceId,
   }) = _PatientSelectionChanged;
 }

@@ -66,9 +66,20 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
           limit: 100,
         );
       } else {
+        final sourceIdToUse = state.activeFilters.contains(FhirType.Media)
+            ? null
+            : state.sourceId;
+
+        // Use sourceIds when "All" is selected, otherwise use sourceId
+        List<String>? sourceIdsToUse;
+        if (state.sourceId == null && state.sourceIds != null) {
+          sourceIdsToUse = state.sourceIds;
+        }
+
         resources = await _recordsRepository.getResources(
           resourceTypes: state.activeFilters,
-          sourceId: state.sourceId,
+          sourceId: sourceIdToUse,
+          sourceIds: sourceIdsToUse,
           limit: limit,
           offset: offset,
         );
@@ -128,6 +139,7 @@ class RecordsBloc extends Bloc<RecordsEvent, RecordsState> {
   ) async {
     var nextState = state.copyWith(
       sourceId: event.sourceId,
+      sourceIds: event.sourceIds,
       resources: [],
       hasMorePages: true,
     );

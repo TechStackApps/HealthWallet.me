@@ -15,7 +15,6 @@ class PerformanceMonitor {
   void startOperation(String operationName) {
     _startTimes[operationName] = DateTime.now();
     developer.Timeline.startSync(operationName);
-    logger.d('PerformanceMonitor: Started operation: $operationName');
   }
 
   /// End timing an operation and record the duration
@@ -33,9 +32,6 @@ class PerformanceMonitor {
       // Increment operation count
       _operationCounts[operationName] =
           (_operationCounts[operationName] ?? 0) + 1;
-
-      logger.d(
-          'PerformanceMonitor: Completed operation: $operationName in ${duration}ms');
 
       // Log warning for slow operations
       if (duration > 1000) {
@@ -169,7 +165,6 @@ class PerformanceMonitor {
     _startTimes.clear();
     _operationDurations.clear();
     _operationCounts.clear();
-    logger.d('PerformanceMonitor: Reset all performance data');
   }
 
   /// Log the current performance summary

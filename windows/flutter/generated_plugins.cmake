@@ -3,7 +3,11 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  file_selector_windows
+  flutter_doc_scanner
   local_auth_windows
+  pdfx
+  permission_handler_windows
   share_plus
   sqlite3_flutter_libs
   url_launcher_windows

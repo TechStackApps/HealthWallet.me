@@ -14,7 +14,10 @@ class RecordsLoadMore extends RecordsEvent with _$RecordsLoadMore {
 
 @freezed
 class RecordsSourceChanged extends RecordsEvent with _$RecordsSourceChanged {
-  const factory RecordsSourceChanged(String? sourceId) = _RecordsSourceChanged;
+  const factory RecordsSourceChanged(
+    String? sourceId, {
+    List<String>? sourceIds,
+  }) = _RecordsSourceChanged;
 }
 
 @freezed
@@ -58,4 +61,3 @@ class RecordsSearchExecuted extends RecordsEvent with _$RecordsSearchExecuted {
 class RecordsSharePressed extends RecordsEvent with _$RecordsSharePressed {
   const factory RecordsSharePressed() = _RecordsSharePressed;
 }
-

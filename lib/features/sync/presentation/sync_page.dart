@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -138,129 +137,129 @@ class _SyncPageState extends State<SyncPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-        Assets.images.syncScanIlustration.svg(width: 140),
-        const SizedBox(height: Insets.small),
-        const Text(
-          'Scan QR Code',
-          style: AppTextStyle.buttonMedium,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Scan a QR code from your Fasten server to establish a secure connection.',
-          style: AppTextStyle.labelLarge,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              context.read<SyncBloc>().add(const SyncScanQRCode());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: context.colorScheme.primary,
-              foregroundColor: context.isDarkMode
-                  ? Colors.white
-                  : context.colorScheme.onPrimary,
-              padding: const EdgeInsets.all(12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Assets.icons.qrCode.svg(width: 16),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.scanCode,
-                  style: AppTextStyle.buttonSmall,
-                )
-              ],
-            ),
+          Assets.images.syncScanIlustration.svg(width: 140),
+          const SizedBox(height: Insets.small),
+          const Text(
+            'Scan QR Code',
+            style: AppTextStyle.buttonMedium,
+            textAlign: TextAlign.center,
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Text(context.l10n.or, style: AppTextStyle.labelLarge),
-        ),
-        Text(
-          context.l10n.manualSyncMessage,
-          style: AppTextStyle.labelLarge,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          maxLines: 3,
-          style: AppTextStyle.labelLarge,
-          controller: _manualCodeController,
-          decoration: InputDecoration(
-            hintText: context.l10n.pasteSyncDataHint,
-            hintStyle: AppTextStyle.labelLarge.copyWith(
-                color: context.isDarkMode
+          const SizedBox(height: 12),
+          const Text(
+            'Scan a QR code from your Fasten server to establish a secure connection.',
+            style: AppTextStyle.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<SyncBloc>().add(const SyncScanQRCode());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colorScheme.primary,
+                foregroundColor: context.isDarkMode
                     ? Colors.white
-                    : AppColors.textPrimary.withValues(alpha: 0.6)),
-            disabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: context.isDarkMode
-                      ? Colors.white
-                      : AppColors.textPrimary.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: context.isDarkMode
-                      ? Colors.white
-                      : AppColors.textPrimary.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                  color: context.isDarkMode
-                      ? Colors.white
-                      : AppColors.textPrimary.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: state.isLoading
-                ? null
-                : () => context
-                    .read<SyncBloc>()
-                    .add(SyncData(qrData: _manualCodeController.text)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: context.isDarkMode
-                  ? Colors.white
-                  : context.colorScheme.primary,
-              side: BorderSide(color: context.colorScheme.primary),
-              padding: const EdgeInsets.all(12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                    : context.colorScheme.onPrimary,
+                padding: const EdgeInsets.all(12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Assets.icons.qrCode.svg(width: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.l10n.scanCode,
+                    style: AppTextStyle.buttonSmall,
+                  )
+                ],
               ),
             ),
-            child: state.isLoading
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text(context.l10n.connect,
-                    style: AppTextStyle.buttonSmall
-                        .copyWith(color: context.colorScheme.primary)),
           ),
-        ),
-        const SizedBox(height: 12),
-        if (state.errorMessage != null)
-          _buildResultCard(context, state.errorMessage!, AppColors.error)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text(context.l10n.or, style: AppTextStyle.labelLarge),
+          ),
+          Text(
+            context.l10n.manualSyncMessage,
+            style: AppTextStyle.labelLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            maxLines: 3,
+            style: AppTextStyle.labelLarge,
+            controller: _manualCodeController,
+            decoration: InputDecoration(
+              hintText: context.l10n.pasteSyncDataHint,
+              hintStyle: AppTextStyle.labelLarge.copyWith(
+                  color: context.isDarkMode
+                      ? Colors.white
+                      : AppColors.textPrimary.withValues(alpha: 0.6)),
+              disabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: context.isDarkMode
+                        ? Colors.white
+                        : AppColors.textPrimary.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: context.isDarkMode
+                        ? Colors.white
+                        : AppColors.textPrimary.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: context.isDarkMode
+                        ? Colors.white
+                        : AppColors.textPrimary.withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: state.isLoading
+                  ? null
+                  : () => context
+                      .read<SyncBloc>()
+                      .add(SyncData(qrData: _manualCodeController.text)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.isDarkMode
+                    ? Colors.white
+                    : context.colorScheme.primary,
+                side: BorderSide(color: context.colorScheme.primary),
+                padding: const EdgeInsets.all(12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: state.isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(context.l10n.connect,
+                      style: AppTextStyle.buttonSmall
+                          .copyWith(color: context.colorScheme.primary)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (state.errorMessage != null)
+            _buildResultCard(context, state.errorMessage!, AppColors.error)
         ],
       ),
     );
@@ -422,13 +421,13 @@ class _SyncPageState extends State<SyncPage> {
       title: context.l10n.success,
       message: context.l10n.syncDataLoadedSuccessfully,
       onOkPressed: () {
-        context.read<SyncBloc>().add(const ResetTutorial());
-
+        // Navigate to home first
         context.router.pushAndPopUntil(
           const DashboardRoute(),
           predicate: (_) => false,
         );
 
+        // Trigger tutorial if not shown before
         if (!onboardingShown) {
           Future.delayed(const Duration(milliseconds: 400), () {
             try {

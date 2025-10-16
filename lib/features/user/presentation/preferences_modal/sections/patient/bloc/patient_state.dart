@@ -5,9 +5,10 @@ class PatientState with _$PatientState {
   const factory PatientState({
     @Default(PatientStatus.initial()) PatientStatus status,
     @Default([]) List<Patient> patients,
+    @Default([]) List<Patient> allPatientsAcrossSources,
+    @Default({}) Map<String, PatientGroup> patientGroups,
     @Default({}) Set<String> expandedPatientIds,
     String? selectedPatientId,
-    String? selectedPatientSourceId,
     @Default('') String animatingPatientId,
     @Default('') String collapsingPatientId,
     @Default('') String expandingPatientId,

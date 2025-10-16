@@ -136,8 +136,6 @@ class OnboardingScreen extends StatelessWidget {
                     final url = linkText == 'HealthWallet.me'
                         ? 'https://healthwallet.me'
                         : 'https://github.com/fastenhealth/fasten-onprem';
-                    print(
-                        'OnboardingScreen: Tapping link: $linkText, URL: $url');
                     context.read<OnboardingBloc>().add(
                           OnboardingLaunchUrl(url),
                         );

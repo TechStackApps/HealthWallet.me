@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_dialog_controller.dart';
 import 'package:onboarding_overlay/onboarding_overlay.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/core/utils/patient_source_utils.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -15,7 +16,6 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
-import 'package:health_wallet/features/home/presentation/widgets/source_label_edit_dialog.dart';
 import 'package:health_wallet/features/home/presentation/widgets/section_info_modal.dart';
 import 'package:health_wallet/features/home/presentation/sections/vitals_section.dart';
 import 'package:health_wallet/features/home/presentation/sections/medical_records_section.dart';
@@ -37,23 +37,15 @@ class HomePage extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<PatientBloc, PatientState>(
-          listenWhen: (previous, current) =>
-              previous.selectedPatientSourceId !=
-                  current.selectedPatientSourceId ||
-              (current.status.toString().contains('Success') &&
-                  !current.isEditingPatient),
-          listener: (context, patientState) {
-            if (patientState.selectedPatientSourceId != null &&
-                patientState.selectedPatientSourceId != 'All') {
-              context.read<HomeBloc>().add(
-                    HomeSourceChanged(patientState.selectedPatientSourceId!),
-                  );
-            }
+          listenWhen: (previous, current) {
+            // Only listen when patient selection actually changes
+            final patientChanged =
+                previous.selectedPatientId != current.selectedPatientId;
 
-            if (patientState.status.toString().contains('Success') &&
-                !patientState.isEditingPatient) {
-              context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-            }
+            return patientChanged;
+          },
+          listener: (context, patientState) {
+            PatientSourceUtils.handlePatientChange(context, patientState);
           },
         ),
       ],
@@ -274,7 +266,15 @@ class HomeViewState extends State<HomeView> {
 
     final hasRecent = state.recentRecords.isNotEmpty;
 
-    if (!hasVitalDataLoaded && !hasOverviewDataLoaded && !hasRecent) {
+    final hasAnyMeaningfulData =
+        hasVitalDataLoaded || hasOverviewDataLoaded || hasRecent;
+
+    // Show sync placeholder when there's no meaningful data
+    // Exception: Wallet source should never show placeholder (it's for manual records)
+    final shouldShowPlaceholder =
+        !hasAnyMeaningfulData && state.selectedSource != 'wallet';
+
+    if (shouldShowPlaceholder) {
       return SyncPlaceholderWidget(
         pageController: widget.pageController,
         onSyncPressed: () {
@@ -406,23 +406,24 @@ class HomeViewState extends State<HomeView> {
                                 ? SourceSelectorWidget(
                                     sources: state.sources,
                                     selectedSource: state.selectedSource,
-                                    onSourceChanged: (sourceId) {
-                                      context
-                                          .read<HomeBloc>()
-                                          .add(HomeSourceChanged(sourceId));
+                                    onSourceChanged:
+                                        (sourceId, patientSourceIds) {
+                                      context.read<HomeBloc>().add(
+                                          HomeSourceChanged(sourceId,
+                                              patientSourceIds:
+                                                  patientSourceIds));
                                     },
                                     currentPatient: state.patient,
-                                    onSourceTap: (source) {
-                                      SourceLabelEditDialog.show(
-                                        context,
-                                        source,
-                                        (newLabel) {
-                                          context.read<HomeBloc>().add(
-                                                HomeSourceLabelUpdated(
-                                                    source.id, newLabel),
-                                              );
-                                        },
-                                      );
+                                    onSourceLabelEdit: (source) {
+                                      context.read<HomeBloc>().add(
+                                            HomeSourceLabelUpdated(source.id,
+                                                source.labelSource ?? ''),
+                                          );
+                                    },
+                                    onSourceDelete: (source) {
+                                      context.read<HomeBloc>().add(
+                                            HomeSourceDeleted(source.id),
+                                          );
                                     },
                                   )
                                 : null,

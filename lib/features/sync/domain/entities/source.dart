@@ -8,9 +8,12 @@ part 'source.g.dart';
 class Source with _$Source {
   const factory Source({
     required String id,
-    String? name,
+    String? platformName,
     String? logo,
     String? labelSource,
+    @Default('wallet') String platformType,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _Source;
 
   factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
