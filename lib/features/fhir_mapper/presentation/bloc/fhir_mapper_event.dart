@@ -22,3 +22,21 @@ class _DownloadProgressChanged extends FhirMapperEvent {
 
   final double progress;
 }
+
+@freezed
+class FhirMappingInitiated extends FhirMapperEvent
+    with _$FhirMappingInitiated {
+  const factory FhirMappingInitiated(String text) =
+      _FhirMappingInitiated;
+}
+
+@freezed
+class FhirMapperResourceChanged extends FhirMapperEvent
+    with _$FhirMapperResourceChanged {
+  const factory FhirMapperResourceChanged({
+    required int index,
+    required String propertyKey,
+    required String newValue,
+  }) =
+      _FhirMapperResourceChanged;
+}

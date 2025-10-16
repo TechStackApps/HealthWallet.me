@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -13,6 +12,12 @@ abstract class FhirMapperRemoteDatasource {
   Stream<DownloadProgress> downloadModel(InferenceModelSpec spec);
 
   Future<bool> checkModelExistence(InferenceModelSpec spec);
+
+  Future startModelSession(InferenceModelSpec spec);
+
+  Future closeModelSession();
+
+  Future<String?> runPrompt(String prompt);
 }
 
 @LazySingleton(as: FhirMapperRemoteDatasource)
@@ -29,6 +34,9 @@ class FhirMapperRemoteDatasourceImpl implements FhirMapperRemoteDatasource {
           );
 
   final Dio _dio;
+
+  InferenceModel? _model;
+  InferenceModelSession? _session;
 
   @override
   Future<bool> checkModelExistence(InferenceModelSpec spec) async {
@@ -77,5 +85,34 @@ class FhirMapperRemoteDatasourceImpl implements FhirMapperRemoteDatasource {
         ? directory.path.replaceFirst('/data/user/0/', '/data/data/')
         : directory.path;
     return '$correctedPath/$fileName';
+  }
+
+  @override
+  Future startModelSession(InferenceModelSpec spec) async {
+    _model ??= await createModel(spec);
+
+    _session ??= await _model!.createSession();
+  }
+
+  Future<InferenceModel> createModel(InferenceModelSpec spec) async {
+    await FlutterGemmaPlugin.instance.modelManager.ensureModelReady(
+      spec.name,
+      spec.modelUrl,
+    );
+
+    return FlutterGemmaPlugin.instance
+        .createModel(modelType: ModelType.gemmaIt);
+  }
+
+  @override
+  Future closeModelSession() async {
+    _session?.close();
+  }
+
+  @override
+  Future<String?> runPrompt(String prompt) async {
+    await _session?.addQueryChunk(Message(text: prompt, isUser: true));
+
+    return await _session?.getResponse();
   }
 }

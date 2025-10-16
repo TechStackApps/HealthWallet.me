@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/repository/fhir_mapper_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -16,6 +17,8 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     on<FhirMapperInitialised>(_onFhirMapperInitialised);
     on<FhirMapperModelDownloadInitiated>(_onFhirMapperModelDownloadInitiated);
     on<_DownloadProgressChanged>(_onDownloadProgressChanged);
+    on<FhirMappingInitiated>(_onFhirMappingInitiated);
+    on<FhirMapperResourceChanged>(_onFhirMapperResourceChanged);
   }
 
   final FhirMapperRepository _repository;
@@ -55,5 +58,34 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       return;
     }
     emit(state.copyWith(downloadProgress: event.progress));
+  }
+
+  void _onFhirMappingInitiated(
+    FhirMappingInitiated event,
+    Emitter<FhirMapperState> emit,
+  ) async {
+    emit(state.copyWith(status: FhirMapperStatus.mappingLoading));
+
+    List<MappingResource> resources =
+        await _repository.mapResources(event.text);
+
+    emit(state.copyWith(
+      status: FhirMapperStatus.success,
+      resources: resources,
+    ));
+  }
+
+  void _onFhirMapperResourceChanged(
+    FhirMapperResourceChanged event,
+    Emitter<FhirMapperState> emit,
+  ) {
+    MappingResource updatedResource = state.resources[event.index].copyWithMap({
+      event.propertyKey: event.newValue,
+    });
+
+    final newResources = [...state.resources];
+    newResources[event.index] = updatedResource;
+
+    emit(state.copyWith(resources: newResources));
   }
 }

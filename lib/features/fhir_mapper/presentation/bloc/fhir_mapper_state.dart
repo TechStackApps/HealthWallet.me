@@ -5,6 +5,7 @@ class FhirMapperState with _$FhirMapperState {
   const factory FhirMapperState({
     @Default(FhirMapperStatus.modelLoading) FhirMapperStatus status,
     double? downloadProgress,
+    @Default([]) List<MappingResource> resources,
   }) = _FhirMapperState;
 }
 
