@@ -9,7 +9,7 @@ class ObservationPrompt extends PromptTemplate {
     {
       "resourceType": "Observation",
       "observationName": "string",
-      "value": "number",
+      "value": "string",
       "unit": "string"
     }
   ''';

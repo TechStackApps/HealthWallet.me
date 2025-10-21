@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
@@ -13,16 +14,16 @@ class MappingOrganization
   const MappingOrganization._();
 
   const factory MappingOrganization({
-    @Default('') String organizationName,
-    @Default('') String address,
-    @Default('') String phone,
+    @Default(MappedProperty()) MappedProperty organizationName,
+    @Default(MappedProperty()) MappedProperty address,
+    @Default(MappedProperty()) MappedProperty phone,
   }) = _MappingOrganization;
 
   factory MappingOrganization.fromJson(Map<String, dynamic> json) {
     return MappingOrganization(
-      organizationName: json['organizationName'] ?? '',
-      address: json['address'] ?? '',
-      phone: json['phone'] ?? '',
+      organizationName: MappedProperty(value: json['organizationName'] ?? ''),
+      address: MappedProperty(value: json['address'] ?? ''),
+      phone: MappedProperty(value: json['phone'] ?? ''),
     );
   }
 
@@ -32,19 +33,42 @@ class MappingOrganization
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
         'organizationName': TextFieldDescriptor(
-            label: 'Organization Name', value: organizationName),
-        'address': TextFieldDescriptor(label: 'Address', value: address),
-        'phone': TextFieldDescriptor(label: 'Phone', value: phone),
+          label: 'Organization Name',
+          value: organizationName.value,
+          confidenceLevel: organizationName.confidenceLevel,
+        ),
+        'address': TextFieldDescriptor(
+          label: 'Address',
+          value: address.value,
+          confidenceLevel: address.confidenceLevel,
+        ),
+        'phone': TextFieldDescriptor(
+          label: 'Phone',
+          value: phone.value,
+          confidenceLevel: phone.confidenceLevel,
+        ),
       };
 
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingOrganization(
-        organizationName: newValues['organizationName'] ?? organizationName,
-        address: newValues['address'] ?? address,
-        phone: newValues['phone'] ?? phone,
+        organizationName: MappedProperty(
+            value: newValues['organizationName'] ?? organizationName.value),
+        address: MappedProperty(value: newValues['address'] ?? address.value),
+        phone: MappedProperty(value: newValues['phone'] ?? phone.value),
       );
 
   @override
   String get label => 'Organization';
+
+  @override
+  MappingResource populateConfidence(String inputText) => copyWith(
+        organizationName: organizationName.calculateConfidence(inputText),
+        address: address.calculateConfidence(inputText),
+        phone: phone.calculateConfidence(inputText),
+      );
+
+  @override
+  bool get isValid =>
+      organizationName.isValid || address.isValid || phone.isValid;
 }

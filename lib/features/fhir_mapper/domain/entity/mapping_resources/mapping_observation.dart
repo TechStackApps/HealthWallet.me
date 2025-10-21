@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
@@ -10,16 +11,16 @@ class MappingObservation with _$MappingObservation implements MappingResource {
   const MappingObservation._();
 
   const factory MappingObservation({
-    @Default('') String observationName,
-    @Default('') String value,
-    @Default('') String unit,
+    @Default(MappedProperty()) MappedProperty observationName,
+    @Default(MappedProperty()) MappedProperty value,
+    @Default(MappedProperty()) MappedProperty unit,
   }) = _MappingObservation;
 
   factory MappingObservation.fromJson(Map<String, dynamic> json) {
     return MappingObservation(
-      observationName: json['observationName'] ?? '',
-      value: json['value'] ?? '',
-      unit: json['unit'] ?? '',
+      observationName: MappedProperty(value: json['observationName'] ?? ''),
+      value: MappedProperty(value: json['value'] ?? ''),
+      unit: MappedProperty(value: json['unit'] ?? ''),
     );
   }
 
@@ -29,19 +30,41 @@ class MappingObservation with _$MappingObservation implements MappingResource {
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
         'observationName': TextFieldDescriptor(
-            label: 'Observation name', value: observationName),
-        'value': TextFieldDescriptor(label: 'Value', value: value),
-        'unit': TextFieldDescriptor(label: 'Unit', value: unit),
+          label: 'Observation name',
+          value: observationName.value,
+          confidenceLevel: observationName.confidenceLevel,
+        ),
+        'value': TextFieldDescriptor(
+          label: 'Value',
+          value: value.value,
+          confidenceLevel: value.confidenceLevel,
+        ),
+        'unit': TextFieldDescriptor(
+          label: 'Unit',
+          value: unit.value,
+          confidenceLevel: unit.confidenceLevel,
+        ),
       };
-  
+
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingObservation(
-        observationName: newValues['observationName'] ?? observationName,
-        value: newValues['value'] ?? value,
-        unit: newValues['unit'] ?? unit,
+        observationName: MappedProperty(
+            value: newValues['observationName'] ?? observationName.value),
+        value: MappedProperty(value: newValues['value'] ?? value.value),
+        unit: MappedProperty(value: newValues['unit'] ?? unit.value),
       );
 
   @override
   String get label => 'Observation';
+
+  @override
+  MappingResource populateConfidence(String inputText) => copyWith(
+        observationName: observationName.calculateConfidence(inputText),
+        value: value.calculateConfidence(inputText),
+        unit: unit.calculateConfidence(inputText),
+      );
+
+  @override
+  bool get isValid => observationName.isValid || value.isValid || unit.isValid;
 }

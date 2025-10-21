@@ -24,6 +24,9 @@ class _TextInputPageState extends State<TextInputPage> {
   Widget build(BuildContext context) {
     FhirMapperState state = context.watch<FhirMapperBloc>().state;
     return BlocListener<FhirMapperBloc, FhirMapperState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status == FhirMapperStatus.success,
       listener: (context, state) {
         if (state.status == FhirMapperStatus.success) {
           context.router.push(const MappingResultRoute());
@@ -31,7 +34,7 @@ class _TextInputPageState extends State<TextInputPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Text input", style: AppTextStyle.titleMedium),
+          title: const Text("Document text", style: AppTextStyle.titleMedium),
         ),
         body: Padding(
           padding: const EdgeInsetsGeometry.symmetric(horizontal: 20),
@@ -42,6 +45,7 @@ class _TextInputPageState extends State<TextInputPage> {
                   controller: _controller,
                   maxLines: 30,
                   style: AppTextStyle.labelLarge,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     disabledBorder: OutlineInputBorder(
                       borderSide:

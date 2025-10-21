@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
@@ -10,16 +11,16 @@ class MappingCondition with _$MappingCondition implements MappingResource {
   const MappingCondition._();
 
   const factory MappingCondition({
-    @Default('') String conditionName,
-    @Default('') String onsetDateTime,
-    @Default('') String clinicalStatus,
+    @Default(MappedProperty()) MappedProperty conditionName,
+    @Default(MappedProperty()) MappedProperty onsetDateTime,
+    @Default(MappedProperty()) MappedProperty clinicalStatus,
   }) = _MappingCondition;
 
   factory MappingCondition.fromJson(Map<String, dynamic> json) {
     return MappingCondition(
-      conditionName: json['conditionName'] ?? '',
-      onsetDateTime: json['onsetDateTime'] ?? '',
-      clinicalStatus: json['clinicalStatus'] ?? '',
+      conditionName: MappedProperty(value: json['conditionName'] ?? ''),
+      onsetDateTime: MappedProperty(value: json['onsetDateTime'] ?? ''),
+      clinicalStatus: MappedProperty(value: json['clinicalStatus'] ?? ''),
     );
   }
 
@@ -28,22 +29,45 @@ class MappingCondition with _$MappingCondition implements MappingResource {
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
-        'conditionName':
-            TextFieldDescriptor(label: 'Condition Name', value: conditionName),
-        'onsetDateTime':
-            TextFieldDescriptor(label: 'Onset Date', value: onsetDateTime),
+        'conditionName': TextFieldDescriptor(
+          label: 'Condition Name',
+          value: conditionName.value,
+          confidenceLevel: conditionName.confidenceLevel,
+        ),
+        'onsetDateTime': TextFieldDescriptor(
+          label: 'Onset Date',
+          value: onsetDateTime.value,
+          confidenceLevel: onsetDateTime.confidenceLevel,
+        ),
         'clinicalStatus': TextFieldDescriptor(
-            label: 'Clinical Status', value: clinicalStatus),
+          label: 'Clinical Status',
+          value: clinicalStatus.value,
+          confidenceLevel: clinicalStatus.confidenceLevel,
+        ),
       };
 
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingCondition(
-        conditionName: newValues['conditionName'] ?? conditionName,
-        onsetDateTime: newValues['onsetDateTime'] ?? onsetDateTime,
-        clinicalStatus: newValues['clinicalStatus'] ?? clinicalStatus,
+        conditionName: MappedProperty(
+            value: newValues['conditionName'] ?? conditionName.value),
+        onsetDateTime: MappedProperty(
+            value: newValues['onsetDateTime'] ?? onsetDateTime.value),
+        clinicalStatus: MappedProperty(
+            value: newValues['clinicalStatus'] ?? clinicalStatus.value),
       );
 
   @override
   String get label => 'Condition';
+
+  @override
+  MappingResource populateConfidence(String inputText) => copyWith(
+        conditionName: conditionName.calculateConfidence(inputText),
+        onsetDateTime: onsetDateTime.calculateConfidence(inputText),
+        clinicalStatus: clinicalStatus.calculateConfidence(inputText),
+      );
+
+  @override
+  bool get isValid =>
+      conditionName.isValid || onsetDateTime.isValid || clinicalStatus.isValid;
 }

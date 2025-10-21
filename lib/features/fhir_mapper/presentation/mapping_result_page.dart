@@ -44,47 +44,60 @@ class MappingResultPage extends StatelessWidget {
                     ...textFields.entries.map((entry) {
                       final propertyKey = entry.key;
                       final descriptor = entry.value;
-
+                      final borderColor = switch (descriptor.confidenceLevel) {
+                        < 0.6 => Colors.red,
+                        >= 0.6 && < 0.8 => Colors.yellow,
+                        _ => AppColors.border,
+                      };
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        key: ValueKey('${index}_$propertyKey'),
                         children: [
                           Text(descriptor.label, style: AppTextStyle.bodySmall),
                           const SizedBox(height: 4),
-                          SizedBox(
-                            height: 36,
-                            child: TextFormField(
-                              initialValue: descriptor.value,
-                              validator: descriptor.validator,
-                              inputFormatters: descriptor.inputFormatters,
-                              keyboardType: descriptor.keyboardType,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              style: AppTextStyle.labelLarge,
-                              onChanged: (value) => context
-                                  .read<FhirMapperBloc>()
-                                  .add(FhirMapperResourceChanged(
-                                    index: index,
-                                    propertyKey: propertyKey,
-                                    newValue: value,
-                                  )),
-                              decoration: InputDecoration(
-                                disabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      const BorderSide(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      const BorderSide(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      const BorderSide(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                contentPadding: const EdgeInsets.all(12),
+                          TextFormField(
+                            initialValue: descriptor.value,
+                            validator: descriptor.validate,
+                            inputFormatters: descriptor.inputFormatters,
+                            keyboardType: descriptor.keyboardType,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            style: AppTextStyle.labelLarge,
+                            onChanged: (value) => context
+                                .read<FhirMapperBloc>()
+                                .add(FhirMapperResourceChanged(
+                                  index: index,
+                                  propertyKey: propertyKey,
+                                  newValue: value,
+                                )),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              helperText: ' ',
+                              helperStyle:
+                                  const TextStyle(height: 0, fontSize: 0),
+                              disabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: borderColor),
+                                borderRadius: BorderRadius.circular(8),
                               ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: borderColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: borderColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.red),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.red, width: 1.5),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
                             ),
                           ),
                           if (entry.key != textFields.entries.last.key)

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
@@ -13,16 +14,16 @@ class MappingMedicationStatement
   const MappingMedicationStatement._();
 
   const factory MappingMedicationStatement({
-    @Default('') String medicationName,
-    @Default('') String dosage,
-    @Default('') String reason,
+    @Default(MappedProperty()) MappedProperty medicationName,
+    @Default(MappedProperty()) MappedProperty dosage,
+    @Default(MappedProperty()) MappedProperty reason,
   }) = _MappingMedicationStatement;
 
   factory MappingMedicationStatement.fromJson(Map<String, dynamic> json) {
     return MappingMedicationStatement(
-      medicationName: json['medicationName'] ?? '',
-      dosage: json['dosage'] ?? '',
-      reason: json['reason'] ?? '',
+      medicationName: MappedProperty(value: json['medicationName'] ?? ''),
+      dosage: MappedProperty(value: json['dosage'] ?? ''),
+      reason: MappedProperty(value: json['reason'] ?? ''),
     );
   }
 
@@ -32,19 +33,42 @@ class MappingMedicationStatement
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
         'medicationName': TextFieldDescriptor(
-            label: 'Medication Name', value: medicationName),
-        'dosage': TextFieldDescriptor(label: 'Dosage', value: dosage),
-        'reason': TextFieldDescriptor(label: 'Reason', value: reason),
+          label: 'Medication Name',
+          value: medicationName.value,
+          confidenceLevel: medicationName.confidenceLevel,
+        ),
+        'dosage': TextFieldDescriptor(
+          label: 'Dosage',
+          value: dosage.value,
+          confidenceLevel: dosage.confidenceLevel,
+        ),
+        'reason': TextFieldDescriptor(
+          label: 'Reason',
+          value: reason.value,
+          confidenceLevel: reason.confidenceLevel,
+        ),
       };
 
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingMedicationStatement(
-        medicationName: newValues['medicationName'] ?? medicationName,
-        dosage: newValues['dosage'] ?? dosage,
-        reason: newValues['reason'] ?? reason,
+        medicationName: MappedProperty(
+            value: newValues['medicationName'] ?? medicationName.value),
+        dosage: MappedProperty(value: newValues['dosage'] ?? dosage.value),
+        reason: MappedProperty(value: newValues['reason'] ?? reason.value),
       );
 
   @override
   String get label => 'Medication Statement';
+
+  @override
+  MappingResource populateConfidence(String inputText) => copyWith(
+        medicationName: medicationName.calculateConfidence(inputText),
+        dosage: dosage.calculateConfidence(inputText),
+        reason: reason.calculateConfidence(inputText),
+      );
+
+  @override
+  bool get isValid =>
+      medicationName.isValid || dosage.isValid || reason.isValid;
 }

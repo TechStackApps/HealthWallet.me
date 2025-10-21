@@ -13,11 +13,10 @@ abstract class FhirMapperRemoteDatasource {
 
   Future<bool> checkModelExistence(InferenceModelSpec spec);
 
-  Future startModelSession(InferenceModelSpec spec);
-
-  Future closeModelSession();
-
-  Future<String?> runPrompt(String prompt);
+  Future<String?> runPrompt({
+    required InferenceModelSpec spec,
+    required String prompt,
+  });
 }
 
 @LazySingleton(as: FhirMapperRemoteDatasource)
@@ -34,9 +33,6 @@ class FhirMapperRemoteDatasourceImpl implements FhirMapperRemoteDatasource {
           );
 
   final Dio _dio;
-
-  InferenceModel? _model;
-  InferenceModelSession? _session;
 
   @override
   Future<bool> checkModelExistence(InferenceModelSpec spec) async {
@@ -88,31 +84,26 @@ class FhirMapperRemoteDatasourceImpl implements FhirMapperRemoteDatasource {
   }
 
   @override
-  Future startModelSession(InferenceModelSpec spec) async {
-    _model ??= await createModel(spec);
-
-    _session ??= await _model!.createSession();
-  }
-
-  Future<InferenceModel> createModel(InferenceModelSpec spec) async {
+  Future<String?> runPrompt({
+    required InferenceModelSpec spec,
+    required String prompt,
+  }) async {
     await FlutterGemmaPlugin.instance.modelManager.ensureModelReady(
       spec.name,
       spec.modelUrl,
     );
 
-    return FlutterGemmaPlugin.instance
+    final model = await FlutterGemmaPlugin.instance
         .createModel(modelType: ModelType.gemmaIt);
-  }
 
-  @override
-  Future closeModelSession() async {
-    _session?.close();
-  }
+    final session = await model.createSession();
 
-  @override
-  Future<String?> runPrompt(String prompt) async {
-    await _session?.addQueryChunk(Message(text: prompt, isUser: true));
+    await session.addQueryChunk(Message(text: prompt, isUser: true));
 
-    return await _session?.getResponse();
+    String response = await session.getResponse();
+
+    session.close();
+
+    return response;
   }
 }

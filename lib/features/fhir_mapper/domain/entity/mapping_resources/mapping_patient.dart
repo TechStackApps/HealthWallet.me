@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/validator.dart';
+import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/fhir_mapper/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
@@ -11,20 +13,20 @@ class MappingPatient with _$MappingPatient implements MappingResource {
   const MappingPatient._();
 
   const factory MappingPatient({
-    @Default('') String familyName,
-    @Default('') String givenName,
-    @Default('') String dateOfBirth,
-    @Default('') String gender,
-    @Default('') String patientId,
+    @Default(MappedProperty()) MappedProperty familyName,
+    @Default(MappedProperty()) MappedProperty givenName,
+    @Default(MappedProperty()) MappedProperty dateOfBirth,
+    @Default(MappedProperty()) MappedProperty gender,
+    @Default(MappedProperty()) MappedProperty patientId,
   }) = _MappingPatient;
 
   factory MappingPatient.fromJson(Map<String, dynamic> json) {
     return MappingPatient(
-      familyName: json['familyName'] ?? '',
-      givenName: json['givenName'] ?? '',
-      dateOfBirth: json['dateOfBirth'] ?? '',
-      gender: json['gender'] ?? '',
-      patientId: json['patientId'] ?? '',
+      familyName: MappedProperty(value: json['familyName'] ?? ''),
+      givenName: MappedProperty(value: json['givenName'] ?? ''),
+      dateOfBirth: MappedProperty(value: json['dateOfBirth'] ?? ''),
+      gender: MappedProperty(value: json['gender'] ?? ''),
+      patientId: MappedProperty(value: json['patientId'] ?? ''),
     );
   }
 
@@ -32,36 +34,77 @@ class MappingPatient with _$MappingPatient implements MappingResource {
   IFhirResource toFhirResource() => Patient(
         name: [
           fhir_r4.HumanName(
-            family: fhir_r4.FhirString(familyName),
-            given: [fhir_r4.FhirString(givenName)],
+            family: fhir_r4.FhirString(familyName.value),
+            given: [fhir_r4.FhirString(givenName.value)],
           )
         ],
-        birthDate: fhir_r4.FhirDate.fromString(dateOfBirth),
-        gender: fhir_r4.AdministrativeGender(gender),
-        identifier: [fhir_r4.Identifier(id: fhir_r4.FhirString(patientId))],
+        birthDate: fhir_r4.FhirDate.fromString(dateOfBirth.value),
+        gender: fhir_r4.AdministrativeGender(gender.value),
+        identifier: [
+          fhir_r4.Identifier(id: fhir_r4.FhirString(patientId.value))
+        ],
       );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
-        'givenName': TextFieldDescriptor(label: 'First name', value: givenName),
-        'familyName':
-            TextFieldDescriptor(label: 'Second name', value: familyName),
-        'dateOfBirth':
-            TextFieldDescriptor(label: 'Date of birth', value: dateOfBirth),
-        'gender': TextFieldDescriptor(label: 'Gender', value: gender),
-        'patientId': TextFieldDescriptor(label: 'ID', value: patientId),
+        'givenName': TextFieldDescriptor(
+          label: 'First name',
+          value: givenName.value,
+          confidenceLevel: givenName.confidenceLevel,
+        ),
+        'familyName': TextFieldDescriptor(
+          label: 'Second name',
+          value: familyName.value,
+          confidenceLevel: familyName.confidenceLevel,
+        ),
+        'dateOfBirth': TextFieldDescriptor(
+          label: 'Date of birth',
+          value: dateOfBirth.value,
+          confidenceLevel: dateOfBirth.confidenceLevel,
+          validators: [dateValidator],
+        ),
+        'gender': TextFieldDescriptor(
+          label: 'Gender',
+          value: gender.value,
+          confidenceLevel: gender.confidenceLevel,
+        ),
+        'patientId': TextFieldDescriptor(
+          label: 'ID',
+          value: patientId.value,
+          confidenceLevel: patientId.confidenceLevel,
+        ),
       };
 
   @override
-  MappingResource copyWithMap(Map<String, dynamic> newValues) =>
-      MappingPatient(
-        givenName: newValues['givenName'] ?? givenName,
-        familyName: newValues['familyName'] ?? familyName,
-        dateOfBirth: newValues['dateOfBirth'] ?? dateOfBirth,
-        gender: newValues['gender'] ?? gender,
-        patientId: newValues['patientId'] ?? patientId,
+  MappingResource copyWithMap(Map<String, dynamic> newValues) => MappingPatient(
+        givenName:
+            MappedProperty(value: newValues['givenName'] ?? givenName.value),
+        familyName:
+            MappedProperty(value: newValues['familyName'] ?? familyName.value),
+        dateOfBirth: MappedProperty(
+            value: newValues['dateOfBirth'] ?? dateOfBirth.value),
+        gender: MappedProperty(value: newValues['gender'] ?? gender.value),
+        patientId:
+            MappedProperty(value: newValues['patientId'] ?? patientId.value),
       );
 
   @override
   String get label => 'Patient';
+
+  @override
+  MappingResource populateConfidence(String inputText) => copyWith(
+        familyName: familyName.calculateConfidence(inputText),
+        givenName: givenName.calculateConfidence(inputText),
+        dateOfBirth: dateOfBirth.calculateConfidence(inputText),
+        gender: gender.calculateConfidence(inputText),
+        patientId: patientId.calculateConfidence(inputText),
+      );
+
+  @override
+  bool get isValid =>
+      familyName.isValid ||
+      givenName.isValid ||
+      dateOfBirth.isValid ||
+      gender.isValid ||
+      patientId.isValid;
 }

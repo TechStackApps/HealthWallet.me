@@ -50,4 +50,8 @@ abstract class MappingResource {
   MappingResource copyWithMap(Map<String, dynamic> newValues);
 
   String get label;
+
+  MappingResource populateConfidence(String inputText);
+
+  bool get isValid;
 }
