@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/dashboard/presentation/dashboard_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/process_to_fhir_page.dart';
 import 'package:health_wallet/features/fhir_mapper/fhir_mapper.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 
@@ -27,6 +29,7 @@ class AppRouter extends _$AppRouter {
           children: [
             AutoRoute(page: HomeRoute.page),
             AutoRoute(page: RecordsRoute.page),
+            AutoRoute(page: ScanRoute.page),
           ],
         ),
         AutoRoute(page: RecordDetailsRoute.page),

@@ -11,9 +11,7 @@ class SyncInitialised extends SyncEvent with _$SyncInitialised {
 
 @freezed
 class SyncData extends SyncEvent with _$SyncData {
-  const factory SyncData({
-    required String qrData,
-  }) = _SyncData;
+  const factory SyncData({required String qrData}) = _SyncData;
 }
 
 @freezed
@@ -58,4 +56,9 @@ class ResetTutorial extends SyncEvent with _$ResetTutorial {
 @freezed
 class DemoDataConfirmed extends SyncEvent with _$DemoDataConfirmed {
   const factory DemoDataConfirmed() = _DemoDataConfirmed;
+}
+
+@freezed
+class CreateWalletSource extends SyncEvent with _$CreateWalletSource {
+  const factory CreateWalletSource() = _CreateWalletSource;
 }

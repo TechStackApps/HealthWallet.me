@@ -7,6 +7,7 @@ class RecordsState with _$RecordsState {
     @Default([]) List<IFhirResource> resources,
     @Default([]) List<FhirType> activeFilters,
     String? sourceId,
+    List<String>? sourceIds,
     @Default(false) bool hasMorePages,
     @Default(RecordDetailStatus.initial())
     RecordDetailStatus recordDetailStatus,

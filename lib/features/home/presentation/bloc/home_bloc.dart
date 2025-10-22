@@ -48,6 +48,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(state.copyWith(vitalsExpanded: !state.vitalsExpanded)));
     on<HomeRefreshPreservingOrder>(_onRefreshPreservingOrder);
     on<HomeSourceLabelUpdated>(_onSourceLabelUpdated);
+    on<HomeSourceDeleted>(_onSourceDeleted);
   }
 
   bool hasData({
@@ -66,9 +67,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onInitialised(
       HomeInitialised e, Emitter<HomeState> emit) async {
     final prefs = await SharedPreferences.getInstance();
-    final savedSource = prefs.getString('selected_patient_source_id');
+    final savedSource = prefs.getString('home_selected_source_id');
+
     if (savedSource != null) {
       emit(state.copyWith(selectedSource: savedSource));
+    } else {
+      emit(state.copyWith(selectedSource: 'All'));
     }
 
     if (_hasExistingVitalsData() && !_shouldForceRefresh()) {
@@ -104,8 +108,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onSourceChanged(
       HomeSourceChanged e, Emitter<HomeState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('home_selected_source_id', e.source);
+
     emit(state.copyWith(selectedSource: e.source));
-    await _reloadHomeData(emit, force: true, overrideSourceId: e.source);
+    await _reloadHomeData(emit,
+        force: true,
+        overrideSourceId: e.source,
+        patientSourceIds: e.patientSourceIds);
   }
 
   Future<void> _onVitalsFiltersChanged(
@@ -211,24 +221,54 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<List<Source>> _fetchSources(String? patientSourceId) async {
-    if (patientSourceId != null) {
-      final allSources = await _getSourcesUseCase();
-      final patientSource = allSources.firstWhere(
-        (s) => s.id == patientSourceId,
-        orElse: () => Source(id: patientSourceId, name: patientSourceId),
+    // Always return all sources regardless of patient selection
+    return await _getSourcesUseCase();
+  }
+
+  /// Get source IDs for the currently selected patient
+  Future<List<String>?> _getPatientSourceIds() async {
+    try {
+      // Get the selected patient ID from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final selectedPatientId = prefs.getString('selected_patient_id');
+
+      if (selectedPatientId == null) {
+        logger.w('No selected patient ID found');
+        return null;
+      }
+
+      // Get all patients to find the selected one
+      final allPatients = await _recordsRepository.getResources(
+        resourceTypes: [FhirType.Patient],
+        limit: 100,
       );
-      return [patientSource];
-    } else {
-      return await _getSourcesUseCase();
+
+      if (allPatients.isEmpty) return null;
+
+      // Find all sources that have this specific patient
+      // The same patient can exist in multiple sources, so we need to find all instances
+      final sourceIds = <String>{};
+      for (final patient in allPatients) {
+        if (patient.id == selectedPatientId && patient.sourceId.isNotEmpty) {
+          sourceIds.add(patient.sourceId);
+        }
+      }
+
+      return sourceIds.isNotEmpty ? sourceIds.toList() : null;
+    } catch (e) {
+      logger.e('Error getting patient source IDs: $e');
+      return null;
     }
   }
 
   Future<
-      ({
-        List<OverviewCard> overviewCards,
-        List<IFhirResource> allEnabledResources,
-        Map<HomeRecordsCategory, bool> selectedRecordTypes
-      })> _fetchOverviewCardsAndResources(String? sourceId) async {
+          ({
+            List<OverviewCard> overviewCards,
+            List<IFhirResource> allEnabledResources,
+            Map<HomeRecordsCategory, bool> selectedRecordTypes
+          })>
+      _fetchOverviewCardsAndResources(String? sourceId,
+          [List<String>? patientSourceIds]) async {
     final overviewCards = <OverviewCard>[];
     final allEnabledResources = <IFhirResource>[];
     final savedRecordsVisibility =
@@ -243,7 +283,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     for (final category in updatedSelectedRecordTypes.keys) {
       if (updatedSelectedRecordTypes[category]!) {
         final resources = await _fetchResourcesFromAllSources(
-            category.resourceTypes, sourceId);
+            category.resourceTypes, sourceId, patientSourceIds);
         overviewCards.add(OverviewCard(
             category: category, count: resources.length.toString()));
         allEnabledResources.addAll(resources);
@@ -260,38 +300,52 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<List<IFhirResource>> _fetchResourcesFromAllSources(
-    List<FhirType> resourceTypes,
-    String? sourceId,
-  ) async {
+      List<FhirType> resourceTypes, String? sourceId,
+      [List<String>? patientSourceIds]) async {
     if (sourceId == _demoSourceId) {
       final resources = await _recordsRepository.getResources(
           resourceTypes: resourceTypes, sourceId: _demoSourceId);
       return resources;
     }
+
+    // If "All" is selected, use the provided patient source IDs or get them
+    List<String>? finalPatientSourceIds = patientSourceIds;
+    if ((sourceId == null || sourceId == 'All') &&
+        finalPatientSourceIds == null) {
+      finalPatientSourceIds = await _getPatientSourceIds();
+    }
+
     final resources = await _recordsRepository.getResources(
-        resourceTypes: resourceTypes, sourceId: sourceId);
+        resourceTypes: resourceTypes,
+        sourceId: sourceId,
+        sourceIds: finalPatientSourceIds);
+
     return resources;
   }
 
-  Future<List<IFhirResource>> _fetchPatientResources(String? sourceId) async {
-    final resources =
-        await _fetchResourcesFromAllSources([FhirType.Patient], sourceId);
+  Future<List<IFhirResource>> _fetchPatientResources(String? sourceId,
+      [List<String>? patientSourceIds]) async {
+    final resources = await _fetchResourcesFromAllSources(
+        [FhirType.Patient], sourceId, patientSourceIds);
     return resources;
   }
 
-  Future<List<PatientVital>> _fetchAndProcessVitals(String? sourceId) async {
-    final obs =
-        await _fetchResourcesFromAllSources([FhirType.Observation], sourceId);
+  Future<List<PatientVital>> _fetchAndProcessVitals(String? sourceId,
+      [List<String>? patientSourceIds]) async {
+    final obs = await _fetchResourcesFromAllSources(
+        [FhirType.Observation], sourceId, patientSourceIds);
     return _patientVitalFactory.buildFromResources(obs);
   }
 
   Future<
-      ({
-        List<PatientVital> allAvailableVitals,
-        List<PatientVital> patientVitals,
-        Map<PatientVitalType, bool> selectedVitals
-      })> _processVitalsData(String? sourceId) async {
-    final vitals = await _fetchAndProcessVitals(sourceId);
+          ({
+            List<PatientVital> allAvailableVitals,
+            List<PatientVital> patientVitals,
+            Map<PatientVitalType, bool> selectedVitals
+          })>
+      _processVitalsData(String? sourceId,
+          [List<String>? patientSourceIds]) async {
+    final vitals = await _fetchAndProcessVitals(sourceId, patientSourceIds);
     final saved = await _homeLocalDataSource.getVitalsVisibility();
     final selectedMap = Map<String, bool>.from(saved ??
         {for (final e in state.selectedVitals.entries) e.key.title: e.value});
@@ -399,41 +453,49 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit, {
     bool force = false,
     String? overrideSourceId,
+    List<String>? patientSourceIds,
   }) async {
     emit(state.copyWith(status: const HomeStatus.loading()));
     try {
       final sourceId = _resolveSourceId(overrideSourceId);
 
       final sources = await _fetchSources(sourceId);
-      final overview = await _fetchOverviewCardsAndResources(sourceId);
-      final patientResources = await _fetchPatientResources(sourceId);
-      final vitalsData = await _processVitalsData(sourceId);
+      final overview =
+          await _fetchOverviewCardsAndResources(sourceId, patientSourceIds);
+      final patientResources =
+          await _fetchPatientResources(sourceId, patientSourceIds);
+      final vitalsData = await _processVitalsData(sourceId, patientSourceIds);
       final reorderedCards =
           await _applyOverviewCardsOrder(overview.overviewCards);
 
-      if (patientResources.isNotEmpty) {
-        final hasData = this.hasData(
-          patientVitals: vitalsData.patientVitals,
-          overviewCards: reorderedCards,
-          recentRecords: overview.allEnabledResources.take(3).toList(),
-        );
+      // Always emit state, even when no patient resources (e.g., Wallet source with no data)
+      final hasData = this.hasData(
+        patientVitals: vitalsData.patientVitals,
+        overviewCards: reorderedCards,
+        recentRecords: overview.allEnabledResources.take(3).toList(),
+      );
 
-        emit(state.copyWith(
-          status: const HomeStatus.success(),
-          sources: sources,
-          selectedSource: sourceId ?? 'All',
-          patient: patientResources.isNotEmpty
-              ? patientResources.first as Patient
-              : null,
-          overviewCards: reorderedCards,
-          recentRecords: overview.allEnabledResources.take(3).toList(),
-          allAvailableVitals: vitalsData.allAvailableVitals,
-          patientVitals: vitalsData.patientVitals,
-          selectedVitals: vitalsData.selectedVitals,
-          selectedRecordTypes: overview.selectedRecordTypes,
-          hasDataLoaded: hasData,
-        ));
-      }
+      // Don't override selectedSource if it's already set in state
+      // This preserves the user's selection during hot reload
+      final currentSelectedSource = state.selectedSource.isNotEmpty
+          ? state.selectedSource
+          : (sourceId ?? 'All');
+
+      emit(state.copyWith(
+        status: const HomeStatus.success(),
+        sources: sources,
+        selectedSource: currentSelectedSource,
+        patient: patientResources.isNotEmpty
+            ? patientResources.first as Patient
+            : null,
+        overviewCards: reorderedCards,
+        recentRecords: overview.allEnabledResources.take(3).toList(),
+        allAvailableVitals: vitalsData.allAvailableVitals,
+        patientVitals: vitalsData.patientVitals,
+        selectedVitals: vitalsData.selectedVitals,
+        selectedRecordTypes: overview.selectedRecordTypes,
+        hasDataLoaded: hasData,
+      ));
     } catch (err, stackTrace) {
       logger.e('reloadHomeData error: $err');
       logger.e('reloadHomeData stack trace: $stackTrace');
@@ -447,6 +509,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   String? _resolveSourceId(String? input) {
     if (input == null || input == 'All') return null;
     if (input == _demoSourceId) return _demoSourceId;
+    if (input == 'wallet') return 'wallet';
     return input;
   }
 
@@ -476,6 +539,39 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       logger.e('Error updating source label: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _onSourceDeleted(
+    HomeSourceDeleted event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      // Delete the source from the database
+      await _syncRepository.deleteSource(event.sourceId);
+
+      // Remove the source from the current sources list
+      final updatedSources =
+          state.sources.where((source) => source.id != event.sourceId).toList();
+
+      // If the deleted source was currently selected, switch to 'All' or first available source
+      String? newSelectedSource = state.selectedSource;
+      if (state.selectedSource == event.sourceId) {
+        newSelectedSource =
+            updatedSources.isNotEmpty ? updatedSources.first.id : 'All';
+      }
+
+      emit(state.copyWith(
+        sources: updatedSources,
+        selectedSource: newSelectedSource,
+      ));
+
+      // Refresh the home data with the new source selection
+      await _reloadHomeData(emit,
+          force: true, overrideSourceId: newSelectedSource);
+    } catch (e) {
+      logger.e('Error deleting source: $e');
+      // You might want to show an error message to the user here
     }
   }
 }

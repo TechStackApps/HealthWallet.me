@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
@@ -5,14 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 // Removed unused AppColors import; using theme-based colors from context
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/features/records/presentation/widgets/media_fullscreen_viewer.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_attachments/record_attachments_widget.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_notes/record_notes_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ResourceCard extends StatefulWidget {
   final IFhirResource resource;
@@ -65,7 +70,19 @@ class _ResourceCardState extends State<ResourceCard> {
   Widget _buildMainResourceInfo() {
     return InkWell(
       onTap: () {
-        context.router.push(RecordDetailsRoute(resource: widget.resource));
+        // Handle Media resources differently - open fullscreen viewer
+        if (widget.resource.fhirType == FhirType.Media) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => MediaFullscreenViewer(
+                media: widget.resource as Media,
+              ),
+            ),
+          );
+        } else {
+          // Default navigation for other resource types
+          context.router.push(RecordDetailsRoute(resource: widget.resource));
+        }
       },
       borderRadius: BorderRadius.circular(8),
       child: Column(

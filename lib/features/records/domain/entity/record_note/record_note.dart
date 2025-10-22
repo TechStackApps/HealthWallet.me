@@ -5,16 +5,18 @@ part 'record_note.freezed.dart';
 
 @freezed
 class RecordNote with _$RecordNote {
+  const RecordNote._(); // Private constructor for getters
+
   const factory RecordNote({
     @Default(0) int id,
-    @Default('') String resourceId,
+    @Default('') String patientRecordId,
     @Default('') String content,
     required DateTime timestamp,
   }) = _RecordNote;
 
   factory RecordNote.fromDto(RecordNoteDto dto) => RecordNote(
         id: dto.id,
-        resourceId: dto.resourceId,
+        patientRecordId: dto.patientRecordId,
         content: dto.content,
         timestamp: dto.timestamp,
       );

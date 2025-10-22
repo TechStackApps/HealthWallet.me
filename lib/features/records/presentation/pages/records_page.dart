@@ -11,6 +11,7 @@ import 'package:health_wallet/features/records/presentation/bloc/records_bloc.da
 import 'package:health_wallet/features/records/presentation/widgets/records_filter_bottom_sheet.dart';
 import 'package:health_wallet/features/records/presentation/widgets/search_widget.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/sync_placeholder_widget.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/resource_card.dart';
 
@@ -57,8 +58,30 @@ class _RecordsViewState extends State<RecordsView> {
 
     final selected = context.read<HomeBloc>().state.selectedSource;
     final selectedSourceId = selected == 'All' ? null : selected;
+
+    // Get patient source IDs when "All" is selected
+    List<String>? patientSourceIds;
+    if (selected == 'All') {
+      try {
+        final patientBloc = context.read<PatientBloc>();
+        final patientState = patientBloc.state;
+        final selectedPatientId = patientState.selectedPatientId;
+
+        if (selectedPatientId != null &&
+            patientState.patientGroups.isNotEmpty) {
+          final patientGroup = patientState.patientGroups[selectedPatientId];
+          if (patientGroup != null) {
+            patientSourceIds = patientGroup.sourceIds;
+          }
+        }
+      } catch (e) {
+        // PatientBloc not available, continue without patient source IDs
+      }
+    }
+
     context.read<RecordsBloc>().add(const RecordsInitialised());
-    context.read<RecordsBloc>().add(RecordsSourceChanged(selectedSourceId));
+    context.read<RecordsBloc>().add(
+        RecordsSourceChanged(selectedSourceId, sourceIds: patientSourceIds));
 
     if (widget.initFilters != null) {
       context
@@ -125,9 +148,30 @@ class _RecordsViewState extends State<RecordsView> {
             final selectedSourceId =
                 state.selectedSource == 'All' ? null : state.selectedSource;
 
-            context
-                .read<RecordsBloc>()
-                .add(RecordsSourceChanged(selectedSourceId));
+            // Get patient source IDs when "All" is selected
+            List<String>? patientSourceIds;
+            if (state.selectedSource == 'All') {
+              try {
+                final patientBloc = context.read<PatientBloc>();
+                final patientState = patientBloc.state;
+                final selectedPatientId = patientState.selectedPatientId;
+
+                if (selectedPatientId != null &&
+                    patientState.patientGroups.isNotEmpty) {
+                  final patientGroup =
+                      patientState.patientGroups[selectedPatientId];
+                  if (patientGroup != null) {
+                    patientSourceIds = patientGroup.sourceIds;
+                  }
+                }
+              } catch (e) {
+                // PatientBloc not available, continue without patient source IDs
+              }
+            }
+
+            context.read<RecordsBloc>().add(RecordsSourceChanged(
+                selectedSourceId,
+                sourceIds: patientSourceIds));
           },
         ),
         BlocListener<SyncBloc, SyncState>(
@@ -140,9 +184,30 @@ class _RecordsViewState extends State<RecordsView> {
                   ? null
                   : homeState.selectedSource;
 
-              context
-                  .read<RecordsBloc>()
-                  .add(RecordsSourceChanged(selectedSourceId));
+              // Get patient source IDs when "All" is selected
+              List<String>? patientSourceIds;
+              if (homeState.selectedSource == 'All') {
+                try {
+                  final patientBloc = context.read<PatientBloc>();
+                  final patientState = patientBloc.state;
+                  final selectedPatientId = patientState.selectedPatientId;
+
+                  if (selectedPatientId != null &&
+                      patientState.patientGroups.isNotEmpty) {
+                    final patientGroup =
+                        patientState.patientGroups[selectedPatientId];
+                    if (patientGroup != null) {
+                      patientSourceIds = patientGroup.sourceIds;
+                    }
+                  }
+                } catch (e) {
+                  // PatientBloc not available, continue without patient source IDs
+                }
+              }
+
+              context.read<RecordsBloc>().add(RecordsSourceChanged(
+                  selectedSourceId,
+                  sourceIds: patientSourceIds));
             }
           },
         ),

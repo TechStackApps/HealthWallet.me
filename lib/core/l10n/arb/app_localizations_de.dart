@@ -338,6 +338,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fehler beim Speichern der Patientendaten';
 
   @override
+  String get walletHolder => 'Wallet Holder';
+
+  @override
+  String get walletHolderDescription =>
+      'This patient is the primary owner of this health wallet';
+
+  @override
+  String get getStarted => 'Los geht\'s';
+
+  @override
   String get failedToUpdateDisplayName =>
       'Fehler beim Aktualisieren des Anzeigenamens';
 
@@ -468,9 +478,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get continueButton => 'Weiter';
-
-  @override
-  String get getStarted => 'Los geht\'s';
 
   @override
   String get enableBiometricAuth =>
@@ -609,4 +616,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get demoDataLoadedSuccessfully =>
       'Demo-Daten wurden erfolgreich geladen. Sie werden zur Startseite weitergeleitet.';
+
+  @override
+  String get documentScanTitle => 'Scan';
 }
