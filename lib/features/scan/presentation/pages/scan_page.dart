@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/pages/process_to_fhir_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,15 +7,13 @@ import 'package:get_it/get_it.dart';
 import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/attach_to_encounter_sheet.dart';
 import 'package:open_file/open_file.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/add_scan_bottom_sheet.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/placeholder_scan.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/scan_action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
@@ -113,28 +111,10 @@ class _ScanViewState extends State<ScanView> {
             initial: () {},
             loading: () {},
             success: () {
-              final imageCount = state.scannedImagePaths.length;
-              final pdfCount = state.savedPdfPaths.length;
-              final totalCount = imageCount + pdfCount;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'Scan(s) completed successfully! Total: $totalCount'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              // Success handled by UI state updates
             },
             failure: (error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Scan failed: $error'),
-                  backgroundColor: Colors.red,
-                  action: SnackBarAction(
-                    label: 'Retry',
-                    onPressed: () => _handleScanButtonPressed(context),
-                  ),
-                ),
-              );
+              // Error handled by UI state updates
             },
           );
         },
@@ -177,7 +157,6 @@ class _ScanViewState extends State<ScanView> {
             Expanded(
                 child: PlaceholderScan(
               onScan: () => _handleDirectScan(context),
-              onImport: () => _handleDirectImport(context),
             )),
           ] else ...[
             Expanded(
@@ -298,10 +277,10 @@ class _ScanViewState extends State<ScanView> {
             );
       }
 
-      final mediaIntegrationService =
-          GetIt.instance.get<MediaIntegrationService>();
+      final documentReferenceService =
+          GetIt.instance.get<DocumentReferenceService>();
 
-      await mediaIntegrationService.saveGroupedDocumentsAsFhirRecords(
+      await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
         scannedImages: scannedImages,
         importedImages: importedImages,
         importedPdfs: savedPdfs,
@@ -375,24 +354,10 @@ class _ScanViewState extends State<ScanView> {
       final result = await OpenFile.open(pdfPath);
 
       if (result.type != ResultType.done) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Could not open PDF: ${result.message}'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        // PDF could not be opened, silently fail
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening PDF: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // Error opening PDF, silently fail
     }
   }
 
@@ -529,59 +494,5 @@ class _ScanViewState extends State<ScanView> {
         () => _handleDirectScan(context),
       );
     }
-  }
-
-  Future<void> _handleDirectImport(BuildContext context) async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      final result = await FilePicker.platform.pickFiles(
-        allowMultiple: true,
-        allowCompression: false,
-        withData: false,
-        withReadStream: false,
-        type: FileType.custom,
-        allowedExtensions: [
-          'pdf',
-          'jpg',
-          'jpeg',
-          'png',
-          'gif',
-          'bmp',
-          'webp',
-          'tiff'
-        ],
-      );
-
-      if (result != null && result.files.isNotEmpty) {
-        for (final file in result.files) {
-          String finalFilePath = '';
-
-          if (file.path != null) {
-            finalFilePath = file.path!;
-          } else {
-            continue;
-          }
-
-          if (finalFilePath.isNotEmpty) {
-            final fileExists = await File(finalFilePath).exists();
-
-            if (fileExists) {
-              if (context.mounted) {
-                if (finalFilePath.toLowerCase().endsWith('.pdf')) {
-                  context.read<ScanBloc>().add(
-                        ScanEvent.documentImported(filePath: finalFilePath),
-                      );
-                } else {
-                  context.read<ScanBloc>().add(
-                        ScanEvent.documentImported(filePath: finalFilePath),
-                      );
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {}
   }
 }

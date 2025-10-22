@@ -1,7 +1,5 @@
 import 'package:flutter/services.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/entity/patient_record/patient_record.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 
 abstract class RecordsRepository {
@@ -24,74 +22,18 @@ abstract class RecordsRepository {
 
   Future<IFhirResource?> resolveReference(String reference);
 
-  // Patient Records Management
-  Future<PatientRecord> getOrCreatePatientRecord({
-    required String patientId,
-    String? sourceId,
-  });
-
-  Future<List<PatientRecord>> getPatientRecords({
-    String? sourceId,
-    int limit = 20,
-    int offset = 0,
-  });
-
-  Future<PatientRecord?> getPatientRecord(String patientId);
-
-  // FHIR-Compliant Record Attachments
-  Future<int> addRecordAttachment({
-    required String patientRecordId,
-    required String mediaId,
-    required String contentType,
-    String? title,
-    int? size,
-    Uint8List? data,
-    String? filePath,
-    String? subjectReference,
-    String? encounterReference,
-    String? mediaType,
-    String? mediaSubtype,
-    String? identifierSystem,
-    String? identifierValue,
-    String? identifierUse,
-  });
-
-  Future<List<RecordAttachment>> getRecordAttachments(String patientRecordId);
-
-  Future<int> deleteRecordAttachment(RecordAttachment attachment);
-
-  Future<int> updateRecordAttachment(RecordAttachment attachment);
-
-  // Record Notes (Patient-Centric)
+  // Record Notes - Can be attached to any FHIR resource
   Future<int> addRecordNote({
-    required String patientRecordId,
+    required String resourceId,
+    String? sourceId,
     required String content,
   });
 
-  Future<List<RecordNote>> getRecordNotes(String patientRecordId);
+  Future<List<RecordNote>> getRecordNotes(String resourceId);
 
   Future<int> editRecordNote(RecordNote note);
 
   Future<int> deleteRecordNote(RecordNote note);
-
-  // Legacy methods for backward compatibility (deprecated)
-  @Deprecated('Use addRecordAttachment with patientRecordId instead')
-  Future<int> addRecordAttachmentLegacy({
-    required String resourceId,
-    required String filePath,
-  });
-
-  @Deprecated('Use getRecordAttachments with patientRecordId instead')
-  Future<List<RecordAttachment>> getRecordAttachmentsLegacy(String resourceId);
-
-  @Deprecated('Use addRecordNote with patientRecordId instead')
-  Future<int> addRecordNoteLegacy({
-    required String resourceId,
-    required String content,
-  });
-
-  @Deprecated('Use getRecordNotes with patientRecordId instead')
-  Future<List<RecordNote>> getRecordNotesLegacy(String resourceId);
 
   Future<void> loadDemoData();
 

@@ -7,8 +7,6 @@ import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/core/utils/fhir_reference_utils.dart';
 import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/entity/patient_record/patient_record.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
@@ -63,22 +61,24 @@ class RecordsRepositoryImpl implements RecordsRepository {
     required String encounterId,
     String? sourceId,
   }) async {
-    // Get all Media resources for this source
-    final mediaResources = await getResources(
-      resourceTypes: [FhirType.Media],
+    // Get all DocumentReference resources for this source
+    final documentReferences = await getResources(
+      resourceTypes: [FhirType.DocumentReference],
       sourceId: sourceId,
       limit: 100, // Adjust as needed
     );
 
-    // Filter Media resources that reference this encounter
-    final relatedMedia = mediaResources.where((resource) {
+    // Filter DocumentReference resources that reference this encounter
+    final relatedDocuments = documentReferences.where((resource) {
       if (resource.rawResource.isEmpty) return false;
 
       try {
-        final encounter = resource.rawResource['encounter'];
-        if (encounter != null && encounter is Map) {
-          final reference = encounter['reference'];
-          return reference == 'Encounter/$encounterId';
+        final context = resource.rawResource['context'];
+        if (context != null && context['encounter'] != null) {
+          final encounters = context['encounter'] as List;
+          return encounters.any((encounter) {
+            return encounter['reference'] == 'Encounter/$encounterId';
+          });
         }
         return false;
       } catch (e) {
@@ -86,7 +86,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       }
     }).toList();
 
-    return relatedMedia;
+    return relatedDocuments;
   }
 
   @override
@@ -113,190 +113,16 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return IFhirResource.fromLocalDto(localDto);
   }
 
-  // Patient Records Management
-  @override
-  Future<PatientRecord> getOrCreatePatientRecord({
-    required String patientId,
-    String? sourceId,
-  }) async {
-    // Validate sourceId if provided
-    if (sourceId != null) {
-      final sourceExists = await (_database.select(_database.sources)
-            ..where((t) => t.id.equals(sourceId)))
-          .getSingleOrNull();
-
-      if (sourceExists == null) {
-        throw Exception(
-            'Foreign key constraint failed: sourceId "$sourceId" does not exist in Sources table. '
-            'Please ensure the source exists before creating patient records. '
-            'Use SourceTypeService.getWritableSourceForPatient() to get a valid wallet source.');
-      }
-    }
-
-    // Try to find existing patient record
-    final existingRecord = await (_database.select(_database.patientRecords)
-          ..where((t) => t.patientId.equals(patientId)))
-        .getSingleOrNull();
-
-    if (existingRecord != null) {
-      return PatientRecord.fromDto(existingRecord);
-    }
-
-    // Create new patient record
-    final recordId = 'patient_record_$patientId';
-    final companion = PatientRecordsCompanion.insert(
-      id: recordId,
-      patientId: patientId,
-      sourceId: Value(sourceId),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    try {
-      await _database
-          .into(_database.patientRecords)
-          .insertOnConflictUpdate(companion);
-    } catch (e) {
-      if (e.toString().contains('FOREIGN KEY constraint failed')) {
-        throw Exception(
-            'Foreign key constraint failed when creating patient record. '
-            'sourceId "$sourceId" does not exist in Sources table. '
-            'Please ensure you are using a valid wallet sourceId. '
-            'Original error: $e');
-      }
-      rethrow;
-    }
-
-    // Return the created record
-    final createdRecord = await (_database.select(_database.patientRecords)
-          ..where((t) => t.id.equals(recordId)))
-        .getSingle();
-
-    return PatientRecord.fromDto(createdRecord);
-  }
-
-  @override
-  Future<List<PatientRecord>> getPatientRecords({
-    String? sourceId,
-    int limit = 20,
-    int offset = 0,
-  }) async {
-    var query = _database.select(_database.patientRecords);
-
-    if (sourceId != null) {
-      query = query..where((t) => t.sourceId.equals(sourceId));
-    }
-
-    final records = await (query
-          ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
-          ..limit(limit, offset: offset))
-        .get();
-
-    return records.map(PatientRecord.fromDto).toList();
-  }
-
-  @override
-  Future<PatientRecord?> getPatientRecord(String patientId) async {
-    final record = await (_database.select(_database.patientRecords)
-          ..where((t) => t.patientId.equals(patientId)))
-        .getSingleOrNull();
-
-    return record != null ? PatientRecord.fromDto(record) : null;
-  }
-
-  // FHIR-Compliant Record Attachments
-  @override
-  Future<int> addRecordAttachment({
-    required String patientRecordId,
-    required String mediaId,
-    required String contentType,
-    String? title,
-    int? size,
-    Uint8List? data,
-    String? filePath,
-    String? subjectReference,
-    String? encounterReference,
-    String? mediaType,
-    String? mediaSubtype,
-    String? identifierSystem,
-    String? identifierValue,
-    String? identifierUse,
-  }) async {
-    final companion = RecordAttachmentsCompanion.insert(
-      patientRecordId: patientRecordId,
-      mediaId: mediaId,
-      status: const Value('completed'),
-      contentType: contentType,
-      title: Value(title),
-      size: Value(size),
-      data: Value(data),
-      filePath: Value(filePath),
-      subjectReference: Value(subjectReference),
-      encounterReference: Value(encounterReference),
-      mediaType: Value(mediaType ?? 'document'),
-      mediaSubtype: Value(mediaSubtype),
-      identifierSystem: Value(identifierSystem),
-      identifierValue: Value(identifierValue),
-      identifierUse: Value(identifierUse ?? 'usual'),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    return await _database
-        .into(_database.recordAttachments)
-        .insertOnConflictUpdate(companion);
-  }
-
-  @override
-  Future<List<RecordAttachment>> getRecordAttachments(
-      String patientRecordId) async {
-    final attachments = await (_database.select(_database.recordAttachments)
-          ..where((t) => t.patientRecordId.equals(patientRecordId))
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .get();
-
-    return attachments.map(RecordAttachment.fromDto).toList();
-  }
-
-  @override
-  Future<int> deleteRecordAttachment(RecordAttachment attachment) async {
-    return await (_database.delete(_database.recordAttachments)
-          ..where((t) => t.id.equals(attachment.id)))
-        .go();
-  }
-
-  @override
-  Future<int> updateRecordAttachment(RecordAttachment attachment) async {
-    return await (_database.update(_database.recordAttachments)
-          ..where((t) => t.id.equals(attachment.id)))
-        .write(RecordAttachmentsCompanion(
-      patientRecordId: Value(attachment.patientRecordId),
-      mediaId: Value(attachment.mediaId),
-      status: Value(attachment.status),
-      contentType: Value(attachment.contentType),
-      title: Value(attachment.title),
-      size: Value(attachment.size),
-      data: Value(attachment.data),
-      filePath: Value(attachment.filePath),
-      subjectReference: Value(attachment.subjectReference),
-      encounterReference: Value(attachment.encounterReference),
-      mediaType: Value(attachment.mediaType),
-      mediaSubtype: Value(attachment.mediaSubtype),
-      identifierSystem: Value(attachment.identifierSystem),
-      identifierValue: Value(attachment.identifierValue),
-      identifierUse: Value(attachment.identifierUse),
-      updatedAt: Value(DateTime.now()),
-    ));
-  }
-
-  // Record Notes (Patient-Centric)
+  // Record Notes - Can be attached to any FHIR resource
   @override
   Future<int> addRecordNote({
-    required String patientRecordId,
+    required String resourceId,
+    String? sourceId,
     required String content,
   }) async {
     final companion = RecordNotesCompanion.insert(
-      patientRecordId: patientRecordId,
+      resourceId: resourceId,
+      sourceId: Value(sourceId),
       content: content,
       timestamp: DateTime.now(),
     );
@@ -307,9 +133,9 @@ class RecordsRepositoryImpl implements RecordsRepository {
   }
 
   @override
-  Future<List<RecordNote>> getRecordNotes(String patientRecordId) async {
+  Future<List<RecordNote>> getRecordNotes(String resourceId) async {
     final notes = await (_database.select(_database.recordNotes)
-          ..where((t) => t.patientRecordId.equals(patientRecordId))
+          ..where((t) => t.resourceId.equals(resourceId))
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
 
@@ -321,7 +147,8 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return await (_database.update(_database.recordNotes)
           ..where((t) => t.id.equals(note.id)))
         .write(RecordNotesCompanion(
-      patientRecordId: Value(note.patientRecordId),
+      resourceId: Value(note.resourceId),
+      sourceId: Value(note.sourceId),
       content: Value(note.content),
       timestamp: Value(note.timestamp),
     ));
@@ -332,47 +159,6 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return await (_database.delete(_database.recordNotes)
           ..where((t) => t.id.equals(note.id)))
         .go();
-  }
-
-  // Legacy methods for backward compatibility (deprecated)
-  // TODO: Implement these once migration strategy is defined
-  @override
-  @Deprecated('Use addRecordAttachment with patientRecordId instead')
-  Future<int> addRecordAttachmentLegacy({
-    required String resourceId,
-    required String filePath,
-  }) async {
-    // TODO: Implement migration path or throw error
-    throw UnimplementedError(
-        'Legacy method not yet implemented. Use new patient-centric methods.');
-  }
-
-  @override
-  @Deprecated('Use getRecordAttachments with patientRecordId instead')
-  Future<List<RecordAttachment>> getRecordAttachmentsLegacy(
-      String resourceId) async {
-    // TODO: Implement migration path or throw error
-    throw UnimplementedError(
-        'Legacy method not yet implemented. Use new patient-centric methods.');
-  }
-
-  @override
-  @Deprecated('Use addRecordNote with patientRecordId instead')
-  Future<int> addRecordNoteLegacy({
-    required String resourceId,
-    required String content,
-  }) async {
-    // TODO: Implement migration path or throw error
-    throw UnimplementedError(
-        'Legacy method not yet implemented. Use new patient-centric methods.');
-  }
-
-  @override
-  @Deprecated('Use getRecordNotes with patientRecordId instead')
-  Future<List<RecordNote>> getRecordNotesLegacy(String resourceId) async {
-    // TODO: Implement migration path or throw error
-    throw UnimplementedError(
-        'Legacy method not yet implemented. Use new patient-centric methods.');
   }
 
   @override

@@ -9,14 +9,16 @@ class RecordNote with _$RecordNote {
 
   const factory RecordNote({
     @Default(0) int id,
-    @Default('') String patientRecordId,
+    @Default('') String resourceId,
+    String? sourceId,
     @Default('') String content,
     required DateTime timestamp,
   }) = _RecordNote;
 
   factory RecordNote.fromDto(RecordNoteDto dto) => RecordNote(
         id: dto.id,
-        patientRecordId: dto.patientRecordId,
+        resourceId: dto.resourceId,
+        sourceId: dto.sourceId,
         content: dto.content,
         timestamp: dto.timestamp,
       );
