@@ -1,5 +1,11 @@
-
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
+import 'package:flutter_gemma/mobile/flutter_gemma_mobile.dart';
+import 'package:health_wallet/features/scan/data/data_source/network/scan_network_data_source.dart';
+import 'package:health_wallet/features/scan/data/model/prompt_template/prompt_template.dart';
+import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
+import 'package:health_wallet/features/scan/domain/entity/slm_model.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
@@ -9,10 +15,13 @@ import 'package:health_wallet/features/scan/domain/repository/scan_repository.da
 
 @LazySingleton(as: ScanRepository)
 class ScanRepositoryImpl implements ScanRepository {
+  ScanRepositoryImpl(this._networkDataSource);
+
+  final ScanNetworkDataSource _networkDataSource;
+
   @override
   Future<List<String>> scanDocuments() async {
     try {
-
       final scannedResult =
           await FlutterDocScanner().getScannedDocumentAsImages(
         page: 10,
@@ -24,11 +33,9 @@ class ScanRepositoryImpl implements ScanRepository {
 
       List<String> imagePaths = [];
 
-
       if (scannedResult is List) {
         imagePaths = scannedResult.cast<String>();
       } else if (scannedResult is String) {
-
         if (scannedResult.contains('Failed') ||
             scannedResult.contains('Unknown') ||
             scannedResult.contains('platform documents')) {
@@ -38,7 +45,6 @@ class ScanRepositoryImpl implements ScanRepository {
       } else {
         imagePaths = [scannedResult.toString()];
       }
-
 
       final validPaths = imagePaths
           .where((path) =>
@@ -170,7 +176,6 @@ class ScanRepositoryImpl implements ScanRepository {
           .where((path) => _isValidDocumentFile(path))
           .toList();
 
-
       documentPaths.sort((a, b) {
         final aFile = File(a);
         final bFile = File(b);
@@ -202,14 +207,12 @@ class ScanRepositoryImpl implements ScanRepository {
     List<String>? importedPdfPaths,
   }) async {
     try {
-
       final directory = await getApplicationDocumentsDirectory();
       final scanDir = Directory(path.join(directory.path, 'scanned_documents'));
 
       if (await scanDir.exists()) {
         await scanDir.delete(recursive: true);
       }
-
 
       if (importedImagePaths != null) {
         for (var imagePath in importedImagePaths) {
@@ -218,12 +221,9 @@ class ScanRepositoryImpl implements ScanRepository {
             if (await file.exists()) {
               await file.delete();
             }
-          } catch (e) {
-
-          }
+          } catch (e) {}
         }
       }
-
 
       if (importedPdfPaths != null) {
         for (var pdfPath in importedPdfPaths) {
@@ -232,9 +232,7 @@ class ScanRepositoryImpl implements ScanRepository {
             if (await file.exists()) {
               await file.delete();
             }
-          } catch (e) {
-
-          }
+          } catch (e) {}
         }
       }
     } catch (e) {
@@ -248,5 +246,50 @@ class ScanRepositoryImpl implements ScanRepository {
         extension == '.jpeg' ||
         extension == '.png' ||
         extension == '.pdf';
+  }
+
+  @override
+  Stream<double> downloadModel() async* {
+    Stream<DownloadProgress> stream = _networkDataSource
+        .downloadModel(SlmModel.gemmaModel().toInferenceSpec());
+
+    await for (final progress in stream) {
+      yield progress.overallProgress.toDouble();
+    }
+  }
+
+  @override
+  Future<bool> checkModelExistence() => _networkDataSource
+      .checkModelExistence(SlmModel.gemmaModel().toInferenceSpec());
+
+  @override
+  Future<List<MappingResource>> mapResources(String medicalText) async {
+    List<MappingResource> resources = [];
+
+    for (PromptTemplate promptTemplate in PromptTemplate.supportedPrompts()) {
+      String prompt = promptTemplate.buildPrompt(medicalText);
+
+      String? promptResponse = await _networkDataSource.runPrompt(
+        spec: SlmModel.gemmaModel().toInferenceSpec(),
+        prompt: prompt,
+      );
+
+      try {
+        List<dynamic> jsonList = jsonDecode(promptResponse ?? '');
+
+        for (Map<String, dynamic> json in jsonList) {
+          MappingResource resource =
+              MappingResource.fromJson(json).populateConfidence(medicalText);
+          log(resource.toString());
+          if (resource.isValid) {
+            resources.add(resource);
+          }
+        }
+      } on Exception catch (_) {
+        continue;
+      }
+    }
+
+    return resources.toSet().toList();
   }
 }
