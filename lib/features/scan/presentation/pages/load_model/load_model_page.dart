@@ -1,9 +1,13 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/bloc/load_model_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 @RoutePage<bool>()
@@ -18,11 +22,14 @@ class _LoadModelPageState extends State<LoadModelPage>
     with TickerProviderStateMixin {
   late final AnimationController _shimmerController;
 
+  final _bloc = getIt.get<LoadModelBloc>();
+
   @override
   void initState() {
+    log(_bloc.toString());
     super.initState();
 
-    context.read<LoadModelBloc>().add(const LoadModelInitialized());
+    _bloc.add(const LoadModelInitialized());
 
     _shimmerController = AnimationController(
       vsync: this,
@@ -38,23 +45,33 @@ class _LoadModelPageState extends State<LoadModelPage>
 
   @override
   Widget build(BuildContext context) {
-    LoadModelState state = context.watch<LoadModelBloc>().state;
-    return BlocListener<LoadModelBloc, LoadModelState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        if (state.status == LoadModelStatus.modelLoaded) {
-          context.router.maybePop(true);
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Load AI Model", style: AppTextStyle.titleMedium),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: _buildView(state),
-        ),
-      ),
+    return BlocProvider(
+      create: (context) => _bloc,
+      child: BlocConsumer<LoadModelBloc, LoadModelState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == LoadModelStatus.modelLoaded) {
+              context.router.maybePop(true);
+            }
+            if (state.status == LoadModelStatus.error &&
+                state.errorMessage != null) {
+              DialogHelper.showErrorDialog(context, state.errorMessage!);
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text("Load AI Model",
+                    style: AppTextStyle.titleMedium),
+                automaticallyImplyLeading:
+                    state.status != LoadModelStatus.loading,
+              ),
+              body: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildView(state),
+              ),
+            );
+          }),
     );
   }
 
@@ -109,9 +126,7 @@ class _LoadModelPageState extends State<LoadModelPage>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
               ),
-              onPressed: () => context
-                  .read<LoadModelBloc>()
-                  .add(const LoadModelDownloadInitiated()),
+              onPressed: () => _bloc.add(const LoadModelDownloadInitiated()),
               child: const Text("Enable & Download"),
             ),
           ),

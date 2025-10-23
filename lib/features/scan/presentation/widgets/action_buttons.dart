@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 
 class ActionButtons extends StatelessWidget {
-  final VoidCallback onCreateEncounter;
+  final VoidCallback onProcessToFhir;
   final VoidCallback onAttachToEncounter;
   final VoidCallback? onExtractText;
 
   const ActionButtons({
     super.key,
-    required this.onCreateEncounter,
+    required this.onProcessToFhir,
     required this.onAttachToEncounter,
     this.onExtractText,
   });
@@ -21,7 +21,7 @@ class ActionButtons extends StatelessWidget {
           children: [
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: onCreateEncounter,
+                onPressed: onProcessToFhir,
                 icon: const Icon(Icons.add_circle_outline),
                 label: const Text('Process to FHIR'),
                 style: ElevatedButton.styleFrom(

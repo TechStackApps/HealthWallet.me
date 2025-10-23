@@ -5,6 +5,7 @@ class LoadModelState with _$LoadModelState {
   const factory LoadModelState({
     @Default(LoadModelStatus.loading) LoadModelStatus status,
     double? downloadProgress,
+    String? errorMessage,
   }) = _LoadModelState;
 }
 

@@ -191,7 +191,7 @@ class DialogHelper {
     );
   }
 
-  static void showErrorDialog(BuildContext context, String error) {
+  static void showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -206,10 +206,10 @@ class DialogHelper {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Failed to attach pages to encounter.'),
+            const Text('Something went wrong'),
             const SizedBox(height: 8),
             Text(
-              'Error: $error',
+              errorMessage,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

@@ -23,13 +23,21 @@ class LoadModelBloc extends Bloc<LoadModelEvent, LoadModelState> {
     LoadModelInitialized event,
     Emitter<LoadModelState> emit,
   ) async {
-    bool isModelLoaded = await _repository.checkModelExistence();
-    log(isModelLoaded.toString());
-    emit(state.copyWith(
-      status: isModelLoaded
-          ? LoadModelStatus.modelLoaded
-          : LoadModelStatus.modelAbsent,
-    ));
+    bool isModelLoaded = false;
+    try {
+      isModelLoaded = await _repository.checkModelExistence();
+    } on Exception catch (e) {
+      log(e.toString());
+      emit(state.copyWith(
+          status: LoadModelStatus.error,
+          errorMessage: 'An error appeared while checking model existence'));
+    } finally {
+      emit(state.copyWith(
+        status: isModelLoaded
+            ? LoadModelStatus.modelLoaded
+            : LoadModelStatus.modelAbsent,
+      ));
+    }
   }
 
   void _onLoadModelDownloadInitiated(
@@ -40,7 +48,17 @@ class LoadModelBloc extends Bloc<LoadModelEvent, LoadModelState> {
 
     final stream = _repository.downloadModel();
 
-    stream.listen((progress) => add(_DownloadProgressChanged(progress)));
+    stream.listen(
+      (progress) => add(_DownloadProgressChanged(progress)),
+      onError: (e) {
+        log(e.toString());
+        emit(
+          state.copyWith(
+              status: LoadModelStatus.error,
+              errorMessage: 'An error appeared while downloading the model'),
+        );
+      },
+    );
   }
 
   void _onDownloadProgressChanged(

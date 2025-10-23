@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
-import 'package:health_wallet/features/scan/presentation/pages/process_to_fhir_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -171,7 +171,7 @@ class _ScanViewState extends State<ScanView> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ActionButtons(
-                onCreateEncounter: () => _navigateToCreateEncounter(
+                onProcessToFhir: () => _navigateToFhirMapper(
                   context,
                   state.scannedImagePaths,
                   state.importedImagePaths,
@@ -192,24 +192,17 @@ class _ScanViewState extends State<ScanView> {
     );
   }
 
-  void _navigateToCreateEncounter(
-      BuildContext context,
-      List<String> scannedImages,
-      List<String> importedImages,
-      List<String> pdfs) async {
+  void _navigateToFhirMapper(BuildContext context, List<String> scannedImages,
+      List<String> importedImages, List<String> pdfs) async {
     try {
-      final result = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(
-          builder: (context) => ProcessToFHIRPage(
-            scannedImages: scannedImages,
-            importedImages: importedImages,
-            importedPdfs: pdfs,
-          ),
-        ),
-      );
+      final result = await context.router.push<bool>(const LoadModelRoute());
 
       if (result == true && context.mounted) {
-        context.read<ScanBloc>().add(const ScanEvent.clearAllDocuments());
+        context.router.push<bool>(FhirMapperRoute(
+          scannedImages: scannedImages,
+          importedImages: importedImages,
+          importedPdfs: pdfs,
+        ));
       }
     } catch (e) {
       if (context.mounted) {
