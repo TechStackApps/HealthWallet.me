@@ -5,7 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/fhir_encounter_helper.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/ocr_processing_helper.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_preview_card.dart';
@@ -93,13 +93,6 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
           ...widget.importedImages,
         ];
       });
-
-      if (mounted) {
-        _showSnackBar(
-          'Warning: Could not convert PDFs for preview. PDFs will still be included in the encounter.',
-          Colors.orange,
-        );
-      }
     }
   }
 
@@ -118,23 +111,12 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         _ocrCompleted = true;
         _isProcessingOCR = false;
       });
-
-      if (mounted) {
-        _showSnackBar(
-          'OCR processing completed successfully!',
-          Colors.green,
-        );
-      }
     } catch (e) {
       setState(() {
         _extractedText = 'Error processing OCR: $e';
         _ocrCompleted = true;
         _isProcessingOCR = false;
       });
-
-      if (mounted) {
-        _showSnackBar('OCR processing failed: $e', Colors.red);
-      }
     }
   }
 
@@ -247,11 +229,11 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         title: encounterName,
       );
 
-      final mediaIntegrationService =
-          GetIt.instance.get<MediaIntegrationService>();
+      final documentReferenceService =
+          GetIt.instance.get<DocumentReferenceService>();
 
       final resourceIds =
-          await mediaIntegrationService.saveGroupedDocumentsAsFhirRecords(
+          await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
         scannedImages: widget.scannedImages,
         importedImages: widget.importedImages,
         importedPdfs: widget.importedPdfs,
@@ -269,35 +251,26 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
       logger.e('Error creating encounter: $e');
 
       if (mounted) {
-        _showSnackBar('Failed to create encounter: $e', Colors.red,
-            duration: 4);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to create encounter: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       }
     }
   }
 
   void _showSuccessAndNavigateBack(String encounterName, int groupCount) {
-    final totalDocuments = widget.scannedImages.length +
-        widget.importedImages.length +
-        widget.importedPdfs.length;
-
-    _showSnackBar(
-      'Encounter "$encounterName" created successfully with $totalDocuments documents grouped into $groupCount PDF${groupCount > 1 ? 's' : ''}!',
-      Colors.green,
-      duration: 3,
-    );
-
+    // Navigate back without showing snackbar
     Navigator.of(context).pop(true);
-  }
-
-  void _showSnackBar(String message, Color backgroundColor,
-      {int duration = 2}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
-        duration: Duration(seconds: duration),
-      ),
-    );
   }
 
   @override

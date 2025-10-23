@@ -28,18 +28,9 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
     emit(state.copyWith(status: const RecordNotesStatus.loading()));
 
     try {
-      // Extract subjectId from the raw FHIR resource
-      final subjectId = _extractSubjectId(event.resource);
-
-      // Get or create patient record for this resource
-      final patientRecord = await _recordsRepository.getOrCreatePatientRecord(
-        patientId: subjectId ?? '',
-        sourceId: event.resource.sourceId,
-      );
-
-      // Get notes for this patient record
+      // Get notes for this resource directly
       List<RecordNote> notes =
-          await _recordsRepository.getRecordNotes(patientRecord.id);
+          await _recordsRepository.getRecordNotes(event.resource.id);
 
       emit(state.copyWith(
           notes: notes,
@@ -81,18 +72,10 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
         await _recordsRepository
             .editRecordNote(state.editNote!.copyWith(content: event.content));
       } else {
-        // Extract subjectId from the raw FHIR resource
-        final subjectId = _extractSubjectId(state.resource);
-
-        // Get or create patient record for this resource
-        final patientRecord = await _recordsRepository.getOrCreatePatientRecord(
-          patientId: subjectId ?? '',
-          sourceId: state.resource.sourceId,
-        );
-
-        // Add note to patient record
+        // Add note directly to the resource
         await _recordsRepository.addRecordNote(
-          patientRecordId: patientRecord.id,
+          resourceId: state.resource.id,
+          sourceId: state.resource.sourceId,
           content: event.content,
         );
       }
@@ -128,28 +111,5 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
     } catch (e) {
       emit(state.copyWith(status: RecordNotesStatus.error(e)));
     }
-  }
-
-  /// Extract subjectId from FHIR resource
-  String? _extractSubjectId(IFhirResource resource) {
-    final rawResource = resource.rawResource;
-
-    // For Patient resources, subjectId is their own resourceId
-    if (resource.fhirType == FhirType.Patient) {
-      return resource.resourceId;
-    }
-
-    // For other resources, extract from subject reference
-    if (rawResource['subject']?['reference'] != null) {
-      final reference = rawResource['subject']['reference'] as String;
-      // Extract ID from reference like "Patient/123" or "urn:uuid:abc123"
-      if (reference.startsWith('Patient/')) {
-        return reference.substring(8);
-      } else if (reference.startsWith('urn:uuid:')) {
-        return reference.substring(9);
-      }
-    }
-
-    return null;
   }
 }

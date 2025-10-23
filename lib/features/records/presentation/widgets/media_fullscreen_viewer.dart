@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart'
     as entities;
-import 'package:health_wallet/features/scan/domain/services/media_integration_service.dart';
+import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -259,9 +259,9 @@ class MediaFullscreenViewer extends StatelessWidget {
               if (encounterController.text.trim().isNotEmpty) {
                 try {
                   await GetIt.instance
-                      .get<MediaIntegrationService>()
-                      .linkMediaToEncounter(
-                        mediaResourceId: media.resourceId,
+                      .get<DocumentReferenceService>()
+                      .linkDocumentReferenceToEncounter(
+                        documentReferenceResourceId: media.resourceId,
                         encounterId: encounterController.text.trim(),
                         sourceId: media.sourceId,
                       );

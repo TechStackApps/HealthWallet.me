@@ -32,7 +32,7 @@ enum HomeRecordsCategory {
   ),
   files(
     display: "Files",
-    resourceTypes: [FhirType.Binary, FhirType.Media],
+    resourceTypes: [FhirType.Binary, FhirType.DocumentReference],
   ),
   labResults(
     display: "Lab Results",

@@ -18,6 +18,3 @@ class Source with _$Source {
 
   factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
 }
-
-/// Type alias to distinguish domain Source from database Source
-typedef DomainSource = Source;

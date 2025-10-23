@@ -3,14 +3,10 @@ import 'package:health_wallet/features/scan/presentation/widgets/scan_action_but
 
 class PlaceholderScan extends StatelessWidget {
   final VoidCallback? onScan;
-  final VoidCallback? onImport;
-  final VoidCallback? onPickImage;
 
   const PlaceholderScan({
     super.key,
     this.onScan,
-    this.onImport,
-    this.onPickImage,
   });
 
   @override
@@ -34,7 +30,7 @@ class PlaceholderScan extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Tap the scan button to get started',
+          'Scan or import documents to get started',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[500],
@@ -44,8 +40,6 @@ class PlaceholderScan extends StatelessWidget {
         ScanActionButtons(
           style: ScanActionButtonStyle.placeholder,
           onScanDocument: onScan,
-          onImportDocument: onImport,
-          onPickImage: onPickImage,
         ),
       ],
     );

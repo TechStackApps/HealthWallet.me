@@ -231,7 +231,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               id: 'wallet',
               platformName: Value('wallet'),
               labelSource: Value('Wallet'),
-              platformType: const Value('wallet'), // WALLET source type
+              platformType: const Value('wallet'),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -253,8 +253,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               id: 'demo_data',
               platformName: Value('wallet-manual'), // Platform name
               labelSource: Value('Demo Data'), // Custom display label
-              platformType:
-                  const Value('wallet'), // Demo data source is wallet type
+              platformType: const Value('wallet'),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),

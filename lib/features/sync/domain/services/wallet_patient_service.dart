@@ -41,9 +41,9 @@ class WalletPatientService {
     // Create new WALLET-{patient} source
     final walletSource = Source(
       id: walletSourceId,
-      platformName: 'Wallet',
+      platformName: 'wallet',
       labelSource: 'Wallet - $patientName',
-      platformType: 'wallet', // This is a writable wallet source
+      platformType: 'wallet',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

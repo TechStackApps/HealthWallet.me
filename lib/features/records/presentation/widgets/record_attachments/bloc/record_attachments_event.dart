@@ -22,6 +22,6 @@ class RecordAttachmentsFileAttached extends RecordAttachmentsEvent
 @freezed
 class RecordAttachmentsFileDeleted extends RecordAttachmentsEvent
     with _$RecordAttachmentsFileDeleted {
-  const factory RecordAttachmentsFileDeleted(RecordAttachment attachment) =
+  const factory RecordAttachmentsFileDeleted(IFhirResource attachment) =
       _RecordAttachmentsFileDeleted;
 }
