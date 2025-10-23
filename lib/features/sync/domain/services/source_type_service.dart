@@ -70,6 +70,24 @@ class SourceTypeService {
     String? patientName,
     required List<Source> availableSources,
   }) async {
+    // Special case: default_wallet_holder always uses the generic 'wallet' source
+    if (patientId == 'default_wallet_holder') {
+      final genericWallet = availableSources
+          .where((s) => s.id == 'wallet' && s.platformType == 'wallet')
+          .firstOrNull;
+
+      if (genericWallet != null) {
+        return genericWallet;
+      }
+
+      // If generic wallet doesn't exist, create it
+      await _syncRepository.createWalletSource();
+
+      // Fetch sources again to get the newly created wallet
+      final updatedSources = await _syncRepository.getSources();
+      return updatedSources.firstWhere((s) => s.id == 'wallet');
+    }
+
     // Check if patient already has a patient-specific wallet source
     final existingWallet = availableSources
         .where(

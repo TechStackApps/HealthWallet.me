@@ -243,6 +243,10 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         title: encounterName,
       );
 
+      if (mounted && context.mounted) {
+        context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+      }
+
       if (mounted) {
         _showSuccessAndNavigateBack(encounterName, resourceIds.length);
       }

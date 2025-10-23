@@ -5,7 +5,9 @@ import 'package:bloc/bloc.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
+import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/utils/fhir_reference_utils.dart';
+import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
@@ -58,7 +60,7 @@ class RecordAttachmentsBloc
 
       final documentReferences = await _recordsRepository.getResources(
         resourceTypes: [FhirType.DocumentReference],
-        sourceId: event.resource.sourceId,
+        sourceId: null,
         limit: 100,
       );
 
@@ -74,7 +76,7 @@ class RecordAttachmentsBloc
             final isRelatedToThisResource = relatedList.any((related) {
               final reference = related['reference'];
               return reference ==
-                  '${event.resource.fhirType.name}/${event.resource.id}';
+                  '${event.resource.fhirType.name}/${event.resource.resourceId}';
             });
             if (isRelatedToThisResource) return true;
           }
@@ -93,7 +95,7 @@ class RecordAttachmentsBloc
             final encounters = context['encounter'] as List;
             return encounters.any((encounter) {
               final reference = encounter['reference'];
-              return reference == 'Encounter/${event.resource.id}';
+              return reference == 'Encounter/${event.resource.resourceId}';
             });
           }
 
@@ -186,6 +188,14 @@ class RecordAttachmentsBloc
         sourceId: effectiveSourceId,
         title: originalFileName,
       );
+
+      // Trigger home page refresh to update overview cards
+      try {
+        final homeBloc = getIt<HomeBloc>();
+        homeBloc.add(const HomeRefreshPreservingOrder());
+      } catch (e) {
+        // HomeBloc might not be available in all contexts, continue anyway
+      }
 
       emit(state.copyWith(attachments: []));
       add(RecordAttachmentsInitialised(resource: state.resource));
@@ -362,6 +372,14 @@ class RecordAttachmentsBloc
           }
         }
       } catch (e) {}
+
+      // Trigger home page refresh to update overview cards
+      try {
+        final homeBloc = getIt<HomeBloc>();
+        homeBloc.add(const HomeRefreshPreservingOrder());
+      } catch (e) {
+        // HomeBloc might not be available in all contexts, continue anyway
+      }
 
       add(RecordAttachmentsInitialised(resource: state.resource));
     } catch (e) {

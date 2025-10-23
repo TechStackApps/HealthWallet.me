@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:injectable/injectable.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -75,7 +74,6 @@ class PdfGenerationService {
 
       final tempDir = await getTemporaryDirectory();
       final newPdfPath = path.join(tempDir.path, '$fileName.pdf');
-      final newPdfFile = File(newPdfPath);
 
       await sourceFile.copy(newPdfPath);
 
@@ -94,9 +92,10 @@ class PdfGenerationService {
 
     try {
       if (scannedImages.isNotEmpty) {
+        final fileName = await _generateScannedDocumentName();
         final pdfPath = await createPdfFromImages(
           imagePaths: scannedImages,
-          fileName: 'scanned_documents_${_generateId()}',
+          fileName: fileName,
           title: 'Scanned Documents',
         );
 
@@ -148,6 +147,50 @@ class PdfGenerationService {
 
   String _generateId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  /// Generate a scanned document name in the format: scanned_document_ddmmyyyy_N
+  /// where N is an incremental number for documents created on the same day
+  Future<String> _generateScannedDocumentName() async {
+    final now = DateTime.now();
+    final dateStr = '${now.day.toString().padLeft(2, '0')}'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.year}';
+
+    final incrementalNumber = await _getIncrementalNumberForDate(dateStr);
+    return 'scanned_document_${dateStr}_$incrementalNumber';
+  }
+
+  /// Get the next incremental number for scanned documents on a specific date
+  Future<int> _getIncrementalNumberForDate(String dateStr) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final files = tempDir.listSync();
+
+      // Find all files matching the pattern scanned_document_{dateStr}_*
+      final pattern = 'scanned_document_${dateStr}_';
+      int maxNumber = 0;
+
+      for (final file in files) {
+        if (file is File) {
+          final fileName = path.basename(file.path);
+          if (fileName.startsWith(pattern) && fileName.endsWith('.pdf')) {
+            // Extract the number from the filename
+            final numberPart = fileName.substring(
+                pattern.length, fileName.length - 4); // Remove .pdf
+            final number = int.tryParse(numberPart);
+            if (number != null && number > maxNumber) {
+              maxNumber = number;
+            }
+          }
+        }
+      }
+
+      return maxNumber + 1;
+    } catch (e) {
+      // If there's an error reading files, default to 1
+      return 1;
+    }
   }
 }
 

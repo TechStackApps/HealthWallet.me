@@ -48,6 +48,16 @@ class HomePage extends StatelessWidget {
             PatientSourceUtils.handlePatientChange(context, patientState);
           },
         ),
+        BlocListener<SyncBloc, SyncState>(
+          listenWhen: (previous, current) =>
+              (previous.hasDemoData != current.hasDemoData) ||
+              (previous.hasSyncedData != current.hasSyncedData),
+          listener: (context, state) {
+            if (state.hasDemoData || state.hasSyncedData) {
+              context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+            }
+          },
+        ),
       ],
       child: HomeView(pageController: pageController),
     );

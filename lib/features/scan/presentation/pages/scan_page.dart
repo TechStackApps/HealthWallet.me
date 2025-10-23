@@ -290,6 +290,11 @@ class _ScanViewState extends State<ScanView> {
         title: 'Attached Documents',
       );
 
+      // Trigger home page refresh to update overview cards
+      if (context.mounted) {
+        context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+      }
+
       if (context.mounted) Navigator.of(context).pop();
 
       if (context.mounted) {
