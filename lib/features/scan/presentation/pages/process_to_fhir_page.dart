@@ -21,10 +21,6 @@ import 'package:health_wallet/features/sync/domain/entities/source.dart'
     as sync_source;
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/core/utils/logger.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:drift/drift.dart' as drift;
-import 'dart:convert';
-import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 
 @RoutePage()
 class ProcessToFHIRPage extends StatefulWidget {
@@ -150,7 +146,8 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
           : null;
 
       final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.resourceId ?? 'patient-default';
+      final patientId = patient?.id ??
+          'patient-default'; // Use database ID for wallet source naming
       final patientName = patient?.displayTitle ?? 'Unknown Patient';
 
       String effectiveSourceId;
@@ -172,15 +169,12 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
               GetIt.instance.get<WalletPatientService>();
           final walletSource =
               await walletPatientService.createWalletSourceForPatient(
-            selectedPatientId,
+            patientId,
             patientName,
           );
 
           final syncRepository = GetIt.instance.get<SyncRepository>();
           await syncRepository.cacheSources([walletSource]);
-
-          await _duplicatePatientToWalletSource(
-              selectedPatient, walletSource.id);
 
           context.read<PatientBloc>().add(
                 PatientPatientsLoaded(),
@@ -204,7 +198,7 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         final walletPatientService = GetIt.instance.get<WalletPatientService>();
         final walletSource =
             await walletPatientService.createWalletSourceForPatient(
-          patientId,
+          patientId, // Use database ID
           patientName,
         );
 
@@ -399,41 +393,5 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         ),
       ],
     );
-  }
-
-  Future<void> _duplicatePatientToWalletSource(
-      Patient? patient, String walletSourceId) async {
-    if (patient == null) return;
-
-    try {
-      final database = GetIt.instance.get<AppDatabase>();
-
-      final walletPatient = patient.copyWith(
-        id: patient.id,
-        sourceId: walletSourceId,
-      );
-
-      final patientJson = patient.rawResource;
-      final resourceId = patient.id;
-
-      final dto = FhirResourceCompanion.insert(
-        id: '${walletSourceId}_$resourceId',
-        sourceId: drift.Value(walletSourceId),
-        resourceId: drift.Value(resourceId),
-        resourceType: drift.Value('Patient'),
-        title: drift.Value(walletPatient.displayTitle),
-        date: drift.Value(walletPatient.birthDate?.valueString != null
-            ? DateTime.tryParse(walletPatient.birthDate!.valueString!) ??
-                DateTime.now()
-            : DateTime.now()),
-        resourceRaw: jsonEncode(patientJson),
-        encounterId: const drift.Value.absent(),
-        subjectId: drift.Value(resourceId),
-      );
-
-      await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-    } catch (e) {
-      logger.e('❌ Failed to duplicate Patient to wallet source: $e');
-    }
   }
 }

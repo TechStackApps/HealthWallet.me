@@ -107,6 +107,19 @@ class FhirResourceDatasource {
         .go();
   }
 
+  Future<List<String>> getSourceIdsForSubject(String subjectId) async {
+    final query = db.selectOnly(db.fhirResource, distinct: true)
+      ..addColumns([db.fhirResource.sourceId])
+      ..where(db.fhirResource.subjectId.equals(subjectId));
+
+    final results = await query.get();
+    return results
+        .map((row) => row.read(db.fhirResource.sourceId))
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toList();
+  }
+
   Future<List<FhirResourceLocalDto>> searchResources({
     required String query,
     required List<String> resourceTypes,
