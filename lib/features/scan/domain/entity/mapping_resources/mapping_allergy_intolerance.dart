@@ -3,6 +3,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_allergy_intolerance.freezed.dart';
 
@@ -27,7 +28,20 @@ class MappingAllergyIntolerance
   }
 
   @override
-  IFhirResource toFhirResource() => const AllergyIntolerance();
+  IFhirResource toFhirResource() => AllergyIntolerance(
+        title: substance.value,
+        code:
+            fhir_r4.CodeableConcept(text: fhir_r4.FhirString(substance.value)),
+        reaction: [
+          fhir_r4.AllergyIntoleranceReaction(
+            manifestation: [
+              fhir_r4.CodeableConcept(
+                  text: fhir_r4.FhirString(manifestation.value))
+            ],
+          ),
+        ],
+        category: [fhir_r4.AllergyIntoleranceCategory.food],
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

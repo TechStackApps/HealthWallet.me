@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/practitioner/practitioner.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_practitioner.freezed.dart';
 
@@ -28,7 +29,21 @@ class MappingPractitioner
   }
 
   @override
-  IFhirResource toFhirResource() => const Practitioner();
+  IFhirResource toFhirResource() => Practitioner(
+        title: practitionerName.value,
+        name: [
+          fhir_r4.HumanName(text: fhir_r4.FhirString(practitionerName.value))
+        ],
+        qualification: [
+          fhir_r4.PractitionerQualification(
+            code: fhir_r4.CodeableConcept(
+                text: fhir_r4.FhirString(specialty.value)),
+          )
+        ],
+        identifier: [
+          fhir_r4.Identifier(value: fhir_r4.FhirString(identifier.value))
+        ],
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

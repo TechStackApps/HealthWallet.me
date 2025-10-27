@@ -48,7 +48,7 @@ class ScanSummaryCard extends StatelessWidget {
                   '• $importedPdfsCount imported PDF${importedPdfsCount > 1 ? 's' : ''}'),
             const SizedBox(height: 8),
             Text(
-              'Total: $totalPagesForOcr pages available for OCR preview',
+              'Total: $totalPagesForOcr pages available for FHIR processing',
               style: AppTextStyle.bodySmall.copyWith(
                 color: context.colorScheme.primary,
                 fontWeight: FontWeight.w500,

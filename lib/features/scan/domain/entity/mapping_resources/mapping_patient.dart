@@ -32,6 +32,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
 
   @override
   IFhirResource toFhirResource() => Patient(
+        title: "${givenName.value} ${familyName.value}",
         name: [
           fhir_r4.HumanName(
             family: fhir_r4.FhirString(familyName.value),

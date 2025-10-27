@@ -4,23 +4,26 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
-class ScanPreviewCard extends StatelessWidget {
+class ScanPreviewCard extends StatefulWidget {
   final List<String> imagePaths;
-  final int currentPageIndex;
   final PageController pageController;
-  final Function(int) onPageChanged;
 
   const ScanPreviewCard({
     super.key,
     required this.imagePaths,
-    required this.currentPageIndex,
     required this.pageController,
-    required this.onPageChanged,
   });
 
   @override
+  State<ScanPreviewCard> createState() => _ScanPreviewCardState();
+}
+
+class _ScanPreviewCardState extends State<ScanPreviewCard> {
+  int _index = 0;
+
+  @override
   Widget build(BuildContext context) {
-    if (imagePaths.isEmpty) return const SizedBox.shrink();
+    if (widget.imagePaths.isEmpty) return const SizedBox.shrink();
 
     return Card(
       elevation: 2,
@@ -31,16 +34,18 @@ class ScanPreviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (imagePaths.length > 1)
+          if (widget.imagePaths.length > 1)
             _PageIndicator(
-              currentPage: currentPageIndex,
-              totalPages: imagePaths.length,
-              pageController: pageController,
+              currentPage: _index,
+              totalPages: widget.imagePaths.length,
+              pageController: widget.pageController,
             ),
           _ImagePageView(
-            imagePaths: imagePaths,
-            pageController: pageController,
-            onPageChanged: onPageChanged,
+            imagePaths: widget.imagePaths,
+            pageController: widget.pageController,
+            onPageChanged: (index) => setState(() {
+              _index = index;
+            }),
           ),
         ],
       ),

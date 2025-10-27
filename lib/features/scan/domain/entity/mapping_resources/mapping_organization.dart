@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/organization/organization.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_organization.freezed.dart';
 
@@ -28,7 +29,12 @@ class MappingOrganization
   }
 
   @override
-  IFhirResource toFhirResource() => const Organization();
+  IFhirResource toFhirResource() => Organization(
+        title: organizationName.value,
+        name: fhir_r4.FhirString(organizationName.value),
+        address: [fhir_r4.Address(text: fhir_r4.FhirString(address.value))],
+        telecom: [fhir_r4.ContactPoint(value: fhir_r4.FhirString(phone.value))],
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

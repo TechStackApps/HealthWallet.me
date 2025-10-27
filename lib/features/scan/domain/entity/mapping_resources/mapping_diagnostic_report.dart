@@ -3,6 +3,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_diagnostic_report.freezed.dart';
 
@@ -27,7 +28,15 @@ class MappingDiagnosticReport
   }
 
   @override
-  IFhirResource toFhirResource() => const DiagnosticReport();
+  IFhirResource toFhirResource() => DiagnosticReport(
+        title: reportName.value,
+        date: DateTime.tryParse(issuedDate.value),
+        code:
+            fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reportName.value)),
+        conclusion: fhir_r4.FhirString(conclusion.value),
+        issued: fhir_r4.FhirInstant.fromDateTime(
+            DateTime.tryParse(issuedDate.value) ?? DateTime.now()),
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

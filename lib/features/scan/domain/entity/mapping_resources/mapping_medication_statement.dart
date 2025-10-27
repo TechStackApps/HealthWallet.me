@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/medication_statement/medication_statement.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_medication_statement.freezed.dart';
 
@@ -28,7 +29,17 @@ class MappingMedicationStatement
   }
 
   @override
-  IFhirResource toFhirResource() => const MedicationStatement();
+  IFhirResource toFhirResource() => MedicationStatement(
+        title: medicationName.value,
+        medicationX: fhir_r4.CodeableConcept(
+            text: fhir_r4.FhirString(medicationName.value)),
+        dosage: [
+          fhir_r4.Dosage(text: fhir_r4.FhirString(dosage.value)),
+        ],
+        reasonCode: [
+          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value)),
+        ],
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

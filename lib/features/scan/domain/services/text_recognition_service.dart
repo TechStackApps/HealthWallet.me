@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:injectable/injectable.dart';
 import 'package:pdf_to_image_converter/pdf_to_image_converter.dart';
 import 'package:path_provider/path_provider.dart';
 
+@injectable
 class TextRecognitionService {
   final TextRecognizer _textRecognizer = TextRecognizer(
     script: TextRecognitionScript.latin,

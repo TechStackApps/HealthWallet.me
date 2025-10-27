@@ -5,10 +5,18 @@ abstract class FhirMapperEvent {
 }
 
 @freezed
-class FhirMappingInitiated extends FhirMapperEvent
-    with _$FhirMappingInitiated {
-  const factory FhirMappingInitiated(String text) =
-      _FhirMappingInitiated;
+class FhirMapperImagesPrepared extends FhirMapperEvent
+    with _$FhirMapperImagesPrepared {
+  const factory FhirMapperImagesPrepared({
+    required List<String> scannedImages,
+    required List<String> importedImages,
+    required List<String> importedPdfs,
+  }) = _FhirMapperImagesPrepared;
+}
+
+@freezed
+class FhirMappingInitiated extends FhirMapperEvent with _$FhirMappingInitiated {
+  const factory FhirMappingInitiated() = _FhirMappingInitiated;
 }
 
 @freezed
@@ -18,6 +26,15 @@ class FhirMapperResourceChanged extends FhirMapperEvent
     required int index,
     required String propertyKey,
     required String newValue,
-  }) =
-      _FhirMapperResourceChanged;
+  }) = _FhirMapperResourceChanged;
+}
+
+@freezed
+class FhirMapperEncounterCreationInitiated extends FhirMapperEvent
+    with _$FhirMapperEncounterCreationInitiated {
+  const factory FhirMapperEncounterCreationInitiated({
+    required String encounterName,
+    required HomeState homeState,
+    required PatientState patientState,
+  }) = _FhirMapperEncounterCreationInitiated;
 }

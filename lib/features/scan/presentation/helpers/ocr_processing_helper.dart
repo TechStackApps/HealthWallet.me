@@ -1,12 +1,11 @@
 import 'package:health_wallet/features/scan/domain/services/text_recognition_service.dart';
+import 'package:injectable/injectable.dart';
 
+@injectable
 class OcrProcessingHelper {
   final TextRecognitionService _textRecognitionService;
 
-  OcrProcessingHelper({TextRecognitionService? textRecognitionService})
-      : _textRecognitionService =
-            textRecognitionService ?? TextRecognitionService();
-
+  OcrProcessingHelper(this._textRecognitionService);
 
   Future<List<String>> convertPdfsToImages(List<String> pdfPaths) async {
     final convertedImages = <String>[];
@@ -19,8 +18,7 @@ class OcrProcessingHelper {
     return convertedImages;
   }
 
-
-  Future<List<String>> processOcrForImages(List<String> imagePaths) async {
+  Future<String> processOcrForImages(List<String> imagePaths) async {
     final pageTexts = <String>[];
 
     for (int i = 0; i < imagePaths.length; i++) {
@@ -31,14 +29,11 @@ class OcrProcessingHelper {
 
       if (text.isNotEmpty && !text.startsWith('Error recognizing text:')) {
         pageTexts.add(text);
-      } else {
-        pageTexts.add('No text could be extracted from this page.');
       }
     }
 
-    return pageTexts;
+    return pageTexts.join('\n');
   }
-
 
   Future<List<String>> prepareAllImages({
     required List<String> scannedImages,
@@ -47,18 +42,14 @@ class OcrProcessingHelper {
   }) async {
     final allImages = <String>[];
 
-
     allImages.addAll(scannedImages);
     allImages.addAll(importedImages);
-
 
     if (importedPdfs.isNotEmpty) {
       try {
         final convertedImages = await convertPdfsToImages(importedPdfs);
         allImages.addAll(convertedImages);
-      } catch (e) {
-
-      }
+      } catch (e) {}
     }
 
     return allImages;

@@ -3,6 +3,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_encounter.freezed.dart';
 
@@ -25,7 +26,22 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => const Encounter();
+  IFhirResource toFhirResource() => Encounter(
+        title: encounterType.value,
+        date: DateTime.tryParse(periodStart.value),
+        type: [
+          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
+        ],
+        location: [
+          fhir_r4.EncounterLocation(
+            location:
+                fhir_r4.Reference(display: fhir_r4.FhirString(location.value)),
+          )
+        ],
+        period: fhir_r4.Period(
+          start: fhir_r4.FhirDateTime.fromString(periodStart.value),
+        ),
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

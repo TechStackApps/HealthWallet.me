@@ -3,6 +3,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_condition.freezed.dart';
 
@@ -25,7 +26,15 @@ class MappingCondition with _$MappingCondition implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => const Condition();
+  IFhirResource toFhirResource() => Condition(
+        title: conditionName.value,
+        date: DateTime.tryParse(onsetDateTime.value),
+        code: fhir_r4.CodeableConcept(
+            text: fhir_r4.FhirString(conditionName.value)),
+        onsetX: fhir_r4.FhirDateTime.fromString(onsetDateTime.value),
+        clinicalStatus: fhir_r4.CodeableConcept(
+            text: fhir_r4.FhirString(clinicalStatus.value)),
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

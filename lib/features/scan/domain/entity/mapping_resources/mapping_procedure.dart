@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/procedure/procedure.dart';
+import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'mapping_procedure.freezed.dart';
 
@@ -26,7 +27,16 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => const Procedure();
+  IFhirResource toFhirResource() => Procedure(
+        title: procedureName.value,
+        date: DateTime.tryParse(performedDateTime.value),
+        code: fhir_r4.CodeableConcept(
+            text: fhir_r4.FhirString(procedureName.value)),
+        performedX: fhir_r4.FhirDateTime.fromString(performedDateTime.value),
+        reasonCode: [
+          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value))
+        ],
+      );
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

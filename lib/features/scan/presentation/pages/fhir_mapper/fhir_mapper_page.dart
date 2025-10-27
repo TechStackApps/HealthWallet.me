@@ -1,34 +1,22 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
-import 'package:health_wallet/features/scan/presentation/helpers/fhir_encounter_helper.dart';
-import 'package:health_wallet/features/scan/presentation/helpers/ocr_processing_helper.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/empty_scan_warning.dart';
+import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/widgets/resources_form.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/encounter_form_widget.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/ocr_widgets.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/patient_source_info_widget.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_preview_card.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_summary_card.dart';
-import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
-import 'package:health_wallet/features/sync/domain/services/wallet_patient_service.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
-import 'package:health_wallet/features/sync/domain/entities/source.dart'
-    as sync_source;
-import 'package:drift/drift.dart' as drift;
+
+import 'bloc/fhir_mapper_bloc.dart';
 
 @RoutePage()
-class FhirMapperPage extends StatefulWidget {
+class FhirMapperPage extends StatelessWidget {
   const FhirMapperPage({
     this.scannedImages = const [],
     this.importedImages = const [],
@@ -41,29 +29,32 @@ class FhirMapperPage extends StatefulWidget {
   final List<String> importedPdfs;
 
   @override
-  State<FhirMapperPage> createState() => _FhirMapperPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => GetIt.instance.get<FhirMapperBloc>()
+        ..add(
+          FhirMapperImagesPrepared(
+            scannedImages: scannedImages,
+            importedImages: importedImages,
+            importedPdfs: importedPdfs,
+          ),
+        ),
+      child: const _FhirMapperView(),
+    );
+  }
 }
 
-class _FhirMapperPageState extends State<FhirMapperPage> {
+class _FhirMapperView extends StatefulWidget {
+  const _FhirMapperView();
+
+  @override
+  State<_FhirMapperView> createState() => _FhirMapperViewState();
+}
+
+class _FhirMapperViewState extends State<_FhirMapperView> {
   final _formKey = GlobalKey<FormState>();
   final _encounterNameController = TextEditingController();
   final _pageController = PageController();
-  final _ocrHelper = OcrProcessingHelper();
-
-  bool _isCreating = false;
-  bool _isProcessingOCR = false;
-  bool _ocrCompleted = false;
-  bool _isConvertingPdfs = false;
-  String _extractedText = '';
-  List<String> _extractedTextsPerPage = [];
-  List<String> _allImagePathsForOCR = [];
-  int _currentPageIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _prepareImagesForOCR();
-  }
 
   @override
   void dispose() {
@@ -72,206 +63,16 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
     super.dispose();
   }
 
-  Future<void> _prepareImagesForOCR() async {
-    setState(() => _isConvertingPdfs = true);
-
-    try {
-      final allImages = await _ocrHelper.prepareAllImages(
-        scannedImages: widget.scannedImages,
-        importedImages: widget.importedImages,
-        importedPdfs: widget.importedPdfs,
-      );
-
-      setState(() {
-        _allImagePathsForOCR = allImages;
-        _isConvertingPdfs = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isConvertingPdfs = false;
-        _allImagePathsForOCR = [
-          ...widget.scannedImages,
-          ...widget.importedImages,
-        ];
-      });
-    }
-  }
-
-  Future<void> _processOCR() async {
-    setState(() => _isProcessingOCR = true);
-
-    try {
-      final pageTexts =
-          await _ocrHelper.processOcrForImages(_allImagePathsForOCR);
-
-      setState(() {
-        _extractedTextsPerPage = pageTexts;
-        _extractedText = pageTexts.isNotEmpty
-            ? pageTexts[0]
-            : 'No text could be extracted from the documents.';
-        _ocrCompleted = true;
-        _isProcessingOCR = false;
-      });
-    } catch (e) {
-      setState(() {
-        _extractedText = 'Error processing OCR: $e';
-        _ocrCompleted = true;
-        _isProcessingOCR = false;
-      });
-    }
-  }
-
-  void _onPageChanged(int index) {
-    setState(() {
-      _currentPageIndex = index;
-      if (_ocrCompleted &&
-          _extractedTextsPerPage.isNotEmpty &&
-          index < _extractedTextsPerPage.length) {
-        _extractedText = _extractedTextsPerPage[index];
-      }
-    });
-  }
-
-  Future<void> _createEncounter() async {
+  void _createEncounter() {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isCreating = true);
-
-    try {
-      final encounterName = _encounterNameController.text.trim();
-      final homeState = context.read<HomeBloc>().state;
-      final patientState = context.read<PatientBloc>().state;
-
-      final selectedPatientId = patientState.selectedPatientId;
-      final selectedPatient = patientState.patients.isNotEmpty
-          ? patientState.patients.firstWhere(
-              (p) => p.id == selectedPatientId,
-              orElse: () => patientState.patients.first,
-            )
-          : null;
-
-      final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.resourceId ?? 'patient-default';
-      final patientName = patient?.displayTitle ?? 'Unknown Patient';
-
-      String effectiveSourceId;
-
-      if (selectedPatientId != null) {
-        final patientGroup = patientState.patientGroups[selectedPatientId];
-        final hasWritableWalletSource = patientGroup?.sourceIds.any((sourceId) {
-              final source = homeState.sources.firstWhere(
-                (s) => s.id == sourceId,
-                orElse: () => const sync_source.Source(
-                    id: '', platformName: null, logo: null, labelSource: null),
-              );
-              return source.platformType == 'wallet';
-            }) ??
-            false;
-
-        if (!hasWritableWalletSource) {
-          final walletPatientService =
-              GetIt.instance.get<WalletPatientService>();
-          final walletSource =
-              await walletPatientService.createWalletSourceForPatient(
-            selectedPatientId,
-            patientName,
-          );
-
-          final syncRepository = GetIt.instance.get<SyncRepository>();
-          await syncRepository.cacheSources([walletSource]);
-
-          await _duplicatePatientToWalletSource(
-              selectedPatient, walletSource.id);
-
-          context.read<PatientBloc>().add(
-                PatientPatientsLoaded(),
-              );
-
-          effectiveSourceId = walletSource.id;
-        } else {
-          final walletSourceId = patientGroup!.sourceIds.firstWhere(
-            (sourceId) {
-              final source = homeState.sources.firstWhere(
-                (s) => s.id == sourceId,
-                orElse: () => const sync_source.Source(
-                    id: '', platformName: null, logo: null, labelSource: null),
-              );
-              return source.platformType == 'wallet';
-            },
-          );
-          effectiveSourceId = walletSourceId;
-        }
-      } else {
-        final walletPatientService = GetIt.instance.get<WalletPatientService>();
-        final walletSource =
-            await walletPatientService.createWalletSourceForPatient(
-          patientId,
-          patientName,
-        );
-
-        final syncRepository = GetIt.instance.get<SyncRepository>();
-        await syncRepository.cacheSources([walletSource]);
-
-        effectiveSourceId = walletSource.id;
-      }
-
-      final encounterId = FhirEncounterHelper.generateEncounterId();
-
-      final fhirEncounter = FhirEncounterHelper.createEncounter(
-        encounterId: encounterId,
-        patientId: patientId,
-        title: encounterName,
-        patientName: patient?.displayTitle ?? 'Unknown Patient',
-      );
-
-      await FhirEncounterHelper.saveToDatabase(
-        fhirEncounter: fhirEncounter,
-        sourceId: effectiveSourceId,
-        title: encounterName,
-      );
-
-      final documentReferenceService =
-          GetIt.instance.get<DocumentReferenceService>();
-
-      final resourceIds =
-          await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
-        scannedImages: widget.scannedImages,
-        importedImages: widget.importedImages,
-        importedPdfs: widget.importedPdfs,
-        patientId: patientId,
-        encounterId: encounterId,
-        sourceId: effectiveSourceId,
-        title: encounterName,
-      );
-
-      if (mounted) {
-        _showSuccessAndNavigateBack(encounterName, resourceIds.length);
-      }
-    } catch (e) {
-      setState(() => _isCreating = false);
-      logger.e('Error creating encounter: $e');
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to create encounter: $e'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+    context.read<FhirMapperBloc>().add(
+          FhirMapperEncounterCreationInitiated(
+            encounterName: _encounterNameController.text.trim(),
+            homeState: context.read<HomeBloc>().state,
+            patientState: context.read<PatientBloc>().state,
           ),
         );
-      }
-    }
-  }
-
-  void _showSuccessAndNavigateBack(String encounterName, int groupCount) {
-    // Navigate back without showing snackbar
-    Navigator.of(context).pop(true);
   }
 
   @override
@@ -285,32 +86,72 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: _buildBody(),
-    );
-  }
+      body: BlocConsumer<FhirMapperBloc, FhirMapperState>(
+        listener: (context, state) {
+          if (state.status == FhirMapperStatus.success) {
+            Navigator.of(context).pop(true);
+          }
+          if (state.status == FhirMapperStatus.failure) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Error'),
+                content: Text(
+                  'An error occurred: ${state.errorMessage}',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state.status == FhirMapperStatus.savingResources) {
+            return _buildLoadingIndicator('Adding to Wallet...');
+          }
+          if (state.status == FhirMapperStatus.convertingPdfs) {
+            return _buildLoadingIndicator('Converting PDFs for preview...');
+          }
 
-  Widget _buildBody() {
-    if (_isCreating) {
-      return _buildLoadingIndicator('Adding to Wallet...');
-    }
-
-    if (_isConvertingPdfs) {
-      return _buildLoadingIndicator('Converting PDFs for preview...');
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(Insets.normal),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDocumentSummary(),
-          const SizedBox(height: Insets.normal),
-          _buildDocumentPreview(),
-          const SizedBox(height: Insets.large),
-          _buildOcrSection(),
-          _buildEncounterFormSection(),
-          const SizedBox(height: Insets.large),
-        ],
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(Insets.normal),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ScanSummaryCard(
+                  scannedCount: state.scannedImages.length,
+                  importedImagesCount: state.importedImages.length,
+                  importedPdfsCount: state.importedPdfs.length,
+                  totalPagesForOcr: state.allImagePathsForOCR.length,
+                ),
+                const SizedBox(height: Insets.normal),
+                if (state.allImagePathsForOCR.isNotEmpty)
+                  ScanPreviewCard(
+                    imagePaths: state.allImagePathsForOCR,
+                    pageController: _pageController,
+                  ),
+                const SizedBox(height: Insets.large),
+                _buildMappingSection(state),
+                if (state.status == FhirMapperStatus.editingResources)
+                  ResourcesForm(
+                    resources: state.resources,
+                    onPropertyChanged: (index, propertyKey, newValue) => context
+                        .read<FhirMapperBloc>()
+                        .add(FhirMapperResourceChanged(
+                          index: index,
+                          propertyKey: propertyKey,
+                          newValue: newValue,
+                        )),
+                  ),
+                const SizedBox(height: Insets.large),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -328,217 +169,76 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
     );
   }
 
-  Widget _buildDocumentSummary() {
-    return ScanSummaryCard(
-      scannedCount: widget.scannedImages.length,
-      importedImagesCount: widget.importedImages.length,
-      importedPdfsCount: widget.importedPdfs.length,
-      totalPagesForOcr: _allImagePathsForOCR.length,
-    );
-  }
-
-  Widget _buildDocumentPreview() {
-    if (_allImagePathsForOCR.isEmpty) return const SizedBox.shrink();
-
-    return ScanPreviewCard(
-      imagePaths: _allImagePathsForOCR,
-      currentPageIndex: _currentPageIndex,
-      pageController: _pageController,
-      onPageChanged: _onPageChanged,
-    );
-  }
-
-  Widget _buildOcrSection() {
-    if (_allImagePathsForOCR.isEmpty && !_isConvertingPdfs) {
-      return const EmptyScanWarning();
-    }
-
-    if (!_ocrCompleted &&
-        !_isProcessingOCR &&
-        _allImagePathsForOCR.isNotEmpty) {
-      return ProcessOcrButton(onPressed: _processOCR);
-    }
-
-    if (_isProcessingOCR) {
-      return const OcrProcessingIndicator();
-    }
-
-    if (_ocrCompleted) {
-      return Column(
-        children: [
-          ExtractedTextDisplay(
-            extractedText: _extractedText,
-            currentPageIndex: _currentPageIndex,
+  Widget _buildMappingSection(FhirMapperState state) {
+    if (state.status == FhirMapperStatus.mappingReady) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () =>
+              context.read<FhirMapperBloc>().add(const FhirMappingInitiated()),
+          icon: const Icon(Icons.text_fields),
+          label: const Text(
+            'Process pages',
+            style: TextStyle(fontSize: 16),
           ),
-          const SizedBox(height: Insets.large),
-          const FhirProcessingInfoCard(),
-          const SizedBox(height: Insets.large),
-        ],
+          style: ElevatedButton.styleFrom(
+            backgroundColor: context.colorScheme.primary,
+            foregroundColor: context.colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (state.status == FhirMapperStatus.mapping) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(Insets.normal),
+        decoration: BoxDecoration(
+          color: context.colorScheme.primaryContainer.withValues(alpha: 0.3),
+          border: Border.all(
+            color: context.colorScheme.primary.withValues(alpha: 0.3),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            CircularProgressIndicator(
+              color: context.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Processing to FHIR...',
+              style: AppTextStyle.bodyMedium.copyWith(
+                color: context.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
     return const SizedBox.shrink();
   }
 
-  Widget _buildEncounterFormSection() {
-    if (!_ocrCompleted && _allImagePathsForOCR.isNotEmpty) {
-      return const SizedBox.shrink();
-    }
+  // Widget _buildEncounterFormSection(FhirMapperState state) {
+  //   if (!state.ocrCompleted) {
+  //     return const SizedBox.shrink();
+  //   }
 
-    return Column(
-      children: [
-        const PatientSourceInfoWidget(),
-        const SizedBox(height: Insets.normal),
-        EncounterFormWidget(
-          formKey: _formKey,
-          encounterNameController: _encounterNameController,
-          onSubmit: _createEncounter,
-        ),
-      ],
-    );
-  }
-
-  Future<void> _duplicatePatientToWalletSource(
-      Patient? patient, String walletSourceId) async {
-    if (patient == null) return;
-
-    try {
-      final database = GetIt.instance.get<AppDatabase>();
-
-      final walletPatient = patient.copyWith(
-        id: patient.id,
-        sourceId: walletSourceId,
-      );
-
-      final patientJson = patient.rawResource;
-      final resourceId = patient.id;
-
-      final dto = FhirResourceCompanion.insert(
-        id: '${walletSourceId}_$resourceId',
-        sourceId: drift.Value(walletSourceId),
-        resourceId: drift.Value(resourceId),
-        resourceType: const drift.Value('Patient'),
-        title: drift.Value(walletPatient.displayTitle),
-        date: drift.Value(walletPatient.birthDate?.valueString != null
-            ? DateTime.tryParse(walletPatient.birthDate!.valueString!) ??
-                DateTime.now()
-            : DateTime.now()),
-        resourceRaw: jsonEncode(patientJson),
-        encounterId: const drift.Value.absent(),
-        subjectId: drift.Value(resourceId),
-      );
-
-      await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-    } catch (e) {
-      logger.e('❌ Failed to duplicate Patient to wallet source: $e');
-    }
-  }
+  //   return Column(
+  //     children: [
+  //       const PatientSourceInfoWidget(),
+  //       const SizedBox(height: Insets.normal),
+  //       EncounterFormWidget(
+  //         formKey: _formKey,
+  //         encounterNameController: _encounterNameController,
+  //         onSubmit: _createEncounter,
+  //       ),
+  //     ],
+  //   );
+  // }
 }
-
-// class MappingResultPage extends StatelessWidget {
-//   const MappingResultPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     FhirMapperState state = context.watch<FhirMapperBloc>().state;
-
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Review resources", style: AppTextStyle.titleMedium),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsetsGeometry.symmetric(horizontal: 20),
-//         child: ListView.builder(
-//           itemCount: state.resources.length,
-//           itemBuilder: (context, index) {
-//             MappingResource resource = state.resources[index];
-//             Map<String, TextFieldDescriptor> textFields =
-//                 resource.getFieldDescriptors();
-
-//             return Container(
-//               decoration: BoxDecoration(
-//                   borderRadius: BorderRadius.circular(16),
-//                   border: Border.all(
-//                       color: AppColors.primary.withValues(alpha: 0.6))),
-//               margin: const EdgeInsets.only(bottom: 24),
-//               child: Padding(
-//                 padding: const EdgeInsetsGeometry.all(16),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(resource.label, style: AppTextStyle.bodyLarge),
-//                     const SizedBox(height: 24),
-//                     ...textFields.entries.map((entry) {
-//                       final propertyKey = entry.key;
-//                       final descriptor = entry.value;
-//                       final borderColor = switch (descriptor.confidenceLevel) {
-//                         < 0.6 => Colors.red,
-//                         >= 0.6 && < 0.8 => Colors.yellow,
-//                         _ => AppColors.border,
-//                       };
-//                       return Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         key: ValueKey('${index}_$propertyKey'),
-//                         children: [
-//                           Text(descriptor.label, style: AppTextStyle.bodySmall),
-//                           const SizedBox(height: 4),
-//                           TextFormField(
-//                             initialValue: descriptor.value,
-//                             validator: descriptor.validate,
-//                             inputFormatters: descriptor.inputFormatters,
-//                             keyboardType: descriptor.keyboardType,
-//                             autovalidateMode:
-//                                 AutovalidateMode.onUserInteraction,
-//                             style: AppTextStyle.labelLarge,
-//                             onChanged: (value) => context
-//                                 .read<FhirMapperBloc>()
-//                                 .add(FhirMapperResourceChanged(
-//                                   index: index,
-//                                   propertyKey: propertyKey,
-//                                   newValue: value,
-//                                 )),
-//                             decoration: InputDecoration(
-//                               isDense: true,
-//                               helperText: ' ',
-//                               helperStyle:
-//                                   const TextStyle(height: 0, fontSize: 0),
-//                               disabledBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: borderColor),
-//                                 borderRadius: BorderRadius.circular(8),
-//                               ),
-//                               enabledBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: borderColor),
-//                                 borderRadius: BorderRadius.circular(8),
-//                               ),
-//                               focusedBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(color: borderColor),
-//                                 borderRadius: BorderRadius.circular(8),
-//                               ),
-//                               errorBorder: OutlineInputBorder(
-//                                 borderSide: const BorderSide(color: Colors.red),
-//                                 borderRadius: BorderRadius.circular(8),
-//                               ),
-//                               focusedErrorBorder: OutlineInputBorder(
-//                                 borderSide: const BorderSide(
-//                                     color: Colors.red, width: 1.5),
-//                                 borderRadius: BorderRadius.circular(8),
-//                               ),
-//                               contentPadding: const EdgeInsets.symmetric(
-//                                   horizontal: 12, vertical: 10),
-//                             ),
-//                           ),
-//                           if (entry.key != textFields.entries.last.key)
-//                             const SizedBox(height: 16),
-//                         ],
-//                       );
-//                     }),
-//                   ],
-//                 ),
-//               ),
-//             );
-//           },
-//         ),
-//       ),
-//     );
-//   }
-// }

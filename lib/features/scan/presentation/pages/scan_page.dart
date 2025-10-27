@@ -198,7 +198,7 @@ class _ScanViewState extends State<ScanView> {
       final result = await context.router.push<bool>(const LoadModelRoute());
 
       if (result == true && context.mounted) {
-        context.router.push<bool>(FhirMapperRoute(
+        context.router.push(FhirMapperRoute(
           scannedImages: scannedImages,
           importedImages: importedImages,
           importedPdfs: pdfs,
