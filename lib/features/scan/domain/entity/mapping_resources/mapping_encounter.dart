@@ -1,9 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/validator.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_encounter.freezed.dart';
 
@@ -26,22 +28,46 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => Encounter(
-        title: encounterType.value,
-        date: DateTime.tryParse(periodStart.value),
-        type: [
-          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
-        ],
-        location: [
-          fhir_r4.EncounterLocation(
-            location:
-                fhir_r4.Reference(display: fhir_r4.FhirString(location.value)),
-          )
-        ],
-        period: fhir_r4.Period(
-          start: fhir_r4.FhirDateTime.fromString(periodStart.value),
-        ),
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.Encounter encounter = fhir_r4.Encounter(
+      type: [
+        fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
+      ],
+      location: [
+        fhir_r4.EncounterLocation(
+          location:
+              fhir_r4.Reference(display: fhir_r4.FhirString(location.value)),
+        )
+      ],
+      period: fhir_r4.Period(
+        start: fhir_r4.FhirDateTime.fromString(periodStart.value),
+      ),
+      status: fhir_r4.EncounterStatus.unknown,
+      class_: const fhir_r4.Coding(),
+    );
+
+    Map<String, dynamic> rawResource = encounter.toJson();
+
+    return Encounter(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: encounterType.value,
+      date: DateTime.tryParse(periodStart.value),
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      type: encounter.type,
+      location: encounter.location,
+      period: encounter.period,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
@@ -49,6 +75,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
           label: 'Encounter Type',
           value: encounterType.value,
           confidenceLevel: encounterType.confidenceLevel,
+          validators: [nonEmptyValidator],
         ),
         'location': TextFieldDescriptor(
           label: 'Location',
@@ -59,6 +86,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
           label: 'Start Date',
           value: periodStart.value,
           confidenceLevel: periodStart.confidenceLevel,
+          validators: [nonEmptyValidator, dateValidator],
         ),
       };
 

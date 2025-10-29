@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_observation.freezed.dart';
 
@@ -26,15 +27,37 @@ class MappingObservation with _$MappingObservation implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => Observation(
-        title: observationName.value,
-        code: fhir_r4.CodeableConcept(
-            text: fhir_r4.FhirString(observationName.value)),
-        valueX: fhir_r4.Quantity(
-          value: fhir_r4.FhirDecimal(double.tryParse(value.value)),
-          unit: fhir_r4.FhirString(unit.value),
-        ),
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.Observation observation = fhir_r4.Observation(
+      code: fhir_r4.CodeableConcept(
+          text: fhir_r4.FhirString(observationName.value)),
+      valueX: fhir_r4.Quantity(
+        value: fhir_r4.FhirDecimal(double.tryParse(value.value)),
+        unit: fhir_r4.FhirString(unit.value),
+      ),
+      status: fhir_r4.ObservationStatus.unknown
+    );
+
+    Map<String, dynamic> rawResource = observation.toJson();
+
+    return Observation(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: observationName.value,
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      code: observation.code,
+      valueX: observation.valueX,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

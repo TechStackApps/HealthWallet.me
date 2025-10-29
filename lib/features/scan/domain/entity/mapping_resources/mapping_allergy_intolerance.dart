@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_allergy_intolerance.freezed.dart';
 
@@ -28,20 +29,42 @@ class MappingAllergyIntolerance
   }
 
   @override
-  IFhirResource toFhirResource() => AllergyIntolerance(
-        title: substance.value,
-        code:
-            fhir_r4.CodeableConcept(text: fhir_r4.FhirString(substance.value)),
-        reaction: [
-          fhir_r4.AllergyIntoleranceReaction(
-            manifestation: [
-              fhir_r4.CodeableConcept(
-                  text: fhir_r4.FhirString(manifestation.value))
-            ],
-          ),
-        ],
-        category: [fhir_r4.AllergyIntoleranceCategory.food],
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.AllergyIntolerance allergyIntolerance = fhir_r4.AllergyIntolerance(
+      code: fhir_r4.CodeableConcept(text: fhir_r4.FhirString(substance.value)),
+      reaction: [
+        fhir_r4.AllergyIntoleranceReaction(
+          manifestation: [
+            fhir_r4.CodeableConcept(
+                text: fhir_r4.FhirString(manifestation.value))
+          ],
+        ),
+      ],
+      category: [fhir_r4.AllergyIntoleranceCategory(category.value)],
+      patient: const fhir_r4.Reference(),
+    );
+
+    Map<String, dynamic> rawResource = allergyIntolerance.toJson();
+
+    return AllergyIntolerance(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: substance.value,
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      code: allergyIntolerance.code,
+      reaction: allergyIntolerance.reaction,
+      category: allergyIntolerance.category,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

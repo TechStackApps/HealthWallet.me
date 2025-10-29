@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -13,8 +14,8 @@ part 'load_model_bloc.freezed.dart';
 class LoadModelBloc extends Bloc<LoadModelEvent, LoadModelState> {
   LoadModelBloc(this._repository) : super(const LoadModelState()) {
     on<LoadModelInitialized>(_onLoadModelInitialized);
-    on<LoadModelDownloadInitiated>(_onLoadModelDownloadInitiated);
-    on<_DownloadProgressChanged>(_onDownloadProgressChanged);
+    on<LoadModelDownloadInitiated>(_onLoadModelDownloadInitiated,
+        transformer: restartable());
   }
 
   final ScanRepository _repository;
@@ -46,31 +47,23 @@ class LoadModelBloc extends Bloc<LoadModelEvent, LoadModelState> {
   ) async {
     emit(state.copyWith(status: LoadModelStatus.loading));
 
-    final stream = _repository.downloadModel();
+    try {
+      final stream = _repository.downloadModel();
 
-    stream.listen(
-      (progress) => add(_DownloadProgressChanged(progress)),
-      onError: (e) {
-        log(e.toString());
-        emit(
-          state.copyWith(
-              status: LoadModelStatus.error,
-              errorMessage: 'An error appeared while downloading the model'),
-        );
-      },
-    );
-  }
+      await for (final progress in stream) {
+        if (emit.isDone) return;
 
-  void _onDownloadProgressChanged(
-    _DownloadProgressChanged event,
-    Emitter<LoadModelState> emit,
-  ) {
-    double progress = event.progress;
+        emit(state.copyWith(downloadProgress: progress));
+      }
 
-    if (progress == 100) {
       emit(state.copyWith(status: LoadModelStatus.modelLoaded));
-      return;
+    } catch (_) {
+      if (emit.isDone) return;
+      emit(
+        state.copyWith(
+            status: LoadModelStatus.error,
+            errorMessage: 'An error appeared while downloading the model'),
+      );
     }
-    emit(state.copyWith(downloadProgress: event.progress));
   }
 }

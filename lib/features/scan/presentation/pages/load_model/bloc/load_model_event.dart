@@ -16,9 +16,3 @@ class LoadModelDownloadInitiated extends LoadModelEvent
   const factory LoadModelDownloadInitiated() =
       _LoadModelDownloadInitiated;
 }
-
-class _DownloadProgressChanged extends LoadModelEvent {
-  _DownloadProgressChanged(this.progress);
-
-  final double progress;
-}

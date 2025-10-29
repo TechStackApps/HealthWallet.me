@@ -94,7 +94,7 @@ class ScanNetworkDataSourceImpl implements ScanNetworkDataSource {
     );
 
     final model = await FlutterGemmaPlugin.instance
-        .createModel(modelType: ModelType.gemmaIt);
+        .createModel(modelType: ModelType.gemmaIt, maxTokens: 4096);
 
     final session = await model.createSession();
 

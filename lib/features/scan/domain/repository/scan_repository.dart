@@ -21,5 +21,7 @@ abstract class ScanRepository {
 
   Future<bool> checkModelExistence();
 
-  Future<List<MappingResource>> mapResources(String medicalText);
+  Stream<MappingResourcesWithProgress> mapResources(String medicalText);
 }
+
+typedef MappingResourcesWithProgress = (List<MappingResource>, double);

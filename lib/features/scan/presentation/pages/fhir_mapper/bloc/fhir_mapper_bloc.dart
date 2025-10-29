@@ -2,14 +2,17 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_encounter.dart';
+import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_patient.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
@@ -17,10 +20,11 @@ import 'package:health_wallet/features/scan/presentation/helpers/fhir_encounter_
 import 'package:health_wallet/features/scan/presentation/helpers/ocr_processing_helper.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/domain/services/wallet_patient_service.dart';
+import 'package:health_wallet/features/user/domain/services/patient_deduplication_service.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
-import 'package:health_wallet/features/sync/domain/entities/source.dart'
-    as sync_source;
+import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:injectable/injectable.dart';
+import 'package:uuid/uuid.dart';
 
 part 'fhir_mapper_event.dart';
 part 'fhir_mapper_state.dart';
@@ -36,10 +40,12 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     this._documentReferenceService,
   ) : super(const FhirMapperState()) {
     on<FhirMapperImagesPrepared>(_onFhirMapperImagesPrepared);
-    on<FhirMappingInitiated>(_onFhirMappingInitiated);
+    on<FhirMappingInitiated>(_onFhirMappingInitiated,
+        transformer: restartable());
     on<FhirMapperResourceChanged>(_onFhirMapperResourceChanged);
-    // on<FhirMapperEncounterCreationInitiated>(
-    //     _onFhirMapperEncounterCreationInitiated);
+    on<FhirMapperPatientSelected>(_onFhirMapperPatientSelected);
+    on<FhirMapperResourceCreationInitiated>(
+        _onFhirMapperResourceCreationInitiated);
   }
 
   final ScanRepository _repository;
@@ -64,6 +70,8 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       emit(state.copyWith(
         allImagePathsForOCR: allImages,
         status: FhirMapperStatus.mappingReady,
+        currentPatients: event.currentPatients,
+        selectedPatient: event.currentPatients.first,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -83,18 +91,30 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       final medicalText = await _ocrProcessingHelper
           .processOcrForImages(state.allImagePathsForOCR);
 
-      List<MappingResource> resources =
-          await _repository.mapResources(medicalText);
+      final stream = _repository.mapResources(medicalText);
 
-      emit(state.copyWith(
-        status: FhirMapperStatus.editingResources,
-        resources: resources,
-      ));
+      await for (final (resources, progress) in stream) {
+        if (emit.isDone) return;
+        emit(state.copyWith(
+          resources: [...state.resources, ...resources],
+          mappingProgress: progress,
+        ));
+      }
+
+      if (!state.resources.any((resource) => resource is MappingEncounter)) {
+        emit(state.copyWith(
+          resources: [...state.resources, const MappingEncounter()],
+        ));
+      }
+
+      emit(state.copyWith(status: FhirMapperStatus.editingResources));
     } on Exception catch (e) {
-      emit(state.copyWith(
-        status: FhirMapperStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      if (!emit.isDone) {
+        emit(state.copyWith(
+          status: FhirMapperStatus.failure,
+          errorMessage: e.toString(),
+        ));
+      }
     }
   }
 
@@ -110,6 +130,101 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     newResources[event.index] = updatedResource;
 
     emit(state.copyWith(resources: newResources));
+  }
+
+  void _onFhirMapperPatientSelected(
+    FhirMapperPatientSelected event,
+    Emitter<FhirMapperState> emit,
+  ) {
+    emit(state.copyWith(selectedPatient: event.patientGroup));
+  }
+
+  void _onFhirMapperResourceCreationInitiated(
+    FhirMapperResourceCreationInitiated event,
+    Emitter<FhirMapperState> emit,
+  ) async {
+    emit(state.copyWith(status: FhirMapperStatus.savingResources));
+    const uuid = Uuid();
+
+    MappingPatient? mappingPatient =
+        state.resources.whereType<MappingPatient>().firstOrNull;
+
+    String encounterId = uuid.v4();
+    String subjectId;
+    String sourceId;
+
+    if (mappingPatient != null) {
+      subjectId = uuid.v4();
+      final walletSource =
+          await _walletPatientService.createWalletSourceForPatient(
+        subjectId,
+        "${mappingPatient.givenName.value} ${mappingPatient.familyName.value}",
+      );
+
+      await _syncRepository.cacheSources([walletSource]);
+
+      sourceId = walletSource.id;
+    } else {
+      PatientGroup selectedPatientGroup = state.selectedPatient!;
+
+      List<Source> sources = await _syncRepository.getSources();
+
+      String? writableSourceId =
+          selectedPatientGroup.sourceIds.firstWhereOrNull((sourceId) {
+        final source = sources.firstWhere(
+          (s) => s.id == sourceId,
+          orElse: () => const Source(
+              id: '', platformName: null, logo: null, labelSource: null),
+        );
+        return source.platformType == 'wallet';
+      });
+
+      if (writableSourceId == null) {
+        final walletSource =
+            await _walletPatientService.createWalletSourceForPatient(
+          selectedPatientGroup.patientId,
+          selectedPatientGroup.representativePatient.title,
+        );
+
+        await _syncRepository.cacheSources([walletSource]);
+
+        await _syncRepository.saveResources([
+          selectedPatientGroup.representativePatient
+              .copyWith(sourceId: walletSource.id)
+        ]);
+
+        writableSourceId = walletSource.id;
+      }
+
+      sourceId = writableSourceId;
+      subjectId = selectedPatientGroup.patientId;
+    }
+
+    List<IFhirResource> fhirResources = state.resources
+        .map((resource) => resource.toFhirResource(
+              sourceId: sourceId,
+              subjectId: subjectId,
+              encounterId: encounterId,
+            ))
+        .toList();
+
+    await _syncRepository.saveResources(fhirResources);
+
+    await _documentReferenceService.saveGroupedDocumentsAsFhirRecords(
+      scannedImages: state.scannedImages,
+      importedImages: state.importedImages,
+      importedPdfs: state.importedPdfs,
+      patientId: subjectId,
+      encounterId: encounterId,
+      sourceId: sourceId,
+      title: state.resources
+          .whereType<MappingEncounter>()
+          .first
+          .encounterType
+          .value,
+    );
+
+    emit(state.copyWith(status: FhirMapperStatus.success));
   }
 
   // Future<void> _onFhirMapperEncounterCreationInitiated(

@@ -5,6 +5,7 @@ import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/practitioner/practitioner.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_practitioner.freezed.dart';
 
@@ -29,21 +30,43 @@ class MappingPractitioner
   }
 
   @override
-  IFhirResource toFhirResource() => Practitioner(
-        title: practitionerName.value,
-        name: [
-          fhir_r4.HumanName(text: fhir_r4.FhirString(practitionerName.value))
-        ],
-        qualification: [
-          fhir_r4.PractitionerQualification(
-            code: fhir_r4.CodeableConcept(
-                text: fhir_r4.FhirString(specialty.value)),
-          )
-        ],
-        identifier: [
-          fhir_r4.Identifier(value: fhir_r4.FhirString(identifier.value))
-        ],
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+    
+    fhir_r4.Practitioner practitioner = fhir_r4.Practitioner(
+      name: [
+        fhir_r4.HumanName(text: fhir_r4.FhirString(practitionerName.value))
+      ],
+      qualification: [
+        fhir_r4.PractitionerQualification(
+          code: fhir_r4.CodeableConcept(
+              text: fhir_r4.FhirString(specialty.value)),
+        )
+      ],
+      identifier: [
+        fhir_r4.Identifier(value: fhir_r4.FhirString(identifier.value))
+      ],
+    );
+
+    Map<String, dynamic> rawResource = practitioner.toJson();
+
+    return Practitioner(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: practitionerName.value,
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      name: practitioner.name,
+      qualification: practitioner.qualification,
+      identifier: practitioner.identifier,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

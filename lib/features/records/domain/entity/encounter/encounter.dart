@@ -7,6 +7,7 @@ import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dar
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
@@ -23,6 +24,8 @@ class Encounter with _$Encounter implements IFhirResource {
     @Default('') String title,
     DateTime? date,
     @Default({}) Map<String, dynamic> rawResource,
+    @Default('') String encounterId,
+    @Default('') String subjectId,
     Narrative? text,
     List<Identifier>? identifier,
     EncounterStatus? status,
@@ -64,6 +67,8 @@ class Encounter with _$Encounter implements IFhirResource {
         title: data.title ?? '',
         date: data.date,
         rawResource: resourceJson,
+        encounterId: data.encounterId ?? '',
+        subjectId: data.subjectId ?? '',
         text: fhirEncounter.text,
         identifier: fhirEncounter.identifier,
         status: fhirEncounter.status,
@@ -102,6 +107,19 @@ class Encounter with _$Encounter implements IFhirResource {
       );
     }
   }
+
+  @override
+  FhirResourceDto toLocalDto() => FhirResourceDto(
+        id: id,
+        sourceId: sourceId,
+        resourceType: 'Encounter',
+        resourceId: resourceId,
+        title: title,
+        date: date,
+        resourceRaw: rawResource,
+        encounterId: encounterId,
+        subjectId: subjectId,
+      );
 
   @override
   String get displayTitle {

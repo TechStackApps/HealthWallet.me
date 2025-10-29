@@ -5,6 +5,7 @@ import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/organization/organization.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_organization.freezed.dart';
 
@@ -29,12 +30,34 @@ class MappingOrganization
   }
 
   @override
-  IFhirResource toFhirResource() => Organization(
-        title: organizationName.value,
-        name: fhir_r4.FhirString(organizationName.value),
-        address: [fhir_r4.Address(text: fhir_r4.FhirString(address.value))],
-        telecom: [fhir_r4.ContactPoint(value: fhir_r4.FhirString(phone.value))],
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.Organization organization = fhir_r4.Organization(
+      name: fhir_r4.FhirString(organizationName.value),
+      address: [fhir_r4.Address(text: fhir_r4.FhirString(address.value))],
+      telecom: [fhir_r4.ContactPoint(value: fhir_r4.FhirString(phone.value))],
+    );
+
+    final rawResource = organization.toJson();
+
+    return Organization(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: organizationName.value,
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      name: organization.name,
+      address: organization.address,
+      telecom: organization.telecom,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

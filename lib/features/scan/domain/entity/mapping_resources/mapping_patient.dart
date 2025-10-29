@@ -5,6 +5,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_patient.freezed.dart';
 
@@ -31,20 +32,41 @@ class MappingPatient with _$MappingPatient implements MappingResource {
   }
 
   @override
-  IFhirResource toFhirResource() => Patient(
-        title: "${givenName.value} ${familyName.value}",
-        name: [
-          fhir_r4.HumanName(
-            family: fhir_r4.FhirString(familyName.value),
-            given: [fhir_r4.FhirString(givenName.value)],
-          )
-        ],
-        birthDate: fhir_r4.FhirDate.fromString(dateOfBirth.value),
-        gender: fhir_r4.AdministrativeGender(gender.value),
-        identifier: [
-          fhir_r4.Identifier(id: fhir_r4.FhirString(patientId.value))
-        ],
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.Patient patient = fhir_r4.Patient(
+      name: [
+        fhir_r4.HumanName(
+          family: fhir_r4.FhirString(familyName.value),
+          given: [fhir_r4.FhirString(givenName.value)],
+        )
+      ],
+      birthDate: fhir_r4.FhirDate.fromString(dateOfBirth.value),
+      gender: fhir_r4.AdministrativeGender(gender.value),
+      identifier: [fhir_r4.Identifier(id: fhir_r4.FhirString(patientId.value))],
+    );
+
+    final rawResource = patient.toJson();
+
+    return Patient(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: "${givenName.value} ${familyName.value}",
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      name: patient.name,
+      birthDate: patient.birthDate,
+      gender: patient.gender,
+      identifier: patient.identifier,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

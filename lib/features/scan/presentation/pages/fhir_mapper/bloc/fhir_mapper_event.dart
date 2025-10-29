@@ -11,6 +11,7 @@ class FhirMapperImagesPrepared extends FhirMapperEvent
     required List<String> scannedImages,
     required List<String> importedImages,
     required List<String> importedPdfs,
+    required List<PatientGroup> currentPatients,
   }) = _FhirMapperImagesPrepared;
 }
 
@@ -30,11 +31,14 @@ class FhirMapperResourceChanged extends FhirMapperEvent
 }
 
 @freezed
-class FhirMapperEncounterCreationInitiated extends FhirMapperEvent
-    with _$FhirMapperEncounterCreationInitiated {
-  const factory FhirMapperEncounterCreationInitiated({
-    required String encounterName,
-    required HomeState homeState,
-    required PatientState patientState,
-  }) = _FhirMapperEncounterCreationInitiated;
+class FhirMapperResourceCreationInitiated extends FhirMapperEvent
+    with _$FhirMapperResourceCreationInitiated {
+  const factory FhirMapperResourceCreationInitiated() = _FhirMapperResourceCreationInitiated;
+}
+
+@freezed
+class FhirMapperPatientSelected extends FhirMapperEvent
+    with _$FhirMapperPatientSelected {
+  const factory FhirMapperPatientSelected({required PatientGroup patientGroup}) =
+      _FhirMapperPatientSelected;
 }

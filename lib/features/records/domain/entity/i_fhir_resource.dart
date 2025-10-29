@@ -6,6 +6,7 @@ import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/home/domain/entities/overview_card.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 abstract class IFhirResource {
@@ -16,6 +17,8 @@ abstract class IFhirResource {
   String get title;
   DateTime? get date;
   Map<String, dynamic> get rawResource;
+  String get encounterId;
+  String get subjectId;
 
   factory IFhirResource.fromLocalDto(FhirResourceLocalDto dto) {
     switch (dto.resourceType) {
@@ -88,6 +91,8 @@ abstract class IFhirResource {
         );
     }
   }
+
+  FhirResourceDto toLocalDto();
 
   String get displayTitle;
   List<RecordInfoLine> get additionalInfo;

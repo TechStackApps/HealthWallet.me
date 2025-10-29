@@ -5,6 +5,7 @@ import 'package:fhir_r4/fhir_r4.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
@@ -21,6 +22,8 @@ class Location with _$Location implements IFhirResource {
     @Default('') String title,
     DateTime? date,
     @Default({}) Map<String, dynamic> rawResource,
+    @Default('') String encounterId,
+    @Default('') String subjectId,
     Narrative? text,
     List<Identifier>? identifier,
     LocationStatus? status,
@@ -55,6 +58,8 @@ class Location with _$Location implements IFhirResource {
       title: data.title ?? '',
       date: data.date,
       rawResource: resourceJson,
+      encounterId: data.encounterId ?? '',
+      subjectId: data.subjectId ?? '',
       text: fhirLocation.text,
       identifier: fhirLocation.identifier,
       status: fhirLocation.status,
@@ -75,6 +80,19 @@ class Location with _$Location implements IFhirResource {
       endpoint: fhirLocation.endpoint,
     );
   }
+
+  @override
+  FhirResourceDto toLocalDto() => FhirResourceDto(
+        id: id,
+        sourceId: sourceId,
+        resourceType: 'Location',
+        resourceId: resourceId,
+        title: title,
+        date: date,
+        resourceRaw: rawResource,
+        encounterId: encounterId,
+        subjectId: subjectId,
+      );
 
   @override
   String get displayTitle {

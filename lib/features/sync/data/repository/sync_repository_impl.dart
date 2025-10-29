@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
+import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/sync_remote_data_source.dart';
 import 'package:health_wallet/features/sync/data/data_source/remote/source_remote_data_source.dart';
@@ -174,5 +176,11 @@ class SyncRepositoryImpl implements SyncRepository {
   Future<void> clearToken() async {
     log("remove");
     await _prefs.remove(_tokenKey);
+  }
+
+  @override
+  Future saveResources(List<IFhirResource> resources) async {
+    await _localDataSource.cacheFhirResources(
+        resources.map((resource) => resource.toLocalDto()).toList());
   }
 }

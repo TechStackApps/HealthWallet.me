@@ -263,16 +263,17 @@ class ScanRepositoryImpl implements ScanRepository {
       .checkModelExistence(SlmModel.gemmaModel().toInferenceSpec());
 
   @override
-  Future<List<MappingResource>> mapResources(String medicalText) async {
-    List<MappingResource> resources = [];
-
-    for (PromptTemplate promptTemplate in PromptTemplate.supportedPrompts()) {
-      String prompt = promptTemplate.buildPrompt(medicalText);
+  Stream<MappingResourcesWithProgress> mapResources(String medicalText) async* {
+    List<PromptTemplate> supportedPrompts = PromptTemplate.supportedPrompts();
+    for (int i = 0; i < supportedPrompts.length; i++) {
+      String prompt = supportedPrompts[i].buildPrompt(medicalText);
 
       String? promptResponse = await _networkDataSource.runPrompt(
         spec: SlmModel.gemmaModel().toInferenceSpec(),
         prompt: prompt,
       );
+
+      List<MappingResource> resources = [];
 
       try {
         List<dynamic> jsonList = jsonDecode(promptResponse ?? '');
@@ -280,16 +281,16 @@ class ScanRepositoryImpl implements ScanRepository {
         for (Map<String, dynamic> json in jsonList) {
           MappingResource resource =
               MappingResource.fromJson(json).populateConfidence(medicalText);
-          log(resource.toString());
+
           if (resource.isValid) {
             resources.add(resource);
           }
         }
-      } on Exception catch (_) {
+      } catch (_) {
         continue;
       }
-    }
 
-    return resources.toSet().toList();
+      yield (resources, (i + 1) / supportedPrompts.length);
+    }
   }
 }

@@ -43,7 +43,11 @@ abstract class MappingResource {
     }
   }
 
-  IFhirResource toFhirResource();
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  });
 
   Map<String, TextFieldDescriptor> getFieldDescriptors();
 

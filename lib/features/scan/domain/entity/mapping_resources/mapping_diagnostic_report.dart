@@ -4,6 +4,7 @@ import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapp
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_diagnostic_report.freezed.dart';
 
@@ -28,15 +29,37 @@ class MappingDiagnosticReport
   }
 
   @override
-  IFhirResource toFhirResource() => DiagnosticReport(
-        title: reportName.value,
-        date: DateTime.tryParse(issuedDate.value),
-        code:
-            fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reportName.value)),
-        conclusion: fhir_r4.FhirString(conclusion.value),
-        issued: fhir_r4.FhirInstant.fromDateTime(
-            DateTime.tryParse(issuedDate.value) ?? DateTime.now()),
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.DiagnosticReport diagnosticReport = fhir_r4.DiagnosticReport(
+      code: fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reportName.value)),
+      conclusion: fhir_r4.FhirString(conclusion.value),
+      issued: fhir_r4.FhirInstant.fromDateTime(
+          DateTime.tryParse(issuedDate.value) ?? DateTime.now()),
+      status: fhir_r4.DiagnosticReportStatus.unknown,
+    );
+
+    Map<String, dynamic> rawResource = diagnosticReport.toJson();
+
+    return DiagnosticReport(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: reportName.value,
+      date: DateTime.tryParse(issuedDate.value),
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      code: diagnosticReport.code,
+      conclusion: diagnosticReport.conclusion,
+      issued: diagnosticReport.issued,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {

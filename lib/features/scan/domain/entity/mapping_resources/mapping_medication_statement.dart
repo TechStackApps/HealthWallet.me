@@ -5,6 +5,7 @@ import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/features/records/domain/entity/medication_statement/medication_statement.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
+import 'package:uuid/uuid.dart';
 
 part 'mapping_medication_statement.freezed.dart';
 
@@ -29,17 +30,41 @@ class MappingMedicationStatement
   }
 
   @override
-  IFhirResource toFhirResource() => MedicationStatement(
-        title: medicationName.value,
-        medicationX: fhir_r4.CodeableConcept(
-            text: fhir_r4.FhirString(medicationName.value)),
-        dosage: [
-          fhir_r4.Dosage(text: fhir_r4.FhirString(dosage.value)),
-        ],
-        reasonCode: [
-          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value)),
-        ],
-      );
+  IFhirResource toFhirResource({
+    String? sourceId,
+    String? encounterId,
+    String? subjectId,
+  }) {
+    const uuid = Uuid();
+
+    fhir_r4.MedicationStatement medicationStatement = fhir_r4.MedicationStatement(
+      medicationX: fhir_r4.CodeableConcept(
+          text: fhir_r4.FhirString(medicationName.value)),
+      dosage: [
+        fhir_r4.Dosage(text: fhir_r4.FhirString(dosage.value)),
+      ],
+      reasonCode: [
+        fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value)),
+      ],
+      subject: const fhir_r4.Reference(),
+      status: fhir_r4.MedicationStatementStatusCodes.unknown
+    );
+
+    Map<String, dynamic> rawResource = medicationStatement.toJson();
+
+    return MedicationStatement(
+      id: uuid.v4(),
+      resourceId: uuid.v4(),
+      title: medicationName.value,
+      sourceId: sourceId ?? '',
+      encounterId: encounterId ?? '',
+      subjectId: subjectId ?? '',
+      rawResource: rawResource,
+      medicationX: medicationStatement.medicationX,
+      dosage: medicationStatement.dosage,
+      reasonCode: medicationStatement.reasonCode,
+    );
+  }
 
   @override
   Map<String, TextFieldDescriptor> getFieldDescriptors() => {
