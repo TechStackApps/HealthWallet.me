@@ -343,7 +343,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
                                           BlendMode.srcIn,
                                         ),
                                       ),
-                                      '${context.l10n.id}: ${currentPatient.id}',
+                                      'MRN: ${_extractMRN(currentPatient)}',
                                     ),
                                     _buildPatientInfoRow(
                                       context,
@@ -497,7 +497,7 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
   Widget _getGenderIcon(Patient patient) {
     final gender = FhirFieldExtractor.extractPatientGender(patient);
 
-    if (gender?.toLowerCase() == 'female') {
+    if (gender.toLowerCase() == 'female') {
       return Assets.icons.genderFemale.svg(
         width: 16,
         height: 16,
@@ -536,6 +536,27 @@ class _UnifiedPatientCardState extends State<_UnifiedPatientCard> {
       default:
         return gender;
     }
+  }
+
+  String _extractMRN(Patient patient) {
+    // Try to get MRN from FHIR identifiers
+    if (patient.identifier != null && patient.identifier!.isNotEmpty) {
+      // Look for MRN identifier
+      final mrnIdentifier = patient.identifier!.firstWhere(
+        (id) => id.type?.coding?.any(
+              (coding) => coding.code?.toString() == 'MR',
+            ) ??
+            false,
+        orElse: () => patient.identifier!.first,
+      );
+      
+      if (mrnIdentifier.value != null) {
+        return mrnIdentifier.value!.toString();
+      }
+    }
+    
+    // Fallback to resourceId if no MRN found
+    return patient.resourceId;
   }
 
   Widget _buildPatientInfoRow(BuildContext context, Widget icon, String text) {

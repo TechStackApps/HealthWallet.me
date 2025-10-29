@@ -146,8 +146,8 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
           : null;
 
       final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.id ??
-          'patient-default'; // Use database ID for wallet source naming
+      final patientId = patient?.resourceId ??
+          'patient-default'; // Use FHIR resource ID for wallet source naming
       final patientName = patient?.displayTitle ?? 'Unknown Patient';
 
       String effectiveSourceId;
@@ -198,7 +198,7 @@ class _ProcessToFHIRPageState extends State<ProcessToFHIRPage> {
         final walletPatientService = GetIt.instance.get<WalletPatientService>();
         final walletSource =
             await walletPatientService.createWalletSourceForPatient(
-          patientId, // Use database ID
+          patientId, // Use FHIR resource ID
           patientName,
         );
 

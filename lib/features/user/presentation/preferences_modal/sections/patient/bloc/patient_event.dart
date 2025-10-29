@@ -40,9 +40,11 @@ class PatientEditSaved extends PatientEvent with _$PatientEditSaved {
   const factory PatientEditSaved({
     required String patientId,
     required String sourceId,
+    String? name,
     required DateTime birthDate,
     required String gender,
     required String bloodType,
+    required List<dynamic> availableSources,
   }) = _PatientEditSaved;
 }
 

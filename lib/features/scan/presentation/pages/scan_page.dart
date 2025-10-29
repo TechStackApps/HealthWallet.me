@@ -250,7 +250,7 @@ class _ScanViewState extends State<ScanView> {
           : null;
 
       final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.id ?? 'patient-default';
+      final patientId = patient?.resourceId ?? 'patient-default';
       final patientName = patient?.displayTitle ?? 'Unknown Patient';
 
       final sourceTypeService = GetIt.instance.get<SourceTypeService>();

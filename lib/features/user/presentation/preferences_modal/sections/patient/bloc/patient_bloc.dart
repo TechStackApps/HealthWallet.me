@@ -4,10 +4,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/user/domain/services/patient_deduplication_service.dart';
+import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/services/patient_edit_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 
 part 'patient_bloc.freezed.dart';
 part 'patient_event.dart';
@@ -17,11 +18,13 @@ part 'patient_state.dart';
 class PatientBloc extends Bloc<PatientEvent, PatientState> {
   final RecordsRepository _recordsRepository;
   final PatientDeduplicationService _deduplicationService;
+  final PatientEditService _patientEditService;
   static const String _selectedPatientIdKey = 'selected_patient_id';
 
   PatientBloc(
     this._recordsRepository,
     this._deduplicationService,
+    this._patientEditService,
   ) : super(const PatientState()) {
     on<PatientInitialised>(_onInitialised);
     on<PatientPatientsLoaded>(_onPatientsLoaded);
@@ -316,71 +319,36 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(state.copyWith(status: const PatientStatus.loading()));
 
     try {
-      final patientIndex = state.patients.indexWhere(
+      final currentPatient = state.patients.firstWhere(
         (p) => p.id == event.patientId,
+        orElse: () => throw Exception('Patient not found: ${event.patientId}'),
       );
 
-      if (patientIndex != -1) {
-        final currentPatient = state.patients[patientIndex];
+      // Convert dynamic list to Source list
+      final availableSources = event.availableSources.cast<Source>();
 
-        final updatedPatient = currentPatient.copyWith(
-          id: currentPatient.id,
-          sourceId: currentPatient.sourceId,
-          identifier: currentPatient.identifier,
-          gender: _mapDisplayGenderToFhir(event.gender),
-          birthDate: fhir_r4.FhirDate.fromDateTime(event.birthDate),
-        );
+      // Use enhanced service that handles copy-on-write for read-only sources
+      await _patientEditService.savePatientEdits(
+        currentPatient: currentPatient,
+        name: event.name,
+        birthDate: event.birthDate,
+        gender: event.gender,
+        availableSources: availableSources,
+      );
 
-        await _recordsRepository.updatePatient(updatedPatient);
+      // Handle blood type (separate Observation logic)
+      await _patientEditService.updateBloodTypeObservation(
+        currentPatient,
+        event.bloodType,
+      );
 
-        final updatedPatients = List<Patient>.from(state.patients);
-        updatedPatients[patientIndex] = updatedPatient;
+      // Reload patients to pick up wallet copy if created
+      await _loadPatients(emit);
 
-        emit(state.copyWith(
-          status: const PatientStatus.success(),
-          patients: updatedPatients,
-          isEditingPatient: false,
-          editingPatient: null,
-        ));
-      } else {
-        if (state.patients.isEmpty) {
-          await _loadPatients(emit);
-        }
-
-        final refreshedPatientIndex = state.patients.indexWhere(
-          (p) => p.id == event.patientId,
-        );
-
-        if (refreshedPatientIndex != -1) {
-          final currentPatient = state.patients[refreshedPatientIndex];
-
-          final updatedPatient = currentPatient.copyWith(
-            id: currentPatient.id,
-            identifier: currentPatient.identifier,
-            gender: _mapDisplayGenderToFhir(event.gender),
-            birthDate: fhir_r4.FhirDate.fromDateTime(event.birthDate),
-          );
-
-          final updatedPatients = List<Patient>.from(state.patients);
-          updatedPatients[refreshedPatientIndex] = updatedPatient;
-
-          await _recordsRepository.updatePatient(updatedPatient);
-
-          emit(state.copyWith(
-            status: const PatientStatus.success(),
-            patients: updatedPatients,
-            isEditingPatient: false,
-            editingPatient: null,
-          ));
-        } else {
-          emit(state.copyWith(
-            status: PatientStatus.failure(
-                Exception('Patient not found even after refresh')),
-            isEditingPatient: false,
-            editingPatient: null,
-          ));
-        }
-      }
+      emit(state.copyWith(
+        isEditingPatient: false,
+        editingPatient: null,
+      ));
     } catch (e) {
       logger.e('Error in _onEditSaved: $e');
       emit(state.copyWith(
@@ -388,18 +356,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
         isEditingPatient: false,
         editingPatient: null,
       ));
-    }
-  }
-
-  fhir_r4.AdministrativeGender? _mapDisplayGenderToFhir(String displayGender) {
-    switch (displayGender.toLowerCase()) {
-      case 'male':
-        return fhir_r4.AdministrativeGender.male;
-      case 'female':
-        return fhir_r4.AdministrativeGender.female;
-      case 'prefer not to say':
-      default:
-        return null;
     }
   }
 

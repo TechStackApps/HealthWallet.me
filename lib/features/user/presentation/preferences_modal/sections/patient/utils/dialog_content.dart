@@ -8,28 +8,34 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class DialogContent extends StatelessWidget {
   final Patient patient;
+  final String? selectedName;
   final DateTime? selectedBirthDate;
   final String selectedGender;
   final String selectedBloodType;
   final List<String> genderOptions;
   final List<String> bloodTypeOptions;
   final Color iconColor;
-  final ValueChanged<DateTime?> onBirthDateChanged;
-  final ValueChanged<String> onGenderChanged;
-  final ValueChanged<String> onBloodTypeChanged;
+  final bool showNameField;
+  final ValueChanged<String>? onNameChanged;
+  final ValueChanged<DateTime?>? onBirthDateChanged;
+  final ValueChanged<String>? onGenderChanged;
+  final ValueChanged<String>? onBloodTypeChanged;
 
   const DialogContent({
     super.key,
     required this.patient,
+    this.selectedName,
     required this.selectedBirthDate,
     required this.selectedGender,
     required this.selectedBloodType,
     required this.genderOptions,
     required this.bloodTypeOptions,
     required this.iconColor,
-    required this.onBirthDateChanged,
-    required this.onGenderChanged,
-    required this.onBloodTypeChanged,
+    this.showNameField = false,
+    this.onNameChanged,
+    this.onBirthDateChanged,
+    this.onGenderChanged,
+    this.onBloodTypeChanged,
   });
 
   @override
@@ -39,10 +45,20 @@ class DialogContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(patient.displayTitle,
-              style: AppTextStyle.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w500)),
-          const SizedBox(height: Insets.medium),
+          if (!showNameField)
+            Text(patient.displayTitle,
+                style: AppTextStyle.bodyMedium
+                    .copyWith(fontWeight: FontWeight.w500)),
+          if (!showNameField) const SizedBox(height: Insets.medium),
+          if (showNameField) ...[
+            FormFields.buildTextField(
+              context,
+              'Name',
+              selectedName ?? patient.displayTitle,
+              onNameChanged,
+            ),
+            const SizedBox(height: Insets.normal),
+          ],
           DateField(
             label: context.l10n.age,
             selectedDate: selectedBirthDate,
