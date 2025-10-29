@@ -9,7 +9,7 @@ class MappedProperty with _$MappedProperty {
 
   const factory MappedProperty({
     @Default('') String value,
-    @Default(1.0) double confidenceLevel,
+    @Default(0.0) double confidenceLevel,
   }) = _MappedProperty;
 
   List<String> _createOverlappingChunks(String text, int chunkLength) {
@@ -28,7 +28,7 @@ class MappedProperty with _$MappedProperty {
   /// to see if the [inputText] contains a substring similar to [value]
   MappedProperty calculateConfidence(String inputText) {
     if (value.isEmpty) {
-      return copyWith(confidenceLevel: 1.0);
+      return copyWith(confidenceLevel: 0.0);
     }
 
     final chunkLength = (value.length * 1.2).ceil();

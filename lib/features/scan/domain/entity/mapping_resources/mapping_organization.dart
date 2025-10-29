@@ -16,6 +16,7 @@ class MappingOrganization
   const MappingOrganization._();
 
   const factory MappingOrganization({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty organizationName,
     @Default(MappedProperty()) MappedProperty address,
     @Default(MappedProperty()) MappedProperty phone,
@@ -23,6 +24,7 @@ class MappingOrganization
 
   factory MappingOrganization.fromJson(Map<String, dynamic> json) {
     return MappingOrganization(
+      id: const Uuid().v4(),
       organizationName: MappedProperty(value: json['organizationName'] ?? ''),
       address: MappedProperty(value: json['address'] ?? ''),
       phone: MappedProperty(value: json['phone'] ?? ''),
@@ -46,7 +48,7 @@ class MappingOrganization
     final rawResource = organization.toJson();
 
     return Organization(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: organizationName.value,
       sourceId: sourceId ?? '',

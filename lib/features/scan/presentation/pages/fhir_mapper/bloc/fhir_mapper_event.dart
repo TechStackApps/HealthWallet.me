@@ -31,14 +31,22 @@ class FhirMapperResourceChanged extends FhirMapperEvent
 }
 
 @freezed
+class FhirMapperResourceRemoved extends FhirMapperEvent
+    with _$FhirMapperResourceRemoved {
+  const factory FhirMapperResourceRemoved({required int index}) =
+      _FhirMapperResourceRemoved;
+}
+
+@freezed
 class FhirMapperResourceCreationInitiated extends FhirMapperEvent
     with _$FhirMapperResourceCreationInitiated {
-  const factory FhirMapperResourceCreationInitiated() = _FhirMapperResourceCreationInitiated;
+  const factory FhirMapperResourceCreationInitiated() =
+      _FhirMapperResourceCreationInitiated;
 }
 
 @freezed
 class FhirMapperPatientSelected extends FhirMapperEvent
     with _$FhirMapperPatientSelected {
-  const factory FhirMapperPatientSelected({required PatientGroup patientGroup}) =
-      _FhirMapperPatientSelected;
+  const factory FhirMapperPatientSelected(
+      {required PatientGroup patientGroup}) = _FhirMapperPatientSelected;
 }

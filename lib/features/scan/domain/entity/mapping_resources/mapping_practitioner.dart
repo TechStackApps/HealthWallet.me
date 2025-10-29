@@ -16,6 +16,7 @@ class MappingPractitioner
   const MappingPractitioner._();
 
   const factory MappingPractitioner({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty practitionerName,
     @Default(MappedProperty()) MappedProperty specialty,
     @Default(MappedProperty()) MappedProperty identifier,
@@ -23,6 +24,7 @@ class MappingPractitioner
 
   factory MappingPractitioner.fromJson(Map<String, dynamic> json) {
     return MappingPractitioner(
+      id: const Uuid().v4(),
       practitionerName: MappedProperty(value: json['practitionerName'] ?? ''),
       specialty: MappedProperty(value: json['specialty'] ?? ''),
       identifier: MappedProperty(value: json['identifier'] ?? ''),
@@ -36,7 +38,7 @@ class MappingPractitioner
     String? subjectId,
   }) {
     const uuid = Uuid();
-    
+
     fhir_r4.Practitioner practitioner = fhir_r4.Practitioner(
       name: [
         fhir_r4.HumanName(text: fhir_r4.FhirString(practitionerName.value))
@@ -55,7 +57,7 @@ class MappingPractitioner
     Map<String, dynamic> rawResource = practitioner.toJson();
 
     return Practitioner(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: practitionerName.value,
       sourceId: sourceId ?? '',

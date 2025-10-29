@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/validator.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
@@ -15,6 +16,7 @@ class MappingDiagnosticReport
   const MappingDiagnosticReport._();
 
   const factory MappingDiagnosticReport({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty reportName,
     @Default(MappedProperty()) MappedProperty conclusion,
     @Default(MappedProperty()) MappedProperty issuedDate,
@@ -22,6 +24,7 @@ class MappingDiagnosticReport
 
   factory MappingDiagnosticReport.fromJson(Map<String, dynamic> json) {
     return MappingDiagnosticReport(
+      id: const Uuid().v4(),
       reportName: MappedProperty(value: json['reportName'] ?? ''),
       conclusion: MappedProperty(value: json['conclusion'] ?? ''),
       issuedDate: MappedProperty(value: json['issuedDate'] ?? ''),
@@ -47,7 +50,7 @@ class MappingDiagnosticReport
     Map<String, dynamic> rawResource = diagnosticReport.toJson();
 
     return DiagnosticReport(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: reportName.value,
       date: DateTime.tryParse(issuedDate.value),
@@ -77,6 +80,7 @@ class MappingDiagnosticReport
           label: 'Issued Date',
           value: issuedDate.value,
           confidenceLevel: issuedDate.confidenceLevel,
+          validators: [nonEmptyValidator, dateValidator],
         ),
       };
 

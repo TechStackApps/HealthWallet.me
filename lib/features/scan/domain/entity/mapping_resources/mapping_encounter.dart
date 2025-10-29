@@ -14,6 +14,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
   const MappingEncounter._();
 
   const factory MappingEncounter({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty encounterType,
     @Default(MappedProperty()) MappedProperty location,
     @Default(MappedProperty()) MappedProperty periodStart,
@@ -21,6 +22,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
 
   factory MappingEncounter.fromJson(Map<String, dynamic> json) {
     return MappingEncounter(
+      id: const Uuid().v4(),
       encounterType: MappedProperty(value: json['encounterType'] ?? ''),
       location: MappedProperty(value: json['location'] ?? ''),
       periodStart: MappedProperty(value: json['periodStart'] ?? ''),
@@ -55,7 +57,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
     Map<String, dynamic> rawResource = encounter.toJson();
 
     return Encounter(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: encounterType.value,
       date: DateTime.tryParse(periodStart.value),

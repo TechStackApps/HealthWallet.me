@@ -16,6 +16,7 @@ class MappingMedicationStatement
   const MappingMedicationStatement._();
 
   const factory MappingMedicationStatement({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty medicationName,
     @Default(MappedProperty()) MappedProperty dosage,
     @Default(MappedProperty()) MappedProperty reason,
@@ -23,6 +24,7 @@ class MappingMedicationStatement
 
   factory MappingMedicationStatement.fromJson(Map<String, dynamic> json) {
     return MappingMedicationStatement(
+      id: const Uuid().v4(),
       medicationName: MappedProperty(value: json['medicationName'] ?? ''),
       dosage: MappedProperty(value: json['dosage'] ?? ''),
       reason: MappedProperty(value: json['reason'] ?? ''),
@@ -53,7 +55,7 @@ class MappingMedicationStatement
     Map<String, dynamic> rawResource = medicationStatement.toJson();
 
     return MedicationStatement(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: medicationName.value,
       sourceId: sourceId ?? '',

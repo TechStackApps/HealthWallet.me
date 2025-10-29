@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/delete_confirmation_dialog.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_patient.dart';
@@ -230,6 +231,7 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
                       newValue: newValue,
                     ),
                   ),
+          onResourceRemoved: _showDeleteConfirmationDialog,
         ),
         SizedBox(
           width: double.infinity,
@@ -250,6 +252,18 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showDeleteConfirmationDialog(int index) {
+    DeleteConfirmationDialog.show(
+      context: context,
+      title: 'Are you sure you want to delete this resource?',
+      onConfirm: () {
+        context
+            .read<FhirMapperBloc>()
+            .add(FhirMapperResourceRemoved(index: index));
+      },
     );
   }
 }

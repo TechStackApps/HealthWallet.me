@@ -15,6 +15,7 @@ class MappingAllergyIntolerance
   const MappingAllergyIntolerance._();
 
   const factory MappingAllergyIntolerance({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty substance,
     @Default(MappedProperty()) MappedProperty manifestation,
     @Default(MappedProperty()) MappedProperty category,
@@ -22,6 +23,7 @@ class MappingAllergyIntolerance
 
   factory MappingAllergyIntolerance.fromJson(Map<String, dynamic> json) {
     return MappingAllergyIntolerance(
+      id: const Uuid().v4(),
       substance: MappedProperty(value: json['substance'] ?? ''),
       manifestation: MappedProperty(value: json['manifestation'] ?? ''),
       category: MappedProperty(value: json['category'] ?? ''),
@@ -53,7 +55,7 @@ class MappingAllergyIntolerance
     Map<String, dynamic> rawResource = allergyIntolerance.toJson();
 
     return AllergyIntolerance(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: substance.value,
       sourceId: sourceId ?? '',

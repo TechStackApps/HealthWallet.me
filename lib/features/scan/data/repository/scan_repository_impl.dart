@@ -290,7 +290,7 @@ class ScanRepositoryImpl implements ScanRepository {
         continue;
       }
 
-      yield (resources, (i + 1) / supportedPrompts.length);
+      yield (resources.toSet().toList(), (i + 1) / supportedPrompts.length);
     }
   }
 }

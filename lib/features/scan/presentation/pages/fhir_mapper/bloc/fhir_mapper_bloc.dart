@@ -33,6 +33,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     on<FhirMappingInitiated>(_onFhirMappingInitiated,
         transformer: restartable());
     on<FhirMapperResourceChanged>(_onFhirMapperResourceChanged);
+    on<FhirMapperResourceRemoved>(_onFhirMapperResourceRemoved);
     on<FhirMapperPatientSelected>(_onFhirMapperPatientSelected);
     on<FhirMapperResourceCreationInitiated>(
         _onFhirMapperResourceCreationInitiated);
@@ -106,6 +107,16 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
         ));
       }
     }
+  }
+
+  void _onFhirMapperResourceRemoved(
+    FhirMapperResourceRemoved event,
+    Emitter<FhirMapperState> emit,
+  ) {
+    final newResources = [...state.resources];
+    newResources.removeAt(event.index);
+
+    emit(state.copyWith(resources: newResources));
   }
 
   void _onFhirMapperResourceChanged(

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/validator.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
@@ -13,6 +14,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
   const MappingCondition._();
 
   const factory MappingCondition({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty conditionName,
     @Default(MappedProperty()) MappedProperty onsetDateTime,
     @Default(MappedProperty()) MappedProperty clinicalStatus,
@@ -20,6 +22,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
 
   factory MappingCondition.fromJson(Map<String, dynamic> json) {
     return MappingCondition(
+      id: const Uuid().v4(),
       conditionName: MappedProperty(value: json['conditionName'] ?? ''),
       onsetDateTime: MappedProperty(value: json['onsetDateTime'] ?? ''),
       clinicalStatus: MappedProperty(value: json['clinicalStatus'] ?? ''),
@@ -46,7 +49,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
     Map<String, dynamic> rawResource = condition.toJson();
 
     return Condition(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: conditionName.value,
       date: DateTime.tryParse(onsetDateTime.value),
@@ -71,6 +74,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
           label: 'Onset Date',
           value: onsetDateTime.value,
           confidenceLevel: onsetDateTime.confidenceLevel,
+          validators: [nonEmptyValidator, dateValidator],
         ),
         'clinicalStatus': TextFieldDescriptor(
           label: 'Clinical Status',

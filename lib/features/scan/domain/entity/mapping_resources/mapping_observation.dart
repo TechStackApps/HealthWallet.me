@@ -13,6 +13,7 @@ class MappingObservation with _$MappingObservation implements MappingResource {
   const MappingObservation._();
 
   const factory MappingObservation({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty observationName,
     @Default(MappedProperty()) MappedProperty value,
     @Default(MappedProperty()) MappedProperty unit,
@@ -20,6 +21,7 @@ class MappingObservation with _$MappingObservation implements MappingResource {
 
   factory MappingObservation.fromJson(Map<String, dynamic> json) {
     return MappingObservation(
+      id: const Uuid().v4(),
       observationName: MappedProperty(value: json['observationName'] ?? ''),
       value: MappedProperty(value: json['value'] ?? ''),
       unit: MappedProperty(value: json['unit'] ?? ''),
@@ -47,7 +49,7 @@ class MappingObservation with _$MappingObservation implements MappingResource {
     Map<String, dynamic> rawResource = observation.toJson();
 
     return Observation(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: observationName.value,
       sourceId: sourceId ?? '',

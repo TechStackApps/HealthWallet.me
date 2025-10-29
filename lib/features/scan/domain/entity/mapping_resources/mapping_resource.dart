@@ -58,4 +58,6 @@ abstract class MappingResource {
   MappingResource populateConfidence(String inputText);
 
   bool get isValid;
+
+  String get id;
 }

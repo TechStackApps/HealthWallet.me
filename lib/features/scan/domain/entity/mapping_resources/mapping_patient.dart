@@ -14,6 +14,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
   const MappingPatient._();
 
   const factory MappingPatient({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty familyName,
     @Default(MappedProperty()) MappedProperty givenName,
     @Default(MappedProperty()) MappedProperty dateOfBirth,
@@ -23,6 +24,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
 
   factory MappingPatient.fromJson(Map<String, dynamic> json) {
     return MappingPatient(
+      id: const Uuid().v4(),
       familyName: MappedProperty(value: json['familyName'] ?? ''),
       givenName: MappedProperty(value: json['givenName'] ?? ''),
       dateOfBirth: MappedProperty(value: json['dateOfBirth'] ?? ''),
@@ -54,7 +56,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
     final rawResource = patient.toJson();
 
     return Patient(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: "${givenName.value} ${familyName.value}",
       sourceId: sourceId ?? '',
@@ -84,7 +86,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
           label: 'Date of birth',
           value: dateOfBirth.value,
           confidenceLevel: dateOfBirth.confidenceLevel,
-          validators: [dateValidator],
+          validators: [nonEmptyValidator, dateValidator],
         ),
         'gender': TextFieldDescriptor(
           label: 'Gender',

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:health_wallet/core/utils/validator.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapped_property.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/text_field_descriptor.dart';
@@ -14,6 +15,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
   const MappingProcedure._();
 
   const factory MappingProcedure({
+    @Default('') String id,
     @Default(MappedProperty()) MappedProperty procedureName,
     @Default(MappedProperty()) MappedProperty performedDateTime,
     @Default(MappedProperty()) MappedProperty reason,
@@ -21,6 +23,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
 
   factory MappingProcedure.fromJson(Map<String, dynamic> json) {
     return MappingProcedure(
+      id: const Uuid().v4(),
       procedureName: MappedProperty(value: json['procedureName'] ?? ''),
       performedDateTime: MappedProperty(value: json['performedDateTime'] ?? ''),
       reason: MappedProperty(value: json['reason'] ?? ''),
@@ -49,7 +52,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
     Map<String, dynamic> rawResource = procedure.toJson();
 
     return Procedure(
-      id: uuid.v4(),
+      id: id,
       resourceId: uuid.v4(),
       title: procedureName.value,
       date: DateTime.tryParse(performedDateTime.value),
@@ -74,6 +77,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
           label: 'Performed Date',
           value: performedDateTime.value,
           confidenceLevel: performedDateTime.confidenceLevel,
+          validators: [nonEmptyValidator, dateValidator],
         ),
         'reason': TextFieldDescriptor(
           label: 'Reason',
