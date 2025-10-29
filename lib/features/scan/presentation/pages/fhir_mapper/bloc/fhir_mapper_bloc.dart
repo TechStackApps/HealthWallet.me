@@ -92,6 +92,15 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
         ));
       }
 
+      List<MappingPatient> patients =
+          state.resources.whereType<MappingPatient>().toList();
+      if (patients.length > 1) {
+        List<MappingResource> noPatients = [...state.resources]
+          ..removeWhere((resource) => resource is MappingPatient);
+
+        emit(state.copyWith(resources: [patients.first, ...noPatients]));
+      }
+
       if (!state.resources.any((resource) => resource is MappingEncounter)) {
         emit(state.copyWith(
           resources: [...state.resources, const MappingEncounter()],
