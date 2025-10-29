@@ -12,7 +12,7 @@ class SlmModel {
   static SlmModel gemmaModel() => SlmModel(
         modelFileName: "gemma-2b-it-gpu-int4.bin",
         modelUrl:
-            "https://storage.googleapis.com/my-gemma-2b-it/gemma-2b-it-gpu-int4.bin",
+            "https://huggingface.co/google/gemma-2b-it-tflite/resolve/main/gemma-2b-it-gpu-int4.bin",
       );
 
   InferenceModelSpec toInferenceSpec() =>

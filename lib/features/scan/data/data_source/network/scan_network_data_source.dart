@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_gemma/mobile/flutter_gemma_mobile.dart';
+import 'package:health_wallet/core/config/env/env.dart';
 import 'package:injectable/injectable.dart';
 import 'package:path_provider/path_provider.dart';
-
-const String modelUrlToken = "";
 
 abstract class ScanNetworkDataSource {
   Stream<DownloadProgress> downloadModel(InferenceModelSpec spec);
@@ -50,7 +49,8 @@ class ScanNetworkDataSourceImpl implements ScanNetworkDataSource {
     // Check remote file size
     final headResponse = await _dio.head(
       spec.modelUrl,
-      options: Options(headers: {'Authorization': 'Bearer $modelUrlToken'}),
+      options:
+          Options(headers: {'Authorization': 'Bearer ${Env.huggingFaceToken}'}),
     );
 
     if (headResponse.statusCode == 200) {
@@ -69,7 +69,7 @@ class ScanNetworkDataSourceImpl implements ScanNetworkDataSource {
   @override
   Stream<DownloadProgress> downloadModel(InferenceModelSpec spec) async* {
     yield* FlutterGemmaPlugin.instance.modelManager
-        .downloadModelWithProgress(spec, token: modelUrlToken);
+        .downloadModelWithProgress(spec, token: Env.huggingFaceToken);
   }
 
   /// Helper method to get the file path.
