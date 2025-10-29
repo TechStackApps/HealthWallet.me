@@ -23,6 +23,10 @@ class SourceRemoteDataSource {
   /// Fetch sources from the fasten-onprem backend API
   Future<List<Source>> getSources() async {
     try {
+      if (_dio.options.baseUrl.isEmpty) {
+        return [];
+      }
+
       final response = await _dio.get('/api/secure/source');
       final responseData = response.data;
 
@@ -35,6 +39,13 @@ class SourceRemoteDataSource {
         return _sourceMapper.mapToEntities(sourceDtos);
       }
 
+      return [];
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.unknown &&
+          e.message?.contains('No host specified') == true) {
+        return [];
+      }
+      logger.e('Error fetching sources: $e');
       return [];
     } catch (e) {
       logger.e('Error fetching sources: $e');

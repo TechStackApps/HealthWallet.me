@@ -224,6 +224,16 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   @override
   Future<void> createWalletSource() async {
     try {
+      // Check if wallet source already exists
+      final existingWallet = await (_appDatabase.select(_appDatabase.sources)
+            ..where((s) => s.id.equals('wallet')))
+          .getSingleOrNull();
+
+      if (existingWallet != null) {
+        // Wallet source already exists, no need to create
+        return;
+      }
+
       final now = DateTime.now();
       // Create Wallet source in sources table
       await _appDatabase.into(_appDatabase.sources).insert(
@@ -235,7 +245,7 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
-            mode: InsertMode.insertOrReplace,
+            mode: InsertMode.insertOrIgnore,
           );
     } catch (e) {
       logger.e('Error creating wallet source: $e');

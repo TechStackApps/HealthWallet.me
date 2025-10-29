@@ -98,12 +98,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> _onRefreshPreservingOrder(
       HomeRefreshPreservingOrder e, Emitter<HomeState> emit) async {
-    if (state.allAvailableVitals.isEmpty) {
-      await _reloadHomeData(emit,
-          force: false, overrideSourceId: state.selectedSource);
-    } else {
-      emit(state.copyWith());
-    }
+    // Always reload data to pick up new attachments and other changes
+    await _reloadHomeData(emit,
+        force: true, overrideSourceId: state.selectedSource);
   }
 
   Future<void> _onSourceChanged(

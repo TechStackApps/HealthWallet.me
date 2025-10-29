@@ -158,9 +158,15 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     .svg(width: 16, color: context.theme.iconTheme.color),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    filePath != null ? basename(filePath) : title,
-                    style: AppTextStyle.labelLarge,
+                  child: GestureDetector(
+                    onTap: contentType == 'application/pdf' && filePath != null
+                        ? () => _pdfPreviewService.previewPdfFromFile(
+                            context, filePath)
+                        : null,
+                    child: Text(
+                      filePath != null ? basename(filePath) : title,
+                      style: AppTextStyle.labelLarge,
+                    ),
                   ),
                 )
               ],

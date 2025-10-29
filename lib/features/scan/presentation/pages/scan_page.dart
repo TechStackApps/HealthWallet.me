@@ -17,10 +17,6 @@ import 'package:health_wallet/features/scan/presentation/widgets/scan_action_but
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
-import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:drift/drift.dart' as drift;
-import 'dart:convert';
-import 'package:health_wallet/features/records/domain/entity/patient/patient.dart';
 
 @RoutePage()
 class ScanPage extends StatelessWidget {
@@ -247,7 +243,7 @@ class _ScanViewState extends State<ScanView> {
           : null;
 
       final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.resourceId ?? 'patient-default';
+      final patientId = patient?.id ?? 'patient-default';
       final patientName = patient?.displayTitle ?? 'Unknown Patient';
 
       final sourceTypeService = GetIt.instance.get<SourceTypeService>();
@@ -256,13 +252,6 @@ class _ScanViewState extends State<ScanView> {
         patientName: patientName,
         availableSources: homeState.sources,
       );
-
-      final existingSources = homeState.sources.map((s) => s.id).toList();
-      final isNewWalletSource = !existingSources.contains(walletSource.id);
-
-      if (isNewWalletSource && patient != null) {
-        await _duplicatePatientToWalletSource(patient, walletSource.id);
-      }
 
       if (context.mounted) {
         context.read<PatientBloc>().add(
@@ -282,6 +271,10 @@ class _ScanViewState extends State<ScanView> {
         sourceId: walletSource.id,
         title: 'Attached Documents',
       );
+
+      if (context.mounted) {
+        context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+      }
 
       if (context.mounted) Navigator.of(context).pop();
 
@@ -436,40 +429,6 @@ class _ScanViewState extends State<ScanView> {
         );
       },
     );
-  }
-
-  Future<void> _duplicatePatientToWalletSource(
-      Patient? patient, String walletSourceId) async {
-    if (patient == null) return;
-
-    try {
-      final database = GetIt.instance.get<AppDatabase>();
-
-      final walletPatient = patient.copyWith(
-        id: patient.id,
-        sourceId: walletSourceId,
-      );
-
-      final patientJson = patient.rawResource;
-      final resourceId = patient.id;
-
-      final dto = FhirResourceCompanion.insert(
-        id: '${walletSourceId}_$resourceId',
-        sourceId: drift.Value(walletSourceId),
-        resourceId: drift.Value(resourceId),
-        resourceType: drift.Value('Patient'),
-        title: drift.Value(walletPatient.displayTitle),
-        date: drift.Value(walletPatient.birthDate?.valueString != null
-            ? DateTime.tryParse(walletPatient.birthDate!.valueString!) ??
-                DateTime.now()
-            : DateTime.now()),
-        resourceRaw: jsonEncode(patientJson),
-        encounterId: const drift.Value.absent(),
-        subjectId: drift.Value(resourceId),
-      );
-
-      await database.into(database.fhirResource).insertOnConflictUpdate(dto);
-    } catch (e) {}
   }
 
   Future<void> _handleDirectScan(BuildContext context) async {

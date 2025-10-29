@@ -250,6 +250,7 @@ class DocumentReferenceService {
       final updateCompanion = FhirResourceCompanion(
         id: Value(document.id),
         resourceRaw: Value(jsonEncode(resourceJson)),
+        encounterId: Value(encounterId),
       );
 
       await (_database.update(_database.fhirResource)

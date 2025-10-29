@@ -55,25 +55,20 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(state.copyWith(status: const PatientStatus.loading()));
 
     try {
-      // Fetch ALL patients from all sources
       final allPatientsResources = await _recordsRepository.getResources(
         resourceTypes: [FhirType.Patient],
-        limit: 100, // Get all patients
+        limit: 100,
       );
 
       final allPatients = allPatientsResources.whereType<Patient>().toList();
 
-      // Deduplicate patients using FHIR identifiers
       final uniquePatients =
           _deduplicationService.getUniquePatients(allPatients);
 
-      // Create patient groups for source mapping
       final patientGroups =
           _deduplicationService.deduplicatePatients(allPatients);
 
-      // Find sources that have no Patient resources and assign them to default wallet holder
-      final patientGroups_enhanced =
-          await _enhancePatientGroupsWithOrphanSources(
+      final patientGroups_enhanced = await _enhancePatientGroupsWithSubjectId(
         patientGroups,
         allPatients,
       );
@@ -105,14 +100,12 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       emit(state.copyWith(
         status: const PatientStatus.success(),
         patients: uniquePatients,
-        allPatientsAcrossSources:
-            allPatients, // Store all patients for source lookup
+        allPatientsAcrossSources: allPatients,
         patientGroups: patientGroups_enhanced,
         expandedPatientIds: expandedIds,
         selectedPatientId: selectedPatientId,
       ));
 
-      // Save selected patient
       if (selectedPatientId != null) {
         await _saveSelectedPatient(selectedPatientId);
       }
@@ -215,84 +208,81 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     ));
   }
 
-  /// Finds sources that have resources but no Patient, and assigns them to the default wallet holder
-  Future<Map<String, PatientGroup>> _enhancePatientGroupsWithOrphanSources(
+  Future<Map<String, PatientGroup>> _enhancePatientGroupsWithSubjectId(
     Map<String, PatientGroup> patientGroups,
     List<Patient> allPatients,
   ) async {
     try {
-      // Get all unique source IDs from all FHIR resources (not just patients)
-      final allResources = await _recordsRepository.getResources(
-        resourceTypes: [], // Empty means all types
-        limit: 10000, // Get a large number to find all sources
-      );
-
-      // Find all unique source IDs that have resources
-      final allSourceIds = allResources
-          .map((r) => r.sourceId)
-          .where((id) => id.isNotEmpty)
-          .toSet();
-
-      // Find source IDs that have Patient resources
-      final sourcesWithPatients = allPatients
-          .map((p) => p.sourceId)
-          .where((id) => id.isNotEmpty)
-          .toSet();
-
-      // Orphan sources = sources with resources but no Patient resources
-      final orphanSourceIds = allSourceIds.difference(sourcesWithPatients);
-
-      if (orphanSourceIds.isEmpty) {
-        return patientGroups; // No orphan sources, return as is
-      }
-
-      // Find the default wallet holder patient
-      Patient? defaultWalletHolder;
-      try {
-        defaultWalletHolder = allPatients.firstWhere(
-          (p) => p.id == 'default_wallet_holder',
-        );
-      } catch (e) {
-        return patientGroups; // No default patient, return as is
-      }
-
-      // Clone the patient groups map
       final enhancedGroups = Map<String, PatientGroup>.from(patientGroups);
 
-      // Add or update the default wallet holder's group to include orphan sources
-      final existingGroup = enhancedGroups[defaultWalletHolder.id];
-      if (existingGroup != null) {
-        // Add orphan sources to existing group
-        final updatedSourceIds =
-            {...existingGroup.sourceIds, ...orphanSourceIds}.toList();
-        enhancedGroups[defaultWalletHolder.id] = PatientGroup(
-          representativePatient: existingGroup.representativePatient,
-          sourceIds: updatedSourceIds,
-          allPatientInstances: existingGroup.allPatientInstances,
-        );
-      } else {
-        // Create new group with orphan sources
-        enhancedGroups[defaultWalletHolder.id] = PatientGroup(
-          representativePatient: defaultWalletHolder,
-          sourceIds: [defaultWalletHolder.sourceId, ...orphanSourceIds],
-          allPatientInstances: [defaultWalletHolder],
-        );
+      for (final patient in allPatients) {
+        final sourcesForPatient = await _getSourceIdsForPatient(patient.id);
+
+        final allSourceIds = {
+          ...sourcesForPatient,
+          if (patient.sourceId.isNotEmpty) patient.sourceId
+        }.toList();
+
+        final existingGroup = enhancedGroups[patient.id];
+        if (existingGroup != null) {
+          final combinedSourceIds =
+              {...existingGroup.sourceIds, ...allSourceIds}.toList();
+          enhancedGroups[patient.id] = PatientGroup(
+            representativePatient: existingGroup.representativePatient,
+            sourceIds: combinedSourceIds,
+            allPatientInstances: existingGroup.allPatientInstances,
+          );
+        } else {
+          enhancedGroups[patient.id] = PatientGroup(
+            representativePatient: patient,
+            sourceIds: allSourceIds,
+            allPatientInstances: [patient],
+          );
+        }
       }
 
       return enhancedGroups;
     } catch (e) {
-      logger.e('Error in _enhancePatientGroupsWithOrphanSources: $e');
-      return patientGroups; // Return original on error
+      logger.e('Error in _enhancePatientGroupsWithSubjectId: $e');
+      return patientGroups;
+    }
+  }
+
+  Future<List<String>> _getSourceIdsForPatient(String patientId) async {
+    try {
+      final allResources = await _recordsRepository.getResources(
+        resourceTypes: [],
+        limit: 10000,
+      );
+
+      final sourceIds = allResources
+          .where((resource) {
+            if (resource is Patient) return false;
+
+            final subjectRef = resource.rawResource['subject'];
+            if (subjectRef == null) return false;
+
+            final reference = subjectRef['reference'];
+            if (reference == null) return false;
+
+            return reference.toString().contains(patientId);
+          })
+          .map((r) => r.sourceId)
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+
+      return sourceIds;
+    } catch (e) {
+      logger.e('Error in _getSourceIdsForPatient: $e');
+      return [];
     }
   }
 
   Future<void> _onDataUpdatedFromSync(
     PatientDataUpdatedFromSync event,
     Emitter<PatientState> emit,
-  ) async {
-    // Don't reload patients here as it can override the current selection
-    // Only load patients on initialisation
-  }
+  ) async {}
 
   Future<void> _onEditStarted(
     PatientEditStarted event,
@@ -326,7 +316,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(state.copyWith(status: const PatientStatus.loading()));
 
     try {
-      // Find the patient to update
       final patientIndex = state.patients.indexWhere(
         (p) => p.id == event.patientId,
       );
@@ -342,7 +331,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           birthDate: fhir_r4.FhirDate.fromDateTime(event.birthDate),
         );
 
-        // Update the patient in the repository
         await _recordsRepository.updatePatient(updatedPatient);
 
         final updatedPatients = List<Patient>.from(state.patients);
@@ -355,12 +343,10 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           editingPatient: null,
         ));
       } else {
-        // If state is empty, reload patients first
         if (state.patients.isEmpty) {
           await _loadPatients(emit);
         }
 
-        // Try to find the patient again after potential reload
         final refreshedPatientIndex = state.patients.indexWhere(
           (p) => p.id == event.patientId,
         );
@@ -369,7 +355,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           final currentPatient = state.patients[refreshedPatientIndex];
 
           final updatedPatient = currentPatient.copyWith(
-            // ID is not editable - keep the original
             id: currentPatient.id,
             identifier: currentPatient.identifier,
             gender: _mapDisplayGenderToFhir(event.gender),
@@ -387,8 +372,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
             isEditingPatient: false,
             editingPatient: null,
           ));
-
-          // NO NEED to reload patients - just use the updated local data
         } else {
           emit(state.copyWith(
             status: PatientStatus.failure(
@@ -427,7 +410,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     try {
       await _saveSelectedPatient(event.patientId);
 
-      // Update the state with the new selection
       emit(state.copyWith(
         selectedPatientId: event.patientId,
         expandedPatientIds: {event.patientId},
