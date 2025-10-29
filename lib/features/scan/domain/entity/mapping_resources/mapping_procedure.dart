@@ -42,7 +42,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
       reasonCode: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value))
       ],
-      subject: const fhir_r4.Reference(),
+      subject: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
       status: fhir_r4.EventStatus.unknown,
     );
 

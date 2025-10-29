@@ -49,7 +49,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
         start: fhir_r4.FhirDateTime.fromString(periodStart.value),
       ),
       status: fhir_r4.EncounterStatus.unknown,
-      class_: const fhir_r4.Coding(),
+      class_: fhir_r4.Coding(code: fhir_r4.FhirCode("AMB")),
     );
 
     Map<String, dynamic> rawResource = encounter.toJson();

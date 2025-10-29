@@ -179,11 +179,6 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
 
           await _syncRepository.cacheSources([walletSource]);
 
-          await _syncRepository.saveResources([
-            selectedPatientGroup.representativePatient
-                .copyWith(sourceId: walletSource.id)
-          ]);
-
           writableSourceId = walletSource.id;
         }
 

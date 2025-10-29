@@ -252,22 +252,4 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
       ],
     );
   }
-
-  // Widget _buildEncounterFormSection(FhirMapperState state) {
-  //   if (!state.ocrCompleted) {
-  //     return const SizedBox.shrink();
-  //   }
-
-  //   return Column(
-  //     children: [
-  //       const PatientSourceInfoWidget(),
-  //       const SizedBox(height: Insets.normal),
-  //       EncounterFormWidget(
-  //         formKey: _formKey,
-  //         encounterNameController: _encounterNameController,
-  //         onSubmit: _createEncounter,
-  //       ),
-  //     ],
-  //   );
-  // }
 }

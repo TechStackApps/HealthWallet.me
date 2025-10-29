@@ -40,7 +40,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
       onsetX: fhir_r4.FhirDateTime.fromString(onsetDateTime.value),
       clinicalStatus: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(clinicalStatus.value)),
-      subject: const fhir_r4.Reference(),
+      subject: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
     );
 
     Map<String, dynamic> rawResource = condition.toJson();

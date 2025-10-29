@@ -47,7 +47,7 @@ class MappingAllergyIntolerance
         ),
       ],
       category: [fhir_r4.AllergyIntoleranceCategory(category.value)],
-      patient: const fhir_r4.Reference(),
+      patient: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
     );
 
     Map<String, dynamic> rawResource = allergyIntolerance.toJson();
