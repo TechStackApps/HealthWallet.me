@@ -69,11 +69,11 @@ class App extends StatelessWidget {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) {
-                return Navigator(  // WRAP WITH NEW NAVIGATOR
-                  key: App.dialogNavigatorKey,  // USE NEW KEY
+                return Navigator( 
+                  key: App.dialogNavigatorKey,
                   onGenerateRoute: (_) => MaterialPageRoute(
                     builder: (_) => DeepLinkHandler(
-                      navigatorKey: App.dialogNavigatorKey,  // PASS NEW KEY
+                      navigatorKey: App.dialogNavigatorKey,
                       child: child!,
                     ),
                   ),

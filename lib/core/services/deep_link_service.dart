@@ -1,3 +1,4 @@
+// core/services/deep_link_service.dart
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -9,18 +10,15 @@ import 'package:path/path.dart' as path;
 
 @lazySingleton
 class DeepLinkService {
-  final _appLinks = AppLinks();  // Updated
+  final _appLinks = AppLinks();
   StreamSubscription? _linkSubscription;
   final _deepLinkController = StreamController<DeepLinkData>.broadcast();
 
-  /// Stream of incoming deep links
   Stream<DeepLinkData> get deepLinkStream => _deepLinkController.stream;
 
-  /// Initialize deep link listeners
   Future<void> initialize() async {
-    // Check for initial deep link (when app was closed)
     try {
-      final initialUri = await _appLinks.getInitialLink();  // Updated
+      final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         debugPrint('Initial deep link: $initialUri');
         _handleDeepLink(initialUri);
@@ -29,82 +27,66 @@ class DeepLinkService {
       debugPrint('Error getting initial link: $e');
     }
 
-    // Listen for deep links while app is open
-    _linkSubscription = _appLinks.uriLinkStream.listen(  // Updated
+    _linkSubscription = _appLinks.uriLinkStream.listen(
       (Uri uri) {
         debugPrint('Received deep link: $uri');
         _handleDeepLink(uri);
       },
-      onError: (err) {
-        debugPrint('Deep link error: $err');
-      },
+      onError: (err) => debugPrint('Deep link error: $err'),
     );
   }
 
-  /// Parse and handle deep link
   void _handleDeepLink(Uri uri) {
-    // Expected format: healthwallet://add-document?url=...&type=...&patient=...
-    
-    if (uri.scheme != 'healthwallet') {
-      debugPrint('Invalid scheme: ${uri.scheme}');
+    if (uri.scheme != 'https' || uri.host != 'add.healthwallet.me') {
+      debugPrint('Ignored URI (not our FQDN): $uri');
       return;
     }
 
-    if (uri.host == 'add-document') {
-      final fileUrl = uri.queryParameters['url'];
-      final docType = uri.queryParameters['type'];
-      final patientId = uri.queryParameters['patient'];
-      final providerName = uri.queryParameters['provider'];
-      final documentName = uri.queryParameters['name'];
+    final fileUrl = uri.queryParameters['file'];
+    final docType = uri.queryParameters['type'];
+    final patientId = uri.queryParameters['patient'];
+    final providerName = uri.queryParameters['provider'];
+    final documentName = uri.queryParameters['name'];
 
-      if (fileUrl == null || fileUrl.isEmpty) {
-        debugPrint('Missing required parameter: url');
-        _deepLinkController.addError('Missing document URL');
-        return;
-      }
-
-      final deepLinkData = DeepLinkData(
-        action: DeepLinkAction.addDocument,
-        fileUrl: fileUrl,
-        documentType: docType,
-        patientId: patientId,
-        providerName: providerName,
-        documentName: documentName,
-      );
-
-      _deepLinkController.add(deepLinkData);
+    if (fileUrl == null || fileUrl.isEmpty) {
+      debugPrint('Missing required parameter: file');
+      _deepLinkController.addError('Missing document URL');
+      return;
     }
+
+    final deepLinkData = DeepLinkData(
+      action: DeepLinkAction.addDocument,
+      fileUrl: fileUrl,
+      documentType: docType,
+      patientId: patientId,
+      providerName: providerName,
+      documentName: documentName,
+    );
+
+    _deepLinkController.add(deepLinkData);
   }
 
-  /// Download file from URL
   Future<String> downloadFile(String fileUrl, {String? customFileName}) async {
     try {
       debugPrint('Downloading file from: $fileUrl');
-      
+
       final response = await http.get(Uri.parse(fileUrl));
-      
       if (response.statusCode != 200) {
         throw Exception('Failed to download file: ${response.statusCode}');
       }
 
-      // Get app documents directory
       final appDocDir = await getApplicationDocumentsDirectory();
       final downloadsDir = Directory(path.join(appDocDir.path, 'provider_downloads'));
-      
       if (!await downloadsDir.exists()) {
         await downloadsDir.create(recursive: true);
       }
 
-      // Generate filename
-      final fileName = customFileName ?? 
+      final fileName = customFileName ??
           'provider_doc_${DateTime.now().millisecondsSinceEpoch}${_getExtensionFromUrl(fileUrl)}';
       final filePath = path.join(downloadsDir.path, fileName);
 
-      // Write file
       final file = File(filePath);
       await file.writeAsBytes(response.bodyBytes);
-
-      debugPrint('File downloaded successfully: $filePath');
       return filePath;
     } catch (e) {
       debugPrint('Error downloading file: $e');
@@ -112,56 +94,31 @@ class DeepLinkService {
     }
   }
 
-  /// Extract file extension from URL
   String _getExtensionFromUrl(String url) {
     try {
       final uri = Uri.parse(url);
-      final pathSegments = uri.pathSegments;
-      if (pathSegments.isNotEmpty) {
-        final lastSegment = pathSegments.last;
-        if (lastSegment.contains('.')) {
-          return path.extension(lastSegment);
-        }
+      final segs = uri.pathSegments;
+      if (segs.isNotEmpty && segs.last.contains('.')) {
+        return path.extension(segs.last);
       }
-    } catch (e) {
-      debugPrint('Error extracting extension: $e');
-    }
-    return '.pdf'; // Default to PDF
+    } catch (_) {}
+    return '.pdf';
   }
 
-  /// Validate if URL is from trusted provider
   bool isTrustedProvider(String url) {
-    // TODO: Add your trusted provider domains
     final trustedDomains = [
+      'lifevalue.com',
       'labcorp.com',
       'questdiagnostics.com',
       'mychart.com',
-      'w3.org', // For testing with dummy PDFs
-      // Add your partner providers here
+      'w3.org',
     ];
-
     try {
       final uri = Uri.parse(url);
-      return trustedDomains.any((domain) => 
-        uri.host.contains(domain)
-      );
-    } catch (e) {
+      return trustedDomains.any((d) => uri.host.endsWith(d));
+    } catch (_) {
       return false;
     }
-  }
-
-  /// Get file size in MB
-  Future<double> getFileSizeInMB(String filePath) async {
-    try {
-      final file = File(filePath);
-      if (await file.exists()) {
-        final bytes = await file.length();
-        return bytes / (1024 * 1024);
-      }
-    } catch (e) {
-      debugPrint('Error getting file size: $e');
-    }
-    return 0;
   }
 
   void dispose() {
@@ -170,7 +127,6 @@ class DeepLinkService {
   }
 }
 
-/// Data class for deep link information
 class DeepLinkData {
   final DeepLinkAction action;
   final String fileUrl;
@@ -187,13 +143,6 @@ class DeepLinkData {
     this.providerName,
     this.documentName,
   });
-
-  @override
-  String toString() {
-    return 'DeepLinkData(action: $action, fileUrl: $fileUrl, type: $documentType, provider: $providerName)';
-  }
 }
 
-enum DeepLinkAction {
-  addDocument,
-}
+enum DeepLinkAction { addDocument }
