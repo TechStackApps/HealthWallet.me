@@ -115,7 +115,7 @@ class ServiceRequest with _$ServiceRequest implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'ServiceRequest',

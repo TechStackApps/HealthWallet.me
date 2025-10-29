@@ -36,8 +36,6 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Procedure procedure = fhir_r4.Procedure(
       code: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(procedureName.value)),
@@ -45,15 +43,16 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
       reasonCode: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value))
       ],
-      subject: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
       status: fhir_r4.EventStatus.unknown,
+      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = procedure.toJson();
 
     return Procedure(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: procedureName.value,
       date: DateTime.tryParse(performedDateTime.value),
       sourceId: sourceId ?? '',
@@ -89,6 +88,7 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingProcedure(
+        id: id,
         procedureName: MappedProperty(
             value: newValues['procedureName'] ?? procedureName.value),
         performedDateTime: MappedProperty(

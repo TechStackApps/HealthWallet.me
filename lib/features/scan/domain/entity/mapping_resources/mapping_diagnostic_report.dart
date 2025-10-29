@@ -37,21 +37,21 @@ class MappingDiagnosticReport
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.DiagnosticReport diagnosticReport = fhir_r4.DiagnosticReport(
       code: fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reportName.value)),
       conclusion: fhir_r4.FhirString(conclusion.value),
       issued: fhir_r4.FhirInstant.fromDateTime(
           DateTime.tryParse(issuedDate.value) ?? DateTime.now()),
       status: fhir_r4.DiagnosticReportStatus.unknown,
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = diagnosticReport.toJson();
 
     return DiagnosticReport(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: reportName.value,
       date: DateTime.tryParse(issuedDate.value),
       sourceId: sourceId ?? '',
@@ -87,6 +87,7 @@ class MappingDiagnosticReport
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingDiagnosticReport(
+        id: id,
         reportName:
             MappedProperty(value: newValues['reportName'] ?? reportName.value),
         conclusion:

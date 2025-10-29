@@ -78,7 +78,7 @@ class PractitionerRole with _$PractitionerRole implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'PractitionerRole',

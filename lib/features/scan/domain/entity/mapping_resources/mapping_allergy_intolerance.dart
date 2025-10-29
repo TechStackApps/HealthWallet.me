@@ -36,8 +36,6 @@ class MappingAllergyIntolerance
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.AllergyIntolerance allergyIntolerance = fhir_r4.AllergyIntolerance(
       code: fhir_r4.CodeableConcept(text: fhir_r4.FhirString(substance.value)),
       reaction: [
@@ -49,14 +47,15 @@ class MappingAllergyIntolerance
         ),
       ],
       category: [fhir_r4.AllergyIntoleranceCategory(category.value)],
-      patient: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
+      patient: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = allergyIntolerance.toJson();
 
     return AllergyIntolerance(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: substance.value,
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -90,6 +89,7 @@ class MappingAllergyIntolerance
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingAllergyIntolerance(
+        id: id,
         substance:
             MappedProperty(value: newValues['substance'] ?? substance.value),
         manifestation: MappedProperty(

@@ -35,22 +35,21 @@ class MappingCondition with _$MappingCondition implements MappingResource {
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Condition condition = fhir_r4.Condition(
       code: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(conditionName.value)),
       onsetX: fhir_r4.FhirDateTime.fromString(onsetDateTime.value),
       clinicalStatus: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(clinicalStatus.value)),
-      subject: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = condition.toJson();
 
     return Condition(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: conditionName.value,
       date: DateTime.tryParse(onsetDateTime.value),
       sourceId: sourceId ?? '',
@@ -86,6 +85,7 @@ class MappingCondition with _$MappingCondition implements MappingResource {
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingCondition(
+        id: id,
         conditionName: MappedProperty(
             value: newValues['conditionName'] ?? conditionName.value),
         onsetDateTime: MappedProperty(

@@ -1,9 +1,11 @@
 import 'dart:developer';
 
 import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -97,7 +99,7 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
       body: BlocConsumer<FhirMapperBloc, FhirMapperState>(
         listener: (context, state) {
           if (state.status == FhirMapperStatus.success) {
-            Navigator.of(context).pop(true);
+            context.router.push(const DashboardRoute());
           }
           if (state.status == FhirMapperStatus.failure) {
             showDialog(

@@ -52,7 +52,7 @@ class Binary with _$Binary implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'Binary',

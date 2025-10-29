@@ -75,7 +75,7 @@ class Specimen with _$Specimen implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'Specimen',

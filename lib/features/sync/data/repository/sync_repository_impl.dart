@@ -181,6 +181,6 @@ class SyncRepositoryImpl implements SyncRepository {
   @override
   Future saveResources(List<IFhirResource> resources) async {
     await _localDataSource.cacheFhirResources(
-        resources.map((resource) => resource.toLocalDto()).toList());
+        resources.map((resource) => resource.toDto()).toList());
   }
 }

@@ -104,7 +104,7 @@ class Immunization with _$Immunization implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'Immunization',

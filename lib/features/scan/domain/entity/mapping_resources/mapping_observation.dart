@@ -34,8 +34,6 @@ class MappingObservation with _$MappingObservation implements MappingResource {
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Observation observation = fhir_r4.Observation(
       code: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(observationName.value)),
@@ -43,14 +41,16 @@ class MappingObservation with _$MappingObservation implements MappingResource {
         value: fhir_r4.FhirDecimal(double.tryParse(value.value)),
         unit: fhir_r4.FhirString(unit.value),
       ),
-      status: fhir_r4.ObservationStatus.unknown
+      status: fhir_r4.ObservationStatus.unknown,
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = observation.toJson();
 
     return Observation(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: observationName.value,
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -83,6 +83,7 @@ class MappingObservation with _$MappingObservation implements MappingResource {
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingObservation(
+        id: id,
         observationName: MappedProperty(
             value: newValues['observationName'] ?? observationName.value),
         value: MappedProperty(value: newValues['value'] ?? value.value),

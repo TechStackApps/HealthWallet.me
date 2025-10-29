@@ -180,6 +180,7 @@ class HomeViewState extends State<HomeView> {
                 surfaceTintColor: Colors.transparent,
                 elevation: 0,
                 scrolledUnderElevation: 0,
+                automaticallyImplyLeading: false,
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

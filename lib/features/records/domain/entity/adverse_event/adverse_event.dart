@@ -89,7 +89,7 @@ class AdverseEvent with _$AdverseEvent implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'AdverseEvent',

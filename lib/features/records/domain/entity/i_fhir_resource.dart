@@ -92,7 +92,7 @@ abstract class IFhirResource {
     }
   }
 
-  FhirResourceDto toLocalDto();
+  FhirResourceDto toDto();
 
   String get displayTitle;
   List<RecordInfoLine> get additionalInfo;

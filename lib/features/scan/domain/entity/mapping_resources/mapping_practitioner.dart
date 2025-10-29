@@ -37,8 +37,6 @@ class MappingPractitioner
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Practitioner practitioner = fhir_r4.Practitioner(
       name: [
         fhir_r4.HumanName(text: fhir_r4.FhirString(practitionerName.value))
@@ -58,7 +56,7 @@ class MappingPractitioner
 
     return Practitioner(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: practitionerName.value,
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -92,6 +90,7 @@ class MappingPractitioner
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingPractitioner(
+        id: id,
         practitionerName: MappedProperty(
             value: newValues['practitionerName'] ?? practitionerName.value),
         specialty:

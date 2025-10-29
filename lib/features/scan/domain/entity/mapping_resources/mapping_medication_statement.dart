@@ -37,8 +37,6 @@ class MappingMedicationStatement
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.MedicationStatement medicationStatement = fhir_r4.MedicationStatement(
       medicationX: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(medicationName.value)),
@@ -48,15 +46,15 @@ class MappingMedicationStatement
       reasonCode: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value)),
       ],
-      subject: fhir_r4.Reference(id: fhir_r4.FhirString(subjectId)),
-      status: fhir_r4.MedicationStatementStatusCodes.unknown
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      status: fhir_r4.MedicationStatementStatusCodes.unknown,
     );
 
     Map<String, dynamic> rawResource = medicationStatement.toJson();
 
     return MedicationStatement(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: medicationName.value,
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -90,6 +88,7 @@ class MappingMedicationStatement
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingMedicationStatement(
+        id: id,
         medicationName: MappedProperty(
             value: newValues['medicationName'] ?? medicationName.value),
         dosage: MappedProperty(value: newValues['dosage'] ?? dosage.value),

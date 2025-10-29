@@ -37,8 +37,6 @@ class MappingOrganization
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Organization organization = fhir_r4.Organization(
       name: fhir_r4.FhirString(organizationName.value),
       address: [fhir_r4.Address(text: fhir_r4.FhirString(address.value))],
@@ -49,7 +47,7 @@ class MappingOrganization
 
     return Organization(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: organizationName.value,
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -83,6 +81,7 @@ class MappingOrganization
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingOrganization(
+        id: id,
         organizationName: MappedProperty(
             value: newValues['organizationName'] ?? organizationName.value),
         address: MappedProperty(value: newValues['address'] ?? address.value),

@@ -35,8 +35,6 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Encounter encounter = fhir_r4.Encounter(
       type: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
@@ -52,13 +50,14 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
       ),
       status: fhir_r4.EncounterStatus.unknown,
       class_: fhir_r4.Coding(code: fhir_r4.FhirCode("AMB")),
+      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId'))
     );
 
     Map<String, dynamic> rawResource = encounter.toJson();
 
     return Encounter(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: encounterType.value,
       date: DateTime.tryParse(periodStart.value),
       sourceId: sourceId ?? '',
@@ -95,6 +94,7 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingEncounter(
+        id: id,
         encounterType: MappedProperty(
             value: newValues['encounterType'] ?? encounterType.value),
         location:

@@ -96,7 +96,7 @@ class MedicationDispense with _$MedicationDispense implements IFhirResource {
   }
 
   @override
-  FhirResourceDto toLocalDto() => FhirResourceDto(
+  FhirResourceDto toDto() => FhirResourceDto(
         id: id,
         sourceId: sourceId,
         resourceType: 'MedicationDispense',

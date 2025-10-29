@@ -39,8 +39,6 @@ class MappingPatient with _$MappingPatient implements MappingResource {
     String? encounterId,
     String? subjectId,
   }) {
-    const uuid = Uuid();
-
     fhir_r4.Patient patient = fhir_r4.Patient(
       name: [
         fhir_r4.HumanName(
@@ -57,7 +55,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
 
     return Patient(
       id: id,
-      resourceId: uuid.v4(),
+      resourceId: id,
       title: "${givenName.value} ${familyName.value}",
       sourceId: sourceId ?? '',
       encounterId: encounterId ?? '',
@@ -102,6 +100,7 @@ class MappingPatient with _$MappingPatient implements MappingResource {
 
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) => MappingPatient(
+        id: id,
         givenName:
             MappedProperty(value: newValues['givenName'] ?? givenName.value),
         familyName:

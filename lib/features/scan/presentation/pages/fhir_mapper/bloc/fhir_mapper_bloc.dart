@@ -63,6 +63,9 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
         status: FhirMapperStatus.mappingReady,
         currentPatients: event.currentPatients,
         selectedPatient: event.currentPatients.first,
+        scannedImages: event.scannedImages,
+        importedImages: event.importedImages,
+        importedPdfs: event.importedPdfs,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -103,7 +106,10 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
 
       if (!state.resources.any((resource) => resource is MappingEncounter)) {
         emit(state.copyWith(
-          resources: [...state.resources, const MappingEncounter()],
+          resources: [
+            ...state.resources,
+            MappingEncounter(id: const Uuid().v4())
+          ],
         ));
       }
 
@@ -154,9 +160,8 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     Emitter<FhirMapperState> emit,
   ) async {
     emit(state.copyWith(status: FhirMapperStatus.savingResources));
-    const uuid = Uuid();
 
-    String encounterId = uuid.v4();
+    String encounterId;
     String subjectId;
     String sourceId;
 
@@ -164,8 +169,12 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       MappingPatient? mappingPatient =
           state.resources.whereType<MappingPatient>().firstOrNull;
 
+      MappingEncounter mappingEncounter =
+          state.resources.whereType<MappingEncounter>().first;
+      encounterId = mappingEncounter.id;
+
       if (mappingPatient != null) {
-        subjectId = uuid.v4();
+        subjectId = mappingPatient.id;
         final walletSource =
             await _walletPatientService.createWalletSourceForPatient(
           subjectId,
@@ -209,8 +218,8 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       List<IFhirResource> fhirResources = state.resources
           .map((resource) => resource.toFhirResource(
                 sourceId: sourceId,
-                subjectId: subjectId,
-                encounterId: encounterId,
+                subjectId: (resource is MappingPatient) ? '' : subjectId,
+                encounterId: (resource is MappingEncounter) ? '' : encounterId,
               ))
           .toList();
 
