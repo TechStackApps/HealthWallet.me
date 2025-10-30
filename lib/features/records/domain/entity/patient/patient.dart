@@ -6,6 +6,7 @@ import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dar
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
@@ -22,6 +23,8 @@ class Patient with _$Patient implements IFhirResource {
     @Default('') String title,
     DateTime? date,
     @Default({}) Map<String, dynamic> rawResource,
+    @Default('') String encounterId,
+    @Default('') String subjectId,
     Narrative? text,
     List<Identifier>? identifier,
     FhirBoolean? active,
@@ -46,6 +49,10 @@ class Patient with _$Patient implements IFhirResource {
 
   factory Patient.fromLocalData(FhirResourceLocalDto data) {
     final resourceJson = jsonDecode(data.resourceRaw);
+
+    // Clean up problematic Epic-specific fields that cause parsing errors
+    _cleanEpicExtensions(resourceJson);
+
     final fhirPatient = fhir_r4.Patient.fromJson(resourceJson);
 
     return Patient(
@@ -55,6 +62,8 @@ class Patient with _$Patient implements IFhirResource {
       title: data.title ?? '',
       date: data.date,
       rawResource: resourceJson,
+      encounterId: data.encounterId ?? '',
+      subjectId: data.subjectId ?? '',
       text: fhirPatient.text,
       identifier: fhirPatient.identifier,
       active: fhirPatient.active,
@@ -74,6 +83,19 @@ class Patient with _$Patient implements IFhirResource {
       link: fhirPatient.link,
     );
   }
+
+  @override
+  FhirResourceDto toDto() => FhirResourceDto(
+        id: id,
+        sourceId: sourceId,
+        resourceType: 'Patient',
+        resourceId: resourceId,
+        title: title,
+        date: date,
+        resourceRaw: rawResource,
+        encounterId: encounterId,
+        subjectId: subjectId,
+      );
 
   @override
   String get displayTitle {
@@ -133,4 +155,17 @@ class Patient with _$Patient implements IFhirResource {
   @override
   String get statusDisplay =>
       active?.valueBoolean == true ? 'Active' : 'Inactive';
+
+  /// Clean up Epic-specific extensions that cause FHIR parsing errors
+  static void _cleanEpicExtensions(Map<String, dynamic> resourceJson) {
+    // Remove problematic _given fields from name entries
+    if (resourceJson['name'] is List) {
+      final nameList = resourceJson['name'] as List;
+      for (final name in nameList) {
+        if (name is Map<String, dynamic>) {
+          name.remove('_given');
+        }
+      }
+    }
+  }
 }

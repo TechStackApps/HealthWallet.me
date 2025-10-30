@@ -64,7 +64,7 @@ import 'app_localizations_es.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
-    Locale('de')
+    Locale('de'),
   ];
 
   /// The title of the application
@@ -706,6 +706,24 @@ abstract class AppLocalizations {
   /// **'Error saving patient data'**
   String get errorSavingPatientData;
 
+  /// No description provided for @walletHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet Holder'**
+  String get walletHolder;
+
+  /// No description provided for @walletHolderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This patient is the primary owner of this health wallet'**
+  String get walletHolderDescription;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStarted;
+
   /// No description provided for @failedToUpdateDisplayName.
   ///
   /// In en, this message translates to:
@@ -945,12 +963,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get continueButton;
-
-  /// No description provided for @getStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Get started'**
-  String get getStarted;
 
   /// No description provided for @enableBiometricAuth.
   ///
@@ -1203,6 +1215,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Demo data has been loaded successfully. You will be redirected to the home page.'**
   String get demoDataLoadedSuccessfully;
+
+  /// No description provided for @documentScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get documentScanTitle;
 }
 
 class _AppLocalizationsDelegate
@@ -1234,8 +1252,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

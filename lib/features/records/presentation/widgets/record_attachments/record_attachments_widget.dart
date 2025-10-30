@@ -4,11 +4,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/services/pdf_preview_service.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/presentation/widgets/record_attachments/bloc/record_attachments_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -27,6 +27,7 @@ class RecordAttachmentsWidget extends StatefulWidget {
 
 class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
   final _bloc = getIt.get<RecordAttachmentsBloc>();
+  final _pdfPreviewService = getIt<PdfPreviewService>();
 
   @override
   void initState() {
@@ -140,7 +141,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
   }
 
   Widget _buildAttachmentRow(
-      BuildContext context, RecordAttachment attachment) {
+      BuildContext context, AttachmentInfo attachmentInfo) {
+    final filePath = attachmentInfo.filePath;
+    final title = attachmentInfo.title;
+    final contentType = attachmentInfo.contentType;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -153,9 +158,15 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     .svg(width: 16, color: context.theme.iconTheme.color),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    basename(attachment.file.path),
-                    style: AppTextStyle.labelLarge,
+                  child: GestureDetector(
+                    onTap: contentType == 'application/pdf' && filePath != null
+                        ? () => _pdfPreviewService.previewPdfFromFile(
+                            context, filePath)
+                        : null,
+                    child: Text(
+                      filePath != null ? basename(filePath) : title,
+                      style: AppTextStyle.labelLarge,
+                    ),
                   ),
                 )
               ],
@@ -163,21 +174,36 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
           ),
           Row(
             children: [
+              if (contentType == 'application/pdf' && filePath != null)
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: GestureDetector(
+                      onTap: () => _pdfPreviewService.previewPdfFromFile(
+                          context, filePath),
+                      child: const Icon(Icons.remove_red_eye_outlined)
+                      // .svg(width: 24, color: context.theme.iconTheme.color),
+                      ),
+                ),
+              if (contentType == 'application/pdf' && filePath != null)
+                const SizedBox(width: 16),
               Padding(
                 padding: const EdgeInsets.all(6),
                 child: GestureDetector(
-                  onTap: () => SharePlus.instance
-                      .share(ShareParams(files: [XFile(attachment.file.path)])),
+                  onTap: () => filePath != null
+                      ? SharePlus.instance
+                          .share(ShareParams(files: [XFile(filePath)]))
+                      : null,
                   child: Assets.icons.download
                       .svg(width: 24, color: context.theme.iconTheme.color),
                 ),
               ),
               const SizedBox(width: 16),
+              // Delete icon
               Padding(
                 padding: const EdgeInsets.all(6),
                 child: GestureDetector(
                     onTap: () =>
-                        _showDeleteConfirmationDialog(context, attachment),
+                        _showDeleteConfirmationDialog(context, attachmentInfo),
                     child: Assets.icons.trashCan
                         .svg(width: 24, color: context.theme.iconTheme.color)),
               ),
@@ -189,7 +215,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
   }
 
   void _showDeleteConfirmationDialog(
-      BuildContext context, RecordAttachment attachment) {
+      BuildContext context, AttachmentInfo attachmentInfo) {
     final textColor =
         context.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final borderColor =
@@ -217,7 +243,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                   children: [
                     // Content
                     Text(
-                      'Are you sure you want to delete "${basename(attachment.file.path)}"?',
+                      'Are you sure you want to delete "${attachmentInfo.title}"?',
                       style: AppTextStyle.labelLarge.copyWith(color: textColor),
                     ),
 
@@ -226,12 +252,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                     Container(
                       padding: const EdgeInsets.all(Insets.small),
                       decoration: BoxDecoration(
-                        color: (context.colorScheme.error ?? Colors.red)
-                            .withValues(alpha: 0.1),
+                        color: context.colorScheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: (context.colorScheme.error ?? Colors.red)
-                              .withValues(alpha: 0.3),
+                          color:
+                              context.colorScheme.error.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -239,7 +264,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                         children: [
                           Icon(
                             Icons.warning_amber_rounded,
-                            color: context.colorScheme.error ?? Colors.red,
+                            color: context.colorScheme.error,
                             size: 20,
                           ),
                           const SizedBox(width: Insets.small),
@@ -247,7 +272,7 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                             child: Text(
                               context.l10n.actionCannotBeUndone,
                               style: AppTextStyle.bodySmall.copyWith(
-                                color: context.colorScheme.error ?? Colors.red,
+                                color: context.colorScheme.error,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -286,12 +311,11 @@ class _RecordAttachmentsWidgetState extends State<RecordAttachmentsWidget> {
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.of(context).pop();
-                              _bloc.add(
-                                  RecordAttachmentsFileDeleted(attachment));
+                              _bloc.add(RecordAttachmentsFileDeleted(
+                                  attachmentInfo.documentReference));
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  context.colorScheme.error ?? Colors.red,
+                              backgroundColor: context.colorScheme.error,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.all(8),
                               fixedSize: const Size.fromHeight(36),

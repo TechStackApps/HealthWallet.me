@@ -1,12 +1,12 @@
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import 'package:fhir_ips_export/fhir_ips_export.dart';
-import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:health_wallet/core/constants/blood_types.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/core/utils/logger.dart';
+import 'package:health_wallet/core/utils/fhir_reference_utils.dart';
 import 'package:health_wallet/features/records/data/datasource/fhir_resource_datasource.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/sync_local_data_source.dart';
@@ -19,25 +19,40 @@ import 'package:flutter/services.dart';
 class RecordsRepositoryImpl implements RecordsRepository {
   final FhirResourceDatasource _datasource;
   final SyncLocalDataSource _syncLocalDataSource;
+  final AppDatabase _database;
 
-  RecordsRepositoryImpl(AppDatabase database, this._syncLocalDataSource)
-      : _datasource = FhirResourceDatasource(database);
+  RecordsRepositoryImpl(this._database, this._syncLocalDataSource)
+      : _datasource = FhirResourceDatasource(_database);
 
   @override
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
     String? sourceId,
+    List<String>? sourceIds,
     int limit = 20,
     int offset = 0,
   }) async {
     final localDtos = await _datasource.getResources(
       resourceTypes: resourceTypes.map((fhirType) => fhirType.name).toList(),
       sourceId: sourceId,
+      sourceIds: sourceIds,
       limit: limit,
       offset: offset,
     );
 
-    return localDtos.map(IFhirResource.fromLocalDto).toList();
+    // Filter out resources that fail to parse to prevent app crashes
+    final validResources = <IFhirResource>[];
+    for (final dto in localDtos) {
+      try {
+        final resource = IFhirResource.fromLocalDto(dto);
+        validResources.add(resource);
+      } catch (e) {
+        logger.w(
+            'Failed to parse resource ${dto.id} of type ${dto.resourceType}: $e');
+        // Skip this resource and continue with others
+      }
+    }
+    return validResources;
   }
 
   /// Get related resources for an encounter
@@ -50,6 +65,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       encounterId: encounterId,
       sourceId: sourceId,
     );
+
 
     return localDtos.map(IFhirResource.fromLocalDto).toList();
   }
@@ -78,58 +94,60 @@ class RecordsRepositoryImpl implements RecordsRepository {
     return IFhirResource.fromLocalDto(localDto);
   }
 
-  @override
-  Future<int> addRecordAttachment({
-    required String resourceId,
-    required String filePath,
-  }) async {
-    return _datasource.addRecordAttachment(
-      resourceId: resourceId,
-      filePath: filePath,
-    );
-  }
-
-  @override
-  Future<List<RecordAttachment>> getRecordAttachments(String resourceId) async {
-    List<RecordAttachmentDto> dtos =
-        await _datasource.getRecordAttachments(resourceId);
-
-    return dtos.map(RecordAttachment.fromDto).toList();
-  }
-
-  @override
-  Future<int> deleteRecordAttachment(RecordAttachment attachment) async {
-    return _datasource.deleteRecordAttachment(attachment.id);
-  }
-
+  // Record Notes - Can be attached to any FHIR resource
   @override
   Future<int> addRecordNote({
     required String resourceId,
+    String? sourceId,
     required String content,
   }) async {
-    return _datasource.addRecordNote(resourceId: resourceId, content: content);
+    final companion = RecordNotesCompanion.insert(
+      resourceId: resourceId,
+      sourceId: Value(sourceId),
+      content: content,
+      timestamp: DateTime.now(),
+    );
+
+    return await _database
+        .into(_database.recordNotes)
+        .insertOnConflictUpdate(companion);
   }
 
   @override
   Future<List<RecordNote>> getRecordNotes(String resourceId) async {
-    List<RecordNoteDto> dtos = await _datasource.getRecordNotes(resourceId);
+    final notes = await (_database.select(_database.recordNotes)
+          ..where((t) => t.resourceId.equals(resourceId))
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
+        .get();
 
-    return dtos.map(RecordNote.fromDto).toList();
+    return notes.map(RecordNote.fromDto).toList();
   }
 
   @override
   Future<int> editRecordNote(RecordNote note) async {
-    return _datasource.updateRecordNote(id: note.id, content: note.content);
+    return await (_database.update(_database.recordNotes)
+          ..where((t) => t.id.equals(note.id)))
+        .write(RecordNotesCompanion(
+      resourceId: Value(note.resourceId),
+      sourceId: Value(note.sourceId),
+      content: Value(note.content),
+      timestamp: Value(note.timestamp),
+    ));
   }
 
   @override
   Future<int> deleteRecordNote(RecordNote note) async {
-    return _datasource.deleteRecordNote(note.id);
+    return await (_database.delete(_database.recordNotes)
+          ..where((t) => t.id.equals(note.id)))
+        .go();
   }
 
   @override
   Future<void> loadDemoData() async {
     try {
+      // Create demo_data source first
+      await _syncLocalDataSource.createDemoDataSource();
+
       // Load demo data from assets
       final String demoDataJson =
           await rootBundle.loadString('assets/demo_data.json');
@@ -167,15 +185,19 @@ class RecordsRepositoryImpl implements RecordsRepository {
 
       _syncLocalDataSource.cacheFhirResources(processedResources);
     } catch (e, stackTrace) {
-      logger.e('❌ Failed to load demo data: $e');
-      logger.e('❌ Stack trace: $stackTrace');
+      logger.e('Failed to load demo data: $e');
+      logger.e('Stack trace: $stackTrace');
       throw Exception('Failed to load demo data: $e');
     }
   }
 
   @override
   Future<void> clearDemoData() async {
+    // Delete all FHIR resources for demo_data source
     await _datasource.deleteResourcesBySourceId('demo_data');
+
+    // Delete the demo_data source itself
+    await _syncLocalDataSource.deleteSource('demo_data');
   }
 
   @override
@@ -288,6 +310,21 @@ class RecordsRepositoryImpl implements RecordsRepository {
       throw Exception('Expected Observation resource type');
     }
 
+    // Extract encounterId and subjectId from FHIR Observation
+    String? encounterId;
+    String? subjectId;
+
+    // For observations, we need to extract from the raw FHIR resource
+    final rawResource = observation.rawResource;
+    if (rawResource['encounter']?['reference'] != null) {
+      encounterId = FhirReferenceUtils.extractReferenceId(
+          rawResource['encounter']['reference']);
+    }
+    if (rawResource['subject']?['reference'] != null) {
+      subjectId = FhirReferenceUtils.extractReferenceId(
+          rawResource['subject']['reference']);
+    }
+
     final dto = FhirResourceLocalDto(
       id: observation.id,
       sourceId: observation.sourceId,
@@ -296,8 +333,8 @@ class RecordsRepositoryImpl implements RecordsRepository {
       title: observation.title,
       date: observation.date,
       resourceRaw: jsonEncode(observation.rawResource),
-      encounterId: null,
-      subjectId: null,
+      encounterId: encounterId,
+      subjectId: subjectId,
     );
 
     final id = await _datasource.insertResource(dto);
@@ -310,6 +347,7 @@ class RecordsRepositoryImpl implements RecordsRepository {
       throw Exception('Expected Patient resource type');
     }
 
+    // For Patient resources, subjectId should be their own resourceId
     final dto = FhirResourceLocalDto(
       id: patient.id,
       sourceId: patient.sourceId,
@@ -318,8 +356,9 @@ class RecordsRepositoryImpl implements RecordsRepository {
       title: patient.title,
       date: patient.date,
       resourceRaw: jsonEncode(patient.rawResource),
-      encounterId: null,
-      subjectId: null,
+      encounterId: null, // Patients don't have encounterId
+      subjectId:
+          patient.resourceId, // Patient's subjectId is their own resourceId
     );
 
     await _datasource.insertResource(dto);

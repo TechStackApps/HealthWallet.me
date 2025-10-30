@@ -1,12 +1,12 @@
 import 'package:flutter/services.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
-import 'package:health_wallet/features/records/domain/entity/record_attachment/record_attachment.dart';
 import 'package:health_wallet/features/records/domain/entity/record_note/record_note.dart';
 
 abstract class RecordsRepository {
   Future<List<IFhirResource>> getResources({
     List<FhirType> resourceTypes = const [],
     String? sourceId,
+    List<String>? sourceIds,
     int limit = 20,
     int offset = 0,
   });
@@ -22,17 +22,10 @@ abstract class RecordsRepository {
 
   Future<IFhirResource?> resolveReference(String reference);
 
-  Future<int> addRecordAttachment({
-    required String resourceId,
-    required String filePath,
-  });
-
-  Future<List<RecordAttachment>> getRecordAttachments(String resourceId);
-
-  Future<int> deleteRecordAttachment(RecordAttachment attachment);
-
+  // Record Notes - Can be attached to any FHIR resource
   Future<int> addRecordNote({
     required String resourceId,
+    String? sourceId,
     required String content,
   });
 

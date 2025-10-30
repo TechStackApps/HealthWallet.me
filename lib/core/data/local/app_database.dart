@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:health_wallet/core/data/local/app_database.steps.dart';
-import 'package:health_wallet/features/records/data/datasource/tables/record_attachments.dart';
 import 'package:health_wallet/features/records/data/datasource/tables/record_notes.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/tables/fhir_resource_table.dart';
 import 'package:health_wallet/features/sync/data/data_source/local/tables/source_table.dart';
@@ -12,12 +11,16 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [FhirResource, Sources, RecordAttachments, RecordNotes])
+@DriftDatabase(tables: [
+  FhirResource,
+  Sources,
+  RecordNotes,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

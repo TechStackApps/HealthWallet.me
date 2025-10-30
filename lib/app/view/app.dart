@@ -5,6 +5,7 @@ import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
+import 'package:health_wallet/core/utils/patient_source_utils.dart';
 
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
@@ -22,7 +23,6 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
-    final routeObserver = getIt<AppRouteObserver>();
 
     return MultiBlocProvider(
       providers: [
@@ -60,7 +60,7 @@ class App extends StatelessWidget {
               themeMode:
                   state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               routerConfig:
-                  router.config(navigatorObservers: () => [routeObserver]),
+                  router.config(navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) => child!,
@@ -78,7 +78,7 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
   }
 
   if (state.hasSyncedData) {
-    context.read<HomeBloc>().add(const HomeSourceChanged('All'));
+    PatientSourceUtils.reloadHomeWithPatientFilter(context, 'All');
   }
 
   if (state.shouldShowTutorial) {
@@ -88,15 +88,14 @@ void _handleSyncBlocStateChange(BuildContext context, SyncState state) {
   if (state.syncStatus == SyncStatus.synced) {
     context.read<RecordsBloc>().add(const RecordsInitialised());
     context.read<UserBloc>().add(const UserDataUpdatedFromSync());
-
     context.read<PatientBloc>().add(const PatientPatientsLoaded());
 
     Future.delayed(const Duration(milliseconds: 300), () {
       if (context.mounted) {
-        final patientState = context.read<PatientBloc>().state;
-        final selectedSource = patientState.selectedPatientSourceId ?? 'All';
-
-        context.read<HomeBloc>().add(HomeSourceChanged(selectedSource));
+        final homeState = context.read<HomeBloc>().state;
+        final currentSource =
+            homeState.selectedSource.isEmpty ? 'All' : homeState.selectedSource;
+        PatientSourceUtils.reloadHomeWithPatientFilter(context, currentSource);
       }
     });
   }

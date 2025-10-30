@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -39,28 +39,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        return current.demoDataConfirmed && !current.hasSyncedData;
+        // Only listen for tutorial trigger to ensure we're on home page
+        return current.shouldShowTutorial && !previous.shouldShowTutorial;
       },
       listener: (context, syncState) async {
-        if (syncState.demoDataConfirmed && !syncState.hasSyncedData) {
-          final prefs = await SharedPreferences.getInstance();
-          final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
-
-          if (!onboardingShown) {
-            _pageController.animateToPage(
-              0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.ease,
-            );
-
-            Future.delayed(const Duration(milliseconds: 400), () {
-              if (mounted && context.mounted) {
-                try {
-                  context.read<SyncBloc>().add(const TriggerTutorial());
-                } catch (e) {}
-              }
-            });
-          } else {}
+        if (syncState.shouldShowTutorial) {
+          // Ensure we're on home page for tutorial
+          _pageController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.ease,
+          );
         }
       },
       child: Scaffold(
@@ -77,6 +66,7 @@ class _DashboardPageState extends State<DashboardPage> {
               children: [
                 HomePage(pageController: _pageController),
                 RecordsPage(pageController: _pageController),
+                ScanPage(pageController: _pageController),
               ],
             ),
             // Bottom navigation bar
@@ -176,6 +166,33 @@ class _DashboardPageState extends State<DashboardPage> {
                                       FocusScope.of(context).unfocus();
                                       _pageController.animateToPage(
                                         1,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.ease,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildNavItem(
+                                    icon: Assets.icons.documentFile.svg(
+                                      width: 24,
+                                      height: 24,
+                                      colorFilter: ColorFilter.mode(
+                                        _currentIndex == 2
+                                            ? (context.isDarkMode
+                                                ? Colors.white
+                                                : context.colorScheme.surface)
+                                            : context.colorScheme.onSurface,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    label: context.l10n.documentScanTitle,
+                                    isSelected: _currentIndex == 2,
+                                    onTap: () {
+                                      FocusScope.of(context).unfocus();
+                                      _pageController.animateToPage(
+                                        2,
                                         duration:
                                             const Duration(milliseconds: 300),
                                         curve: Curves.ease,

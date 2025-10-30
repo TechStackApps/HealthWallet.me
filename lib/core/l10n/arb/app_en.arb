@@ -119,6 +119,9 @@
     "noChangesDetected": "No changes detected",
     "pleaseSelectBirthDate": "Please select a birth date",
     "errorSavingPatientData": "Error saving patient data",
+    "walletHolder": "Wallet Holder",
+    "walletHolderDescription": "This patient is the primary owner of this health wallet",
+    "getStarted": "Get Started",
     "failedToUpdateDisplayName": "Failed to update display name",
     "actionCannotBeUndone": "This action cannot be undone.",
     "confirmDeleteFile": "Are you sure you want to delete \"{filename}\"?",
@@ -211,5 +214,7 @@
     "sourceName": "Source name",
     "provideCustomLabel": "Provide a custom label for:",
     "success": "Success",
-    "demoDataLoadedSuccessfully": "Demo data has been loaded successfully. You will be redirected to the home page."
+    "demoDataLoadedSuccessfully": "Demo data has been loaded successfully. You will be redirected to the home page.",
+
+    "documentScanTitle": "Scan"
 }

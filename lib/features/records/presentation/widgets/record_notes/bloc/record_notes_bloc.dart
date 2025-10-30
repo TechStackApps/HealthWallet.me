@@ -28,6 +28,7 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
     emit(state.copyWith(status: const RecordNotesStatus.loading()));
 
     try {
+      // Get notes for this resource directly
       List<RecordNote> notes =
           await _recordsRepository.getRecordNotes(event.resource.id);
 
@@ -71,8 +72,12 @@ class RecordNotesBloc extends Bloc<RecordNotesEvent, RecordNotesState> {
         await _recordsRepository
             .editRecordNote(state.editNote!.copyWith(content: event.content));
       } else {
+        // Add note directly to the resource
         await _recordsRepository.addRecordNote(
-            resourceId: state.resource.id, content: event.content);
+          resourceId: state.resource.id,
+          sourceId: state.resource.sourceId,
+          content: event.content,
+        );
       }
 
       emit(state.copyWith(

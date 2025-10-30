@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
+import 'package:health_wallet/features/user/domain/services/patient_deduplication_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
@@ -15,11 +16,13 @@ part 'patient_state.dart';
 @injectable
 class PatientBloc extends Bloc<PatientEvent, PatientState> {
   final RecordsRepository _recordsRepository;
+  final PatientDeduplicationService _deduplicationService;
   static const String _selectedPatientIdKey = 'selected_patient_id';
-  static const String _selectedPatientSourceIdKey =
-      'selected_patient_source_id';
 
-  PatientBloc(this._recordsRepository) : super(const PatientState()) {
+  PatientBloc(
+    this._recordsRepository,
+    this._deduplicationService,
+  ) : super(const PatientState()) {
     on<PatientInitialised>(_onInitialised);
     on<PatientPatientsLoaded>(_onPatientsLoaded);
     on<PatientReorder>(_onPatientReorder);
@@ -30,17 +33,15 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     on<PatientSelectionChanged>(_onSelectionChanged);
   }
 
-  Future<void> _saveSelectedPatient(String patientId, String sourceId) async {
+  Future<void> _saveSelectedPatient(String patientId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedPatientIdKey, patientId);
-    await prefs.setString(_selectedPatientSourceIdKey, sourceId);
   }
 
-  Future<Map<String, String?>> _loadSelectedPatient() async {
+  Future<String?> _loadSelectedPatient() async {
     final prefs = await SharedPreferences.getInstance();
     final patientId = prefs.getString(_selectedPatientIdKey);
-    final sourceId = prefs.getString(_selectedPatientSourceIdKey);
-    return {'patientId': patientId, 'sourceId': sourceId};
+    return patientId;
   }
 
   Future<void> _onInitialised(
@@ -54,52 +55,59 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(state.copyWith(status: const PatientStatus.loading()));
 
     try {
-      final patients = await _recordsRepository.getResources(
+      final allPatientsResources = await _recordsRepository.getResources(
         resourceTypes: [FhirType.Patient],
-        limit: 10,
+        limit: 100,
       );
 
-      final patientList = patients.whereType<Patient>().toList();
+      final allPatients = allPatientsResources.whereType<Patient>().toList();
 
-      final savedPatientData = await _loadSelectedPatient();
-      final savedPatientId = savedPatientData['patientId'];
+      final uniquePatients =
+          _deduplicationService.getUniquePatients(allPatients);
+
+      final patientGroups =
+          _deduplicationService.deduplicatePatients(allPatients);
+
+      final patientGroups_enhanced = await _enhancePatientGroupsWithSubjectId(
+        patientGroups,
+        allPatients,
+      );
+
+      final savedPatientId = await _loadSelectedPatient();
 
       Set<String> expandedIds;
       String? selectedPatientId;
-      String? selectedPatientSourceId;
 
       if (savedPatientId != null &&
-          patientList.any((p) => p.id == savedPatientId)) {
+          uniquePatients.any((p) => p.id == savedPatientId)) {
         final savedPatient =
-            patientList.firstWhere((p) => p.id == savedPatientId);
+            uniquePatients.firstWhere((p) => p.id == savedPatientId);
         expandedIds = {savedPatient.id};
         selectedPatientId = savedPatient.id;
-        selectedPatientSourceId = savedPatient.sourceId;
 
-        if (patientList.first.id != savedPatient.id) {
-          patientList.remove(savedPatient);
-          patientList.insert(0, savedPatient);
+        if (uniquePatients.first.id != savedPatient.id) {
+          uniquePatients.remove(savedPatient);
+          uniquePatients.insert(0, savedPatient);
         }
       } else {
         expandedIds =
-            patientList.isNotEmpty ? {patientList.first.id} : <String>{};
-        if (patientList.isNotEmpty) {
-          selectedPatientId = patientList.first.id;
-          selectedPatientSourceId = patientList.first.sourceId;
+            uniquePatients.isNotEmpty ? {uniquePatients.first.id} : <String>{};
+        if (uniquePatients.isNotEmpty) {
+          selectedPatientId = uniquePatients.first.id;
         }
       }
 
       emit(state.copyWith(
         status: const PatientStatus.success(),
-        patients: patientList,
+        patients: uniquePatients,
+        allPatientsAcrossSources: allPatients,
+        patientGroups: patientGroups_enhanced,
         expandedPatientIds: expandedIds,
         selectedPatientId: selectedPatientId,
-        selectedPatientSourceId: selectedPatientSourceId,
       ));
 
-      // Update state with selected patient
-      if (selectedPatientId != null && selectedPatientSourceId != null) {
-        await _saveSelectedPatient(selectedPatientId, selectedPatientSourceId);
+      if (selectedPatientId != null) {
+        await _saveSelectedPatient(selectedPatientId);
       }
     } catch (e) {
       logger.e('Error in _loadPatients: $e');
@@ -164,12 +172,11 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     currentPatients.remove(selectedPatient);
     currentPatients.insert(0, selectedPatient);
 
-    await _saveSelectedPatient(selectedPatient.id, selectedPatient.sourceId);
+    await _saveSelectedPatient(selectedPatient.id);
 
     emit(state.copyWith(
       patients: currentPatients,
       selectedPatientId: selectedPatient.id,
-      selectedPatientSourceId: selectedPatient.sourceId,
       swappingFromPatientId: '',
       swappingToPatientId: '',
     ));
@@ -201,13 +208,81 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     ));
   }
 
+  Future<Map<String, PatientGroup>> _enhancePatientGroupsWithSubjectId(
+    Map<String, PatientGroup> patientGroups,
+    List<Patient> allPatients,
+  ) async {
+    try {
+      final enhancedGroups = Map<String, PatientGroup>.from(patientGroups);
+
+      for (final patient in allPatients) {
+        final sourcesForPatient = await _getSourceIdsForPatient(patient.id);
+
+        final allSourceIds = {
+          ...sourcesForPatient,
+          if (patient.sourceId.isNotEmpty) patient.sourceId
+        }.toList();
+
+        final existingGroup = enhancedGroups[patient.id];
+        if (existingGroup != null) {
+          final combinedSourceIds =
+              {...existingGroup.sourceIds, ...allSourceIds}.toList();
+          enhancedGroups[patient.id] = PatientGroup(
+            representativePatient: existingGroup.representativePatient,
+            sourceIds: combinedSourceIds,
+            allPatientInstances: existingGroup.allPatientInstances,
+          );
+        } else {
+          enhancedGroups[patient.id] = PatientGroup(
+            representativePatient: patient,
+            sourceIds: allSourceIds,
+            allPatientInstances: [patient],
+          );
+        }
+      }
+
+      return enhancedGroups;
+    } catch (e) {
+      logger.e('Error in _enhancePatientGroupsWithSubjectId: $e');
+      return patientGroups;
+    }
+  }
+
+  Future<List<String>> _getSourceIdsForPatient(String patientId) async {
+    try {
+      final allResources = await _recordsRepository.getResources(
+        resourceTypes: [],
+        limit: 10000,
+      );
+
+      final sourceIds = allResources
+          .where((resource) {
+            if (resource is Patient) return false;
+
+            final subjectRef = resource.rawResource['subject'];
+            if (subjectRef == null) return false;
+
+            final reference = subjectRef['reference'];
+            if (reference == null) return false;
+
+            return reference.toString().contains(patientId);
+          })
+          .map((r) => r.sourceId)
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+
+      return sourceIds;
+    } catch (e) {
+      logger.e('Error in _getSourceIdsForPatient: $e');
+      return [];
+    }
+  }
+
   Future<void> _onDataUpdatedFromSync(
     PatientDataUpdatedFromSync event,
     Emitter<PatientState> emit,
-  ) async {
-    // Don't reload patients here as it can override the current selection
-    // Only load patients on initialisation
-  }
+  ) async {}
 
   Future<void> _onEditStarted(
     PatientEditStarted event,
@@ -241,7 +316,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(state.copyWith(status: const PatientStatus.loading()));
 
     try {
-      // Find the patient to update
       final patientIndex = state.patients.indexWhere(
         (p) => p.id == event.patientId,
       );
@@ -257,7 +331,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           birthDate: fhir_r4.FhirDate.fromDateTime(event.birthDate),
         );
 
-        // Update the patient in the repository
         await _recordsRepository.updatePatient(updatedPatient);
 
         final updatedPatients = List<Patient>.from(state.patients);
@@ -270,12 +343,10 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           editingPatient: null,
         ));
       } else {
-        // If state is empty, reload patients first
         if (state.patients.isEmpty) {
           await _loadPatients(emit);
         }
 
-        // Try to find the patient again after potential reload
         final refreshedPatientIndex = state.patients.indexWhere(
           (p) => p.id == event.patientId,
         );
@@ -284,7 +355,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           final currentPatient = state.patients[refreshedPatientIndex];
 
           final updatedPatient = currentPatient.copyWith(
-            // ID is not editable - keep the original
             id: currentPatient.id,
             identifier: currentPatient.identifier,
             gender: _mapDisplayGenderToFhir(event.gender),
@@ -302,8 +372,6 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
             isEditingPatient: false,
             editingPatient: null,
           ));
-
-          // NO NEED to reload patients - just use the updated local data
         } else {
           emit(state.copyWith(
             status: PatientStatus.failure(
@@ -340,12 +408,10 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     Emitter<PatientState> emit,
   ) async {
     try {
-      await _saveSelectedPatient(event.patientId, event.sourceId);
+      await _saveSelectedPatient(event.patientId);
 
-      // Update the state with the new selection
       emit(state.copyWith(
         selectedPatientId: event.patientId,
-        selectedPatientSourceId: event.sourceId,
         expandedPatientIds: {event.patientId},
       ));
     } catch (e) {

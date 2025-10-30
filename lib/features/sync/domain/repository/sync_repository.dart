@@ -1,3 +1,4 @@
+import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/sync/domain/entities/source.dart';
 import 'package:health_wallet/features/sync/domain/entities/sync_qr_data.dart';
 
@@ -10,4 +11,9 @@ abstract class SyncRepository {
   Future<void> saveSyncQrData(SyncQrData qrData);
   Future<SyncQrData?> getCurrentSyncQrData();
   Future<void> updateSourceLabel(String sourceId, String newLabel);
+  Future<void> createWalletSource();
+  Future<void> createDemoDataSource();
+  Future<void> deleteSource(String sourceId);
+  Future<void> cacheSources(List<Source> sources);
+  Future saveResources(List<IFhirResource> resources);
 }

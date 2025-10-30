@@ -34,7 +34,7 @@ dependencies:
   # Local Storage
   drift: ^2.15.0
   sqlite3_flutter_libs: ^0.5.20
-  path_provider: ^2.1.2
+  path_provider: ^2.1.5
   shared_preferences: ^2.2.3
 
 
@@ -54,7 +54,7 @@ dependencies:
   url_launcher: ^6.2.5
   android_intent_plus: ^5.0.2
   fhir_r4: ^0.4.2
-  file_picker: ^10.2.1
+  file_picker: ^8.3.7
   path: ^1.9.1
   share_plus: ^11.0.0
   network_info_plus: ^6.0.1
@@ -64,6 +64,21 @@ dependencies:
   fhir_ips_export:
     git:
       url: ssh://git@git.techstackapps.com:2822/mobile/health-wallet/fhir-ips-export.git
+  flutter_doc_scanner: ^0.0.16
+  permission_handler: ^12.0.1
+  open_file: ^3.5.10
+  image_picker: ^1.0.7
+  google_mlkit_text_recognition: ^0.15.0
+  pdfx: ^2.9.2
+  pdf_to_image_converter: ^0.0.3
+  flutter_pdfview: ^1.4.3
+  # cunning_document_scanner: ^1.3.1
+  flutter_gemma: ^0.11.3
+  string_similarity: ^2.1.1
+  bloc_concurrency: ^0.2.5
+  collection: ^1.19.1
+  uuid: ^4.5.1
+  envied: ^1.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -84,6 +99,7 @@ dev_dependencies:
   mockito: ^5.4.4
   bloc_test: ^9.1.5
   golden_toolkit: ^0.15.0
+  envied_generator: ^1.1.1
 
 flutter:
   uses-material-design: true

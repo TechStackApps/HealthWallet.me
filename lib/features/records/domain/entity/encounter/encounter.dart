@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:fhir_r4/fhir_r4.dart' as fhir_r4;
 import 'package:fhir_r4/fhir_r4.dart';
+import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
-import 'package:health_wallet/features/records/domain/utils/fhir_date_extractor.dart';
 import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
@@ -23,6 +24,8 @@ class Encounter with _$Encounter implements IFhirResource {
     @Default('') String title,
     DateTime? date,
     @Default({}) Map<String, dynamic> rawResource,
+    @Default('') String encounterId,
+    @Default('') String subjectId,
     Narrative? text,
     List<Identifier>? identifier,
     EncounterStatus? status,
@@ -53,42 +56,70 @@ class Encounter with _$Encounter implements IFhirResource {
   FhirType get fhirType => FhirType.Encounter;
 
   factory Encounter.fromLocalData(FhirResourceLocalDto data) {
-    final resourceJson = jsonDecode(data.resourceRaw);
-    final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
+    try {
+      final resourceJson = jsonDecode(data.resourceRaw);
+      final fhirEncounter = fhir_r4.Encounter.fromJson(resourceJson);
 
-    return Encounter(
-      id: data.id,
-      sourceId: data.sourceId ?? '',
-      resourceId: data.resourceId ?? '',
-      title: data.title ?? '',
-      date: data.date,
-      rawResource: resourceJson,
-      text: fhirEncounter.text,
-      identifier: fhirEncounter.identifier,
-      status: fhirEncounter.status,
-      statusHistory: fhirEncounter.statusHistory,
-      class_: fhirEncounter.class_,
-      classHistory: fhirEncounter.classHistory,
-      type: fhirEncounter.type,
-      serviceType: fhirEncounter.serviceType,
-      priority: fhirEncounter.priority,
-      subject: fhirEncounter.subject,
-      episodeOfCare: fhirEncounter.episodeOfCare,
-      basedOn: fhirEncounter.basedOn,
-      participant: fhirEncounter.participant,
-      appointment: fhirEncounter.appointment,
-      period: fhirEncounter.period,
-      length: fhirEncounter.length,
-      reasonCode: fhirEncounter.reasonCode,
-      reasonReference: fhirEncounter.reasonReference,
-      diagnosis: fhirEncounter.diagnosis,
-      account: fhirEncounter.account,
-      hospitalization: fhirEncounter.hospitalization,
-      location: fhirEncounter.location,
-      serviceProvider: fhirEncounter.serviceProvider,
-      partOf: fhirEncounter.partOf,
-    );
+      return Encounter(
+        id: data.id,
+        sourceId: data.sourceId ?? '',
+        resourceId: data.resourceId ?? '',
+        title: data.title ?? '',
+        date: data.date,
+        rawResource: resourceJson,
+        encounterId: data.encounterId ?? '',
+        subjectId: data.subjectId ?? '',
+        text: fhirEncounter.text,
+        identifier: fhirEncounter.identifier,
+        status: fhirEncounter.status,
+        statusHistory: fhirEncounter.statusHistory,
+        class_: fhirEncounter.class_,
+        classHistory: fhirEncounter.classHistory,
+        type: fhirEncounter.type,
+        serviceType: fhirEncounter.serviceType,
+        priority: fhirEncounter.priority,
+        subject: fhirEncounter.subject,
+        episodeOfCare: fhirEncounter.episodeOfCare,
+        basedOn: fhirEncounter.basedOn,
+        participant: fhirEncounter.participant,
+        appointment: fhirEncounter.appointment,
+        period: fhirEncounter.period,
+        length: fhirEncounter.length,
+        reasonCode: fhirEncounter.reasonCode,
+        reasonReference: fhirEncounter.reasonReference,
+        diagnosis: fhirEncounter.diagnosis,
+        account: fhirEncounter.account,
+        hospitalization: fhirEncounter.hospitalization,
+        location: fhirEncounter.location,
+        serviceProvider: fhirEncounter.serviceProvider,
+        partOf: fhirEncounter.partOf,
+      );
+    } catch (e) {
+      logger.e(
+          'Failed to parse Encounter ${data.id}, creating minimal entity: $e');
+      return Encounter(
+        id: data.id,
+        sourceId: data.sourceId ?? '',
+        resourceId: data.resourceId ?? '',
+        title: data.title ?? 'Encounter',
+        date: data.date,
+        rawResource: jsonDecode(data.resourceRaw),
+      );
+    }
   }
+
+  @override
+  FhirResourceDto toDto() => FhirResourceDto(
+        id: id,
+        sourceId: sourceId,
+        resourceType: 'Encounter',
+        resourceId: resourceId,
+        title: title,
+        date: date,
+        resourceRaw: rawResource,
+        encounterId: encounterId,
+        subjectId: subjectId,
+      );
 
   @override
   String get displayTitle {
