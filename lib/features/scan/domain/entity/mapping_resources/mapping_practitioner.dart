@@ -92,11 +92,22 @@ class MappingPractitioner
       MappingPractitioner(
         id: id,
         practitionerName: MappedProperty(
-            value: newValues['practitionerName'] ?? practitionerName.value),
-        specialty:
-            MappedProperty(value: newValues['specialty'] ?? specialty.value),
-        identifier:
-            MappedProperty(value: newValues['identifier'] ?? identifier.value),
+          value: newValues['practitionerName'] ?? practitionerName.value,
+          confidenceLevel: newValues['practitionerName'] != null
+              ? 1
+              : practitionerName.confidenceLevel,
+        ),
+        specialty: MappedProperty(
+          value: newValues['specialty'] ?? specialty.value,
+          confidenceLevel:
+              newValues['specialty'] != null ? 1 : specialty.confidenceLevel,
+        ),
+        identifier: MappedProperty(
+          value: newValues['identifier'] ?? identifier.value,
+          confidenceLevel: newValues['identifier'] != null
+              ? 1
+              : identifier.confidenceLevel,
+        ),
       );
 
   @override

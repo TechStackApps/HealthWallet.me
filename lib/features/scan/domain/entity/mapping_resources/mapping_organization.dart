@@ -83,9 +83,21 @@ class MappingOrganization
       MappingOrganization(
         id: id,
         organizationName: MappedProperty(
-            value: newValues['organizationName'] ?? organizationName.value),
-        address: MappedProperty(value: newValues['address'] ?? address.value),
-        phone: MappedProperty(value: newValues['phone'] ?? phone.value),
+          value: newValues['organizationName'] ?? organizationName.value,
+          confidenceLevel: newValues['organizationName'] != null
+              ? 1
+              : organizationName.confidenceLevel,
+        ),
+        address: MappedProperty(
+          value: newValues['address'] ?? address.value,
+          confidenceLevel:
+              newValues['address'] != null ? 1 : address.confidenceLevel,
+        ),
+        phone: MappedProperty(
+          value: newValues['phone'] ?? phone.value,
+          confidenceLevel:
+              newValues['phone'] != null ? 1 : phone.confidenceLevel,
+        ),
       );
 
   @override

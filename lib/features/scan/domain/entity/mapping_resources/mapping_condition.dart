@@ -41,8 +41,10 @@ class MappingCondition with _$MappingCondition implements MappingResource {
       onsetX: fhir_r4.FhirDateTime.fromString(onsetDateTime.value),
       clinicalStatus: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(clinicalStatus.value)),
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
-      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
+      subject: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = condition.toJson();
@@ -87,11 +89,23 @@ class MappingCondition with _$MappingCondition implements MappingResource {
       MappingCondition(
         id: id,
         conditionName: MappedProperty(
-            value: newValues['conditionName'] ?? conditionName.value),
+          value: newValues['conditionName'] ?? conditionName.value,
+          confidenceLevel: newValues['conditionName'] != null
+              ? 1
+              : conditionName.confidenceLevel,
+        ),
         onsetDateTime: MappedProperty(
-            value: newValues['onsetDateTime'] ?? onsetDateTime.value),
+          value: newValues['onsetDateTime'] ?? onsetDateTime.value,
+          confidenceLevel: newValues['onsetDateTime'] != null
+              ? 1
+              : onsetDateTime.confidenceLevel,
+        ),
         clinicalStatus: MappedProperty(
-            value: newValues['clinicalStatus'] ?? clinicalStatus.value),
+          value: newValues['clinicalStatus'] ?? clinicalStatus.value,
+          confidenceLevel: newValues['clinicalStatus'] != null
+              ? 1
+              : clinicalStatus.confidenceLevel,
+        ),
       );
 
   @override

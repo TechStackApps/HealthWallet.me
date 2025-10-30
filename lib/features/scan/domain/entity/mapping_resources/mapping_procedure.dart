@@ -43,9 +43,11 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
       reasonCode: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value))
       ],
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      subject: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
       status: fhir_r4.EventStatus.unknown,
-      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
+      encounter: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = procedure.toJson();
@@ -90,10 +92,22 @@ class MappingProcedure with _$MappingProcedure implements MappingResource {
       MappingProcedure(
         id: id,
         procedureName: MappedProperty(
-            value: newValues['procedureName'] ?? procedureName.value),
+          value: newValues['procedureName'] ?? procedureName.value,
+          confidenceLevel: newValues['procedureName'] != null
+              ? 1
+              : procedureName.confidenceLevel,
+        ),
         performedDateTime: MappedProperty(
-            value: newValues['performedDateTime'] ?? performedDateTime.value),
-        reason: MappedProperty(value: newValues['reason'] ?? reason.value),
+          value: newValues['performedDateTime'] ?? performedDateTime.value,
+          confidenceLevel: newValues['performedDateTime'] != null
+              ? 1
+              : performedDateTime.confidenceLevel,
+        ),
+        reason: MappedProperty(
+          value: newValues['reason'] ?? reason.value,
+          confidenceLevel:
+              newValues['reason'] != null ? 1 : reason.confidenceLevel,
+        ),
       );
 
   @override

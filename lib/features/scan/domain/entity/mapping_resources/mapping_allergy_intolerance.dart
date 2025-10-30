@@ -47,8 +47,10 @@ class MappingAllergyIntolerance
         ),
       ],
       category: [fhir_r4.AllergyIntoleranceCategory(category.value)],
-      patient: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
-      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
+      patient: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = allergyIntolerance.toJson();
@@ -90,12 +92,23 @@ class MappingAllergyIntolerance
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingAllergyIntolerance(
         id: id,
-        substance:
-            MappedProperty(value: newValues['substance'] ?? substance.value),
+        substance: MappedProperty(
+          value: newValues['substance'] ?? substance.value,
+          confidenceLevel:
+              newValues['substance'] != null ? 1 : substance.confidenceLevel,
+        ),
         manifestation: MappedProperty(
-            value: newValues['manifestation'] ?? manifestation.value),
-        category:
-            MappedProperty(value: newValues['category'] ?? category.value),
+          value: newValues['manifestation'] ?? manifestation.value,
+          confidenceLevel: newValues['manifestation'] != null
+              ? 1
+              : manifestation.confidenceLevel,
+        ),
+        category: MappedProperty(
+          value: newValues['category'] ?? category.value,
+          confidenceLevel: newValues['category'] != null
+              ? 1
+              : category.confidenceLevel,
+        ),
       );
 
   @override

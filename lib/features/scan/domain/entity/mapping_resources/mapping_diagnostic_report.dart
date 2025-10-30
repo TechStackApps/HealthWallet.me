@@ -43,8 +43,10 @@ class MappingDiagnosticReport
       issued: fhir_r4.FhirInstant.fromDateTime(
           DateTime.tryParse(issuedDate.value) ?? DateTime.now()),
       status: fhir_r4.DiagnosticReportStatus.unknown,
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
-      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
+      subject: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = diagnosticReport.toJson();
@@ -88,12 +90,21 @@ class MappingDiagnosticReport
   MappingResource copyWithMap(Map<String, dynamic> newValues) =>
       MappingDiagnosticReport(
         id: id,
-        reportName:
-            MappedProperty(value: newValues['reportName'] ?? reportName.value),
-        conclusion:
-            MappedProperty(value: newValues['conclusion'] ?? conclusion.value),
-        issuedDate:
-            MappedProperty(value: newValues['issuedDate'] ?? issuedDate.value),
+        reportName: MappedProperty(
+          value: newValues['reportName'] ?? reportName.value,
+          confidenceLevel:
+              newValues['reportName'] != null ? 1 : reportName.confidenceLevel,
+        ),
+        conclusion: MappedProperty(
+          value: newValues['conclusion'] ?? conclusion.value,
+          confidenceLevel:
+              newValues['conclusion'] != null ? 1 : conclusion.confidenceLevel,
+        ),
+        issuedDate: MappedProperty(
+          value: newValues['issuedDate'] ?? issuedDate.value,
+          confidenceLevel:
+              newValues['issuedDate'] != null ? 1 : issuedDate.confidenceLevel,
+        ),
       );
 
   @override

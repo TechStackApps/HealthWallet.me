@@ -42,8 +42,10 @@ class MappingObservation with _$MappingObservation implements MappingResource {
         unit: fhir_r4.FhirString(unit.value),
       ),
       status: fhir_r4.ObservationStatus.unknown,
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
-      encounter: fhir_r4.Reference(reference: fhir_r4.FhirString('Encounter/$encounterId')),
+      subject: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
+      encounter: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Encounter/$encounterId')),
     );
 
     Map<String, dynamic> rawResource = observation.toJson();
@@ -85,9 +87,21 @@ class MappingObservation with _$MappingObservation implements MappingResource {
       MappingObservation(
         id: id,
         observationName: MappedProperty(
-            value: newValues['observationName'] ?? observationName.value),
-        value: MappedProperty(value: newValues['value'] ?? value.value),
-        unit: MappedProperty(value: newValues['unit'] ?? unit.value),
+          value: newValues['observationName'] ?? observationName.value,
+          confidenceLevel: newValues['observationName'] != null
+              ? 1
+              : observationName.confidenceLevel,
+        ),
+        value: MappedProperty(
+          value: newValues['value'] ?? value.value,
+          confidenceLevel:
+              newValues['value'] != null ? 1 : value.confidenceLevel,
+        ),
+        unit: MappedProperty(
+          value: newValues['unit'] ?? unit.value,
+          confidenceLevel:
+              newValues['unit'] != null ? 1 : unit.confidenceLevel,
+        ),
       );
 
   @override

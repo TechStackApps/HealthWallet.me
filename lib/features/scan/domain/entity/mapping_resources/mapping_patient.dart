@@ -101,15 +101,32 @@ class MappingPatient with _$MappingPatient implements MappingResource {
   @override
   MappingResource copyWithMap(Map<String, dynamic> newValues) => MappingPatient(
         id: id,
-        givenName:
-            MappedProperty(value: newValues['givenName'] ?? givenName.value),
-        familyName:
-            MappedProperty(value: newValues['familyName'] ?? familyName.value),
+        givenName: MappedProperty(
+          value: newValues['givenName'] ?? givenName.value,
+          confidenceLevel:
+              newValues['givenName'] != null ? 1 : givenName.confidenceLevel,
+        ),
+        familyName: MappedProperty(
+          value: newValues['familyName'] ?? familyName.value,
+          confidenceLevel:
+              newValues['familyName'] != null ? 1 : familyName.confidenceLevel,
+        ),
         dateOfBirth: MappedProperty(
-            value: newValues['dateOfBirth'] ?? dateOfBirth.value),
-        gender: MappedProperty(value: newValues['gender'] ?? gender.value),
-        patientId:
-            MappedProperty(value: newValues['patientId'] ?? patientId.value),
+          value: newValues['dateOfBirth'] ?? dateOfBirth.value,
+          confidenceLevel: newValues['dateOfBirth'] != null
+              ? 1
+              : dateOfBirth.confidenceLevel,
+        ),
+        gender: MappedProperty(
+          value: newValues['gender'] ?? gender.value,
+          confidenceLevel:
+              newValues['gender'] != null ? 1 : gender.confidenceLevel,
+        ),
+        patientId: MappedProperty(
+          value: newValues['patientId'] ?? patientId.value,
+          confidenceLevel:
+              newValues['patientId'] != null ? 1 : patientId.confidenceLevel,
+        ),
       );
 
   @override

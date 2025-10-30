@@ -37,7 +37,8 @@ class MappingMedicationStatement
     String? encounterId,
     String? subjectId,
   }) {
-    fhir_r4.MedicationStatement medicationStatement = fhir_r4.MedicationStatement(
+    fhir_r4.MedicationStatement medicationStatement =
+        fhir_r4.MedicationStatement(
       medicationX: fhir_r4.CodeableConcept(
           text: fhir_r4.FhirString(medicationName.value)),
       dosage: [
@@ -46,7 +47,8 @@ class MappingMedicationStatement
       reasonCode: [
         fhir_r4.CodeableConcept(text: fhir_r4.FhirString(reason.value)),
       ],
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId')),
+      subject: fhir_r4.Reference(
+          reference: fhir_r4.FhirString('Patient/$subjectId')),
       status: fhir_r4.MedicationStatementStatusCodes.unknown,
     );
 
@@ -90,9 +92,21 @@ class MappingMedicationStatement
       MappingMedicationStatement(
         id: id,
         medicationName: MappedProperty(
-            value: newValues['medicationName'] ?? medicationName.value),
-        dosage: MappedProperty(value: newValues['dosage'] ?? dosage.value),
-        reason: MappedProperty(value: newValues['reason'] ?? reason.value),
+          value: newValues['medicationName'] ?? medicationName.value,
+          confidenceLevel: newValues['medicationName'] != null
+              ? 1
+              : medicationName.confidenceLevel,
+        ),
+        dosage: MappedProperty(
+          value: newValues['dosage'] ?? dosage.value,
+          confidenceLevel:
+              newValues['dosage'] != null ? 1 : dosage.confidenceLevel,
+        ),
+        reason: MappedProperty(
+          value: newValues['reason'] ?? reason.value,
+          confidenceLevel:
+              newValues['reason'] != null ? 1 : reason.confidenceLevel,
+        ),
       );
 
   @override

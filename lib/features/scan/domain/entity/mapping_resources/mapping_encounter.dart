@@ -36,22 +36,22 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
     String? subjectId,
   }) {
     fhir_r4.Encounter encounter = fhir_r4.Encounter(
-      type: [
-        fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
-      ],
-      location: [
-        fhir_r4.EncounterLocation(
-          location:
-              fhir_r4.Reference(display: fhir_r4.FhirString(location.value)),
-        )
-      ],
-      period: fhir_r4.Period(
-        start: fhir_r4.FhirDateTime.fromString(periodStart.value),
-      ),
-      status: fhir_r4.EncounterStatus.unknown,
-      class_: fhir_r4.Coding(code: fhir_r4.FhirCode("AMB")),
-      subject: fhir_r4.Reference(reference: fhir_r4.FhirString('Patient/$subjectId'))
-    );
+        type: [
+          fhir_r4.CodeableConcept(text: fhir_r4.FhirString(encounterType.value))
+        ],
+        location: [
+          fhir_r4.EncounterLocation(
+            location:
+                fhir_r4.Reference(display: fhir_r4.FhirString(location.value)),
+          )
+        ],
+        period: fhir_r4.Period(
+          start: fhir_r4.FhirDateTime.fromString(periodStart.value),
+        ),
+        status: fhir_r4.EncounterStatus.unknown,
+        class_: fhir_r4.Coding(code: fhir_r4.FhirCode("AMB")),
+        subject: fhir_r4.Reference(
+            reference: fhir_r4.FhirString('Patient/$subjectId')));
 
     Map<String, dynamic> rawResource = encounter.toJson();
 
@@ -96,11 +96,22 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
       MappingEncounter(
         id: id,
         encounterType: MappedProperty(
-            value: newValues['encounterType'] ?? encounterType.value),
-        location:
-            MappedProperty(value: newValues['location'] ?? location.value),
+          value: newValues['encounterType'] ?? encounterType.value,
+          confidenceLevel: newValues['encounterType'] != null
+              ? 1
+              : encounterType.confidenceLevel,
+        ),
+        location: MappedProperty(
+          value: newValues['location'] ?? location.value,
+          confidenceLevel:
+              newValues['location'] != null ? 1 : location.confidenceLevel,
+        ),
         periodStart: MappedProperty(
-            value: newValues['periodStart'] ?? periodStart.value),
+          value: newValues['periodStart'] ?? periodStart.value,
+          confidenceLevel: newValues['periodStart'] != null
+              ? 1
+              : periodStart.confidenceLevel,
+        ),
       );
 
   @override
