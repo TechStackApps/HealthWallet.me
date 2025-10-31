@@ -268,8 +268,11 @@ class ScanRepositoryImpl implements ScanRepository {
     for (int i = 0; i < supportedPrompts.length; i++) {
       String prompt = supportedPrompts[i].buildPrompt(medicalText);
 
-      String? promptResponse = await _networkDataSource.runPrompt(
+      await _networkDataSource.startSession(
         spec: SlmModel.gemmaModel().toInferenceSpec(),
+      );
+
+      String? promptResponse = await _networkDataSource.runPrompt(
         prompt: prompt,
       );
 
@@ -287,9 +290,11 @@ class ScanRepositoryImpl implements ScanRepository {
           }
         }
       } catch (_) {
+        await _networkDataSource.closeSession();
+        yield ([], (i + 1) / supportedPrompts.length);
         continue;
       }
-
+      await _networkDataSource.closeSession();
       yield (resources.toSet().toList(), (i + 1) / supportedPrompts.length);
     }
   }

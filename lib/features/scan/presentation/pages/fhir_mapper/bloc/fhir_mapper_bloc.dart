@@ -104,7 +104,15 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
         emit(state.copyWith(resources: [patients.first, ...noPatients]));
       }
 
-      if (!state.resources.any((resource) => resource is MappingEncounter)) {
+      List<MappingEncounter> encounters =
+          state.resources.whereType<MappingEncounter>().toList();
+      if (encounters.length > 1) {
+        List<MappingResource> noEncounters = [...state.resources]
+          ..removeWhere((resource) => resource is MappingEncounter);
+
+        emit(state.copyWith(resources: [patients.first, ...noEncounters]));
+      }
+      if (encounters.isEmpty) {
         emit(state.copyWith(
           resources: [
             ...state.resources,

@@ -12,8 +12,11 @@ abstract class ScanNetworkDataSource {
 
   Future<bool> checkModelExistence(InferenceModelSpec spec);
 
+  Future startSession({required InferenceModelSpec spec});
+
+  Future closeSession();
+
   Future<String?> runPrompt({
-    required InferenceModelSpec spec,
     required String prompt,
   });
 }
@@ -32,6 +35,8 @@ class ScanNetworkDataSourceImpl implements ScanNetworkDataSource {
           );
 
   final Dio _dio;
+  InferenceModel? _model;
+  InferenceModelSession? _session;
 
   @override
   Future<bool> checkModelExistence(InferenceModelSpec spec) async {
@@ -84,25 +89,35 @@ class ScanNetworkDataSourceImpl implements ScanNetworkDataSource {
   }
 
   @override
+  Future startSession({required InferenceModelSpec spec}) async {
+    if (_model == null) {
+      await FlutterGemmaPlugin.instance.modelManager.ensureModelReady(
+        spec.name,
+        spec.modelUrl,
+      );
+      _model = await FlutterGemmaPlugin.instance
+          .createModel(modelType: ModelType.gemmaIt, maxTokens: 4096);
+    }
+
+    _session = await _model!.createSession();
+  }
+
+  @override
+  Future closeSession() async {
+    await _session?.close();
+  }
+
+  @override
   Future<String?> runPrompt({
-    required InferenceModelSpec spec,
     required String prompt,
   }) async {
-    await FlutterGemmaPlugin.instance.modelManager.ensureModelReady(
-      spec.name,
-      spec.modelUrl,
-    );
+    if (_session == null) {
+      throw Exception("Session is not open");
+    }
 
-    final model = await FlutterGemmaPlugin.instance
-        .createModel(modelType: ModelType.gemmaIt, maxTokens: 4096);
+    await _session!.addQueryChunk(Message(text: prompt, isUser: true));
 
-    final session = await model.createSession();
-
-    await session.addQueryChunk(Message(text: prompt, isUser: true));
-
-    String response = await session.getResponse();
-
-    session.close();
+    String response = await _session!.getResponse();
 
     return response;
   }
