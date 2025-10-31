@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:health_wallet/features/records/domain/entity/i_fhir_resource.dart';
 import 'package:health_wallet/core/data/local/app_database.dart';
 import 'package:health_wallet/features/records/presentation/models/record_info_line.dart';
+import 'package:health_wallet/features/sync/data/dto/fhir_resource_dto.dart';
 
 part 'general_resource.freezed.dart';
 
@@ -16,6 +17,8 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
     @Default('') String title,
     DateTime? date,
     @Default({}) Map<String, dynamic> rawResource,
+    @Default('') String encounterId,
+    @Default('') String subjectId,
   }) = _GeneralResource;
 
   @override
@@ -28,8 +31,23 @@ class GeneralResource with _$GeneralResource implements IFhirResource {
       resourceId: data.resourceId ?? '',
       title: data.title ?? '',
       date: data.date,
+      encounterId: data.encounterId ?? '',
+      subjectId: data.subjectId ?? '',
     );
   }
+
+  @override
+  FhirResourceDto toDto() => FhirResourceDto(
+        id: id,
+        sourceId: sourceId,
+        resourceType: '',
+        resourceId: resourceId,
+        title: title,
+        date: date,
+        resourceRaw: rawResource,
+        encounterId: encounterId,
+        subjectId: subjectId,
+      );
 
   @override
   String get displayTitle => "Resource";

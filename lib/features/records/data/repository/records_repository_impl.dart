@@ -61,32 +61,13 @@ class RecordsRepositoryImpl implements RecordsRepository {
     required String encounterId,
     String? sourceId,
   }) async {
-    // Get all DocumentReference resources for this source
-    final documentReferences = await getResources(
-      resourceTypes: [FhirType.DocumentReference],
+    final localDtos = await _datasource.getResourcesByEncounterId(
+      encounterId: encounterId,
       sourceId: sourceId,
-      limit: 100, // Adjust as needed
     );
 
-    // Filter DocumentReference resources that reference this encounter
-    final relatedDocuments = documentReferences.where((resource) {
-      if (resource.rawResource.isEmpty) return false;
 
-      try {
-        final context = resource.rawResource['context'];
-        if (context != null && context['encounter'] != null) {
-          final encounters = context['encounter'] as List;
-          return encounters.any((encounter) {
-            return encounter['reference'] == 'Encounter/$encounterId';
-          });
-        }
-        return false;
-      } catch (e) {
-        return false;
-      }
-    }).toList();
-
-    return relatedDocuments;
+    return localDtos.map(IFhirResource.fromLocalDto).toList();
   }
 
   @override
