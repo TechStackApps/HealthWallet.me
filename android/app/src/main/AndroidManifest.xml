@@ -82,7 +82,7 @@
                     android:scheme="healthwallet"
                     android:host="add-document" />
             </intent-filter>
-
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
         </activity>
 
         <!-- Flutter meta-data -->
