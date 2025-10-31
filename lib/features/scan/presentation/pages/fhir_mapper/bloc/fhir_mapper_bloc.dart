@@ -85,15 +85,6 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       final medicalText = await _ocrProcessingHelper
           .processOcrForImages(state.allImagePathsForOCR);
 
-      if (medicalText.trim().isEmpty) {
-        emit(state.copyWith(
-          status: FhirMapperStatus.failure,
-          errorMessage:
-              'No text could be extracted from the selected files. Please try different pages or higher-quality scans.',
-        ));
-        return;
-      }
-
       final stream = _repository.mapResources(medicalText);
 
       await for (final (resources, progress) in stream) {
