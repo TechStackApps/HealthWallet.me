@@ -26,10 +26,7 @@ class ScanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance.get<ScanBloc>(),
-      child: ScanView(pageController: pageController),
-    );
+    return ScanView(pageController: pageController);
   }
 }
 
@@ -59,7 +56,11 @@ class _ScanViewState extends State<ScanView> {
 
     final currentState = context.read<ScanBloc>().state;
 
-    if (currentState.scannedImagePaths.isEmpty) {
+    final hasAnyFiles = currentState.scannedImagePaths.isNotEmpty ||
+                        currentState.importedImagePaths.isNotEmpty ||
+                        currentState.savedPdfPaths.isNotEmpty;
+
+    if (!hasAnyFiles) {
       await _handleScanButtonPressed(context);
     }
   }
