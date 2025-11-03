@@ -4,12 +4,15 @@ import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/import_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
 import 'package:health_wallet/features/records/presentation/pages/records_page.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:get_it/get_it.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
@@ -55,19 +58,33 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Scaffold(
         body: Stack(
           children: [
-            PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                FocusScope.of(context).unfocus();
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              children: [
-                HomePage(pageController: _pageController),
-                RecordsPage(pageController: _pageController),
-                ScanPage(pageController: _pageController),
-              ],
+            BlocProvider(
+              create: (_) =>
+                  GetIt.instance.get<ScanBloc>()..add(const ScanInitialised()),
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  FocusScope.of(context).unfocus();
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  switch (index) {
+                    case 0:
+                      return HomePage(pageController: _pageController);
+                    case 1:
+                      return RecordsPage(pageController: _pageController);
+                    case 2:
+                      return ScanPage(pageController: _pageController);
+                    case 3:
+                      return ImportPage(pageController: _pageController);
+                    default:
+                      return const SizedBox.shrink();
+                  }
+                },
+              ),
             ),
             // Bottom navigation bar
             BlocBuilder<SyncBloc, SyncState>(
@@ -193,6 +210,33 @@ class _DashboardPageState extends State<DashboardPage> {
                                       FocusScope.of(context).unfocus();
                                       _pageController.animateToPage(
                                         2,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.ease,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildNavItem(
+                                    icon: Assets.icons.cloudDownload.svg(
+                                      width: 24,
+                                      height: 24,
+                                      colorFilter: ColorFilter.mode(
+                                        _currentIndex == 3
+                                            ? (context.isDarkMode
+                                                ? Colors.white
+                                                : context.colorScheme.surface)
+                                            : context.colorScheme.onSurface,
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    label: 'Import',
+                                    isSelected: _currentIndex == 3,
+                                    onTap: () {
+                                      FocusScope.of(context).unfocus();
+                                      _pageController.animateToPage(
+                                        3,
                                         duration:
                                             const Duration(milliseconds: 300),
                                         curve: Curves.ease,

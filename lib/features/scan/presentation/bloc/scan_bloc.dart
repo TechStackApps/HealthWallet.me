@@ -21,10 +21,11 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<ScanInitialised>(_onScanInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DeleteDocument>(_onDeleteDocument);
-    on<ClearAllDocuments>(_onClearAllDocuments);
     on<DeletePdf>(_onDeletePdf);
     on<LoadSavedPdfs>(_onLoadSavedPdfs);
     on<DocumentImported>(_onDocumentImported);
+    on<ClearScans>(_onClearScans);
+    on<ClearImports>(_onClearImports);
   }
 
   Future<void> _onScanInitialised(
@@ -32,7 +33,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     Emitter<ScanState> emit,
   ) async {
     emit(state.copyWith(status: const ScanStatus.initial()));
-    add(const ScanEvent.loadSavedPdfs());
+    add(const LoadSavedPdfs());
   }
 
   Future<void> _onScanButtonPressed(
@@ -188,64 +189,86 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         await file.delete();
       }
 
-      final updatedPaths = state.scannedImagePaths
-          .where((path) => path != event.imagePath)
-          .toList();
+      if (state.scannedImagePaths.contains(event.imagePath)) {
+        final updated =
+            state.scannedImagePaths.where((p) => p != event.imagePath).toList();
+        emit(state.copyWith(scannedImagePaths: updated));
+        return;
+      }
 
-      emit(state.copyWith(scannedImagePaths: updatedPaths));
+      if (state.importedImagePaths.contains(event.imagePath)) {
+        final updated = state.importedImagePaths
+            .where((p) => p != event.imagePath)
+            .toList();
+        emit(state.copyWith(importedImagePaths: updated));
+        return;
+      }
+
+      if (state.savedPdfPaths.contains(event.imagePath)) {
+        try {
+          await _pdfStorageService.deletePdf(event.imagePath);
+        } catch (e) {}
+        final updated =
+            state.savedPdfPaths.where((p) => p != event.imagePath).toList();
+        emit(state.copyWith(savedPdfPaths: updated));
+        return;
+      }
     } catch (e) {
-      final updatedPaths = state.scannedImagePaths
-          .where((path) => path != event.imagePath)
-          .toList();
-
-      emit(state.copyWith(scannedImagePaths: updatedPaths));
+      if (state.scannedImagePaths.contains(event.imagePath)) {
+        final updated =
+            state.scannedImagePaths.where((p) => p != event.imagePath).toList();
+        emit(state.copyWith(scannedImagePaths: updated));
+      } else if (state.importedImagePaths.contains(event.imagePath)) {
+        final updated = state.importedImagePaths
+            .where((p) => p != event.imagePath)
+            .toList();
+        emit(state.copyWith(importedImagePaths: updated));
+      } else if (state.savedPdfPaths.contains(event.imagePath)) {
+        final updated =
+            state.savedPdfPaths.where((p) => p != event.imagePath).toList();
+        emit(state.copyWith(savedPdfPaths: updated));
+      }
     }
   }
 
-  Future<void> _onClearAllDocuments(
-    ClearAllDocuments event,
+  Future<void> _onClearScans(
+    ClearScans event,
     Emitter<ScanState> emit,
   ) async {
     try {
-      for (final imagePath in state.scannedImagePaths) {
+      for (final path in state.scannedImagePaths) {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+    } catch (e) {}
+
+    emit(state.copyWith(scannedImagePaths: []));
+  }
+
+  Future<void> _onClearImports(
+    ClearImports event,
+    Emitter<ScanState> emit,
+  ) async {
+    try {
+      for (final path in state.importedImagePaths) {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+    } catch (e) {}
+
+    try {
+      for (final pdf in state.savedPdfPaths) {
         try {
-          final file = File(imagePath);
-          if (await file.exists()) {
-            await file.delete();
-          }
+          await _pdfStorageService.deletePdf(pdf);
         } catch (e) {}
       }
+    } catch (e) {}
 
-      for (final imagePath in state.importedImagePaths) {
-        try {
-          final file = File(imagePath);
-          if (await file.exists()) {
-            await file.delete();
-          }
-        } catch (e) {}
-      }
-
-      for (final pdfPath in state.savedPdfPaths) {
-        try {
-          final file = File(pdfPath);
-          if (await file.exists()) {
-            await file.delete();
-          }
-        } catch (e) {}
-      }
-
-      emit(state.copyWith(
-        scannedImagePaths: [],
-        importedImagePaths: [],
-        savedPdfPaths: [],
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        scannedImagePaths: [],
-        importedImagePaths: [],
-        savedPdfPaths: [],
-      ));
-    }
+    emit(state.copyWith(importedImagePaths: [], savedPdfPaths: []));
   }
 
   String _parsePlatformError(PlatformException error) {

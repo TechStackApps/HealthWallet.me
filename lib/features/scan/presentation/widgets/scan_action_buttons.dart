@@ -15,20 +15,26 @@ enum ScanActionButtonStyle {
 class ScanActionButtons extends StatelessWidget {
   final ScanActionButtonStyle style;
   final VoidCallback? onScanDocument;
+  final bool showScanButton;
+  final bool showImportButton;
 
   const ScanActionButtons({
     super.key,
     this.style = ScanActionButtonStyle.placeholder,
     this.onScanDocument,
+    this.showScanButton = true,
+    this.showImportButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildScanDocumentButton(context),
-        SizedBox(height: style == ScanActionButtonStyle.bottomSheet ? 12 : 20),
-        _buildImportButton(context),
+        if (showScanButton) _buildScanDocumentButton(context),
+        if (showScanButton && showImportButton)
+          SizedBox(
+              height: style == ScanActionButtonStyle.bottomSheet ? 12 : 20),
+        if (showImportButton) _buildImportButton(context),
         if (style == ScanActionButtonStyle.bottomSheet)
           const SizedBox(height: 20),
       ],
@@ -89,7 +95,7 @@ class ScanActionButtons extends StatelessWidget {
 
     if (cameraStatus.isGranted) {
       if (context.mounted) {
-        context.read<ScanBloc>().add(const ScanEvent.scanButtonPressed());
+        context.read<ScanBloc>().add(const ScanButtonPressed());
       }
     } else if (cameraStatus.isPermanentlyDenied) {
       DialogHelper.showPermissionDeniedDialog(context);
@@ -258,7 +264,7 @@ class AddScanBottomSheet extends StatelessWidget {
 
     if (cameraStatus.isGranted) {
       if (context.mounted) {
-        context.read<ScanBloc>().add(const ScanEvent.scanButtonPressed());
+        context.read<ScanBloc>().add(const ScanButtonPressed());
       }
     } else if (cameraStatus.isPermanentlyDenied) {
       DialogHelper.showPermissionDeniedDialog(context);
@@ -376,7 +382,7 @@ class _DocumentImportHandler {
             if (fileExists) {
               if (context.mounted) {
                 context.read<ScanBloc>().add(
-                      ScanEvent.documentImported(filePath: finalFilePath),
+                      DocumentImported(filePath: finalFilePath),
                     );
               }
             }
@@ -406,7 +412,7 @@ class _DocumentImportHandler {
           if (context.mounted) {
             try {
               context.read<ScanBloc>().add(
-                    ScanEvent.documentImported(filePath: image.path),
+                    DocumentImported(filePath: image.path),
                   );
             } catch (e) {
               // Handle error silently

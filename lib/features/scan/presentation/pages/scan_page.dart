@@ -13,7 +13,6 @@ import 'package:open_file/open_file.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/placeholder_scan.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/scan_action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
@@ -26,10 +25,7 @@ class ScanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance.get<ScanBloc>(),
-      child: ScanView(pageController: pageController),
-    );
+    return ScanView(pageController: pageController);
   }
 }
 
@@ -44,13 +40,29 @@ class ScanView extends StatefulWidget {
 
 class _ScanViewState extends State<ScanView> {
   bool _hasAutoScanned = false;
+  void _onPageControllerChanged() {
+    final page = widget.pageController?.page;
+    if (page != null && page.round() == 2) {
+      _autoStartScanning();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    widget.pageController?.addListener(_onPageControllerChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _autoStartScanning();
+      final page = widget.pageController?.page;
+      if (page != null && page.round() == 2) {
+        _autoStartScanning();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    widget.pageController?.removeListener(_onPageControllerChanged);
+    super.dispose();
   }
 
   Future<void> _autoStartScanning() async {
@@ -69,7 +81,7 @@ class _ScanViewState extends State<ScanView> {
 
     if (cameraStatus.isGranted) {
       if (context.mounted) {
-        context.read<ScanBloc>().add(const ScanEvent.scanButtonPressed());
+        context.read<ScanBloc>().add(const ScanButtonPressed());
       }
     } else if (cameraStatus.isPermanentlyDenied) {
       DialogHelper.showPermissionDeniedDialog(context);
@@ -89,14 +101,15 @@ class _ScanViewState extends State<ScanView> {
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
             builder: (context, state) {
-              if (state.scannedImagePaths.isNotEmpty ||
-                  state.savedPdfPaths.isNotEmpty) {
-                return IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _showClearAllDialog(context),
-                );
+              if (state.scannedImagePaths.isEmpty) {
+                return const SizedBox.shrink();
               }
-              return const SizedBox.shrink();
+              return TextButton(
+                onPressed: () {
+                  context.read<ScanBloc>().add(const ClearScans());
+                },
+                child: const Text('Clear'),
+              );
             },
           ),
         ],
@@ -142,8 +155,7 @@ class _ScanViewState extends State<ScanView> {
   }
 
   Widget _buildMainView(BuildContext context, ScanState state) {
-    final allImages = [...state.scannedImagePaths, ...state.importedImagePaths];
-    final hasScans = allImages.isNotEmpty || state.savedPdfPaths.isNotEmpty;
+    final hasScans = state.scannedImagePaths.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -157,11 +169,14 @@ class _ScanViewState extends State<ScanView> {
           ] else ...[
             Expanded(
               child: ScanGrid(
-                onAddScan: () => _showAddScanBottomSheet(context),
+                onAddScan: () => _handleDirectScan(context),
                 onScanTap: (filePath, index) =>
                     _handleScanTap(context, filePath, index),
                 onDeleteScan: (filePath, index) =>
                     _showDeleteConfirmation(context, filePath, index),
+                includeScannedImages: true,
+                includeImportedImages: false,
+                includeFiles: false,
               ),
             ),
             Padding(
@@ -170,14 +185,14 @@ class _ScanViewState extends State<ScanView> {
                 onProcessToFhir: () => _navigateToFhirMapper(
                   context,
                   state.scannedImagePaths,
-                  state.importedImagePaths,
-                  state.savedPdfPaths,
+                  const <String>[],
+                  const <String>[],
                 ),
                 onAttachToEncounter: () => _showEncounterSelector(
                   context,
                   state.scannedImagePaths,
-                  state.importedImagePaths,
-                  state.savedPdfPaths,
+                  const <String>[],
+                  const <String>[],
                 ),
                 onExtractText: null,
               ),
@@ -330,7 +345,7 @@ class _ScanViewState extends State<ScanView> {
 
     if (result == true) {
       context.read<ScanBloc>().add(
-            ScanEvent.deleteDocument(imagePath: imagePath),
+            DeleteDocument(imagePath: imagePath),
           );
     }
   }
@@ -345,17 +360,6 @@ class _ScanViewState extends State<ScanView> {
     } catch (e) {
       // Error opening PDF, silently fail
     }
-  }
-
-  void _showAddScanBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (bottomSheetContext) => BlocProvider.value(
-        value: context.read<ScanBloc>(),
-        child: const AddScanBottomSheet(),
-      ),
-    );
   }
 
   void _showDeleteConfirmation(
@@ -381,11 +385,11 @@ class _ScanViewState extends State<ScanView> {
                 Navigator.of(dialogContext).pop();
                 if (isPdf) {
                   context.read<ScanBloc>().add(
-                        ScanEvent.deletePdf(pdfPath: filePath),
+                        DeletePdf(pdfPath: filePath),
                       );
                 } else {
                   context.read<ScanBloc>().add(
-                        ScanEvent.deleteDocument(imagePath: filePath),
+                        DeleteDocument(imagePath: filePath),
                       );
                 }
               },
@@ -398,45 +402,12 @@ class _ScanViewState extends State<ScanView> {
     );
   }
 
-  void _showClearAllDialog(BuildContext context) {
-    final state = context.read<ScanBloc>().state;
-    final totalDocuments =
-        state.scannedImagePaths.length + state.savedPdfPaths.length;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Clear All Documents'),
-          content: Text(
-              'Are you sure you want to delete all $totalDocuments document${totalDocuments > 1 ? 's' : ''}?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                context.read<ScanBloc>().add(
-                      const ScanEvent.clearAllDocuments(),
-                    );
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Clear All'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _handleDirectScan(BuildContext context) async {
     final cameraStatus = await Permission.camera.request();
 
     if (cameraStatus.isGranted) {
       if (context.mounted) {
-        context.read<ScanBloc>().add(const ScanEvent.scanButtonPressed());
+        context.read<ScanBloc>().add(const ScanButtonPressed());
       }
     } else if (cameraStatus.isPermanentlyDenied) {
       DialogHelper.showPermissionDeniedDialog(context);

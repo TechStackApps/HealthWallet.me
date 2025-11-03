@@ -84,11 +84,11 @@ class DialogHelper {
                 Navigator.of(dialogContext).pop();
                 if (isPdf) {
                   context.read<ScanBloc>().add(
-                        ScanEvent.deletePdf(pdfPath: filePath),
+                        DeletePdf(pdfPath: filePath),
                       );
                 } else {
                   context.read<ScanBloc>().add(
-                        ScanEvent.deleteDocument(imagePath: filePath),
+                        DeleteDocument(imagePath: filePath),
                       );
                 }
               },
@@ -122,7 +122,7 @@ class DialogHelper {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<ScanBloc>().add(
-                      const ScanEvent.clearAllDocuments(),
+                      const ClearScans(),
                     );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -167,7 +167,8 @@ class DialogHelper {
         TextButton(
           onPressed: () {
             Navigator.of(context).pop();
-            bloc.add(const ScanEvent.clearAllDocuments());
+            bloc.add(const ClearScans());
+            bloc.add(const ClearImports());
           },
           child: const Text('OK'),
         ),

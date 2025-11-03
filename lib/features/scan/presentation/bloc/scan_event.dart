@@ -1,29 +1,54 @@
 part of 'scan_bloc.dart';
 
-@freezed
-class ScanEvent with _$ScanEvent {
-  const factory ScanEvent.initialised() = ScanInitialised;
+abstract class ScanEvent {
+  const ScanEvent();
+}
 
-  const factory ScanEvent.scanButtonPressed({
+@freezed
+class ScanInitialised extends ScanEvent with _$ScanInitialised {
+  const factory ScanInitialised() = _ScanInitialised;
+}
+
+@freezed
+class ScanButtonPressed extends ScanEvent with _$ScanButtonPressed {
+  const factory ScanButtonPressed({
     @Default(ScanMode.images) ScanMode mode,
     @Default(5) int maxPages,
-  }) = ScanButtonPressed;
+  }) = _ScanButtonPressed;
+}
 
-  const factory ScanEvent.deleteDocument({
+@freezed
+class DeleteDocument extends ScanEvent with _$DeleteDocument {
+  const factory DeleteDocument({
     required String imagePath,
-  }) = DeleteDocument;
+  }) = _DeleteDocument;
+}
 
-  const factory ScanEvent.clearAllDocuments() = ClearAllDocuments;
+class ClearScans extends ScanEvent {
+  const ClearScans();
+}
 
-  const factory ScanEvent.deletePdf({
+class ClearImports extends ScanEvent {
+  const ClearImports();
+}
+
+@freezed
+class DeletePdf extends ScanEvent with _$DeletePdf {
+  const factory DeletePdf({
     required String pdfPath,
-  }) = DeletePdf;
+  }) = _DeletePdf;
+}
 
-  const factory ScanEvent.loadSavedPdfs() = LoadSavedPdfs;
+@freezed
+class LoadSavedPdfs extends ScanEvent with _$LoadSavedPdfs {
+  const factory LoadSavedPdfs() = _LoadSavedPdfs;
+}
 
-  const factory ScanEvent.documentImported({
+@freezed
+class DocumentImported extends ScanEvent with _$DocumentImported {
+  const factory DocumentImported({
     required String filePath,
-  }) = DocumentImported;
+  }) = _DocumentImported;
 }
 
 enum ScanMode {
