@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
-import 'package:pdf_to_image_converter/pdf_to_image_converter.dart';
+import 'package:printing/printing.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 
 @injectable
 class TextRecognitionService {
@@ -37,29 +38,35 @@ class TextRecognitionService {
 
   Future<List<String>> convertPdfToImages(String pdfPath) async {
     try {
-      final converter = PdfImageConverter();
-      await converter.openPdf(pdfPath);
-
-      List<String> imagePaths = [];
+      final List<String> imagePaths = [];
       final tempDir = await getTemporaryDirectory();
-
-      for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
+      final bytes = await File(pdfPath).readAsBytes();
+      int index = 1;
+      const double dpi = 200; // higher DPI for better OCR fidelity
+      await for (final page in Printing.raster(bytes, dpi: dpi)) {
         try {
-          final imageBytes = await converter.renderPage(pageIndex);
+          final pngBytes = await page.toPng();
+          final decoded = img.decodePng(pngBytes);
+          if (decoded == null) {
+            throw Exception('Failed to decode PNG for page $index');
+          }
 
-          if (imageBytes != null && imageBytes.isNotEmpty) {
-            final tempFile = File(
-              '${tempDir.path}/pdf_page_${DateTime.now().millisecondsSinceEpoch}_${pageIndex + 1}.png',
-            );
-            await tempFile.writeAsBytes(imageBytes);
+          // Flatten any transparency onto a white background and save as PNG
+          var whiteBg = img.Image(width: decoded.width, height: decoded.height);
+          img.fill(whiteBg, color: img.ColorRgba8(255, 255, 255, 255));
+          img.compositeImage(whiteBg, decoded);
+          final pngOut = img.encodePng(whiteBg, level: 6);
 
-            imagePaths.add(tempFile.path);
-          } else {}
-        } catch (e) {}
+          final tempFile = File(
+            '${tempDir.path}/pdf_page_${DateTime.now().millisecondsSinceEpoch}_$index.png',
+          );
+          await tempFile.writeAsBytes(pngOut);
+          imagePaths.add(tempFile.path);
+        } catch (e) {
+          // ignore per-page rasterization errors
+        }
+        index++;
       }
-
-      await converter.closePdf();
-
       return imagePaths;
     } catch (e) {
       return [];
@@ -68,152 +75,76 @@ class TextRecognitionService {
 
   Future<String> extractTextFromPDF(String pdfPath) async {
     try {
-      final converter = PdfImageConverter();
-      await converter.openPdf(pdfPath);
-
       String allText = '';
       final textRecognizer = TextRecognizer();
-
-      for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
+      final tempDir = await getTemporaryDirectory();
+      int index = 1;
+      final bytes = await File(pdfPath).readAsBytes();
+      await for (final page in Printing.raster(bytes, dpi: 144)) {
+        File? tempFile;
         try {
-          final imageBytes = await converter.renderPage(pageIndex);
-
-          if (imageBytes != null && imageBytes.isNotEmpty) {
-            final tempDir = await getTemporaryDirectory();
-            final tempFile = File(
-              '${tempDir.path}/pdf_page_${pageIndex + 1}.png',
-            );
-            await tempFile.writeAsBytes(imageBytes);
-
-            final inputImage = InputImage.fromFilePath(tempFile.path);
-
-            final recognizedText = await textRecognizer.processImage(
-              inputImage,
-            );
-
-            if (await tempFile.exists()) {
-              await tempFile.delete();
-            }
-
-            if (recognizedText.text.isNotEmpty) {
-              allText += '--- Page ${pageIndex + 1} ---\n';
-              allText += recognizedText.text;
-              allText += '\n\n';
-            } else {}
-          } else {}
+          final png = await page.toPng();
+          tempFile = File('${tempDir.path}/pdf_page_$index.png');
+          await tempFile.writeAsBytes(png);
+          final inputImage = InputImage.fromFilePath(tempFile.path);
+          final recognizedText = await textRecognizer.processImage(inputImage);
+          if (recognizedText.text.isNotEmpty) {
+            allText += '--- Page $index ---\n';
+            allText += recognizedText.text;
+            allText += '\n\n';
+          }
         } catch (e) {
-          allText += '--- Page ${pageIndex + 1} (Error) ---\n';
+          allText += '--- Page $index (Error) ---\n';
           allText += 'Error processing this page: $e\n\n';
+        } finally {
+          if (tempFile != null && await tempFile.exists()) {
+            await tempFile.delete();
+          }
         }
+        index++;
       }
-
-      await converter.closePdf();
       await textRecognizer.close();
 
       if (allText.isNotEmpty) {
-        return '''📸 PDF Text Extracted via Image OCR
-
-File Details:
-• Path: $pdfPath
-• Pages: ${converter.pageCount}
-• Text Length: ${allText.length} characters
-
-Processing Method:
-PDF converted to images using pdf_to_image_converter
-Each page processed with Google ML Kit text recognition
-Text combined from all pages
-
-Extracted Text:
-────────────────────────────────────────
-
-$allText
-
-────────────────────────────────────────
-
-Text extraction completed successfully using PDF-to-image-to-OCR pipeline.''';
+        return allText;
       } else {
-        return '''📸 PDF Text Extraction Complete
-
-File Details:
-• Path: $pdfPath
-• Pages: ${converter.pageCount}
-
-Processing Method:
-✅ PDF converted to images using pdf_to_image_converter
-✅ Each page processed with Google ML Kit text recognition
-
-Result: No readable text found in this PDF.
-
-This could mean:
-• The PDF contains only images/scanned content with no readable text
-• The images are too low quality for OCR
-• The text is in a language not well supported by ML Kit
-
-Try with a higher quality PDF or different document.''';
+        return 'No readable text found.';
       }
     } catch (e) {
-      return '''PDF Text Extraction Error
-
-File Details:
-• Path: $pdfPath
-
-Error: ${e.toString()}
-
-This could be due to:
-• Corrupted PDF file
-• Unsupported PDF format
-• File access issues
-• PDF encryption/protection
-
-Please try with a different PDF file.''';
+      return 'Error processing PDF: ${e.toString()}';
     }
   }
 
   Future<List<String>> extractTextFromPDFPages(String pdfPath) async {
     try {
-      final converter = PdfImageConverter();
-      await converter.openPdf(pdfPath);
-
-      List<String> pageTexts = [];
+      final List<String> pageTexts = [];
       final textRecognizer = TextRecognizer();
-
-      for (int pageIndex = 0; pageIndex < converter.pageCount; pageIndex++) {
+      final tempDir = await getTemporaryDirectory();
+      int index = 1;
+      final bytes = await File(pdfPath).readAsBytes();
+      await for (final page in Printing.raster(bytes, dpi: 144)) {
+        File? tempFile;
         try {
-          final imageBytes = await converter.renderPage(pageIndex);
-
-          if (imageBytes != null && imageBytes.isNotEmpty) {
-            final tempDir = await getTemporaryDirectory();
-            final tempFile = File(
-              '${tempDir.path}/pdf_page_${pageIndex + 1}.png',
-            );
-            await tempFile.writeAsBytes(imageBytes);
-
-            final inputImage = InputImage.fromFilePath(tempFile.path);
-
-            final recognizedText = await textRecognizer.processImage(
-              inputImage,
-            );
-
-            if (await tempFile.exists()) {
-              await tempFile.delete();
-            }
-
-            pageTexts.add(
-              recognizedText.text.isNotEmpty
-                  ? recognizedText.text
-                  : 'No text found on this page',
-            );
-          } else {
-            pageTexts.add('Failed to process this page');
-          }
+          final png = await page.toPng();
+          tempFile = File('${tempDir.path}/pdf_page_$index.png');
+          await tempFile.writeAsBytes(png);
+          final inputImage = InputImage.fromFilePath(tempFile.path);
+          final recognizedText = await textRecognizer.processImage(inputImage);
+          pageTexts.add(
+            recognizedText.text.isNotEmpty
+                ? recognizedText.text
+                : 'No text found on this page',
+          );
         } catch (e) {
           pageTexts.add('Error processing this page: $e');
+        } finally {
+          if (tempFile != null && await tempFile.exists()) {
+            await tempFile.delete();
+          }
         }
+        index++;
       }
-
-      await converter.closePdf();
       await textRecognizer.close();
-
       return pageTexts;
     } catch (e) {
       return ['Error processing PDF: ${e.toString()}'];
