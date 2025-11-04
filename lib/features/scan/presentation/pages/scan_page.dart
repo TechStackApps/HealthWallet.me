@@ -71,7 +71,11 @@ class _ScanViewState extends State<ScanView> {
 
     final currentState = context.read<ScanBloc>().state;
 
-    if (currentState.scannedImagePaths.isEmpty) {
+    final hasAnyFiles = currentState.scannedImagePaths.isNotEmpty ||
+                        currentState.importedImagePaths.isNotEmpty ||
+                        currentState.savedPdfPaths.isNotEmpty;
+
+    if (!hasAnyFiles) {
       await _handleScanButtonPressed(context);
     }
   }

@@ -16,16 +16,34 @@ import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final int initialPage;
+
+  const DashboardPage({
+    super.key, 
+    @queryParam this.initialPage = 0,
+  });
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
+  late final PageController _pageController;
+  late int _currentIndex;
   bool _isKeyboardVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialPage;
+    _pageController = PageController(initialPage: widget.initialPage);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

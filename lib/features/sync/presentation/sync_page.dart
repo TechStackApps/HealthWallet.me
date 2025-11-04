@@ -423,7 +423,7 @@ class _SyncPageState extends State<SyncPage> {
       onOkPressed: () {
         // Navigate to home first
         context.router.pushAndPopUntil(
-          const DashboardRoute(),
+          DashboardRoute(),
           predicate: (_) => false,
         );
 

@@ -136,6 +136,8 @@ PODS:
   - permission_handler_apple (9.3.0):
     - Flutter
   - PromisesObjC (2.4.0)
+  - receive_sharing_intent (1.8.1):
+    - Flutter
   - SDWebImage (5.21.3):
     - SDWebImage/Core (= 5.21.3)
   - SDWebImage/Core (5.21.3)
@@ -202,6 +204,7 @@ DEPENDENCIES:
   - pdf_image_renderer (from `.symlinks/plugins/pdf_image_renderer/ios`)
   - pdfx (from `.symlinks/plugins/pdfx/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - receive_sharing_intent (from `.symlinks/plugins/receive_sharing_intent/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
@@ -275,6 +278,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/pdfx/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
+  receive_sharing_intent:
+    :path: ".symlinks/plugins/receive_sharing_intent/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
@@ -322,6 +327,7 @@ SPEC CHECKSUMS:
   pdfx: 77f4dddc48361fbb01486fa2bdee4532cbb97ef3
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  receive_sharing_intent: 79c848f5b045674ad60b9fea3bafea59962ad2c1
   SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
@@ -333,6 +339,6 @@ SPEC CHECKSUMS:
   TensorFlowLiteSwift: 6de8da348de331778167a0f751ad74c41d8b0554
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
-PODFILE CHECKSUM: 2633029438e363347f39dd3828297e2bf00349d3
+PODFILE CHECKSUM: 626200bccbea614d949ce8cd52fc415e78d6b797
 
 COCOAPODS: 1.16.2
