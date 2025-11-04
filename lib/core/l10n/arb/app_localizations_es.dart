@@ -612,4 +612,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get documentScanTitle => 'Scan';
+
+  @override
+  String get onboardingAiModelTitle => 'Habilitar Modelo de IA';
+
+  @override
+  String get onboardingAiModelDescription =>
+      'Descarga un modelo de IA seguro y en el dispositivo (~1.5 GB) para analizar y organizar automáticamente tus registros de salud: tus datos permanecen privados en tu dispositivo.';
+
+  @override
+  String get onboardingAiModelSubtitle =>
+      'Desbloquea el escaneo impulsado por IA';
+
+  @override
+  String get aiModelReady => '¡Modelo de IA listo! Puedes empezar a escanear.';
+
+  @override
+  String get aiModelDownloading => 'Descargando modelo de IA...';
+
+  @override
+  String get aiModelEnableDownload => 'Activar y descargar';
+
+  @override
+  String get aiModelError =>
+      'No se pudo verificar el modelo. Inténtalo de nuevo.';
 }

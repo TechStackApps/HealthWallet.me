@@ -604,4 +604,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentScanTitle => 'Scan';
+
+  @override
+  String get onboardingAiModelTitle => 'Enable AI Model';
+
+  @override
+  String get onboardingAiModelDescription =>
+      'Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device.';
+
+  @override
+  String get onboardingAiModelSubtitle => 'Unlock AI-powered scanning';
+
+  @override
+  String get aiModelReady => 'AI model ready! You can start scanning.';
+
+  @override
+  String get aiModelDownloading => 'Downloading AI model...';
+
+  @override
+  String get aiModelEnableDownload => 'Enable & Download';
+
+  @override
+  String get aiModelError => 'Couldn’t verify model. Try again.';
 }

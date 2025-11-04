@@ -16,6 +16,7 @@ class OnboardingScreen extends StatelessWidget {
   final String description;
   final SvgGenImage image;
   final bool showBiometricToggle;
+  final Widget? customWidget;
 
   const OnboardingScreen({
     super.key,
@@ -24,6 +25,7 @@ class OnboardingScreen extends StatelessWidget {
     required this.description,
     required this.image,
     this.showBiometricToggle = false,
+    this.customWidget,
   });
 
   @override
@@ -60,6 +62,10 @@ class OnboardingScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     image.svg(height: 250),
+                    if (customWidget != null) ...[
+                      const SizedBox(height: Insets.large),
+                      customWidget!,
+                    ],
                     if (!showBiometricToggle)
                       const SizedBox(height: Insets.large),
                     Text(

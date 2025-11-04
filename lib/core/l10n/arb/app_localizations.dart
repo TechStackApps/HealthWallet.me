@@ -64,7 +64,7 @@ import 'app_localizations_es.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
-    Locale('de'),
+    Locale('de')
   ];
 
   /// The title of the application
@@ -1221,6 +1221,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan'**
   String get documentScanTitle;
+
+  /// No description provided for @onboardingAiModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable AI Model'**
+  String get onboardingAiModelTitle;
+
+  /// No description provided for @onboardingAiModelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device.'**
+  String get onboardingAiModelDescription;
+
+  /// No description provided for @onboardingAiModelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock AI-powered scanning'**
+  String get onboardingAiModelSubtitle;
+
+  /// No description provided for @aiModelReady.
+  ///
+  /// In en, this message translates to:
+  /// **'AI model ready! You can start scanning.'**
+  String get aiModelReady;
+
+  /// No description provided for @aiModelDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading AI model...'**
+  String get aiModelDownloading;
+
+  /// No description provided for @aiModelEnableDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable & Download'**
+  String get aiModelEnableDownload;
+
+  /// No description provided for @aiModelError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t verify model. Try again.'**
+  String get aiModelError;
 }
 
 class _AppLocalizationsDelegate
@@ -1252,9 +1294,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

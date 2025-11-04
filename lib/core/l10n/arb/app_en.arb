@@ -216,5 +216,13 @@
     "success": "Success",
     "demoDataLoadedSuccessfully": "Demo data has been loaded successfully. You will be redirected to the home page.",
 
-    "documentScanTitle": "Scan"
+    "documentScanTitle": "Scan",
+
+    "onboardingAiModelTitle": "Enable AI Model",
+    "onboardingAiModelDescription": "Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device.",
+    "onboardingAiModelSubtitle": "Unlock AI-powered scanning",
+    "aiModelReady": "AI model ready! You can start scanning.",
+    "aiModelDownloading": "Downloading AI model...",
+    "aiModelEnableDownload": "Enable & Download",
+    "aiModelError": "Couldn’t verify model. Try again."
 }
