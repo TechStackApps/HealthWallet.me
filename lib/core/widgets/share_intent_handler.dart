@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/di/injection.dart';
@@ -42,27 +41,44 @@ class _ShareIntentHandlerState extends State<ShareIntentHandler> {
     );
   }
 
-  void _handleSharedFiles(List<String> filePaths) {
+  void _handleSharedFiles(List<String> filePaths) async {
     if (!mounted) return;
 
     final scanBloc = context.read<ScanBloc>();
+
+    // Dispatch all import events
     for (final filePath in filePaths) {
       debugPrint('📥 Adding shared file to ScanBloc: $filePath');
-      scanBloc.add(ScanEvent.documentImported(filePath: filePath));
+      scanBloc.add(DocumentImported(filePath: filePath));
     }
 
+    // Wait for all events to be processed by the BLoC
+    // Use multiple frame delays to ensure state is fully committed
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Verify files were actually added
+    int retries = 0;
+    while (retries < 10) {
+      final currentState = scanBloc.state;
+      final currentImportedCount = currentState.importedImagePaths.length;
+      final currentPdfCount = currentState.savedPdfPaths.length;
+
+      // Check if at least one file was added
+      if (currentImportedCount > 0 || currentPdfCount > 0) {
+        debugPrint(
+            '✅ Files added to state: $currentImportedCount images, $currentPdfCount PDFs');
+        break;
+      }
+
+      retries++;
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    if (!mounted) return;
+
     final router = getIt<AppRouter>();
-    router.push(DashboardRoute(initialPage: 2));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${filePaths.length} file${filePaths.length > 1 ? 's' : ''} added to Scan!'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    router.push(DashboardRoute(initialPage: 3));
   }
-
 
   @override
   void dispose() {

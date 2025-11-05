@@ -33,7 +33,8 @@ class App extends StatelessWidget {
         BlocProvider(
             create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
         BlocProvider(create: (_) => getIt<RecordsBloc>()),
-        BlocProvider(create: (_) => getIt<ScanBloc>()),
+        BlocProvider(
+            create: (_) => getIt<ScanBloc>()..add(const ScanInitialised())),
         BlocProvider(
           create: (_) => HomeBloc(
             getIt<GetSourcesUseCase>(),
@@ -62,8 +63,8 @@ class App extends StatelessWidget {
               darkTheme: AppTheme.darkTheme,
               themeMode:
                   state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              routerConfig:
-                  router.config(navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
+              routerConfig: router.config(
+                  navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) {

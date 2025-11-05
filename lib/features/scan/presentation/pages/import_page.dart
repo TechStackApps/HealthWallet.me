@@ -1,44 +1,38 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/attach_to_encounter_sheet.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
-import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
-import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
-import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
-import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:open_file/open_file.dart';
+import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
+import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
 
 class ImportPage extends StatelessWidget {
-  final PageController? pageController;
+  final PageViewNavigationController? navigationController;
 
-  const ImportPage({super.key, this.pageController});
+  const ImportPage({super.key, this.navigationController});
 
   @override
   Widget build(BuildContext context) {
-    return const ImportView();
+    return ImportView(navigationController: navigationController);
   }
 }
 
 class ImportView extends StatefulWidget {
-  const ImportView({super.key});
+  final PageViewNavigationController? navigationController;
+
+  const ImportView({super.key, this.navigationController});
 
   @override
   State<ImportView> createState() => _ImportViewState();
 }
 
-class _ImportViewState extends State<ImportView> {
+class _ImportViewState extends State<ImportView> with DocumentHandler {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Import'),
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
@@ -109,9 +103,9 @@ class _ImportViewState extends State<ImportView> {
                     child: ScanGrid(
                       onAddScan: () => _showAddScanBottomSheet(context),
                       onScanTap: (filePath, index) =>
-                          _handleScanTap(context, filePath, index),
+                          handleDocumentTap(context, filePath, index),
                       onDeleteScan: (filePath, index) =>
-                          _showDeleteConfirmation(context, filePath, index),
+                          showDeleteConfirmation(context, filePath, index),
                       includeScannedImages: false,
                       includeImportedImages: true,
                       includeFiles: true,
@@ -120,13 +114,13 @@ class _ImportViewState extends State<ImportView> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: ActionButtons(
-                      onProcessToFhir: () => _navigateToFhirMapper(
+                      onProcessToFhir: () => navigateToFhirMapper(
                         context,
                         const <String>[],
                         state.importedImagePaths,
                         state.savedPdfPaths,
                       ),
-                      onAttachToEncounter: () => _showEncounterSelector(
+                      onAttachToEncounter: () => showEncounterSelector(
                         context,
                         const <String>[],
                         state.importedImagePaths,
@@ -145,14 +139,7 @@ class _ImportViewState extends State<ImportView> {
   }
 
   void _navigateToScanTab(BuildContext context) {
-    final element = context.findAncestorWidgetOfExactType<ImportPage>();
-    if (element?.pageController != null) {
-      element!.pageController!.animateToPage(
-        2,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.ease,
-      );
-    }
+    widget.navigationController?.navigateToPage(2);
   }
 
   void _showAddScanBottomSheet(BuildContext context) {
@@ -164,195 +151,5 @@ class _ImportViewState extends State<ImportView> {
         child: const ImportOptionsBottomSheet(),
       ),
     );
-  }
-
-  Future<void> _handleScanTap(
-      BuildContext context, String filePath, int index) async {
-    final state = context.read<ScanBloc>().state;
-    final isPdf = state.savedPdfPaths.contains(filePath);
-
-    if (isPdf) {
-      _openPdfWithSystemApp(context, filePath);
-      return;
-    }
-
-    final allImages = [
-      ...state.scannedImagePaths,
-      ...state.importedImagePaths,
-    ];
-
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => ImagePreviewPage(
-          imagePath: filePath,
-          title: 'Page ${index + 1}',
-          allImages: allImages,
-          currentIndex: index,
-        ),
-      ),
-    );
-
-    if (result == true) {
-      context.read<ScanBloc>().add(
-            DeleteDocument(imagePath: filePath),
-          );
-    }
-  }
-
-  void _openPdfWithSystemApp(BuildContext context, String pdfPath) async {
-    try {
-      final result = await OpenFile.open(pdfPath);
-      if (result.type != ResultType.done) {}
-    } catch (_) {}
-  }
-
-  void _showDeleteConfirmation(
-      BuildContext context, String filePath, int index) {
-    final state = context.read<ScanBloc>().state;
-    final isPdf = state.savedPdfPaths.contains(filePath);
-    final fileName = filePath.split('/').last;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(isPdf ? 'Delete PDF' : 'Delete Page'),
-          content: Text(
-              'Are you sure you want to delete ${isPdf ? 'PDF: $fileName' : 'Page ${index + 1}'}?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                if (isPdf) {
-                  context.read<ScanBloc>().add(
-                        DeletePdf(pdfPath: filePath),
-                      );
-                } else {
-                  context.read<ScanBloc>().add(
-                        DeleteDocument(imagePath: filePath),
-                      );
-                }
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _navigateToFhirMapper(
-    BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> pdfs,
-  ) async {
-    try {
-      final result = await context.router.push<bool>(const LoadModelRoute());
-      if (result == true && context.mounted) {
-        context.router.push(FhirMapperRoute(
-          scannedImages: scannedImages,
-          importedImages: importedImages,
-          importedPdfs: pdfs,
-        ));
-      }
-    } catch (_) {}
-  }
-
-  void _showEncounterSelector(
-    BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> pdfs,
-  ) {
-    _selectEncounterAndAttach(context, scannedImages, importedImages, pdfs);
-  }
-
-  Future<void> _selectEncounterAndAttach(
-    BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
-  ) async {
-    final selectedEncounter = await AttachToEncounterSheet.show(context);
-
-    if (selectedEncounter != null && context.mounted) {
-      await _attachToEncounter(
-        context,
-        scannedImages,
-        importedImages,
-        savedPdfs,
-        selectedEncounter,
-      );
-    }
-  }
-
-  Future<void> _attachToEncounter(
-    BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
-    String encounterId,
-  ) async {
-    DialogHelper.showLoadingDialog(
-        context, 'Attaching documents to encounter...');
-
-    try {
-      final homeState = context.read<HomeBloc>().state;
-      final patientState = context.read<PatientBloc>().state;
-
-      final selectedPatient = patientState.patients.isNotEmpty
-          ? patientState.patients.firstWhere(
-              (p) => p.id == patientState.selectedPatientId,
-              orElse: () => patientState.patients.first,
-            )
-          : null;
-
-      final patient = selectedPatient ?? homeState.patient;
-      final patientId = patient?.id ?? 'patient-default';
-      final patientName = patient?.displayTitle ?? 'Unknown Patient';
-
-      final sourceTypeService = GetIt.instance.get<SourceTypeService>();
-      final walletSource = await sourceTypeService.getWritableSourceForPatient(
-        patientId: patientId,
-        patientName: patientName,
-        availableSources: homeState.sources,
-      );
-
-      if (context.mounted) {
-        context.read<PatientBloc>().add(
-              PatientPatientsLoaded(),
-            );
-      }
-
-      final documentReferenceService =
-          GetIt.instance.get<DocumentReferenceService>();
-
-      await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
-        scannedImages: scannedImages,
-        importedImages: importedImages,
-        importedPdfs: savedPdfs,
-        patientId: patientId,
-        encounterId: encounterId,
-        sourceId: walletSource.id,
-        title: 'Attached Documents',
-      );
-
-      if (context.mounted) {
-        context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-      }
-
-      if (context.mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop();
-        DialogHelper.showErrorDialog(context, 'Failed to create encounter: $e');
-      }
-    }
   }
 }

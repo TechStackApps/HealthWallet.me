@@ -11,15 +11,14 @@ import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
-import 'package:get_it/get_it.dart';
-import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
   final int initialPage;
 
   const DashboardPage({
-    super.key, 
+    super.key,
     @queryParam this.initialPage = 0,
   });
 
@@ -28,20 +27,28 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  late final PageController _pageController;
-  late int _currentIndex;
+  late final PageViewNavigationController _navigationController;
   bool _isKeyboardVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialPage;
-    _pageController = PageController(initialPage: widget.initialPage);
+    _navigationController = PageViewNavigationController(
+      initialPage: widget.initialPage,
+    );
+    _navigationController.currentPageNotifier.addListener(_onPageChanged);
+  }
+
+  void _onPageChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _navigationController.currentPageNotifier.removeListener(_onPageChanged);
+    _navigationController.dispose();
     super.dispose();
   }
 
@@ -60,51 +67,45 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return BlocListener<SyncBloc, SyncState>(
       listenWhen: (previous, current) {
-        // Only listen for tutorial trigger to ensure we're on home page
         return current.shouldShowTutorial && !previous.shouldShowTutorial;
       },
       listener: (context, syncState) async {
         if (syncState.shouldShowTutorial) {
-          // Ensure we're on home page for tutorial
-          _pageController.animateToPage(
-            0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.ease,
-          );
+          _navigationController.navigateToPage(0);
         }
       },
       child: Scaffold(
         body: Stack(
           children: [
-            BlocProvider(
-              create: (_) =>
-                  GetIt.instance.get<ScanBloc>()..add(const ScanInitialised()),
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  FocusScope.of(context).unfocus();
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  switch (index) {
-                    case 0:
-                      return HomePage(pageController: _pageController);
-                    case 1:
-                      return RecordsPage(pageController: _pageController);
-                    case 2:
-                      return ScanPage(pageController: _pageController);
-                    case 3:
-                      return ImportPage(pageController: _pageController);
-                    default:
-                      return const SizedBox.shrink();
-                  }
-                },
-              ),
+            PageView.builder(
+              controller: _navigationController.pageController,
+              onPageChanged: (index) {
+                FocusScope.of(context).unfocus();
+              },
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                switch (index) {
+                  case 0:
+                    return HomePage(
+                      pageController: _navigationController.pageController,
+                    );
+                  case 1:
+                    return RecordsPage(
+                      pageController: _navigationController.pageController,
+                    );
+                  case 2:
+                    return ScanPage(
+                      navigationController: _navigationController,
+                    );
+                  case 3:
+                    return ImportPage(
+                      navigationController: _navigationController,
+                    );
+                  default:
+                    return const SizedBox.shrink();
+                }
+              },
             ),
-            // Bottom navigation bar
             BlocBuilder<SyncBloc, SyncState>(
               builder: (context, syncState) {
                 if (!_isKeyboardVisible) {
@@ -156,11 +157,12 @@ class _DashboardPageState extends State<DashboardPage> {
                               children: [
                                 Expanded(
                                   child: _buildNavItem(
+                                    context: context,
                                     icon: Assets.icons.dashboard.svg(
                                       width: 24,
                                       height: 24,
                                       colorFilter: ColorFilter.mode(
-                                        _currentIndex == 0
+                                        _navigationController.currentPage == 0
                                             ? (context.isDarkMode
                                                 ? Colors.white
                                                 : context.colorScheme.surface)
@@ -169,25 +171,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                       ),
                                     ),
                                     label: context.l10n.dashboardTitle,
-                                    isSelected: _currentIndex == 0,
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      _pageController.animateToPage(
-                                        0,
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        curve: Curves.ease,
-                                      );
-                                    },
+                                    isSelected:
+                                        _navigationController.currentPage == 0,
+                                    pageIndex: 0,
                                   ),
                                 ),
                                 Expanded(
                                   child: _buildNavItem(
+                                    context: context,
                                     icon: Assets.icons.timeline.svg(
                                       width: 24,
                                       height: 24,
                                       colorFilter: ColorFilter.mode(
-                                        _currentIndex == 1
+                                        _navigationController.currentPage == 1
                                             ? (context.isDarkMode
                                                 ? Colors.white
                                                 : context.colorScheme.surface)
@@ -196,25 +192,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                       ),
                                     ),
                                     label: context.l10n.recordsTitle,
-                                    isSelected: _currentIndex == 1,
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      _pageController.animateToPage(
-                                        1,
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        curve: Curves.ease,
-                                      );
-                                    },
+                                    isSelected:
+                                        _navigationController.currentPage == 1,
+                                    pageIndex: 1,
                                   ),
                                 ),
                                 Expanded(
                                   child: _buildNavItem(
+                                    context: context,
                                     icon: Assets.icons.documentFile.svg(
                                       width: 24,
                                       height: 24,
                                       colorFilter: ColorFilter.mode(
-                                        _currentIndex == 2
+                                        _navigationController.currentPage == 2
                                             ? (context.isDarkMode
                                                 ? Colors.white
                                                 : context.colorScheme.surface)
@@ -223,25 +213,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                       ),
                                     ),
                                     label: context.l10n.documentScanTitle,
-                                    isSelected: _currentIndex == 2,
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      _pageController.animateToPage(
-                                        2,
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        curve: Curves.ease,
-                                      );
-                                    },
+                                    isSelected:
+                                        _navigationController.currentPage == 2,
+                                    pageIndex: 2,
                                   ),
                                 ),
                                 Expanded(
                                   child: _buildNavItem(
+                                    context: context,
                                     icon: Assets.icons.cloudDownload.svg(
                                       width: 24,
                                       height: 24,
                                       colorFilter: ColorFilter.mode(
-                                        _currentIndex == 3
+                                        _navigationController.currentPage == 3
                                             ? (context.isDarkMode
                                                 ? Colors.white
                                                 : context.colorScheme.surface)
@@ -250,16 +234,9 @@ class _DashboardPageState extends State<DashboardPage> {
                                       ),
                                     ),
                                     label: 'Import',
-                                    isSelected: _currentIndex == 3,
-                                    onTap: () {
-                                      FocusScope.of(context).unfocus();
-                                      _pageController.animateToPage(
-                                        3,
-                                        duration:
-                                            const Duration(milliseconds: 300),
-                                        curve: Curves.ease,
-                                      );
-                                    },
+                                    isSelected:
+                                        _navigationController.currentPage == 3,
+                                    pageIndex: 3,
                                   ),
                                 ),
                               ],
@@ -280,13 +257,17 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildNavItem({
+    required BuildContext context,
     required Widget icon,
     required String label,
     required bool isSelected,
-    required VoidCallback onTap,
+    required int pageIndex,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        _navigationController.jumpToPage(pageIndex);
+      },
       child: Container(
         height: double.infinity,
         decoration: BoxDecoration(
