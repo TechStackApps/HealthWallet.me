@@ -56,6 +56,10 @@ class _ShareIntentHandlerState extends State<ShareIntentHandler> {
     // Use multiple frame delays to ensure state is fully committed
     await Future.delayed(const Duration(milliseconds: 100));
 
+    // Reload PDFs to ensure all PDFs (including from shared_files) are included
+    scanBloc.add(const LoadSavedPdfs());
+    await Future.delayed(const Duration(milliseconds: 100));
+
     // Verify files were actually added
     int retries = 0;
     while (retries < 10) {
