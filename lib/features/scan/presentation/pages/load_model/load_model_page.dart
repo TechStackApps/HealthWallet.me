@@ -34,34 +34,37 @@ class _LoadModelPageState extends State<LoadModelPage> {
     return BlocProvider(
       create: (context) => _bloc,
       child: BlocConsumer<LoadModelBloc, LoadModelState>(
-          listenWhen: (previous, current) => previous.status != current.status,
-          listener: (context, state) {
-            if (state.status == LoadModelStatus.modelLoaded) {
-              context.router.maybePop(true);
-            }
-            if (state.status == LoadModelStatus.error &&
-                state.errorMessage != null) {
-              DialogHelper.showErrorDialog(context, state.errorMessage!);
-            }
-          },
-          builder: (context, state) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text("Load AI Model",
-                    style: AppTextStyle.titleMedium),
-                automaticallyImplyLeading:
-                    state.status != LoadModelStatus.loading,
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          if (state.status == LoadModelStatus.modelLoaded) {
+            context.router.maybePop(true);
+          }
+          if (state.status == LoadModelStatus.error &&
+              state.errorMessage != null) {
+            DialogHelper.showErrorDialog(context, state.errorMessage!);
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                context.l10n.aiModelTitle,
+                style: AppTextStyle.titleMedium,
               ),
-              body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildView(state),
-              ),
-            );
-          }),
+              automaticallyImplyLeading:
+                  state.status != LoadModelStatus.loading,
+            ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildView(context, state),
+            ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildView(LoadModelState state) {
+  Widget _buildView(BuildContext context, LoadModelState state) {
     if (state.status == LoadModelStatus.loading &&
         state.downloadProgress == null) {
       return const Center(child: CircularProgressIndicator());
@@ -72,7 +75,7 @@ class _LoadModelPageState extends State<LoadModelPage> {
         const SizedBox(height: 20),
         Assets.images.placeholder.svg(height: 250),
         Text(
-          "Unlock AI-Powered Scanning",
+          context.l10n.aiModelUnlockTitle,
           textAlign: TextAlign.center,
           style: AppTextStyle.titleLarge.copyWith(
             color: context.colorScheme.onSurface,
@@ -80,17 +83,17 @@ class _LoadModelPageState extends State<LoadModelPage> {
         ),
         const SizedBox(height: 32),
         Text(
-          "To automatically read and organize your medical documents, this feature uses a secure, on-device AI model. This keeps your data completely private.",
+          context.l10n.aiModelUnlockDescription,
           textAlign: TextAlign.center,
           style: AppTextStyle.bodySmall.copyWith(
-            color: context.colorScheme.onSurface..withValues(alpha: 0.7),
+            color: context.colorScheme.onSurface.withOpacity(0.7),
             height: 1.5,
             letterSpacing: -0.2,
           ),
         ),
         const SizedBox(height: 32),
         Text(
-          "To get started, we need to download the AI component (approx. 1.5 GB). This is a one-time setup.",
+          context.l10n.aiModelDownloadInfo,
           textAlign: TextAlign.center,
           style: AppTextStyle.bodySmall.copyWith(
             color: context.colorScheme.onSurface..withValues(alpha: 0.7),
@@ -112,22 +115,23 @@ class _LoadModelPageState extends State<LoadModelPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
               ),
-              onPressed: () => _bloc.add(const LoadModelDownloadInitiated()),
-              child: const Text("Enable & Download"),
+              onPressed: () =>
+                  _bloc.add(const LoadModelDownloadInitiated()),
+              child: Text(context.l10n.aiModelEnableDownload),
             ),
           ),
           SizedBox(
             width: double.infinity,
             child: TextButton(
               onPressed: () => context.router.maybePop(),
-              child: const Text("Cancel"),
+              child: Text(context.l10n.cancel),
             ),
           ),
         ] else
           CustomProgressIndicator(
             progress: state.downloadProgress! / 100,
-            text: "Downloading secure AI Model",
-          )
+            text: context.l10n.aiModelDownloading,
+          ),
       ],
     );
   }

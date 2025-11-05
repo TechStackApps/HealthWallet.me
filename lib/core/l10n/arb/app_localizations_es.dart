@@ -618,7 +618,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingAiModelDescription =>
-      'Descarga un modelo de IA seguro y en el dispositivo (~1.5 GB) para analizar y organizar automáticamente tus registros de salud: tus datos permanecen privados en tu dispositivo.';
+      'Descarga un modelo de IA seguro y en el dispositivo (~1.5 GB) para analizar y organizar automáticamente tus registros de salud: tus datos permanecen privados en tu dispositivo. Es una configuración única.';
 
   @override
   String get onboardingAiModelSubtitle =>
@@ -639,4 +639,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiModelMissing => 'No descargado.';
+
+  @override
+  String get aiModelTitle => 'Cargar modelo de IA';
+
+  @override
+  String get aiModelUnlockTitle => 'Desbloquea el escaneo con IA';
+
+  @override
+  String get aiModelUnlockDescription =>
+      'Para leer y organizar automáticamente tus documentos médicos, esta función utiliza un modelo de IA seguro y local en tu dispositivo. Tus datos permanecen completamente privados.';
+
+  @override
+  String get aiModelDownloadInfo =>
+      'Para comenzar, necesitamos descargar el componente de IA (aproximadamente 1.5 GB). Es una configuración única.';
 }

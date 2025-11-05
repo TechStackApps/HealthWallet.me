@@ -219,11 +219,15 @@
     "documentScanTitle": "Scan",
 
     "onboardingAiModelTitle": "Enable AI Model",
-    "onboardingAiModelDescription": "Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device.",
+    "onboardingAiModelDescription": "Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device. This is a one-time setup.",
     "onboardingAiModelSubtitle": "Unlock AI-powered scanning",
     "aiModelReady": "AI model ready! You can start scanning.",
     "aiModelDownloading": "Downloading AI model...",
     "aiModelEnableDownload": "Enable & Download",
     "aiModelError": "Couldn’t verify model. Try again.",
-    "aiModelMissing": "Not downloaded."
+    "aiModelMissing": "Not downloaded.",
+    "aiModelTitle": "Load AI Model",
+    "aiModelUnlockTitle": "Unlock AI-Powered Scanning",
+    "aiModelUnlockDescription": "To automatically read and organize your medical documents, this feature uses a secure, on-device AI model. This keeps your data completely private.",
+    "aiModelDownloadInfo": "To get started, we need to download the AI component (approx. 1.5 GB). This is a one-time setup."
 }

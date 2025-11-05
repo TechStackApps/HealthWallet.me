@@ -1231,7 +1231,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingAiModelDescription.
   ///
   /// In en, this message translates to:
-  /// **'Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device.'**
+  /// **'Download a secure, on-device AI model (~1.5 GB) to automatically analyze and organize your health records — your data stays private on your device. This is a one-time setup.'**
   String get onboardingAiModelDescription;
 
   /// No description provided for @onboardingAiModelSubtitle.
@@ -1269,6 +1269,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not downloaded.'**
   String get aiModelMissing;
+
+  /// No description provided for @aiModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Load AI Model'**
+  String get aiModelTitle;
+
+  /// No description provided for @aiModelUnlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock AI-Powered Scanning'**
+  String get aiModelUnlockTitle;
+
+  /// No description provided for @aiModelUnlockDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'To automatically read and organize your medical documents, this feature uses a secure, on-device AI model. This keeps your data completely private.'**
+  String get aiModelUnlockDescription;
+
+  /// No description provided for @aiModelDownloadInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'To get started, we need to download the AI component (approx. 1.5 GB). This is a one-time setup.'**
+  String get aiModelDownloadInfo;
 }
 
 class _AppLocalizationsDelegate
