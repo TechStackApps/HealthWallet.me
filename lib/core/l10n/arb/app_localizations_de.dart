@@ -643,4 +643,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aiModelError =>
       'Modell konnte nicht überprüft werden. Bitte versuche es erneut.';
+
+  @override
+  String get aiModelMissing => 'Nicht heruntergeladen.';
 }

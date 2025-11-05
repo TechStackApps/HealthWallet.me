@@ -1263,6 +1263,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn’t verify model. Try again.'**
   String get aiModelError;
+
+  /// No description provided for @aiModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded.'**
+  String get aiModelMissing;
 }
 
 class _AppLocalizationsDelegate

@@ -224,5 +224,6 @@
     "aiModelReady": "AI model ready! You can start scanning.",
     "aiModelDownloading": "Downloading AI model...",
     "aiModelEnableDownload": "Enable & Download",
-    "aiModelError": "Couldn’t verify model. Try again."
+    "aiModelError": "Couldn’t verify model. Try again.",
+    "aiModelMissing": "Not downloaded."
 }

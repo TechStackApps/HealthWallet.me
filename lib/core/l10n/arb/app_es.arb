@@ -209,5 +209,6 @@
     "aiModelReady": "¡Modelo de IA listo! Puedes empezar a escanear.",
     "aiModelDownloading": "Descargando modelo de IA...",
     "aiModelEnableDownload": "Activar y descargar",
-    "aiModelError": "No se pudo verificar el modelo. Inténtalo de nuevo."
+    "aiModelError": "No se pudo verificar el modelo. Inténtalo de nuevo.",
+    "aiModelMissing": "No descargado."
 }

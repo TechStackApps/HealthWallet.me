@@ -205,5 +205,6 @@
     "aiModelReady": "KI-Modell bereit! Du kannst mit dem Scannen beginnen.",
     "aiModelDownloading": "KI-Modell wird heruntergeladen...",
     "aiModelEnableDownload": "Aktivieren & Herunterladen",
-    "aiModelError": "Modell konnte nicht überprüft werden. Bitte versuche es erneut."
+    "aiModelError": "Modell konnte nicht überprüft werden. Bitte versuche es erneut.",
+    "aiModelMissing": "Nicht heruntergeladen."
 }

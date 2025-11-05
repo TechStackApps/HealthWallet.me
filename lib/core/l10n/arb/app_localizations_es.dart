@@ -636,4 +636,7 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get aiModelError =>
       'No se pudo verificar el modelo. Inténtalo de nuevo.';
+
+  @override
+  String get aiModelMissing => 'No descargado.';
 }
