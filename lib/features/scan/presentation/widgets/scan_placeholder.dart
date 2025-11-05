@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:health_wallet/core/widgets/app_button.dart';
 
-class PlaceholderScan extends StatelessWidget {
+class ScanPlaceholder extends StatelessWidget {
   final VoidCallback? onScan;
 
-  const PlaceholderScan({
+  const ScanPlaceholder({
     super.key,
     this.onScan,
   });
@@ -36,17 +37,11 @@ class PlaceholderScan extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 40),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.document_scanner_outlined),
-            label: const Text('Scan Document'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              textStyle: const TextStyle(fontSize: 16),
-            ),
-            onPressed: onScan,
-          ),
+        AppButton(
+          label: 'Scan Document',
+          icon: const Icon(Icons.document_scanner_outlined),
+          variant: AppButtonVariant.primary,
+          onPressed: onScan,
         ),
       ],
     );

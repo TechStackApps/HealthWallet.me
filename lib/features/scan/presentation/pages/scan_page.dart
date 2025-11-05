@@ -2,9 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/placeholder_scan.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/scan_placeholder.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
@@ -108,8 +109,8 @@ class _ScanViewState extends State<ScanView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan'),
+      appBar: CustomAppBar(
+        title: 'Scan',
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
             builder: (context, state) {
@@ -186,7 +187,7 @@ class _ScanViewState extends State<ScanView>
                     includeImportedImages: false,
                     includeFiles: false,
                   )
-                : PlaceholderScan(
+                : ScanPlaceholder(
                     onScan: () => _handleDirectScan(context),
                   ),
           ),

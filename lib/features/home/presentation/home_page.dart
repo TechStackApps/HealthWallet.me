@@ -13,6 +13,7 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_onboarding_steps.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_section_header.dart';
 import 'package:health_wallet/features/home/presentation/widgets/source_selector_widget.dart';
@@ -175,13 +176,9 @@ class HomeViewState extends State<HomeView> {
             child: Scaffold(
               backgroundColor: context.colorScheme.surface,
               extendBody: true,
-              appBar: AppBar(
-                backgroundColor: context.colorScheme.surface,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                scrolledUnderElevation: 0,
+              appBar: CustomAppBar(
                 automaticallyImplyLeading: false,
-                title: Row(
+                titleWidget: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(

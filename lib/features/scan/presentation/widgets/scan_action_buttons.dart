@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:health_wallet/core/widgets/app_button.dart';
+import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 
@@ -42,46 +44,34 @@ class ScanActionButtons extends StatelessWidget {
   }
 
   Widget _buildScanDocumentButton(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppButton(
+      label: 'Scan Document',
+      icon: const Icon(Icons.document_scanner_outlined),
+      variant: AppButtonVariant.transparent,
+      onPressed: () => _handleScanDocument(context),
       padding: style == ScanActionButtonStyle.placeholder
-          ? const EdgeInsets.symmetric(vertical: 20)
-          : EdgeInsets.zero,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.document_scanner_outlined),
-        label: const Text('Scan Document'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-        ),
-        onPressed: () => _handleScanDocument(context),
-      ),
+          ? const EdgeInsets.symmetric(
+              horizontal: Insets.medium,
+              vertical: 20,
+            )
+          : null,
     );
   }
 
   Widget _buildImportButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
+    return AppButton(
+      label: 'Import document / image',
+      icon: const Icon(Icons.attach_file),
+      variant: AppButtonVariant.primary,
+      backgroundColor:
+          style == ScanActionButtonStyle.bottomSheet ? null : Colors.blue,
+      onPressed: () => _handleImport(context),
       padding: style == ScanActionButtonStyle.placeholder
-          ? const EdgeInsets.symmetric(vertical: 20)
-          : EdgeInsets.zero,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.attach_file),
-        label: const Text('Import document / image'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-          backgroundColor: style == ScanActionButtonStyle.bottomSheet
-              ? theme.colorScheme.primary
-              : Colors.blue,
-          foregroundColor: style == ScanActionButtonStyle.bottomSheet
-              ? theme.colorScheme.onPrimary
-              : Colors.white,
-        ),
-        onPressed: () => _handleImport(context),
-      ),
+          ? const EdgeInsets.symmetric(
+              horizontal: Insets.medium,
+              vertical: 20,
+            )
+          : null,
     );
   }
 
@@ -112,78 +102,7 @@ class ScanActionButtons extends StatelessWidget {
   }
 
   Future<void> _handleImport(BuildContext context) async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (bottomSheetContext) => BlocProvider.value(
-        value: context.read<ScanBloc>(),
-        child: const ImportOptionsBottomSheet(),
-      ),
-    );
-  }
-}
-
-class ImportOptionsBottomSheet extends StatelessWidget {
-  const ImportOptionsBottomSheet({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return _ScanBottomSheetWrapper(
-      title: 'Import Options',
-      child: Column(
-        children: [
-          _buildImportDocumentButton(context),
-          const SizedBox(height: 12),
-          _buildPickImageButton(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImportDocumentButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.attach_file),
-        label: const Text('Import Document'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-        ),
-        onPressed: () => _handleImportDocument(context),
-      ),
-    );
-  }
-
-  Widget _buildPickImageButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.photo_library),
-        label: const Text('Pick Image from Gallery'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-          backgroundColor: theme.colorScheme.secondary,
-          foregroundColor: theme.colorScheme.onSecondary,
-        ),
-        onPressed: () => _handlePickImage(context),
-      ),
-    );
-  }
-
-  Future<void> _handleImportDocument(BuildContext context) async {
     await _DocumentImportHandler.handleImportDocument(context);
-  }
-
-  Future<void> _handlePickImage(BuildContext context) async {
-    await _DocumentImportHandler.handlePickImage(context);
   }
 }
 
@@ -207,55 +126,29 @@ class AddScanBottomSheet extends StatelessWidget {
   }
 
   Widget _buildScanDocumentButton(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.document_scanner_outlined),
-        label: const Text('Scan Document'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-        ),
-        onPressed: () => _handleScanDocument(context),
-      ),
+    return AppButton(
+      label: 'Scan Document',
+      icon: const Icon(Icons.document_scanner_outlined),
+      variant: AppButtonVariant.transparent,
+      onPressed: () => _handleScanDocument(context),
     );
   }
 
   Widget _buildImportDocumentButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.attach_file),
-        label: const Text('Import Document'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-        ),
-        onPressed: () => _handleImportDocument(context),
-      ),
+    return AppButton(
+      label: 'Import Document',
+      icon: const Icon(Icons.attach_file),
+      variant: AppButtonVariant.primary,
+      onPressed: () => _handleImportDocument(context),
     );
   }
 
   Widget _buildPickImageButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.photo_library),
-        label: const Text('Pick Image'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16),
-          backgroundColor: theme.colorScheme.secondary,
-          foregroundColor: theme.colorScheme.onSecondary,
-        ),
-        onPressed: () => _handlePickImage(context),
-      ),
+    return AppButton(
+      label: 'Pick Image',
+      icon: const Icon(Icons.photo_library),
+      variant: AppButtonVariant.secondary,
+      onPressed: () => _handlePickImage(context),
     );
   }
 
