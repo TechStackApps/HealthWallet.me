@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
@@ -24,7 +25,15 @@ class ScanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScanView(navigationController: navigationController);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => GetIt.instance.get<ScanBloc>()),
+        BlocProvider(
+            create: (_) => GetIt.instance.get<LoadModelBloc>()
+              ..add(const LoadModelInitialized())),
+      ],
+      child: ScanView(navigationController: navigationController),
+    );
   }
 }
 
