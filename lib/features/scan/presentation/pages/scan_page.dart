@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/documents_grid.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/scan_placeholder.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
@@ -177,7 +177,7 @@ class _ScanViewState extends State<ScanView>
         children: [
           Expanded(
             child: hasScans
-                ? ScanGrid(
+                ? DocumentsGrid(
                     onAddScan: () => _handleDirectScan(context),
                     onScanTap: (filePath, index) =>
                         handleDocumentTap(context, filePath, index),

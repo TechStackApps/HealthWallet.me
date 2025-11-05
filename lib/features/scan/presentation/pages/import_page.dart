@@ -9,7 +9,7 @@ import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/scan_grid.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/documents_grid.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/import_placeholder.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
@@ -79,7 +79,7 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
                   ),
                 ] else ...[
                   Expanded(
-                    child: ScanGrid(
+                    child: DocumentsGrid(
                       onAddScan: () {
                         _showImportOptionsDialog(context);
                       },
@@ -230,50 +230,83 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
   }
 
   void _showImportOptionsDialog(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Import Options'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppButton(
-              label: 'Import Document',
-              icon: const Icon(Icons.attach_file),
-              variant: AppButtonVariant.primary,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _handleImportDocument(context);
-              },
-            ),
-            const SizedBox(height: Insets.small),
-            AppButton(
-              label: 'Pick Image from Gallery',
-              icon: const Icon(Icons.photo_library),
-              variant: AppButtonVariant.secondary,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _handlePickImage(context);
-              },
-            ),
-            const SizedBox(height: Insets.small),
-            AppButton(
-              label: 'Scan Document',
-              icon: const Icon(Icons.document_scanner_outlined),
-              variant: AppButtonVariant.transparent,
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _navigateToScanTab(context);
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => _ImportOptionsBottomSheet(
+        onImportDocument: () {
+          Navigator.of(sheetContext).pop();
+          _handleImportDocument(context);
+        },
+        onPickImage: () {
+          Navigator.of(sheetContext).pop();
+          _handlePickImage(context);
+        },
+      ),
+    );
+  }
+}
+
+class _ImportOptionsBottomSheet extends StatelessWidget {
+  final VoidCallback onImportDocument;
+  final VoidCallback onPickImage;
+
+  const _ImportOptionsBottomSheet({
+    required this.onImportDocument,
+    required this.onPickImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.dialogBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Import Options',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.titleLarge?.color,
+                ),
+              ),
+              const SizedBox(height: 20),
+              AppButton(
+                label: 'Import Document',
+                icon: const Icon(Icons.attach_file),
+                variant: AppButtonVariant.primary,
+                onPressed: onImportDocument,
+              ),
+              const SizedBox(height: Insets.small),
+              AppButton(
+                label: 'Pick Image from Gallery',
+                icon: const Icon(Icons.photo_library),
+                variant: AppButtonVariant.secondary,
+                onPressed: onPickImage,
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

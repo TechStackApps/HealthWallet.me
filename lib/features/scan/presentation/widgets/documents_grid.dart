@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 
-class ScanGrid extends StatelessWidget {
+class DocumentsGrid extends StatelessWidget {
   final VoidCallback onAddScan;
   final Function(String, int) onScanTap;
   final Function(String, int) onDeleteScan;
@@ -12,7 +12,7 @@ class ScanGrid extends StatelessWidget {
   final bool includeImportedImages;
   final bool includeFiles;
 
-  const ScanGrid({
+  const DocumentsGrid({
     super.key,
     required this.onAddScan,
     required this.onScanTap,
