@@ -3,6 +3,7 @@ import Social
 import MobileCoreServices
 import Photos
 import UniformTypeIdentifiers
+import AVFoundation
 
 // Constants replicated from receive_sharing_intent (kept here to avoid linking Flutter in the extension)
 public let kSchemePrefix = "ShareMedia"
