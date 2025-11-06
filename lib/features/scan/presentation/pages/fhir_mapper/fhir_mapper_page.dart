@@ -99,7 +99,7 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
       body: BlocConsumer<FhirMapperBloc, FhirMapperState>(
         listener: (context, state) {
           if (state.status == FhirMapperStatus.success) {
-            context.router.push(const DashboardRoute());
+            context.router.push(DashboardRoute());
           }
           if (state.status == FhirMapperStatus.failure) {
             showDialog(

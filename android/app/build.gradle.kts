@@ -29,9 +29,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    
+    kotlin {
+        jvmToolchain(11)
     }
 
     defaultConfig {

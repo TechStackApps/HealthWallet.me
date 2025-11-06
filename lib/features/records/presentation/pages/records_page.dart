@@ -18,6 +18,7 @@ import 'package:health_wallet/features/records/presentation/widgets/fhir_cards/r
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:intl/intl.dart';
 
 @RoutePage()
@@ -215,15 +216,9 @@ class _RecordsViewState extends State<RecordsView> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              context.l10n.medicalRecords,
-              style: AppTextStyle.titleMedium,
-            ),
-            backgroundColor: context.colorScheme.surface,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
+          appBar: CustomAppBar(
+            title: context.l10n.medicalRecords,
+            automaticallyImplyLeading: false,
             actions: [
               IconButton(
                 onPressed: () => context

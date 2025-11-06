@@ -6,11 +6,13 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/core/utils/patient_source_utils.dart';
+import 'package:health_wallet/core/widgets/share_intent_handler.dart';
 
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/home/data/data_source/local/home_local_data_source.dart';
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -31,6 +33,8 @@ class App extends StatelessWidget {
         BlocProvider(
             create: (_) => getIt<SyncBloc>()..add(const SyncInitialised())),
         BlocProvider(create: (_) => getIt<RecordsBloc>()),
+        BlocProvider(
+            create: (_) => getIt<ScanBloc>()..add(const ScanInitialised())),
         BlocProvider(
           create: (_) => HomeBloc(
             getIt<GetSourcesUseCase>(),
@@ -59,11 +63,14 @@ class App extends StatelessWidget {
               darkTheme: AppTheme.darkTheme,
               themeMode:
                   state.user.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              routerConfig:
-                  router.config(navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
+              routerConfig: router.config(
+                  navigatorObservers: () => [getIt.get<AppRouteObserver>()]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              builder: (context, child) => child!,
+              builder: (context, child) {
+                // Wrap with ShareIntentHandler here, inside MaterialApp
+                return ShareIntentHandler(child: child!);
+              },
             );
           },
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/scan_action_buttons.dart';
+import 'package:health_wallet/core/widgets/app_button.dart';
 
-class PlaceholderScan extends StatelessWidget {
+class ScanPlaceholder extends StatelessWidget {
   final VoidCallback? onScan;
 
-  const PlaceholderScan({
+  const ScanPlaceholder({
     super.key,
     this.onScan,
   });
@@ -37,9 +37,11 @@ class PlaceholderScan extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 40),
-        ScanActionButtons(
-          style: ScanActionButtonStyle.placeholder,
-          onScanDocument: onScan,
+        AppButton(
+          label: 'Scan Document',
+          icon: const Icon(Icons.document_scanner_outlined),
+          variant: AppButtonVariant.primary,
+          onPressed: onScan,
         ),
       ],
     );

@@ -4,16 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 
-class ScanGrid extends StatelessWidget {
+class DocumentsGrid extends StatelessWidget {
   final VoidCallback onAddScan;
   final Function(String, int) onScanTap;
   final Function(String, int) onDeleteScan;
+  final bool includeScannedImages;
+  final bool includeImportedImages;
+  final bool includeFiles;
 
-  const ScanGrid({
+  const DocumentsGrid({
     super.key,
     required this.onAddScan,
     required this.onScanTap,
     required this.onDeleteScan,
+    this.includeScannedImages = true,
+    this.includeImportedImages = true,
+    this.includeFiles = true,
   });
 
   @override
@@ -22,33 +28,41 @@ class ScanGrid extends StatelessWidget {
       builder: (context, state) {
         final allScans = <Map<String, dynamic>>[];
 
-        for (String imagePath in state.scannedImagePaths) {
-          allScans.add({
-            'path': imagePath,
-            'type': 'image',
-            'name': imagePath.split('/').last,
-          });
+        if (includeScannedImages) {
+          for (String imagePath in state.scannedImagePaths) {
+            allScans.add({
+              'path': imagePath,
+              'type': 'image',
+              'name': imagePath.split('/').last,
+            });
+          }
         }
 
-        for (String imagePath in state.importedImagePaths) {
-          allScans.add({
-            'path': imagePath,
-            'type': 'image',
-            'name': imagePath.split('/').last,
-          });
+        if (includeImportedImages) {
+          for (String imagePath in state.importedImagePaths) {
+            allScans.add({
+              'path': imagePath,
+              'type': 'image',
+              'name': imagePath.split('/').last,
+            });
+          }
         }
 
-        for (String pdfPath in state.savedPdfPaths) {
-          allScans.add({
-            'path': pdfPath,
-            'type': 'pdf',
-            'name': pdfPath.split('/').last,
-          });
+        if (includeFiles) {
+          for (String pdfPath in state.savedPdfPaths) {
+            allScans.add({
+              'path': pdfPath,
+              'type': 'pdf',
+              'name': pdfPath.split('/').last,
+            });
+          }
         }
 
         return GridView.builder(
           key: ValueKey(
-              '${state.scannedImagePaths.length}_${state.savedPdfPaths.length}'),
+              '${includeScannedImages ? state.scannedImagePaths.length : 0}_'
+              '${includeImportedImages ? state.importedImagePaths.length : 0}_'
+              '${includeFiles ? state.savedPdfPaths.length : 0}'),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 10,
@@ -58,7 +72,9 @@ class ScanGrid extends StatelessWidget {
           itemCount: allScans.length + 1,
           itemBuilder: (context, index) {
             if (index == allScans.length) {
-              return AddButtonCard(onTap: onAddScan);
+              return AddButtonCard(
+                onTap: onAddScan,
+              );
             }
 
             final scan = allScans[index];
