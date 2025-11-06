@@ -5,7 +5,7 @@ import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/bloc/load_model_bloc.dart';
 
 class LoadModelEmbedded extends StatefulWidget {
-  final VoidCallback? onModelReady; 
+  final VoidCallback? onModelReady;
 
   const LoadModelEmbedded({super.key, this.onModelReady});
 
@@ -39,10 +39,16 @@ class _LoadModelEmbeddedState extends State<LoadModelEmbedded> {
               case LoadModelStatus.loading:
                 return const Center(child: CircularProgressIndicator());
               case LoadModelStatus.modelAbsent:
-                return ElevatedButton(
-                  onPressed: () => _bloc.add(const LoadModelDownloadInitiated()),
-                  child: Text(context.l10n.aiModelEnableDownload),
-                );
+                return TextButton(
+                    onPressed: () =>
+                        _bloc.add(const LoadModelDownloadInitiated()),
+                    style: TextButton.styleFrom(
+                      foregroundColor: context.colorScheme.primary,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(context.l10n.aiModelEnableDownload));
               case LoadModelStatus.error:
                 return Text(
                   context.l10n.aiModelError,

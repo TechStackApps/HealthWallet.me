@@ -62,10 +62,6 @@ class OnboardingScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     image.svg(height: 250),
-                    if (customWidget != null) ...[
-                      const SizedBox(height: Insets.large),
-                      customWidget!,
-                    ],
                     if (!showBiometricToggle)
                       const SizedBox(height: Insets.large),
                     Text(
@@ -88,6 +84,10 @@ class OnboardingScreen extends StatelessWidget {
                           color: Colors.grey[600],
                         ),
                       ),
+                    ],
+                    if (customWidget != null) ...[
+                      const SizedBox(height: Insets.large),
+                      customWidget!,
                     ],
                   ],
                 ),

@@ -5,6 +5,7 @@ import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/app_button.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/bloc/load_model_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/custom_progress_indicator.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
@@ -33,7 +34,8 @@ class AiModelSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.l10n.onboardingAiModelTitle, style: AppTextStyle.bodySmall),
+                Text(context.l10n.onboardingAiModelTitle,
+                    style: AppTextStyle.bodySmall),
                 const SizedBox(height: Insets.small),
                 Container(
                   padding: const EdgeInsets.all(Insets.smallNormal),
@@ -91,21 +93,13 @@ class AiModelSection extends StatelessWidget {
                       ),
                       const SizedBox(height: Insets.normal),
                       if (state.status == LoadModelStatus.modelAbsent)
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => context
-                                .read<LoadModelBloc>()
-                                .add(const LoadModelDownloadInitiated()),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: Text(
-                              context.l10n.aiModelEnableDownload,
-                              style: AppTextStyle.buttonSmall,
-                            ),
-                          ),
+                        AppButton(
+                          label: context.l10n.aiModelEnableDownload,
+                          icon: const Icon(Icons.download),
+                          variant: AppButtonVariant.primary,
+                          onPressed: () => context
+                              .read<LoadModelBloc>()
+                              .add(const LoadModelDownloadInitiated()),
                         )
                       else if (state.status == LoadModelStatus.loading)
                         CustomProgressIndicator(
