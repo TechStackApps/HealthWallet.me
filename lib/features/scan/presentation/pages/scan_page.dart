@@ -111,6 +111,7 @@ class _ScanViewState extends State<ScanView>
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Scan',
+        automaticallyImplyLeading: false,
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
             builder: (context, state) {

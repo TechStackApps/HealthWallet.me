@@ -218,6 +218,7 @@ class _RecordsViewState extends State<RecordsView> {
         child: Scaffold(
           appBar: CustomAppBar(
             title: context.l10n.medicalRecords,
+            automaticallyImplyLeading: false,
             actions: [
               IconButton(
                 onPressed: () => context
