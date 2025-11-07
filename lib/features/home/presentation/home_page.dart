@@ -27,6 +27,7 @@ import 'package:health_wallet/features/home/core/constants/home_constants.dart';
 import 'package:health_wallet/features/sync/presentation/widgets/sync_placeholder_widget.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/features/records/domain/utils/fhir_field_extractor.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
@@ -39,14 +40,27 @@ class HomePage extends StatelessWidget {
       listeners: [
         BlocListener<PatientBloc, PatientState>(
           listenWhen: (previous, current) {
-            // Only listen when patient selection actually changes
-            final patientChanged =
+            final selectionChanged =
                 previous.selectedPatientId != current.selectedPatientId;
 
-            return patientChanged;
+            final selectedId = current.selectedPatientId;
+            if (selectedId != null) {
+              final previousPatient = previous.patients
+                  .where((p) => p.id == selectedId)
+                  .firstOrNull;
+              final currentPatient =
+                  current.patients.where((p) => p.id == selectedId).firstOrNull;
+              final dataChanged =
+                  previousPatient?.displayTitle != currentPatient?.displayTitle;
+
+              return selectionChanged || dataChanged;
+            }
+
+            return selectionChanged;
           },
           listener: (context, patientState) {
             PatientSourceUtils.handlePatientChange(context, patientState);
+            context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
           },
         ),
         BlocListener<SyncBloc, SyncState>(
@@ -102,7 +116,6 @@ class HomeViewState extends State<HomeView> {
       try {
         _onboardingKey.currentState!.show();
       } catch (e) {
-        // Handle onboarding error
       }
     }
   }
@@ -162,10 +175,8 @@ class HomeViewState extends State<HomeView> {
               context: context,
             ),
             onChanged: (index) {
-              // Onboarding step changed
             },
             onEnd: (index) async {
-              // Reset onboarding state when tutorial ends
               context.read<SyncBloc>().add(const ResetTutorial());
 
               final prefs = await SharedPreferences.getInstance();
@@ -277,8 +288,6 @@ class HomeViewState extends State<HomeView> {
     final hasAnyMeaningfulData =
         hasVitalDataLoaded || hasOverviewDataLoaded || hasRecent;
 
-    // Show sync placeholder when there's no meaningful data
-    // Exception: Wallet source should never show placeholder (it's for manual records)
     final shouldShowPlaceholder =
         !hasAnyMeaningfulData && state.selectedSource != 'wallet';
 
@@ -288,7 +297,7 @@ class HomeViewState extends State<HomeView> {
         onSyncPressed: () {
           context.router.push(const SyncRoute());
         },
-        recordTypeName: null, // No specific record type for home page
+        recordTypeName: null,
       );
     }
 
@@ -323,7 +332,7 @@ class HomeViewState extends State<HomeView> {
               vertical: Insets.small,
             ),
             child: Text(
-              'Patient: ${state.patient?.displayTitle ?? 'Loading...'}',
+              'Patient: ${FhirFieldExtractor.extractHumanNameFamilyFirst(state.patient?.name?.first) ?? 'Loading...'}',
               style: AppTextStyle.bodyMedium.copyWith(
                 color: context.colorScheme.onSurface,
               ),
@@ -429,9 +438,31 @@ class HomeViewState extends State<HomeView> {
                                           );
                                     },
                                     onSourceDelete: (source) {
+                                      final patientSourceIds =
+                                          PatientSourceUtils.getPatientSourceIds(
+                                              context);
+                                      final filteredPatientSourceIds =
+                                          patientSourceIds
+                                              ?.where((id) => id != source.id)
+                                              .toList();
+                                      
+                                      final patientState = context.read<PatientBloc>().state;
+                                      final selectedPatientId = patientState.selectedPatientId;
+                                      
                                       context.read<HomeBloc>().add(
-                                            HomeSourceDeleted(source.id),
+                                            HomeSourceDeleted(source.id,
+                                                patientSourceIds:
+                                                    filteredPatientSourceIds),
                                           );
+                                      
+                                      if (selectedPatientId != null) {
+                                        context.read<PatientBloc>().add(
+                                              PatientPatientsLoaded(
+                                                preserveOrder: true,
+                                                preservePatientId: selectedPatientId,
+                                              ),
+                                            );
+                                      }
                                     },
                                   )
                                 : null,
