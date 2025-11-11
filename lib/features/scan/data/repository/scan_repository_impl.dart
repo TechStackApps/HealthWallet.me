@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_gemma/mobile/flutter_gemma_mobile.dart';
 import 'package:health_wallet/features/scan/data/data_source/network/scan_network_data_source.dart';
 import 'package:health_wallet/features/scan/data/model/prompt_template/prompt_template.dart';
+import 'package:health_wallet/features/scan/data/worker/fhir_mapper_worker.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/slm_model.dart';
 import 'package:injectable/injectable.dart';
@@ -264,19 +265,18 @@ class ScanRepositoryImpl implements ScanRepository {
 
   @override
   Stream<MappingResourcesWithProgress> mapResources(String medicalText) async* {
+    final mapperWorker = await FhirMapperWorker.spawn();
+
     List<PromptTemplate> supportedPrompts = PromptTemplate.supportedPrompts();
     for (int i = 0; i < supportedPrompts.length; i++) {
       String prompt = supportedPrompts[i].buildPrompt(medicalText);
 
-      String? promptResponse = await _networkDataSource.runPrompt(
-        spec: SlmModel.gemmaModel().toInferenceSpec(),
-        prompt: prompt,
-      );
+      final workerResponse = await mapperWorker.runPrompt(prompt) as String?;
 
       List<MappingResource> resources = [];
 
       try {
-        List<dynamic> jsonList = jsonDecode(promptResponse ?? '');
+        List<dynamic> jsonList = jsonDecode(workerResponse ?? '');
 
         for (Map<String, dynamic> json in jsonList) {
           MappingResource resource =
@@ -287,10 +287,13 @@ class ScanRepositoryImpl implements ScanRepository {
           }
         }
       } catch (_) {
+        yield ([], (i + 1) / supportedPrompts.length);
         continue;
       }
 
       yield (resources.toSet().toList(), (i + 1) / supportedPrompts.length);
     }
+
+    mapperWorker.close();
   }
 }
