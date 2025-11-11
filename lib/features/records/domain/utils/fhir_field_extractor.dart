@@ -63,11 +63,50 @@ class FhirFieldExtractor {
     final title = prefix.isNotEmpty ? '$prefix ' : '';
 
     if (given.isNotEmpty && family.isNotEmpty) {
+      return '$title$given, $family';
+    } else if (given.isNotEmpty) {
+      return '$title$given';
+    } else if (family.isNotEmpty) {
+      return '$title$family';
+    }
+
+    return null;
+  }
+
+  static String? extractHumanNameForHome(dynamic name) {
+    if (name == null) return null;
+
+    final given = name.given?.map((g) => g.toString()).join(' ') ?? '';
+    final family = name.family?.toString() ?? '';
+    final prefix = name.prefix?.map((p) => p.toString()).join(' ') ?? '';
+
+    final title = prefix.isNotEmpty ? '$prefix ' : '';
+
+    if (given.isNotEmpty && family.isNotEmpty) {
       return '$title$given $family';
     } else if (given.isNotEmpty) {
       return '$title$given';
     } else if (family.isNotEmpty) {
       return '$title$family';
+    }
+
+    return null;
+  }
+
+  static String? extractHumanNameFamilyFirst(dynamic name) {
+    if (name == null) return null;
+
+    final family = name.family?.toString() ?? '';
+    final given = name.given?.isNotEmpty == true
+        ? name.given!.map((g) => g.toString()).join(' ')
+        : '';
+
+    if (family.isNotEmpty && given.isNotEmpty) {
+      return '$family, $given';
+    } else if (family.isNotEmpty) {
+      return family;
+    } else if (given.isNotEmpty) {
+      return given;
     }
 
     return null;
@@ -161,7 +200,6 @@ class FhirFieldExtractor {
     return null;
   }
 
-  // Vital sign specific methods
   static bool isVitalSign(Observation observation) {
     final primaryCoding = observation.code?.coding;
     if (primaryCoding != null && primaryCoding.isNotEmpty) {
@@ -260,8 +298,6 @@ class FhirFieldExtractor {
 
     return null;
   }
-
-  // ===== PRIVATE HELPER METHODS =====
 
   static String _mapLoincCodeToTitle(String code) {
     switch (code) {
@@ -391,7 +427,6 @@ class FhirFieldExtractor {
     return d.abs() >= 100 ? d.round().toString() : d.toStringAsFixed(1);
   }
 
-  /// Extract patient ID from identifiers or fallback to resource ID
   static String extractPatientId(Patient patient) {
     if (patient.identifier?.isNotEmpty == true) {
       for (final identifier in patient.identifier!) {
@@ -403,7 +438,6 @@ class FhirFieldExtractor {
     return patient.id;
   }
 
-  /// Calculate patient age from birth date
   static String extractPatientAge(Patient patient) {
     if (patient.birthDate == null) return 'N/A';
 
@@ -442,6 +476,29 @@ class FhirFieldExtractor {
   static String extractPatientGender(Patient patient) {
     final gender = FhirFieldExtractor.extractStatus(patient.gender);
     return gender ?? 'Unknown';
+  }
+
+  static String extractPatientMRN(Patient patient) {
+    if (patient.identifier == null || patient.identifier!.isEmpty) {
+      return '';
+    }
+
+    try {
+      final mrnIdentifier = patient.identifier!.firstWhere(
+        (id) =>
+            id.type?.coding?.any(
+              (coding) => coding.code?.toString() == 'MR',
+            ) ??
+            false,
+      );
+
+      if (mrnIdentifier.value != null) {
+        return mrnIdentifier.value!.toString();
+      }
+    } catch (e) {
+    }
+
+    return '';
   }
 
   static String? extractBloodTypeFromObservations(List<dynamic> observations) {
