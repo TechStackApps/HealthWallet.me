@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/attach_to_encounter_sheet.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
@@ -12,6 +14,7 @@ import 'package:health_wallet/features/sync/domain/services/source_type_service.
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 import 'package:open_file/open_file.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:uuid/uuid.dart';
 
 /// Mixin providing common document handling functionality for scan and import pages.
 ///
@@ -29,11 +32,18 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
       final result = await context.router.push<bool>(const LoadModelRoute());
 
       if (result == true && context.mounted) {
-        context.router.push(FhirMapperRoute(
+        final processingSession = ProcessingSession(
+          id: const Uuid().v4(),
           scannedImages: scannedImages,
+          importedFiles: pdfs,
           importedImages: importedImages,
-          importedPdfs: pdfs,
-        ));
+        );
+
+        context
+            .read<FhirMapperBloc>()
+            .add(FhirMapperSessionCreated(session: processingSession));
+
+        context.router.push(FhirMapperRoute(sessionId: processingSession.id));
       }
     } catch (e) {
       if (context.mounted) {

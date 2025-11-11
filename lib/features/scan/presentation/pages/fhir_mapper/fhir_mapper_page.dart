@@ -13,6 +13,7 @@ import 'package:health_wallet/core/widgets/delete_confirmation_dialog.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_patient.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/widgets/patient_dropdown.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/widgets/resources_form.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/custom_progress_indicator.dart';
@@ -25,50 +26,37 @@ import 'package:health_wallet/features/user/presentation/preferences_modal/secti
 import 'bloc/fhir_mapper_bloc.dart';
 
 @RoutePage()
-class FhirMapperPage extends StatelessWidget {
+class FhirMapperPage extends StatefulWidget {
   const FhirMapperPage({
-    this.scannedImages = const [],
-    this.importedImages = const [],
-    this.importedPdfs = const [],
+    required this.sessionId,
     super.key,
   });
 
-  final List<String> scannedImages;
-  final List<String> importedImages;
-  final List<String> importedPdfs;
+  final String sessionId;
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.instance.get<FhirMapperBloc>()
-        ..add(
-          FhirMapperImagesPrepared(
-              scannedImages: scannedImages,
-              importedImages: importedImages,
-              importedPdfs: importedPdfs,
+  State<FhirMapperPage> createState() => _FhirMapperPageState();
+}
+
+class _FhirMapperPageState extends State<FhirMapperPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _encounterNameController = TextEditingController();
+  final _pageController = PageController();
+
+  @override
+  void initState() {
+    context.read<FhirMapperBloc>().add(
+          FhirMapperPageInitialized(
+              sessionId: widget.sessionId,
               currentPatients: context
                   .read<PatientBloc>()
                   .state
                   .patientGroups
                   .values
                   .toList()),
-        ),
-      child: const _FhirMapperView(),
-    );
+        );
+    super.initState();
   }
-}
-
-class _FhirMapperView extends StatefulWidget {
-  const _FhirMapperView();
-
-  @override
-  State<_FhirMapperView> createState() => _FhirMapperViewState();
-}
-
-class _FhirMapperViewState extends State<_FhirMapperView> {
-  final _formKey = GlobalKey<FormState>();
-  final _encounterNameController = TextEditingController();
-  final _pageController = PageController();
 
   @override
   void dispose() {
@@ -129,9 +117,9 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ScanSummaryCard(
-                scannedCount: state.scannedImages.length,
-                importedImagesCount: state.importedImages.length,
-                importedPdfsCount: state.importedPdfs.length,
+                scannedCount: state.activeSession!.scannedImages.length,
+                importedImagesCount: state.activeSession!.importedImages.length,
+                importedPdfsCount: state.activeSession!.importedFiles.length,
                 totalPagesForOcr: state.allImagePathsForOCR.length,
               ),
               const SizedBox(height: Insets.normal),
@@ -190,7 +178,7 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
 
     if (state.status == FhirMapperStatus.mapping) {
       return CustomProgressIndicator(
-        progress: state.mappingProgress,
+        progress: state.activeSession!.progress,
         text: "Processing pages to FHIR resources...",
       );
     }
@@ -206,7 +194,8 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!state.resources.any((resource) => resource is MappingPatient)) ...[
+        if (!state.activeSession!.resources
+            .any((resource) => resource is MappingPatient)) ...[
           const Text("Select the patient", style: AppTextStyle.bodyLarge),
           const SizedBox(height: 8),
           PatientDropdown(
@@ -224,7 +213,7 @@ class _FhirMapperViewState extends State<_FhirMapperView> {
         ],
         ResourcesForm(
           formKey: _formKey,
-          resources: state.resources,
+          resources: state.activeSession!.resources,
           onPropertyChanged: (index, propertyKey, newValue) =>
               context.read<FhirMapperBloc>().add(
                     FhirMapperResourceChanged(
