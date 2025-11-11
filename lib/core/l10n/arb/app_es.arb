@@ -201,5 +201,18 @@
     "sourceName": "Nombre de fuente",
     "provideCustomLabel": "Proporciona una etiqueta personalizada para:",
     "success": "Éxito",
-    "demoDataLoadedSuccessfully": "Los datos de demostración se han cargado exitosamente. Serás redirigido a la página de inicio."
+    "demoDataLoadedSuccessfully": "Los datos de demostración se han cargado exitosamente. Serás redirigido a la página de inicio.",
+
+    "onboardingAiModelTitle": "Habilitar Modelo de IA",
+    "onboardingAiModelDescription": "Descarga un modelo de IA seguro y en el dispositivo (~1.5 GB) para analizar y organizar automáticamente tus registros de salud: tus datos permanecen privados en tu dispositivo. Es una configuración única.",
+    "onboardingAiModelSubtitle": "Desbloquea el escaneo impulsado por IA", 
+    "aiModelReady": "¡Modelo de IA listo! Puedes empezar a escanear.",
+    "aiModelDownloading": "Descargando modelo de IA...",
+    "aiModelEnableDownload": "Activar y descargar",
+    "aiModelError": "No se pudo verificar el modelo. Inténtalo de nuevo.",
+    "aiModelMissing": "No descargado.",
+    "aiModelTitle": "Cargar modelo de IA",
+    "aiModelUnlockTitle": "Desbloquea el escaneo con IA",
+    "aiModelUnlockDescription": "Para leer y organizar automáticamente tus documentos médicos, esta función utiliza un modelo de IA seguro y local en tu dispositivo. Tus datos permanecen completamente privados.",
+    "aiModelDownloadInfo": "Para comenzar, necesitamos descargar el componente de IA (aproximadamente 1.5 GB). Es una configuración única."
 }

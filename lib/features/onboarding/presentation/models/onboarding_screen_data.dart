@@ -7,6 +7,7 @@ class OnboardingScreenData {
   final String description;
   final SvgGenImage image;
   final bool showBiometricToggle;
+  final Widget? customWidget; // Custom content for specific screens
 
   const OnboardingScreenData({
     required this.title,
@@ -14,5 +15,6 @@ class OnboardingScreenData {
     required this.description,
     required this.image,
     this.showBiometricToggle = false,
+    this.customWidget,
   });
 }

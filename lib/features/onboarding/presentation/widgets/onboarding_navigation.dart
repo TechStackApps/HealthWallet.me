@@ -12,28 +12,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 class OnboardingNavigation extends StatelessWidget {
   final PageController pageController;
   final int currentPage;
+  final int totalPages;
 
   const OnboardingNavigation({
     super.key,
     required this.pageController,
     required this.currentPage,
+    required this.totalPages,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
+    final isLastPage = currentPage == totalPages - 1;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Insets.medium),
       child: SizedBox(
-        height: currentPage == 2
+        height: isLastPage
             ? (isSmallScreen ? 140 : 160)
             : (isSmallScreen ? 120 : 140),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            if (currentPage == 2)
+            if (isLastPage)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: Insets.small),
                 child: BlocBuilder<UserBloc, UserState>(
@@ -77,7 +80,7 @@ class OnboardingNavigation extends StatelessWidget {
               ),
             ElevatedButton(
               onPressed: () async {
-                if (currentPage == 2) {
+                if (isLastPage) {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setBool('hasSeenOnboarding', true);
                   context.appRouter.replace(DashboardRoute());
@@ -104,17 +107,17 @@ class OnboardingNavigation extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    currentPage < 2
+                    !isLastPage
                         ? context.l10n.continueButton
                         : context.l10n.getStarted,
                     style: AppTextStyle.buttonMedium,
                   ),
                   const SizedBox(width: 8),
-                  if (currentPage < 2) const Icon(Icons.arrow_forward),
+                  if (!isLastPage) const Icon(Icons.arrow_forward),
                 ],
               ),
             ),
-            if (currentPage == 2)
+            if (isLastPage)
               Padding(
                 padding: EdgeInsets.only(
                     bottom: isSmallScreen ? 16 : Insets.small,
@@ -136,7 +139,7 @@ class OnboardingNavigation extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                3,
+                totalPages,
                 (index) => _buildDot(index, context, currentPage),
               ),
             ),
