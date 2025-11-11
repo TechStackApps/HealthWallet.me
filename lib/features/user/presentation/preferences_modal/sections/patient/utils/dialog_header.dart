@@ -3,7 +3,6 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 import 'form_fields.dart';
-import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class DialogHeader extends StatelessWidget {
   final Color textColor;

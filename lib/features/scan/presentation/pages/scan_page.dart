@@ -122,8 +122,9 @@ class _ScanViewState extends State<ScanView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizationsX(context).l10n.onboardingScanButton),
+      appBar: CustomAppBar(
+        title: AppLocalizationsX(context).l10n.onboardingScanButton,
+        automaticallyImplyLeading: false,
         actions: [
           BlocBuilder<LoadModelBloc, LoadModelState>(
             builder: (context, state) {
