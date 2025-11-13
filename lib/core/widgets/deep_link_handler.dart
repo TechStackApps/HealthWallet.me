@@ -139,7 +139,7 @@ Future<void> _downloadAndAddToScan(BuildContext navigatorContext, DeepLinkData d
 
     // Navigate to Dashboard
     final router = getIt<AppRouter>();
-    router.push(const DashboardRoute());
+    router.push(DashboardRoute());
     
   } catch (e) {
     if (!mounted) return;

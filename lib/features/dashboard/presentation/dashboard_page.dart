@@ -48,8 +48,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   void _checkForDeepLinkFile() {
     if (DeepLinkFileCache.instance.hasFile()) {
-      // Jump to Scan tab (index 2) using your controller to keep logic unified
-      _navigationController.jumpToPage(2);
+      _navigationController.jumpToPage(3);
     }
   }
 

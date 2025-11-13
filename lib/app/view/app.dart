@@ -29,8 +29,6 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final router = getIt<AppRouter>();
     final routeObserver = getIt<AppRouteObserver>();
-    // Use the router's navigatorKey if it exists; otherwise fall back to our own
-    final navKey = router.navigatorKey ?? navigatorKey;
 
     return MultiBlocProvider(
       providers: [
