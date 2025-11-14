@@ -14,6 +14,7 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_patient.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/widgets/patient_dropdown.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/widgets/resources_form.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/custom_progress_indicator.dart';
@@ -28,11 +29,11 @@ import 'bloc/fhir_mapper_bloc.dart';
 @RoutePage()
 class FhirMapperPage extends StatefulWidget {
   const FhirMapperPage({
-    required this.sessionId,
+    required this.session,
     super.key,
   });
 
-  final String sessionId;
+  final ProcessingSession session;
 
   @override
   State<FhirMapperPage> createState() => _FhirMapperPageState();
@@ -46,8 +47,8 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
   @override
   void initState() {
     context.read<FhirMapperBloc>().add(
-          FhirMapperPageInitialized(
-              sessionId: widget.sessionId,
+          FhirMapperInitialized(
+              session: widget.session,
               currentPatients: context
                   .read<PatientBloc>()
                   .state
@@ -117,9 +118,6 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ScanSummaryCard(
-                scannedCount: state.activeSession!.scannedImages.length,
-                importedImagesCount: state.activeSession!.importedImages.length,
-                importedPdfsCount: state.activeSession!.importedFiles.length,
                 totalPagesForOcr: state.allImagePathsForOCR.length,
               ),
               const SizedBox(height: Insets.normal),
@@ -154,31 +152,43 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
 
   Widget _buildMappingSection(FhirMapperState state) {
     if (state.status == FhirMapperStatus.mappingReady) {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () =>
-              context.read<FhirMapperBloc>().add(const FhirMappingInitiated()),
-          icon: const Icon(Icons.text_fields),
-          label: const Text(
-            'Process pages',
-            style: TextStyle(fontSize: 16),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.colorScheme.primary,
-            foregroundColor: context.colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+      return BlocBuilder<ScanBloc, ScanState>(
+        builder: (context, scanState) {
+          final canProcess = !scanState.sessions
+              .any((session) => session.status == ProcessingStatus.processing);
+
+          if (!canProcess) {
+            return const Text("Only one processing session can run at a time!");
+          }
+
+          return SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context
+                  .read<FhirMapperBloc>()
+                  .add(const FhirMappingInitiated()),
+              icon: const Icon(Icons.text_fields),
+              label: const Text(
+                'Process pages',
+                style: TextStyle(fontSize: 16),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: context.colorScheme.primary,
+                foregroundColor: context.colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     }
 
     if (state.status == FhirMapperStatus.mapping) {
       return CustomProgressIndicator(
-        progress: state.activeSession!.progress,
+        progress: state.session.progress,
         text: "Processing pages to FHIR resources...",
       );
     }
@@ -194,7 +204,7 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!state.activeSession!.resources
+        if (!state.session.resources
             .any((resource) => resource is MappingPatient)) ...[
           const Text("Select the patient", style: AppTextStyle.bodyLarge),
           const SizedBox(height: 8),
@@ -213,7 +223,7 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
         ],
         ResourcesForm(
           formKey: _formKey,
-          resources: state.activeSession!.resources,
+          resources: state.session.resources,
           onPropertyChanged: (index, propertyKey, newValue) =>
               context.read<FhirMapperBloc>().add(
                     FhirMapperResourceChanged(

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
 import 'package:health_wallet/features/dashboard/presentation/dashboard_page.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/fhir_mapper_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/load_model_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';

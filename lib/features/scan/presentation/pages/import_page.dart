@@ -1,17 +1,22 @@
+import 'dart:developer';
 import 'dart:io';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/session_list.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/core/widgets/app_button.dart';
 import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/documents_grid.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/import_placeholder.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/import_actions.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
 
@@ -39,78 +44,48 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         title: 'Import',
         automaticallyImplyLeading: false,
-        actions: [
-          BlocBuilder<ScanBloc, ScanState>(
-            builder: (context, state) {
-              final hasImportedImages = state.importedImagePaths.isNotEmpty;
-              final hasPdfs = state.savedPdfPaths.isNotEmpty;
-              if (!hasImportedImages && !hasPdfs)
-                return const SizedBox.shrink();
-
-              return TextButton(
-                onPressed: () {
-                  context.read<ScanBloc>().add(const ClearImports());
-                },
-                child: const Text('Clear'),
-              );
-            },
-          ),
-        ],
       ),
-      body: BlocBuilder<ScanBloc, ScanState>(
+      body: BlocConsumer<ScanBloc, ScanState>(
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          log("Import: ${state.status}");
+          if (state.status case SessionCreated(:final session)) {
+            navigateToFhirMapper(context, session);
+          }
+        },
         builder: (context, state) {
-          final hasDocuments = state.importedImagePaths.isNotEmpty ||
-              state.savedPdfPaths.isNotEmpty;
+          List<ProcessingSession> importSessions = state.sessions
+              .where((element) => element.origin == ProcessingOrigin.import)
+              .toList();
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (!hasDocuments) ...[
-                  Expanded(
-                    child: ImportPlaceholder(
-                      onImportDocument: () => _handleImportDocument(context),
-                      onPickImage: () => _handlePickImage(context),
-                      onScanDocument: () => _navigateToScanTab(context),
+                if (importSessions.isNotEmpty)
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height / 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Active import sessions:",
+                          style: AppTextStyle.buttonLarge,
+                        ),
+                        const SizedBox(height: 24),
+                        SessionList(sessions: importSessions),
+                      ],
                     ),
                   ),
-                ] else ...[
-                  Expanded(
-                    child: DocumentsGrid(
-                      onAddScan: () {
-                        _showImportOptionsDialog(context);
-                      },
-                      onScanTap: (filePath, index) =>
-                          handleDocumentTap(context, filePath, index),
-                      onDeleteScan: (filePath, index) =>
-                          showDeleteConfirmation(context, filePath, index),
-                      includeScannedImages: false,
-                      includeImportedImages: true,
-                      includeFiles: true,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: ActionButtons(
-                      onProcessToFhir: () => navigateToFhirMapper(
-                        context,
-                        const <String>[],
-                        state.importedImagePaths,
-                        state.savedPdfPaths,
-                      ),
-                      onAttachToEncounter: () => showEncounterSelector(
-                        context,
-                        const <String>[],
-                        state.importedImagePaths,
-                        state.savedPdfPaths,
-                      ),
-                      onExtractText: null,
-                    ),
-                  ),
-                ]
+                ImportActions(
+                  onImportDocument: () => _handleImportDocument(context),
+                  onPickImage: () => _handlePickImage(context),
+                  onScanDocument: () => _navigateToScanTab(context),
+                ),
               ],
             ),
           );
@@ -157,7 +132,6 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
       await Future.delayed(const Duration(milliseconds: 100));
 
       final result = await FilePicker.platform.pickFiles(
-        allowMultiple: true,
         allowCompression: false,
         withData: false,
         withReadStream: false,

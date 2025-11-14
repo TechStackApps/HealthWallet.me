@@ -1,17 +1,20 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:health_wallet/core/l10n/l10n.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
+import 'package:health_wallet/core/widgets/app_button.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/bloc/load_model_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/session_list.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/documents_grid.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/scan_placeholder.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
@@ -25,13 +28,9 @@ class ScanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => GetIt.instance.get<ScanBloc>()),
-        BlocProvider(
-            create: (_) => GetIt.instance.get<LoadModelBloc>()
-              ..add(const LoadModelInitialized())),
-      ],
+    return BlocProvider(
+      create: (_) => GetIt.instance.get<LoadModelBloc>()
+        ..add(const LoadModelInitialized()),
       child: ScanView(navigationController: navigationController),
     );
   }
@@ -86,9 +85,9 @@ class _ScanViewState extends State<ScanView>
     _hasAutoScanned = true;
 
     final currentState = context.read<ScanBloc>().state;
-    final hasAnyFiles = currentState.scannedImagePaths.isNotEmpty;
+    final hasAnySessions = currentState.sessions.isNotEmpty;
 
-    if (!hasAnyFiles) {
+    if (!hasAnySessions) {
       await _handleScanButtonPressed(context);
     }
   }
@@ -149,41 +148,41 @@ class _ScanViewState extends State<ScanView>
               );
             },
           ),
-          BlocBuilder<ScanBloc, ScanState>(
-            builder: (context, state) {
-              if (state.scannedImagePaths.isEmpty) {
-                return const SizedBox.shrink();
+        ],
+      ),
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<ScanBloc, ScanState>(
+            listenWhen: (previous, current) {
+              return previous.sessions.isNotEmpty && current.sessions.isEmpty;
+            },
+            listener: (context, state) {
+              if (state.sessions.isEmpty && _hasAutoScanned) {
+                _resetAutoScanFlag();
+
+                if (widget.navigationController?.currentPage == 2) {
+                  _autoStartScanning();
+                }
               }
-              return TextButton(
-                onPressed: () {
-                  context.read<ScanBloc>().add(const ClearScans());
-                },
-                child: const Text('Clear'),
-              );
+            },
+          ),
+          BlocListener<ScanBloc, ScanState>(
+            listenWhen: (previous, current) =>
+                previous.status != current.status,
+            listener: (context, state) {
+              log("Scan: ${state.status}");
+              if (state.status case SessionCreated(:final session)) {
+                navigateToFhirMapper(context, session);
+              }
             },
           ),
         ],
-      ),
-      body: BlocListener<ScanBloc, ScanState>(
-        listenWhen: (previous, current) {
-          return previous.scannedImagePaths.isNotEmpty &&
-              current.scannedImagePaths.isEmpty;
-        },
-        listener: (context, state) {
-          if (state.scannedImagePaths.isEmpty && _hasAutoScanned) {
-            _resetAutoScanFlag();
-
-            if (widget.navigationController?.currentPage == 2) {
-              _autoStartScanning();
-            }
-          }
-        },
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
             return state.status.when(
               initial: () => _buildMainView(context, state),
               loading: () => _buildLoadingView(),
-              success: () => _buildMainView(context, state),
+              sessionCreated: (session) => _buildMainView(context, state),
               failure: (error) => _buildMainView(context, state),
             );
           },
@@ -206,47 +205,36 @@ class _ScanViewState extends State<ScanView>
   }
 
   Widget _buildMainView(BuildContext context, ScanState state) {
-    final hasScans = state.scannedImagePaths.isNotEmpty;
+    List<ProcessingSession> scanSessions = state.sessions
+        .where((element) => element.origin == ProcessingOrigin.scan)
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: hasScans
-                ? DocumentsGrid(
-                    onAddScan: () => _handleDirectScan(context),
-                    onScanTap: (filePath, index) =>
-                        handleDocumentTap(context, filePath, index),
-                    onDeleteScan: (filePath, index) =>
-                        showDeleteConfirmation(context, filePath, index),
-                    includeScannedImages: true,
-                    includeImportedImages: false,
-                    includeFiles: false,
-                  )
-                : ScanPlaceholder(
-                    onScan: () => _handleDirectScan(context),
+          if (scanSessions.isNotEmpty)
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height / 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Active scan sessions:",
+                    style: AppTextStyle.buttonLarge,
                   ),
-          ),
-          if (hasScans)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ActionButtons(
-                onProcessToFhir: () => navigateToFhirMapper(
-                  context,
-                  state.scannedImagePaths,
-                  const <String>[],
-                  const <String>[],
-                ),
-                onAttachToEncounter: () => showEncounterSelector(
-                  context,
-                  state.scannedImagePaths,
-                  const <String>[],
-                  const <String>[],
-                ),
-                onExtractText: null,
+                  const SizedBox(height: 24),
+                  SessionList(sessions: scanSessions),
+                ],
               ),
             ),
+          AppButton(
+            label: 'Scan Document',
+            icon: const Icon(Icons.document_scanner_outlined),
+            variant: AppButtonVariant.primary,
+            onPressed: () => _handleDirectScan(context),
+          ),
         ],
       ),
     );

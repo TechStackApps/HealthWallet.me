@@ -5,20 +5,12 @@ abstract class FhirMapperEvent {
 }
 
 @freezed
-class FhirMapperSessionCreated extends FhirMapperEvent
-    with _$FhirMapperSessionCreated {
-  const factory FhirMapperSessionCreated({
+class FhirMapperInitialized extends FhirMapperEvent
+    with _$FhirMapperInitialized {
+  const factory FhirMapperInitialized({
     required ProcessingSession session,
-  }) = _FhirMapperSessionCreated;
-}
-
-@freezed
-class FhirMapperPageInitialized extends FhirMapperEvent
-    with _$FhirMapperPageInitialized {
-  const factory FhirMapperPageInitialized({
-    required String sessionId,
     required List<PatientGroup> currentPatients,
-  }) = _FhirMapperPageInitialized;
+  }) = _FhirMapperInitialized;
 }
 
 @freezed

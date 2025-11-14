@@ -1,18 +1,21 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:health_wallet/core/services/pdf_storage_service.dart';
 import 'package:health_wallet/core/utils/logger.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'scan_state.dart';
 part 'scan_event.dart';
 part 'scan_bloc.freezed.dart';
 
-@Injectable()
+@LazySingleton()
 class ScanBloc extends Bloc<ScanEvent, ScanState> {
   final PdfStorageService _pdfStorageService;
 
@@ -21,12 +24,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
   ) : super(const ScanState()) {
     on<ScanInitialised>(_onScanInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
-    on<DeleteDocument>(_onDeleteDocument);
-    on<DeletePdf>(_onDeletePdf);
-    on<LoadSavedPdfs>(_onLoadSavedPdfs);
     on<DocumentImported>(_onDocumentImported);
-    on<ClearScans>(_onClearScans);
-    on<ClearImports>(_onClearImports);
+    on<ScanSessionChangedProgress>(_onScanSessionChangedProgress);
   }
 
   Future<void> _onScanInitialised(
@@ -34,7 +33,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     Emitter<ScanState> emit,
   ) async {
     emit(state.copyWith(status: const ScanStatus.initial()));
-    add(const LoadSavedPdfs());
   }
 
   Future<void> _onScanButtonPressed(
@@ -62,6 +60,23 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     }
   }
 
+  void _createSession(
+    Emitter<ScanState> emit, {
+    required List<String> filePaths,
+    required ProcessingOrigin origin,
+  }) {
+    final session = ProcessingSession(
+      id: const Uuid().v4(),
+      filePaths: filePaths,
+      origin: origin,
+      createdAt: DateTime.now(),
+    );
+    emit(state.copyWith(
+      status: ScanStatus.sessionCreated(session: session),
+      sessions: [session, ...state.sessions],
+    ));
+  }
+
   Future<void> _handlePdfScan(Emitter<ScanState> emit) async {
     final scannedPdf = await FlutterDocScanner().getScannedDocumentAsPdf();
 
@@ -69,7 +84,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       emit(state.copyWith(status: const ScanStatus.initial()));
       return;
     }
-
+    log(scannedPdf);
     final savedPath = await _pdfStorageService.savePdfToStorage(
       sourcePdfPath: scannedPdf,
       customFileName:
@@ -77,12 +92,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     );
 
     if (savedPath != null) {
-      final updatedPdfs = [...state.savedPdfPaths, savedPath];
-      emit(state.copyWith(
-        status: const ScanStatus.success(),
-        savedPdfPaths: updatedPdfs,
-        lastCreatedPdfPath: savedPath,
-      ));
+      _createSession(emit,
+          filePaths: [savedPath], origin: ProcessingOrigin.scan);
     } else {
       emit(state.copyWith(
         status: const ScanStatus.failure(error: 'Failed to save PDF'),
@@ -108,78 +119,29 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       return;
     }
 
-    final updatedPaths = [...state.scannedImagePaths, ...imagePaths];
-    emit(state.copyWith(
-      status: const ScanStatus.success(),
-      scannedImagePaths: updatedPaths,
-    ));
-  }
-
-  Future<void> _onDeletePdf(
-    DeletePdf event,
-    Emitter<ScanState> emit,
-  ) async {
-    try {
-      final success = await _pdfStorageService.deletePdf(event.pdfPath);
-
-      if (success) {
-        _removePathFromState(event.pdfPath, emit);
-      }
-    } catch (e) {
-      logger.e('Error deleting PDF: ${event.pdfPath}', e);
-    }
-  }
-
-  Future<void> _onLoadSavedPdfs(
-    LoadSavedPdfs event,
-    Emitter<ScanState> emit,
-  ) async {
-    try {
-      final savedPdfs = await _pdfStorageService.getSavedPdfs();
-      emit(state.copyWith(savedPdfPaths: savedPdfs));
-    } catch (e) {
-      logger.e('Error loading saved PDFs', e);
-    }
+    _createSession(emit, filePaths: imagePaths, origin: ProcessingOrigin.scan);
   }
 
   Future<void> _onDocumentImported(
     DocumentImported event,
     Emitter<ScanState> emit,
   ) async {
+    emit(state.copyWith(status: const ScanStatus.loading()));
     try {
       final file = File(event.filePath);
       final exists = await file.exists();
 
       if (!exists) {
         emit(state.copyWith(
-          status: ScanStatus.failure(error: 'File does not exist'),
+          status: const ScanStatus.failure(error: 'File does not exist'),
         ));
         return;
       }
 
-      if (_isPdfPath(event.filePath)) {
-        final updatedPdfs = _addPathToList(
-          state.savedPdfPaths,
-          event.filePath,
-        );
-        if (updatedPdfs != null) {
-          emit(state.copyWith(
-            status: const ScanStatus.success(),
-            savedPdfPaths: updatedPdfs,
-          ));
-        }
-      } else {
-        final updatedImages = _addPathToList(
-          state.importedImagePaths,
-          event.filePath,
-        );
-        if (updatedImages != null) {
-          emit(state.copyWith(
-            status: const ScanStatus.success(),
-            importedImagePaths: updatedImages,
-          ));
-        }
-      }
+      log(event.filePath);
+
+      _createSession(emit,
+          filePaths: [event.filePath], origin: ProcessingOrigin.import);
     } catch (e) {
       logger.e('Error importing document: ${event.filePath}', e);
       emit(state.copyWith(
@@ -188,84 +150,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     }
   }
 
-  Future<void> _onDeleteDocument(
-    DeleteDocument event,
+  void _onScanSessionChangedProgress(
+    ScanSessionChangedProgress event,
     Emitter<ScanState> emit,
-  ) async {
-    final path = event.imagePath;
+  ) {
+    final newSessions = [...state.sessions]
+      ..removeWhere((session) => session.id == event.session.id);
 
-    await _safeDeleteFile(path);
-
-    if (_isPdfPath(path) && state.savedPdfPaths.contains(path)) {
-      try {
-        await _pdfStorageService.deletePdf(path);
-      } catch (e) {
-        logger.e('Error deleting PDF via storage service: $path', e);
-      }
-    }
-
-    _removePathFromState(path, emit);
-  }
-
-  Future<void> _onClearScans(
-    ClearScans event,
-    Emitter<ScanState> emit,
-  ) async {
-    await _deleteFiles(state.scannedImagePaths);
-    emit(state.copyWith(scannedImagePaths: []));
-  }
-
-  Future<void> _onClearImports(
-    ClearImports event,
-    Emitter<ScanState> emit,
-  ) async {
-    await _deleteFiles(state.importedImagePaths);
-
-    for (final pdf in state.savedPdfPaths) {
-      try {
-        await _pdfStorageService.deletePdf(pdf);
-      } catch (e) {
-        logger.e('Error deleting PDF during clear imports: $pdf', e);
-      }
-    }
-
-    emit(state.copyWith(importedImagePaths: [], savedPdfPaths: []));
-  }
-
-  Future<void> _safeDeleteFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      logger.e('Error deleting file: $path', e);
-    }
-  }
-
-  Future<void> _deleteFiles(List<String> paths) async {
-    for (final path in paths) {
-      await _safeDeleteFile(path);
-    }
-  }
-
-  List<String> _removePathFromList(List<String> list, String path) {
-    return list.where((p) => p != path).toList();
-  }
-
-  List<String>? _addPathToList(
-    List<String> list,
-    String path, {
-    bool checkDuplicates = true,
-  }) {
-    if (checkDuplicates && list.contains(path)) {
-      return null;
-    }
-    return [...list, path];
-  }
-
-  bool _isPdfPath(String path) {
-    return path.toLowerCase().endsWith('.pdf');
+    emit(state.copyWith(sessions: [event.session, ...newSessions]));
   }
 
   List<String> _normalizeImagePaths(dynamic scannedDocuments) {
@@ -280,19 +172,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
   bool _isValidScanResult(String path) {
     return !path.contains('Failed') && !path.contains('Unknown');
-  }
-
-  void _removePathFromState(String path, Emitter<ScanState> emit) {
-    if (state.scannedImagePaths.contains(path)) {
-      final updated = _removePathFromList(state.scannedImagePaths, path);
-      emit(state.copyWith(scannedImagePaths: updated));
-    } else if (state.importedImagePaths.contains(path)) {
-      final updated = _removePathFromList(state.importedImagePaths, path);
-      emit(state.copyWith(importedImagePaths: updated));
-    } else if (state.savedPdfPaths.contains(path)) {
-      final updated = _removePathFromList(state.savedPdfPaths, path);
-      emit(state.copyWith(savedPdfPaths: updated));
-    }
   }
 
   String _parsePlatformError(PlatformException error) {
