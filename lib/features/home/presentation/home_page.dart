@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/features/home/notifications/notification_widget.dart';
 import 'package:health_wallet/features/home/presentation/widgets/home_dialog_controller.dart';
 import 'package:onboarding_overlay/onboarding_overlay.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
@@ -115,8 +116,7 @@ class HomeViewState extends State<HomeView> {
     if (_onboardingKey.currentState != null) {
       try {
         _onboardingKey.currentState!.show();
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 
@@ -174,8 +174,7 @@ class HomeViewState extends State<HomeView> {
                   _focusController.firstOverviewCardFocusNode,
               context: context,
             ),
-            onChanged: (index) {
-            },
+            onChanged: (index) {},
             onEnd: (index) async {
               context.read<SyncBloc>().add(const ResetTutorial());
 
@@ -231,35 +230,7 @@ class HomeViewState extends State<HomeView> {
                         ],
                       ),
                     ),
-                    state.editMode
-                        ? TextButton(
-                            onPressed: () => context
-                                .read<HomeBloc>()
-                                .add(const HomeEditModeChanged(false)),
-                            style: TextButton.styleFrom(
-                              foregroundColor: context.colorScheme.primary,
-                            ),
-                            child: Text(context.l10n.done),
-                          )
-                        : Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: IconButton(
-                              icon: Assets.icons.settings.svg(
-                                colorFilter: ColorFilter.mode(
-                                  context.colorScheme.onSurface,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                              onPressed: () {
-                                PreferenceModal.show(context);
-                              },
-                              padding: EdgeInsets.zero,
-                            ),
-                          ),
+                    _buildActions(state),
                   ],
                 ),
                 actions: const [],
@@ -273,6 +244,44 @@ class HomeViewState extends State<HomeView> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildActions(HomeState state) {
+    if (state.editMode) {
+      return TextButton(
+        onPressed: () =>
+            context.read<HomeBloc>().add(const HomeEditModeChanged(false)),
+        style: TextButton.styleFrom(
+          foregroundColor: context.colorScheme.primary,
+        ),
+        child: Text(context.l10n.done),
+      );
+    }
+
+    return Row(
+      children: [
+        const NotificationWidget(),
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: IconButton(
+            icon: Assets.icons.settings.svg(
+              colorFilter: ColorFilter.mode(
+                context.colorScheme.onSurface,
+                BlendMode.srcIn,
+              ),
+            ),
+            onPressed: () {
+              PreferenceModal.show(context);
+            },
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ],
     );
   }
 
@@ -439,27 +448,30 @@ class HomeViewState extends State<HomeView> {
                                     },
                                     onSourceDelete: (source) {
                                       final patientSourceIds =
-                                          PatientSourceUtils.getPatientSourceIds(
-                                              context);
+                                          PatientSourceUtils
+                                              .getPatientSourceIds(context);
                                       final filteredPatientSourceIds =
                                           patientSourceIds
                                               ?.where((id) => id != source.id)
                                               .toList();
-                                      
-                                      final patientState = context.read<PatientBloc>().state;
-                                      final selectedPatientId = patientState.selectedPatientId;
-                                      
+
+                                      final patientState =
+                                          context.read<PatientBloc>().state;
+                                      final selectedPatientId =
+                                          patientState.selectedPatientId;
+
                                       context.read<HomeBloc>().add(
                                             HomeSourceDeleted(source.id,
                                                 patientSourceIds:
                                                     filteredPatientSourceIds),
                                           );
-                                      
+
                                       if (selectedPatientId != null) {
                                         context.read<PatientBloc>().add(
                                               PatientPatientsLoaded(
                                                 preserveOrder: true,
-                                                preservePatientId: selectedPatientId,
+                                                preservePatientId:
+                                                    selectedPatientId,
                                               ),
                                             );
                                       }

@@ -1,8 +1,18 @@
+import 'dart:developer';
+
+import 'package:another_flushbar/flushbar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/home/domain/entities/wallet_notification.dart';
+import 'package:health_wallet/features/home/notifications/bloc/notification_bloc.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/import_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
@@ -65,15 +75,69 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
 
-    return BlocListener<SyncBloc, SyncState>(
-      listenWhen: (previous, current) {
-        return current.shouldShowTutorial && !previous.shouldShowTutorial;
-      },
-      listener: (context, syncState) async {
-        if (syncState.shouldShowTutorial) {
-          _navigationController.navigateToPage(0);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SyncBloc, SyncState>(
+          listenWhen: (previous, current) {
+            return current.shouldShowTutorial && !previous.shouldShowTutorial;
+          },
+          listener: (context, syncState) async {
+            if (syncState.shouldShowTutorial) {
+              _navigationController.navigateToPage(0);
+            }
+          },
+        ),
+        BlocListener<FhirMapperBloc, FhirMapperState>(
+          listenWhen: (previous, current) =>
+              previous.session != current.session,
+          listener: (context, state) {
+            context
+                .read<ScanBloc>()
+                .add(ScanSessionChangedProgress(session: state.session));
+          },
+        ),
+        BlocListener<FhirMapperBloc, FhirMapperState>(
+          listenWhen: (previous, current) =>
+              previous.session.status != current.session.status &&
+              current.session.id == previous.session.id,
+          listener: (context, state) {
+            log(state.session.status.toString());
+            if (state.session.status != ProcessingStatus.draft) return;
+
+            final isMapperRoute =
+                context.router.current.name == FhirMapperRoute.name;
+            final notificationText =
+                "${state.session.origin} processing is finished. Save your medical data!";
+            final notificationRoute = FhirMapperRoute(session: state.session);
+
+            log(isMapperRoute.toString());
+            context.read<NotificationBloc>().add(NotificationAdded(
+                  notification: WalletNotification(
+                    text: "${state.session.origin} processing finished",
+                    route: notificationRoute,
+                    read: isMapperRoute,
+                    time: DateTime.now(),
+                  ),
+                ));
+
+            if (!isMapperRoute) {
+              Flushbar(
+                title: "${state.session.origin} processing is finished. Save your medical data!",
+                message: notificationText,
+                duration: const Duration(seconds: 2),
+                flushbarPosition: FlushbarPosition.TOP,
+                titleColor: Colors.white,
+                messageColor: Colors.white,
+                backgroundColor: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.all(20),
+                onTap: (_) => context.router.push(notificationRoute),
+              ).show(context);
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         body: Stack(
           children: [
