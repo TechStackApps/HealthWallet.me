@@ -137,7 +137,7 @@ class _ScanViewState extends State<ScanView>
                 onPressed: () => context.router.push(const LoadModelRoute()),
                 icon: const Icon(Icons.memory_outlined),
                 label: Text(
-                  AppLocalizationsX(context).l10n.onboardingScanButton,
+                  AppLocalizationsX(context).l10n.onboardingAiModelTitle,
                   style: TextStyle(
                     color: context.colorScheme.primary,
                     fontWeight: FontWeight.w500,

@@ -619,4 +619,45 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documentScanTitle => 'Scan';
+
+  @override
+  String get onboardingAiModelTitle => 'AI-Modell aktivieren';
+
+  @override
+  String get onboardingAiModelDescription =>
+      'Laden Sie ein sicheres, geräteinternes AI-Modell (~1,5 GB) herunter, um Ihre Gesundheitsakten automatisch zu analysieren und zu organisieren - Ihre Daten bleiben privat auf Ihrem Gerät. Dies ist eine einmalige Einrichtung.';
+
+  @override
+  String get onboardingAiModelSubtitle => 'AI-gestütztes Scannen freischalten';
+
+  @override
+  String get aiModelReady =>
+      'KI-Modell bereit! Du kannst mit dem Scannen beginnen.';
+
+  @override
+  String get aiModelDownloading => 'KI-Modell wird heruntergeladen...';
+
+  @override
+  String get aiModelEnableDownload => 'Aktivieren & Herunterladen';
+
+  @override
+  String get aiModelError =>
+      'Modell konnte nicht überprüft werden. Bitte versuche es erneut.';
+
+  @override
+  String get aiModelMissing => 'Nicht heruntergeladen.';
+
+  @override
+  String get aiModelTitle => 'KI-Modell laden';
+
+  @override
+  String get aiModelUnlockTitle => 'KI-gestütztes Scannen freischalten';
+
+  @override
+  String get aiModelUnlockDescription =>
+      'Um Ihre medizinischen Dokumente automatisch zu lesen und zu organisieren, verwendet diese Funktion ein sicheres, geräteinternes KI-Modell. Ihre Daten bleiben vollständig privat.';
+
+  @override
+  String get aiModelDownloadInfo =>
+      'Um zu beginnen, müssen wir die KI-Komponente herunterladen (ca. 1,5 GB). Dies ist eine einmalige Einrichtung.';
 }

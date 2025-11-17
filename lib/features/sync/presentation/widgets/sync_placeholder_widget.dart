@@ -45,7 +45,7 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
           !state.hasSyncedData &&
           _hasInitiatedDemoDataLoading) {
         _handleDemoDataCompletion(context);
-        _hasInitiatedDemoDataLoading = false; // Reset the flag
+        _hasInitiatedDemoDataLoading = false;
       } else {}
     }, child: BlocBuilder<HomeBloc, HomeState>(
       builder: (context, homeState) {
@@ -300,13 +300,16 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
             patientBloc.add(PatientSelectionChanged(patientId: demoPatient.id));
             await Future.delayed(const Duration(milliseconds: 300));
           }
+
+          await Future.delayed(const Duration(milliseconds: 200));
+
+          homeBloc.add(
+            const HomeSourceChanged('demo_data',
+                patientSourceIds: ['demo_data']),
+          );
+
+          await Future.delayed(const Duration(milliseconds: 300));
         }
-
-        homeBloc.add(
-          const HomeSourceChanged('demo_data', patientSourceIds: ['demo_data']),
-        );
-
-        await Future.delayed(const Duration(milliseconds: 300));
 
         // Close dialog AFTER all setup is complete
         if (context.mounted) {
@@ -347,9 +350,7 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
 
       try {
         context.read<PatientBloc>().add(const PatientInitialised());
-      } catch (e) {
-        // PatientBloc might not be available, continue anyway
-      }
+      } catch (e) {}
 
       await Future.delayed(const Duration(milliseconds: 500));
 

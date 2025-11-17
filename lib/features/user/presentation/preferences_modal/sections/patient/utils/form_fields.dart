@@ -4,7 +4,6 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'dropdown_field.dart';
-import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class FormFields {
   static Widget buildFieldLabel(BuildContext context, String label) {
@@ -19,12 +18,68 @@ class FormFields {
     );
   }
 
+  static Widget buildTextField(
+    BuildContext context,
+    String label,
+    String value,
+    ValueChanged<String>? onChanged, {
+    TextEditingController? controller,
+  }) {
+    final textController = controller ?? TextEditingController(text: value);
+    
+    if (controller == null && textController.text != value) {
+      final selection = textController.selection;
+      textController.text = value;
+      if (selection.end == textController.text.length) {
+        textController.selection = TextSelection.fromPosition(
+          TextPosition(offset: value.length),
+        );
+      }
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildFieldLabel(context, label),
+        Container(
+          height: 36,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color:
+                  context.isDarkMode ? AppColors.borderDark : AppColors.border,
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: textController,
+            enabled: onChanged != null,
+            onChanged: onChanged,
+            style: AppTextStyle.labelLarge.copyWith(
+              color: context.isDarkMode
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: Insets.small,
+                vertical: Insets.small,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   static Widget buildDropdownField(
     BuildContext context,
     String label,
     String value,
     List<String> items,
-    ValueChanged<String> onChanged,
+    ValueChanged<String>? onChanged,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +97,7 @@ class FormFields {
 
   static Widget buildActionButtons({
     required VoidCallback onCancel,
-    required VoidCallback onSave,
+    required VoidCallback? onSave,
     required bool isLoading,
   }) {
     return Row(

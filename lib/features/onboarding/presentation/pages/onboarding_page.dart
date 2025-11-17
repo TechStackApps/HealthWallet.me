@@ -7,6 +7,7 @@ import 'package:health_wallet/features/onboarding/presentation/bloc/onboarding_b
 import 'package:health_wallet/features/onboarding/presentation/models/onboarding_screen_data.dart';
 import 'package:health_wallet/features/onboarding/presentation/widgets/onboarding_navigation.dart';
 import 'package:health_wallet/features/onboarding/presentation/widgets/onboarding_screen.dart';
+import 'package:health_wallet/features/scan/presentation/widgets/load_model_embedded.dart';
 import 'package:health_wallet/gen/assets.gen.dart';
 
 @RoutePage()
@@ -32,6 +33,27 @@ class _OnboardingPageState extends State<OnboardingPage> {
           subtitle: context.l10n.onboardingRecordsSubtitle,
           description: context.l10n.onboardingRecordsDescription,
           image: Assets.onboarding.onboarding2,
+        ),
+        OnboardingScreenData(
+          title: context.l10n.onboardingAiModelTitle,
+          subtitle: context.l10n.onboardingAiModelSubtitle,
+          description: context.l10n.onboardingAiModelDescription,
+          image: Assets.images.placeholder,
+          customWidget: LoadModelEmbedded(
+            onModelReady: () {
+              // Automatically move to next onboarding page
+              final nextPage = _pageController.page!.toInt() + 1;
+              if (nextPage < _screens.length) {
+                _pageController.animateToPage(
+                  nextPage,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                );
+              } else {
+                context.router.maybePop();
+              }
+            },
+          ),
         ),
         OnboardingScreenData(
           title: context.l10n.onboardingSyncTitle,
@@ -80,6 +102,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                   image: screenData.image,
                                   showBiometricToggle:
                                       screenData.showBiometricToggle,
+                                  customWidget: screenData.customWidget,
                                 ))
                             .toList(),
                       ),
@@ -87,6 +110,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     OnboardingNavigation(
                       pageController: _pageController,
                       currentPage: state.currentPage,
+                      totalPages: _screens.length,
                     ),
                     SizedBox(
                         height: MediaQuery.of(context).padding.bottom +
