@@ -24,12 +24,21 @@ class MappingMedicationStatement
 
   factory MappingMedicationStatement.fromJson(Map<String, dynamic> json) {
     return MappingMedicationStatement(
-      id: const Uuid().v4(),
-      medicationName: MappedProperty(value: json['medicationName'] ?? ''),
-      dosage: MappedProperty(value: json['dosage'] ?? ''),
-      reason: MappedProperty(value: json['reason'] ?? ''),
+      id: json["id"] ?? const Uuid().v4(),
+      medicationName: MappedProperty.fromJson(json['medicationName']),
+      dosage: MappedProperty.fromJson(json['dosage']),
+      reason: MappedProperty.fromJson(json['reason']),
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'resourceType': 'MedicationStatement',
+        'medicationName': medicationName.toJson(),
+        'dosage': dosage.toJson(),
+        'reason': reason.toJson(),
+      };
 
   @override
   IFhirResource toFhirResource({

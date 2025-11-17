@@ -32,6 +32,14 @@ class ScanSessionChangedProgress extends ScanEvent
   }) = _ScanSessionChangedProgress;
 }
 
+@freezed
+class ScanSessionFinished extends ScanEvent
+    with _$ScanSessionFinished {
+  const factory ScanSessionFinished({
+    required ProcessingSession session,
+  }) = _ScanSessionFinished;
+}
+
 enum ScanMode {
   images,
   pdf,

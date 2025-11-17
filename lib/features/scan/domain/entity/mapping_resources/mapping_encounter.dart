@@ -22,12 +22,21 @@ class MappingEncounter with _$MappingEncounter implements MappingResource {
 
   factory MappingEncounter.fromJson(Map<String, dynamic> json) {
     return MappingEncounter(
-      id: const Uuid().v4(),
-      encounterType: MappedProperty(value: json['encounterType'] ?? ''),
-      location: MappedProperty(value: json['location'] ?? ''),
-      periodStart: MappedProperty(value: json['periodStart'] ?? ''),
+      id: json["id"] ?? const Uuid().v4(),
+      encounterType: MappedProperty.fromJson(json['encounterType']),
+      location: MappedProperty.fromJson(json['location']),
+      periodStart: MappedProperty.fromJson(json['periodStart']),
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'resourceType': 'Encounter',
+        'encounterType': encounterType.toJson(),
+        'location': location.toJson(),
+        'periodStart': periodStart.toJson(),
+      };
 
   @override
   IFhirResource toFhirResource({

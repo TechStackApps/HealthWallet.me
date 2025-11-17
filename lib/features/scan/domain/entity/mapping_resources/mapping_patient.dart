@@ -24,14 +24,25 @@ class MappingPatient with _$MappingPatient implements MappingResource {
 
   factory MappingPatient.fromJson(Map<String, dynamic> json) {
     return MappingPatient(
-      id: const Uuid().v4(),
-      familyName: MappedProperty(value: json['familyName'] ?? ''),
-      givenName: MappedProperty(value: json['givenName'] ?? ''),
-      dateOfBirth: MappedProperty(value: json['dateOfBirth'] ?? ''),
-      gender: MappedProperty(value: json['gender'] ?? ''),
-      patientId: MappedProperty(value: json['patientId'] ?? ''),
+      id: json["id"] ?? const Uuid().v4(),
+      familyName: MappedProperty.fromJson(json['familyName']),
+      givenName: MappedProperty.fromJson(json['givenName']),
+      dateOfBirth: MappedProperty.fromJson(json['dateOfBirth']),
+      gender: MappedProperty.fromJson(json['gender']),
+      patientId: MappedProperty.fromJson(json['patientId']),
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'resourceType': 'Patient',
+        'familyName': familyName.toJson(),
+        'givenName': givenName.toJson(),
+        'dateOfBirth': dateOfBirth.toJson(),
+        'gender': gender.toJson(),
+        'patientId': patientId.toJson(),
+      };
 
   @override
   IFhirResource toFhirResource({

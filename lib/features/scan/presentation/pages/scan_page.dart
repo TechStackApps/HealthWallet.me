@@ -170,7 +170,6 @@ class _ScanViewState extends State<ScanView>
             listenWhen: (previous, current) =>
                 previous.status != current.status,
             listener: (context, state) {
-              log("Scan: ${state.status}");
               if (state.status case SessionCreated(:final session)) {
                 navigateToFhirMapper(context, session);
               }

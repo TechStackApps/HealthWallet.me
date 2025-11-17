@@ -101,16 +101,12 @@ class _DashboardPageState extends State<DashboardPage> {
               previous.session.status != current.session.status &&
               current.session.id == previous.session.id,
           listener: (context, state) {
-            log(state.session.status.toString());
             if (state.session.status != ProcessingStatus.draft) return;
 
             final isMapperRoute =
                 context.router.current.name == FhirMapperRoute.name;
-            final notificationText =
-                "${state.session.origin} processing is finished. Save your medical data!";
             final notificationRoute = FhirMapperRoute(session: state.session);
 
-            log(isMapperRoute.toString());
             context.read<NotificationBloc>().add(NotificationAdded(
                   notification: WalletNotification(
                     text: "${state.session.origin} processing finished",
@@ -122,8 +118,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
             if (!isMapperRoute) {
               Flushbar(
-                title: "${state.session.origin} processing is finished. Save your medical data!",
-                message: notificationText,
+                title: "Processing done",
+                message: "${state.session.origin} processing is finished. Save your medical data!",
                 duration: const Duration(seconds: 2),
                 flushbarPosition: FlushbarPosition.TOP,
                 titleColor: Colors.white,

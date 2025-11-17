@@ -51,7 +51,6 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
       body: BlocConsumer<ScanBloc, ScanState>(
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
-          log("Import: ${state.status}");
           if (state.status case SessionCreated(:final session)) {
             navigateToFhirMapper(context, session);
           }

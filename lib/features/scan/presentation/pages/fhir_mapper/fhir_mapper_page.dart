@@ -88,6 +88,9 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
       body: BlocConsumer<FhirMapperBloc, FhirMapperState>(
         listener: (context, state) {
           if (state.status == FhirMapperStatus.success) {
+            context
+                .read<ScanBloc>()
+                .add(ScanSessionFinished(session: state.session));
             context.router.push(DashboardRoute());
           }
           if (state.status == FhirMapperStatus.failure) {

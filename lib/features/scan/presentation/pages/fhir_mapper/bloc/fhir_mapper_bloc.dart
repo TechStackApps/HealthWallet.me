@@ -51,7 +51,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     Emitter<FhirMapperState> emit,
   ) async {
     try {
-      if (event.session.status == ProcessingStatus.notStarted) {
+      if (event.session.status == ProcessingStatus.pending) {
         emit(state.copyWith(status: FhirMapperStatus.convertingPdfs));
 
         final allImages = await _ocrProcessingHelper.prepareAllImages(
@@ -86,6 +86,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     double? progress,
     ProcessingStatus? status,
     List<MappingResource>? resources,
+    bool updateDb = false,
   }) {
     final activeSession = state.session;
 
@@ -94,6 +95,10 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       status: status ?? activeSession.status,
       resources: resources ?? activeSession.resources,
     );
+
+    if (updateDb) {
+      _repository.editProcessingSession(updatedSession);
+    }
 
     emit(state.copyWith(
       session: updatedSession,
@@ -142,7 +147,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       _updateSession(emit, status: ProcessingStatus.draft);
       emit(state.copyWith(status: FhirMapperStatus.editingResources));
     } on Exception catch (e) {
-      _updateSession(emit, status: ProcessingStatus.notStarted);
+      _updateSession(emit, status: ProcessingStatus.pending);
       if (!emit.isDone) {
         emit(state.copyWith(
           status: FhirMapperStatus.failure,
@@ -159,7 +164,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     final newResources = [...state.session.resources];
     newResources.removeAt(event.index);
 
-    _updateSession(emit, resources: newResources);
+    _updateSession(emit, resources: newResources, updateDb: true);
   }
 
   void _onFhirMapperResourceChanged(
@@ -174,7 +179,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     final newResources = [...state.session.resources];
     newResources[event.index] = updatedResource;
 
-    _updateSession(emit, resources: newResources);
+    _updateSession(emit, resources: newResources, updateDb: true);
   }
 
   void _onFhirMapperPatientSelected(

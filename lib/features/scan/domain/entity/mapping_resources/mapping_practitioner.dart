@@ -24,12 +24,21 @@ class MappingPractitioner
 
   factory MappingPractitioner.fromJson(Map<String, dynamic> json) {
     return MappingPractitioner(
-      id: const Uuid().v4(),
-      practitionerName: MappedProperty(value: json['practitionerName'] ?? ''),
-      specialty: MappedProperty(value: json['specialty'] ?? ''),
-      identifier: MappedProperty(value: json['identifier'] ?? ''),
+      id: json["id"] ?? const Uuid().v4(),
+      practitionerName: MappedProperty.fromJson(json['practitionerName']),
+      specialty: MappedProperty.fromJson(json['specialty']),
+      identifier: MappedProperty.fromJson(json['identifier']),
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'resourceType': 'Practitioner',
+        'practitionerName': practitionerName.toJson(),
+        'specialty': specialty.toJson(),
+        'identifier': identifier.toJson(),
+      };
 
   @override
   IFhirResource toFhirResource({
@@ -104,9 +113,8 @@ class MappingPractitioner
         ),
         identifier: MappedProperty(
           value: newValues['identifier'] ?? identifier.value,
-          confidenceLevel: newValues['identifier'] != null
-              ? 1
-              : identifier.confidenceLevel,
+          confidenceLevel:
+              newValues['identifier'] != null ? 1 : identifier.confidenceLevel,
         ),
       );
 

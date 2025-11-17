@@ -7,6 +7,7 @@ import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:health_wallet/core/services/pdf_storage_service.dart';
 import 'package:health_wallet/core/utils/logger.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -18,21 +19,32 @@ part 'scan_bloc.freezed.dart';
 @LazySingleton()
 class ScanBloc extends Bloc<ScanEvent, ScanState> {
   final PdfStorageService _pdfStorageService;
+  final ScanRepository _repository;
 
   ScanBloc(
     this._pdfStorageService,
+    this._repository,
   ) : super(const ScanState()) {
     on<ScanInitialised>(_onScanInitialised);
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DocumentImported>(_onDocumentImported);
     on<ScanSessionChangedProgress>(_onScanSessionChangedProgress);
+    on<ScanSessionFinished>(_onScanSessionFinished);
   }
 
   Future<void> _onScanInitialised(
     ScanInitialised event,
     Emitter<ScanState> emit,
   ) async {
-    emit(state.copyWith(status: const ScanStatus.initial()));
+    emit(state.copyWith(status: const ScanStatus.loading()));
+    log("got here scan");
+      final sessions = await _repository.getProcessingSessions();
+      log(sessions.toString());
+      emit(state.copyWith(
+        sessions: sessions,
+        status: const ScanStatus.initial(),
+      ));
+
   }
 
   Future<void> _onScanButtonPressed(
@@ -60,17 +72,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     }
   }
 
-  void _createSession(
+  Future _createSession(
     Emitter<ScanState> emit, {
     required List<String> filePaths,
     required ProcessingOrigin origin,
-  }) {
-    final session = ProcessingSession(
-      id: const Uuid().v4(),
-      filePaths: filePaths,
-      origin: origin,
-      createdAt: DateTime.now(),
-    );
+  }) async {
+    final session = await _repository.createProcessingSession(
+        filePaths: filePaths, origin: origin);
+
     emit(state.copyWith(
       status: ScanStatus.sessionCreated(session: session),
       sessions: [session, ...state.sessions],
@@ -92,7 +101,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     );
 
     if (savedPath != null) {
-      _createSession(emit,
+      await _createSession(emit,
           filePaths: [savedPath], origin: ProcessingOrigin.scan);
     } else {
       emit(state.copyWith(
@@ -119,7 +128,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       return;
     }
 
-    _createSession(emit, filePaths: imagePaths, origin: ProcessingOrigin.scan);
+    await _createSession(emit,
+        filePaths: imagePaths, origin: ProcessingOrigin.scan);
   }
 
   Future<void> _onDocumentImported(
@@ -140,7 +150,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
       log(event.filePath);
 
-      _createSession(emit,
+      await _createSession(emit,
           filePaths: [event.filePath], origin: ProcessingOrigin.import);
     } catch (e) {
       logger.e('Error importing document: ${event.filePath}', e);
@@ -158,6 +168,25 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       ..removeWhere((session) => session.id == event.session.id);
 
     emit(state.copyWith(sessions: [event.session, ...newSessions]));
+
+    if (event.session.status == ProcessingStatus.draft) {
+      _repository.editProcessingSession(event.session);
+    }
+  }
+
+  void _onScanSessionFinished(
+    ScanSessionFinished event,
+    Emitter<ScanState> emit,
+  ) async {
+    try {
+      final newSessions = [...state.sessions]
+        ..removeWhere((session) => session.id == event.session.id);
+      emit(state.copyWith(sessions: newSessions));
+
+      await _repository.deleteProcessingSession(event.session);
+    } on Exception catch (e) {
+      emit(state.copyWith(status: ScanStatus.failure(error: e.toString())));
+    }
   }
 
   List<String> _normalizeImagePaths(dynamic scannedDocuments) {
