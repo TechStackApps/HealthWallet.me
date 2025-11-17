@@ -72,7 +72,7 @@ class App extends StatelessWidget {
                   onGenerateRoute: (_) => MaterialPageRoute(
                     builder: (_) => DeepLinkHandler(
                       navigatorKey: App.dialogNavigatorKey,
-                      child: child!,
+                      child: ShareIntentHandler(child: child!),
                     ),
                   ),
                 );
