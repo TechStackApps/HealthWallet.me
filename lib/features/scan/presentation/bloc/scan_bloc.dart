@@ -95,7 +95,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       emit(state.copyWith(status: const ScanStatus.initial()));
       return;
     }
-    log(scannedPdf);
     final savedPath = await _pdfStorageService.savePdfToStorage(
       sourcePdfPath: scannedPdf,
       customFileName:
@@ -149,8 +148,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         ));
         return;
       }
-
-      log(event.filePath);
 
       await _createSession(emit,
           filePaths: [event.filePath], origin: ProcessingOrigin.import);

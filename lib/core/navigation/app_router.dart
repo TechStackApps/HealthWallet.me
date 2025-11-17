@@ -5,6 +5,7 @@ import 'package:health_wallet/features/dashboard/presentation/dashboard_page.dar
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/pages/attach_to_encounter_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/fhir_mapper_page.dart';
+import 'package:health_wallet/features/scan/presentation/pages/import_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/load_model/load_model_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
@@ -33,6 +34,7 @@ class AppRouter extends _$AppRouter {
             AutoRoute(page: HomeRoute.page),
             AutoRoute(page: RecordsRoute.page),
             AutoRoute(page: ScanRoute.page),
+            AutoRoute(page: ImportRoute.page),
           ],
         ),
         AutoRoute(page: RecordDetailsRoute.page),

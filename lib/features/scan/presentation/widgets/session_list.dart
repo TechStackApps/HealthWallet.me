@@ -65,14 +65,15 @@ class SessionList extends StatelessWidget {
                                   .format(session.createdAt!)),
                             ],
                           ),
-                          IconButton(
-                            onPressed: () => context
-                                .read<ScanBloc>()
-                                .add(ScanSessionCleared(session: session)),
-                            icon: Assets.icons.close.svg(),
-                            visualDensity: const VisualDensity(
-                                horizontal: -4, vertical: -4),
-                          )
+                          if (session.status != ProcessingStatus.processing)
+                            IconButton(
+                              onPressed: () => context
+                                  .read<ScanBloc>()
+                                  .add(ScanSessionCleared(session: session)),
+                              icon: Assets.icons.close.svg(),
+                              visualDensity: const VisualDensity(
+                                  horizontal: -4, vertical: -4),
+                            )
                         ],
                       ),
                       if (isInProgress)

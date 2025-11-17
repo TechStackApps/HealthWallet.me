@@ -8,18 +8,17 @@ import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/session_list.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:health_wallet/core/widgets/app_button.dart';
 import 'package:health_wallet/core/widgets/custom_app_bar.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/action_buttons.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/import_actions.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/document_handler.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
 
+@RoutePage()
 class ImportPage extends StatelessWidget {
   final PageViewNavigationController? navigationController;
 
@@ -200,87 +199,5 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
     } catch (e) {
       // Handle error silently
     }
-  }
-
-  void _showImportOptionsDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) => _ImportOptionsBottomSheet(
-        onImportDocument: () {
-          Navigator.of(sheetContext).pop();
-          _handleImportDocument(context);
-        },
-        onPickImage: () {
-          Navigator.of(sheetContext).pop();
-          _handlePickImage(context);
-        },
-      ),
-    );
-  }
-}
-
-class _ImportOptionsBottomSheet extends StatelessWidget {
-  final VoidCallback onImportDocument;
-  final VoidCallback onPickImage;
-
-  const _ImportOptionsBottomSheet({
-    required this.onImportDocument,
-    required this.onPickImage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.dialogBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: theme.dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Import Options',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.titleLarge?.color,
-                ),
-              ),
-              const SizedBox(height: 20),
-              AppButton(
-                label: 'Import Document',
-                icon: const Icon(Icons.attach_file),
-                variant: AppButtonVariant.primary,
-                onPressed: onImportDocument,
-              ),
-              const SizedBox(height: Insets.small),
-              AppButton(
-                label: 'Pick Image from Gallery',
-                icon: const Icon(Icons.photo_library),
-                variant: AppButtonVariant.secondary,
-                onPressed: onPickImage,
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

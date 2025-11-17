@@ -24,7 +24,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(state.copyWith(
       notifications: [event.notification, ...state.notifications],
     ));
-    log(state.notifications.toString());
   }
 
   void _onNotificationPopupClosed(
