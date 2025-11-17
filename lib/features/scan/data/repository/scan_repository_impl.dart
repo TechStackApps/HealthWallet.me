@@ -304,18 +304,19 @@ class ScanRepositoryImpl implements ScanRepository {
 
   @override
   Stream<MappingResourcesWithProgress> mapResources(String medicalText) async* {
-    final mapperWorker = await FhirMapperWorker.spawn();
-
     List<PromptTemplate> supportedPrompts = PromptTemplate.supportedPrompts();
     for (int i = 0; i < supportedPrompts.length; i++) {
       String prompt = supportedPrompts[i].buildPrompt(medicalText);
 
-      final workerResponse = await mapperWorker.runPrompt(prompt) as String?;
+      String? promptResponse = await _networkDataSource.runPrompt(
+        spec: SlmModel.gemmaModel().toInferenceSpec(),
+        prompt: prompt,
+      );
 
       List<MappingResource> resources = [];
 
       try {
-        List<dynamic> jsonList = jsonDecode(workerResponse ?? '');
+        List<dynamic> jsonList = jsonDecode(promptResponse ?? '');
 
         for (Map<String, dynamic> json in jsonList) {
           MappingResource resource =
@@ -326,13 +327,10 @@ class ScanRepositoryImpl implements ScanRepository {
           }
         }
       } catch (_) {
-        yield ([], (i + 1) / supportedPrompts.length);
         continue;
       }
 
       yield (resources.toSet().toList(), (i + 1) / supportedPrompts.length);
     }
-
-    mapperWorker.close();
   }
 }

@@ -37,14 +37,17 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     Emitter<ScanState> emit,
   ) async {
     emit(state.copyWith(status: const ScanStatus.loading()));
-    log("got here scan");
+
+    try {
       final sessions = await _repository.getProcessingSessions();
-      log(sessions.toString());
+
       emit(state.copyWith(
         sessions: sessions,
         status: const ScanStatus.initial(),
       ));
-
+    } on Exception catch (e) {
+      emit(state.copyWith(status: ScanStatus.failure(error: e.toString())));
+    }
   }
 
   Future<void> _onScanButtonPressed(
