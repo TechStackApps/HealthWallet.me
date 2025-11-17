@@ -6,15 +6,10 @@ import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/attach_to_encounter_sheet.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
-import 'package:open_file/open_file.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:uuid/uuid.dart';
 
 /// Mixin providing common document handling functionality for scan and import pages.
 ///
@@ -27,10 +22,20 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
     ProcessingSession session,
   ) async {
     try {
-      final result = await context.router.push<bool>(const LoadModelRoute());
+      final result = await context.router
+          .push<bool>(LoadModelRoute(canAttachToEncounter: true));
 
       if (result == true && context.mounted) {
         context.router.push(FhirMapperRoute(session: session));
+      } else if (result == false && context.mounted) {
+        context.read<ScanBloc>().add(ScanSessionCleared(session: session));
+
+        final encounterId =
+            await context.router.push<String>(const AttachToEncounterRoute());
+
+        if (encounterId == null || !context.mounted) return;
+
+        await attachToEncounter(context, session.filePaths, encounterId);
       }
     } catch (e) {
       if (context.mounted) {
@@ -39,32 +44,10 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
     }
   }
 
-  /// Show encounter selector and attach documents to the selected encounter.
-  Future<void> showEncounterSelector(
-    BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
-  ) async {
-    final selectedEncounter = await AttachToEncounterSheet.show(context);
-
-    if (selectedEncounter != null && context.mounted) {
-      await attachToEncounter(
-        context,
-        scannedImages,
-        importedImages,
-        savedPdfs,
-        selectedEncounter,
-      );
-    }
-  }
-
   /// Attach documents to the specified encounter.
   Future<void> attachToEncounter(
     BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
+    List<String> filePaths,
     String encounterId,
   ) async {
     DialogHelper.showLoadingDialog(
@@ -72,155 +55,68 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
       'Attaching documents to encounter...',
     );
 
-    // try {
-    //   final homeState = context.read<HomeBloc>().state;
-    //   final patientState = context.read<PatientBloc>().state;
-
-    //   final selectedPatient = patientState.patients.isNotEmpty
-    //       ? patientState.patients.firstWhere(
-    //           (p) => p.id == patientState.selectedPatientId,
-    //           orElse: () => patientState.patients.first,
-    //         )
-    //       : null;
-
-    //   final patient = selectedPatient ?? homeState.patient;
-    //   final patientId = patient?.id ?? 'patient-default';
-    //   final patientName = patient?.displayTitle ?? 'Unknown Patient';
-
-    //   final sourceTypeService = GetIt.instance.get<SourceTypeService>();
-    //   final walletSource = await sourceTypeService.getWritableSourceForPatient(
-    //     patientId: patientId,
-    //     patientName: patientName,
-    //     availableSources: homeState.sources,
-    //   );
-
-    //   if (context.mounted) {
-    //     context.read<PatientBloc>().add(
-    //           PatientPatientsLoaded(),
-    //         );
-    //   }
-
-    //   final documentReferenceService =
-    //       GetIt.instance.get<DocumentReferenceService>();
-
-    //   await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
-    //     scannedImages: scannedImages,
-    //     importedImages: importedImages,
-    //     importedPdfs: savedPdfs,
-    //     patientId: patientId,
-    //     encounterId: encounterId,
-    //     sourceId: walletSource.id,
-    //     title: 'Attached Documents',
-    //   );
-
-    //   if (context.mounted) {
-    //     context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
-    //   }
-
-    //   if (context.mounted) Navigator.of(context).pop();
-
-    //   if (context.mounted) {
-    //     final bloc = context.read<ScanBloc>();
-    //     final totalDocuments =
-    //         scannedImages.length + importedImages.length + savedPdfs.length;
-
-    //     DialogHelper.showAttachmentSuccessDialog(
-    //       context,
-    //       totalDocuments,
-    //       encounterId,
-    //       bloc,
-    //     );
-    //   }
-    // } catch (e) {
-    //   if (context.mounted) Navigator.of(context).pop();
-
-    //   if (context.mounted) {
-    //     DialogHelper.showErrorDialog(context, 'Failed to attach documents: $e');
-    //   }
-    // }
-  }
-
-  /// Handle tap on a document (image or PDF).
-  Future<void> handleDocumentTap(
-    BuildContext context,
-    String filePath,
-    int index,
-  ) async {
-    // final state = context.read<ScanBloc>().state;
-    // final isPdf = state.savedPdfPaths.contains(filePath);
-
-    // if (isPdf) {
-    //   await openPdfWithSystemApp(context, filePath);
-    //   return;
-    // }
-
-    // // It's an image, open preview
-    // final allImages = [
-    //   ...state.scannedImagePaths,
-    //   ...state.importedImagePaths,
-    // ];
-
-    // final currentIndex = allImages.indexOf(filePath);
-    // if (currentIndex == -1) return;
-
-    // Navigator.of(context).push<bool>(
-    //   MaterialPageRoute(
-    //     builder: (context) => ImagePreviewPage(
-    //       imagePath: filePath,
-    //       title: 'Page ${currentIndex + 1}',
-    //       allImages: allImages,
-    //       currentIndex: currentIndex,
-    //     ),
-    //   ),
-    // );
-  }
-
-  /// Open a PDF file with the system's default PDF viewer.
-  Future<void> openPdfWithSystemApp(
-      BuildContext context, String pdfPath) async {
     try {
-      final result = await OpenFile.open(pdfPath);
-      if (result.type != ResultType.done) {
-        // PDF could not be opened, silently fail
+      final homeState = context.read<HomeBloc>().state;
+      final patientState = context.read<PatientBloc>().state;
+
+      final selectedPatient = patientState.patients.isNotEmpty
+          ? patientState.patients.firstWhere(
+              (p) => p.id == patientState.selectedPatientId,
+              orElse: () => patientState.patients.first,
+            )
+          : null;
+
+      final patient = selectedPatient ?? homeState.patient;
+      final patientId = patient?.id ?? 'patient-default';
+      final patientName = patient?.displayTitle ?? 'Unknown Patient';
+
+      final sourceTypeService = GetIt.instance.get<SourceTypeService>();
+      final walletSource = await sourceTypeService.getWritableSourceForPatient(
+        patientId: patientId,
+        patientName: patientName,
+        availableSources: homeState.sources,
+      );
+
+      if (context.mounted) {
+        context.read<PatientBloc>().add(
+              const PatientPatientsLoaded(),
+            );
+      }
+
+      final documentReferenceService =
+          GetIt.instance.get<DocumentReferenceService>();
+
+      await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
+        filePaths: filePaths,
+        patientId: patientId,
+        encounterId: encounterId,
+        sourceId: walletSource.id,
+        title: 'Attached Documents',
+      );
+
+      if (context.mounted) {
+        context.read<HomeBloc>().add(const HomeRefreshPreservingOrder());
+      }
+
+      if (context.mounted) Navigator.of(context).pop();
+
+      if (context.mounted) {
+        final bloc = context.read<ScanBloc>();
+        final totalDocuments = filePaths.length;
+
+        DialogHelper.showAttachmentSuccessDialog(
+          context,
+          totalDocuments,
+          encounterId,
+          bloc,
+        );
       }
     } catch (e) {
-      // Error opening PDF, silently fail
+      if (context.mounted) Navigator.of(context).pop();
+
+      if (context.mounted) {
+        DialogHelper.showErrorDialog(context, 'Failed to attach documents: $e');
+      }
     }
-  }
-
-  /// Show confirmation dialog before deleting a document.
-  void showDeleteConfirmation(
-    BuildContext context,
-    String filePath,
-    int index,
-  ) {
-    // final state = context.read<ScanBloc>().state;
-    // final isPdf = state.savedPdfPaths.contains(filePath);
-    // final fileName = filePath.split('/').last;
-
-    // showDialog(
-    //   context: context,
-    //   builder: (BuildContext dialogContext) {
-    //     return AlertDialog(
-    //       title: Text(isPdf ? 'Delete PDF' : 'Delete Page'),
-    //       content: Text(
-    //         'Are you sure you want to delete ${isPdf ? 'PDF: $fileName' : 'Page ${index + 1}'}?',
-    //       ),
-    //       actions: [
-    //         TextButton(
-    //           onPressed: () => Navigator.of(dialogContext).pop(),
-    //           child: const Text('Cancel'),
-    //         ),
-    //         TextButton(
-    //           onPressed: () {
-    //             Navigator.of(dialogContext).pop();
-    //           },
-    //           style: TextButton.styleFrom(foregroundColor: Colors.red),
-    //           child: const Text('Delete'),
-    //         ),
-    //       ],
-    //     );
-    //   },
-    // );
   }
 }

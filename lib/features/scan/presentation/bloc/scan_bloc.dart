@@ -10,7 +10,6 @@ import 'package:health_wallet/features/scan/domain/entity/processing_session.dar
 import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:injectable/injectable.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 part 'scan_state.dart';
 part 'scan_event.dart';
@@ -29,7 +28,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<ScanButtonPressed>(_onScanButtonPressed);
     on<DocumentImported>(_onDocumentImported);
     on<ScanSessionChangedProgress>(_onScanSessionChangedProgress);
-    on<ScanSessionFinished>(_onScanSessionFinished);
+    on<ScanSessionCleared>(_onScanSessionCleared);
   }
 
   Future<void> _onScanInitialised(
@@ -177,8 +176,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     }
   }
 
-  void _onScanSessionFinished(
-    ScanSessionFinished event,
+  void _onScanSessionCleared(
+    ScanSessionCleared event,
     Emitter<ScanState> emit,
   ) async {
     try {

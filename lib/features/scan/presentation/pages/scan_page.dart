@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -133,7 +131,7 @@ class _ScanViewState extends State<ScanView>
               }
 
               return TextButton.icon(
-                onPressed: () => context.router.push(const LoadModelRoute()),
+                onPressed: () => context.router.push(LoadModelRoute()),
                 icon: const Icon(Icons.memory_outlined),
                 label: Text(
                   AppLocalizationsX(context).l10n.onboardingAiModelTitle,

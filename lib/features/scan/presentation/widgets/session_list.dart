@@ -1,10 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/custom_progress_indicator.dart';
+import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:intl/intl.dart';
 
 class SessionList extends StatelessWidget {
@@ -47,9 +49,30 @@ class SessionList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(DateFormat('MMMM d, HH:mm:ss')
-                              .format(session.createdAt!)),
-                          Text(session.status.toString())
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(session.status.toString()),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: Container(
+                                    color: context.theme.dividerColor,
+                                    width: 1.8,
+                                    height: 16,
+                                  )),
+                              Text(DateFormat('MMMM d, HH:mm:ss')
+                                  .format(session.createdAt!)),
+                            ],
+                          ),
+                          IconButton(
+                            onPressed: () => context
+                                .read<ScanBloc>()
+                                .add(ScanSessionCleared(session: session)),
+                            icon: Assets.icons.close.svg(),
+                            visualDensity: const VisualDensity(
+                                horizontal: -4, vertical: -4),
+                          )
                         ],
                       ),
                       if (isInProgress)

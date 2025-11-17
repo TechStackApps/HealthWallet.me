@@ -33,11 +33,11 @@ class ScanSessionChangedProgress extends ScanEvent
 }
 
 @freezed
-class ScanSessionFinished extends ScanEvent
-    with _$ScanSessionFinished {
-  const factory ScanSessionFinished({
+class ScanSessionCleared extends ScanEvent
+    with _$ScanSessionCleared {
+  const factory ScanSessionCleared({
     required ProcessingSession session,
-  }) = _ScanSessionFinished;
+  }) = _ScanSessionCleared;
 }
 
 enum ScanMode {

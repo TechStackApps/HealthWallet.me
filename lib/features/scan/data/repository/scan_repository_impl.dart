@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flutter_gemma/mobile/flutter_gemma_mobile.dart';
 import 'package:health_wallet/features/scan/data/data_source/local/scan_local_data_source.dart';
 import 'package:health_wallet/features/scan/data/data_source/network/scan_network_data_source.dart';
 import 'package:health_wallet/features/scan/data/model/prompt_template/prompt_template.dart';
-import 'package:health_wallet/features/scan/data/worker/fhir_mapper_worker.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/domain/entity/slm_model.dart';
