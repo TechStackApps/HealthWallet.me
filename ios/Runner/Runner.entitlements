@@ -6,5 +6,9 @@
 	<array>
 		<string>group.com.techstackapps.healthwallet</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:add.healthwallet.me</string>
+	</array>
 </dict>
 </plist>

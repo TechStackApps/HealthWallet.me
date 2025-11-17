@@ -311,6 +311,7 @@ class _SyncPlaceholderWidgetState extends State<SyncPlaceholderWidget> {
           await Future.delayed(const Duration(milliseconds: 300));
         }
 
+        // Close dialog AFTER all setup is complete
         if (context.mounted) {
           Navigator.of(context).pop();
         }

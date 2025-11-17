@@ -22,11 +22,13 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
+// incoming additions
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
   final int initialPage;
-
   const DashboardPage({
     super.key,
     @queryParam this.initialPage = 0,
@@ -47,6 +49,17 @@ class _DashboardPageState extends State<DashboardPage> {
       initialPage: widget.initialPage,
     );
     _navigationController.currentPageNotifier.addListener(_onPageChanged);
+
+    // Adopt incoming deep link file check to jump to Scan tab after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForDeepLinkFile();
+    });
+  }
+
+  void _checkForDeepLinkFile() {
+    if (DeepLinkFileCache.instance.hasFile()) {
+      _navigationController.jumpToPage(3);
+    }
   }
 
   void _onPageChanged() {
@@ -119,7 +132,8 @@ class _DashboardPageState extends State<DashboardPage> {
             if (!isMapperRoute) {
               Flushbar(
                 title: "Processing done",
-                message: "${state.session.origin} processing is finished. Save your medical data!",
+                message:
+                    "${state.session.origin} processing is finished. Save your medical data!",
                 duration: const Duration(seconds: 2),
                 flushbarPosition: FlushbarPosition.TOP,
                 titleColor: Colors.white,
@@ -154,6 +168,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       pageController: _navigationController.pageController,
                     );
                   case 2:
+                    // Keep your ScanPage API that expects navigationController
                     return ScanPage(
                       navigationController: _navigationController,
                     );
