@@ -4,6 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/services/external_files_service.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/session_list.dart';
@@ -20,26 +22,42 @@ import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_
 
 @RoutePage()
 class ImportPage extends StatelessWidget {
-  final PageViewNavigationController? navigationController;
-
-  const ImportPage({super.key, this.navigationController});
+  const ImportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ImportView(navigationController: navigationController);
+    return const ImportView();
   }
 }
 
 class ImportView extends StatefulWidget {
-  final PageViewNavigationController? navigationController;
-
-  const ImportView({super.key, this.navigationController});
+  const ImportView({super.key});
 
   @override
   State<ImportView> createState() => _ImportViewState();
 }
 
 class _ImportViewState extends State<ImportView> with DocumentHandler {
+  late final PageViewNavigationController _navigationController;
+  @override
+  void initState() {
+    super.initState();
+    _navigationController = getIt<PageViewNavigationController>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _processExternalFiles();
+    });
+  }
+
+  void _processExternalFiles() {
+    final externalFileService = getIt<ExternalFilesService>();
+
+    if (externalFileService.hasPendingFiles) {
+      for (final path in externalFileService.consumeFilePaths()) {
+        context.read<ScanBloc>().add(DocumentImported(filePath: path));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +111,7 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
   }
 
   void _navigateToScanTab(BuildContext context) {
-    widget.navigationController?.navigateToPage(2);
+    _navigationController.navigateToPage(2);
     // Trigger auto-scan after navigation settles
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 100), () {

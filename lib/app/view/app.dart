@@ -6,8 +6,6 @@ import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/navigation/observers/order_route_observer.dart';
 import 'package:health_wallet/core/theme/theme.dart';
 import 'package:health_wallet/core/utils/patient_source_utils.dart';
-import 'package:health_wallet/core/widgets/share_intent_handler.dart';
-import 'package:health_wallet/core/widgets/deep_link_handler.dart';
 import 'package:health_wallet/features/home/notifications/bloc/notification_bloc.dart';
 
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
@@ -25,10 +23,7 @@ import 'package:health_wallet/features/user/domain/services/patient_deduplicatio
 import 'package:health_wallet/features/user/domain/services/patient_selection_service.dart';
 
 class App extends StatelessWidget {
-  App({super.key});
-
-  static final GlobalKey<NavigatorState> dialogNavigatorKey =
-      GlobalKey<NavigatorState>(); // ADD THIS
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -82,15 +77,7 @@ class App extends StatelessWidget {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               builder: (context, child) {
-                return Navigator(
-                  key: App.dialogNavigatorKey,
-                  onGenerateRoute: (_) => MaterialPageRoute(
-                    builder: (_) => DeepLinkHandler(
-                      navigatorKey: App.dialogNavigatorKey,
-                      child: ShareIntentHandler(child: child!),
-                    ),
-                  ),
-                );
+                return child!;
               },
             );
           },

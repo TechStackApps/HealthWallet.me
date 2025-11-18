@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
@@ -22,24 +24,45 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
     ProcessingSession session,
   ) async {
     try {
-      final result = await context.router
-          .push<bool>(LoadModelRoute(canAttachToEncounter: true));
+      final scanRepository = getIt<ScanRepository>();
 
-      if (result == true && context.mounted) {
+      final isModelLoaded = await scanRepository.checkModelExistence();
+
+      if (!context.mounted) return;
+
+      if (isModelLoaded) {
         context.router.push(FhirMapperRoute(session: session));
-      } else if (result == false && context.mounted) {
-        context.read<ScanBloc>().add(ScanSessionCleared(session: session));
+        return;
+      }
 
+      navigateToLoadModel(context, session);
+    } catch (e) {
+      if (context.mounted) {
+        DialogHelper.showErrorDialog(context, 'Failed to create encounter: $e');
+      }
+    }
+  }
+
+  Future<void> navigateToLoadModel(
+    BuildContext context,
+    ProcessingSession session,
+  ) async {
+    final result = await context.router
+        .push<bool>(LoadModelRoute(canAttachToEncounter: true));
+    if (!context.mounted) return;
+
+    if (result == true) {
+      context.router.push(FhirMapperRoute(session: session));
+    } else {
+      context.read<ScanBloc>().add(ScanSessionCleared(session: session));
+
+      if (result == true) {
         final encounterId =
             await context.router.push<String>(const AttachToEncounterRoute());
 
         if (encounterId == null || !context.mounted) return;
 
         await attachToEncounter(context, session.filePaths, encounterId);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        DialogHelper.showErrorDialog(context, 'Failed to create encounter: $e');
       }
     }
   }

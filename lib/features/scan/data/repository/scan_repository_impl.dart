@@ -283,6 +283,10 @@ class ScanRepositoryImpl implements ScanRepository {
 
   @override
   Future<int> deleteProcessingSession(ProcessingSession session) async {
+    for (final path in session.filePaths) {
+      File(path).delete().ignore();
+    }
+
     return _localDataSource.deleteProcessingSession(session.id);
   }
 

@@ -20,24 +20,19 @@ import 'package:health_wallet/features/dashboard/presentation/helpers/navigation
 
 @RoutePage()
 class ScanPage extends StatelessWidget {
-  final PageViewNavigationController? navigationController;
-
-  const ScanPage({super.key, this.navigationController});
+  const ScanPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.instance.get<LoadModelBloc>()
-        ..add(const LoadModelInitialized()),
-      child: ScanView(navigationController: navigationController),
+      create: (_) => GetIt.instance.get<LoadModelBloc>(),
+      child: const ScanView(),
     );
   }
 }
 
 class ScanView extends StatefulWidget {
-  final PageViewNavigationController? navigationController;
-
-  const ScanView({super.key, this.navigationController});
+  const ScanView({super.key});
 
   @override
   State<ScanView> createState() => _ScanViewState();
@@ -46,13 +41,15 @@ class ScanView extends StatefulWidget {
 class _ScanViewState extends State<ScanView>
     with DocumentHandler, NavigationSettledCallbackMixin {
   bool _hasAutoScanned = false;
+  late final PageViewNavigationController _navigationController;
 
   @override
   PageViewNavigationController? get navigationController =>
-      widget.navigationController;
+      _navigationController;
 
   @override
   void onPageSettled() {
+    context.read<LoadModelBloc>().add(const LoadModelInitialized());
     _autoStartScanning();
   }
 
@@ -66,6 +63,7 @@ class _ScanViewState extends State<ScanView>
   @override
   void initState() {
     super.initState();
+    _navigationController = GetIt.instance.get<PageViewNavigationController>();
     initializeNavigationSettledListener(2);
   }
 
@@ -83,7 +81,8 @@ class _ScanViewState extends State<ScanView>
     _hasAutoScanned = true;
 
     final currentState = context.read<ScanBloc>().state;
-    final hasAnySessions = currentState.sessions.isNotEmpty;
+    final hasAnySessions = currentState.sessions
+        .any((session) => session.origin == ProcessingOrigin.scan);
 
     if (!hasAnySessions) {
       await _handleScanButtonPressed(context);
@@ -158,7 +157,7 @@ class _ScanViewState extends State<ScanView>
               if (state.sessions.isEmpty && _hasAutoScanned) {
                 _resetAutoScanFlag();
 
-                if (widget.navigationController?.currentPage == 2) {
+                if (_navigationController.currentPage == 2) {
                   _autoStartScanning();
                 }
               }

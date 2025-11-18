@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
@@ -22,16 +23,11 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
-// incoming additions
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
-  final int initialPage;
   const DashboardPage({
     super.key,
-    @queryParam this.initialPage = 0,
   });
 
   @override
@@ -45,21 +41,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    _navigationController = PageViewNavigationController(
-      initialPage: widget.initialPage,
-    );
+    _navigationController = getIt<PageViewNavigationController>();
     _navigationController.currentPageNotifier.addListener(_onPageChanged);
-
-    // Adopt incoming deep link file check to jump to Scan tab after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForDeepLinkFile();
-    });
-  }
-
-  void _checkForDeepLinkFile() {
-    if (DeepLinkFileCache.instance.hasFile()) {
-      _navigationController.jumpToPage(3);
-    }
   }
 
   void _onPageChanged() {
@@ -71,7 +54,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void dispose() {
     _navigationController.currentPageNotifier.removeListener(_onPageChanged);
-    _navigationController.dispose();
     super.dispose();
   }
 
@@ -169,13 +151,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   case 2:
                     // Keep your ScanPage API that expects navigationController
-                    return ScanPage(
-                      navigationController: _navigationController,
-                    );
+                    return const ScanPage();
                   case 3:
-                    return ImportPage(
-                      navigationController: _navigationController,
-                    );
+                    return const ImportPage();
                   default:
                     return const SizedBox.shrink();
                 }
