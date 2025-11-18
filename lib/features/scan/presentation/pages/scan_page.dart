@@ -168,18 +168,21 @@ class _ScanViewState extends State<ScanView>
                 previous.status != current.status,
             listener: (context, state) {
               if (state.status case SessionCreated(:final session)) {
-                navigateToFhirMapper(context, session);
+                if (_navigationController.currentPage == 2) {
+                  navigateToFhirMapper(context, session);
+                }
               }
             },
           ),
         ],
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
-            return state.status.when(
+            return state.status.maybeWhen(
               initial: () => _buildMainView(context, state),
               loading: () => _buildLoadingView(),
               sessionCreated: (session) => _buildMainView(context, state),
               failure: (error) => _buildMainView(context, state),
+              orElse: () => _buildMainView(context, state),
             );
           },
         ),
