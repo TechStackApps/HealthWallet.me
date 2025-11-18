@@ -37,7 +37,7 @@ class SessionList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
                     color: isInProgress
-                        ? context.theme.primaryColor
+                        ? context.colorScheme.primary
                         : context.theme.dividerColor,
                     width: isInProgress ? 2.0 : 1.0,
                   ),
@@ -70,7 +70,12 @@ class SessionList extends StatelessWidget {
                               onPressed: () => context
                                   .read<ScanBloc>()
                                   .add(ScanSessionCleared(session: session)),
-                              icon: Assets.icons.close.svg(),
+                              icon: Assets.icons.close.svg(
+                                colorFilter: ColorFilter.mode(
+                                  context.colorScheme.onSurface,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                               visualDensity: const VisualDensity(
                                   horizontal: -4, vertical: -4),
                             )
