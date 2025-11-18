@@ -5,14 +5,12 @@ abstract class FhirMapperEvent {
 }
 
 @freezed
-class FhirMapperImagesPrepared extends FhirMapperEvent
-    with _$FhirMapperImagesPrepared {
-  const factory FhirMapperImagesPrepared({
-    required List<String> scannedImages,
-    required List<String> importedImages,
-    required List<String> importedPdfs,
+class FhirMapperInitialized extends FhirMapperEvent
+    with _$FhirMapperInitialized {
+  const factory FhirMapperInitialized({
+    required ProcessingSession session,
     required List<PatientGroup> currentPatients,
-  }) = _FhirMapperImagesPrepared;
+  }) = _FhirMapperInitialized;
 }
 
 @freezed

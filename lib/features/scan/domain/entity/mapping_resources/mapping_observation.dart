@@ -21,12 +21,21 @@ class MappingObservation with _$MappingObservation implements MappingResource {
 
   factory MappingObservation.fromJson(Map<String, dynamic> json) {
     return MappingObservation(
-      id: const Uuid().v4(),
-      observationName: MappedProperty(value: json['observationName'] ?? ''),
-      value: MappedProperty(value: json['value'] ?? ''),
-      unit: MappedProperty(value: json['unit'] ?? ''),
+      id: json["id"] ?? const Uuid().v4(),
+      observationName: MappedProperty.fromJson(json['observationName']),
+      value: MappedProperty.fromJson(json['value']),
+      unit: MappedProperty.fromJson(json['unit']),
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'resourceType': 'Observation',
+        'observationName': observationName.toJson(),
+        'value': value.toJson(),
+        'unit': unit.toJson(),
+      };
 
   @override
   IFhirResource toFhirResource({
@@ -99,8 +108,7 @@ class MappingObservation with _$MappingObservation implements MappingResource {
         ),
         unit: MappedProperty(
           value: newValues['unit'] ?? unit.value,
-          confidenceLevel:
-              newValues['unit'] != null ? 1 : unit.confidenceLevel,
+          confidenceLevel: newValues['unit'] != null ? 1 : unit.confidenceLevel,
         ),
       );
 

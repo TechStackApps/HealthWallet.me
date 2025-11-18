@@ -6,6 +6,7 @@ import 'package:health_wallet/features/records/domain/entity/entity.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_encounter.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_patient.dart';
 import 'package:health_wallet/features/scan/domain/entity/mapping_resources/mapping_resource.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/helpers/ocr_processing_helper.dart';
@@ -20,7 +21,7 @@ part 'fhir_mapper_event.dart';
 part 'fhir_mapper_state.dart';
 part 'fhir_mapper_bloc.freezed.dart';
 
-@Injectable()
+@LazySingleton()
 class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
   FhirMapperBloc(
     this._repository,
@@ -29,7 +30,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     this._syncRepository,
     this._documentReferenceService,
   ) : super(const FhirMapperState()) {
-    on<FhirMapperImagesPrepared>(_onFhirMapperImagesPrepared);
+    on<FhirMapperInitialized>(_onFhirMapperInitialized);
     on<FhirMappingInitiated>(_onFhirMappingInitiated,
         transformer: restartable());
     on<FhirMapperResourceChanged>(_onFhirMapperResourceChanged);
@@ -45,27 +46,32 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
   final SyncRepository _syncRepository;
   final DocumentReferenceService _documentReferenceService;
 
-  Future<void> _onFhirMapperImagesPrepared(
-    FhirMapperImagesPrepared event,
+  Future<void> _onFhirMapperInitialized(
+    FhirMapperInitialized event,
     Emitter<FhirMapperState> emit,
   ) async {
-    emit(state.copyWith(status: FhirMapperStatus.convertingPdfs));
-
     try {
-      final allImages = await _ocrProcessingHelper.prepareAllImages(
-        scannedImages: event.scannedImages,
-        importedImages: event.importedImages,
-        importedPdfs: event.importedPdfs,
-      );
+      if (event.session.status == ProcessingStatus.pending) {
+        emit(state.copyWith(status: FhirMapperStatus.convertingPdfs));
+
+        final allImages = await _ocrProcessingHelper.prepareAllImages(
+          filePaths: event.session.filePaths,
+        );
+
+        emit(state.copyWith(
+          allImagePathsForOCR: allImages,
+          status: FhirMapperStatus.mappingReady,
+        ));
+      } else if (event.session.status == ProcessingStatus.processing) {
+        emit(state.copyWith(status: FhirMapperStatus.mapping));
+      } else if (event.session.status == ProcessingStatus.draft) {
+        emit(state.copyWith(status: FhirMapperStatus.editingResources));
+      }
 
       emit(state.copyWith(
-        allImagePathsForOCR: allImages,
-        status: FhirMapperStatus.mappingReady,
+        session: event.session,
         currentPatients: event.currentPatients,
         selectedPatient: event.currentPatients.first,
-        scannedImages: event.scannedImages,
-        importedImages: event.importedImages,
-        importedPdfs: event.importedPdfs,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -75,11 +81,36 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     }
   }
 
+  void _updateSession(
+    Emitter<FhirMapperState> emit, {
+    double? progress,
+    ProcessingStatus? status,
+    List<MappingResource>? resources,
+    bool updateDb = false,
+  }) {
+    final activeSession = state.session;
+
+    final updatedSession = activeSession.copyWith(
+      progress: progress ?? activeSession.progress,
+      status: status ?? activeSession.status,
+      resources: resources ?? activeSession.resources,
+    );
+
+    if (updateDb) {
+      _repository.editProcessingSession(updatedSession);
+    }
+
+    emit(state.copyWith(
+      session: updatedSession,
+    ));
+  }
+
   void _onFhirMappingInitiated(
     FhirMappingInitiated event,
     Emitter<FhirMapperState> emit,
   ) async {
     try {
+      _updateSession(emit, status: ProcessingStatus.processing);
       emit(state.copyWith(status: FhirMapperStatus.mapping));
 
       final medicalText = await _ocrProcessingHelper
@@ -89,32 +120,34 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
 
       await for (final (resources, progress) in stream) {
         if (emit.isDone) return;
-        emit(state.copyWith(
-          resources: [...state.resources, ...resources],
-          mappingProgress: progress,
-        ));
+        _updateSession(
+          emit,
+          resources: [...state.session.resources, ...resources],
+          progress: progress,
+        );
       }
 
       List<MappingPatient> patients =
-          state.resources.whereType<MappingPatient>().toList();
+          state.session.resources.whereType<MappingPatient>().toList();
       if (patients.length > 1) {
-        List<MappingResource> noPatients = [...state.resources]
+        List<MappingResource> noPatients = [...state.session.resources]
           ..removeWhere((resource) => resource is MappingPatient);
 
-        emit(state.copyWith(resources: [patients.first, ...noPatients]));
+        _updateSession(emit, resources: [patients.first, ...noPatients]);
       }
 
-      if (!state.resources.any((resource) => resource is MappingEncounter)) {
-        emit(state.copyWith(
-          resources: [
-            ...state.resources,
-            MappingEncounter(id: const Uuid().v4())
-          ],
-        ));
+      if (!state.session.resources
+          .any((resource) => resource is MappingEncounter)) {
+        _updateSession(emit, resources: [
+          ...state.session.resources,
+          MappingEncounter(id: const Uuid().v4())
+        ]);
       }
 
+      _updateSession(emit, status: ProcessingStatus.draft);
       emit(state.copyWith(status: FhirMapperStatus.editingResources));
     } on Exception catch (e) {
+      _updateSession(emit, status: ProcessingStatus.pending);
       if (!emit.isDone) {
         emit(state.copyWith(
           status: FhirMapperStatus.failure,
@@ -128,24 +161,25 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
     FhirMapperResourceRemoved event,
     Emitter<FhirMapperState> emit,
   ) {
-    final newResources = [...state.resources];
+    final newResources = [...state.session.resources];
     newResources.removeAt(event.index);
 
-    emit(state.copyWith(resources: newResources));
+    _updateSession(emit, resources: newResources, updateDb: true);
   }
 
   void _onFhirMapperResourceChanged(
     FhirMapperResourceChanged event,
     Emitter<FhirMapperState> emit,
   ) {
-    MappingResource updatedResource = state.resources[event.index].copyWithMap({
+    MappingResource updatedResource =
+        state.session.resources[event.index].copyWithMap({
       event.propertyKey: event.newValue,
     });
 
-    final newResources = [...state.resources];
+    final newResources = [...state.session.resources];
     newResources[event.index] = updatedResource;
 
-    emit(state.copyWith(resources: newResources));
+    _updateSession(emit, resources: newResources, updateDb: true);
   }
 
   void _onFhirMapperPatientSelected(
@@ -167,10 +201,10 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
 
     try {
       MappingPatient? mappingPatient =
-          state.resources.whereType<MappingPatient>().firstOrNull;
+          state.session.resources.whereType<MappingPatient>().firstOrNull;
 
       MappingEncounter mappingEncounter =
-          state.resources.whereType<MappingEncounter>().first;
+          state.session.resources.whereType<MappingEncounter>().first;
       encounterId = mappingEncounter.id;
 
       if (mappingPatient != null) {
@@ -215,7 +249,7 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
         subjectId = selectedPatientGroup.patientId;
       }
 
-      List<IFhirResource> fhirResources = state.resources
+      List<IFhirResource> fhirResources = state.session.resources
           .map((resource) => resource.toFhirResource(
                 sourceId: sourceId,
                 subjectId: (resource is MappingPatient) ? '' : subjectId,
@@ -226,13 +260,11 @@ class FhirMapperBloc extends Bloc<FhirMapperEvent, FhirMapperState> {
       await _syncRepository.saveResources(fhirResources);
 
       await _documentReferenceService.saveGroupedDocumentsAsFhirRecords(
-        scannedImages: state.scannedImages,
-        importedImages: state.importedImages,
-        importedPdfs: state.importedPdfs,
+        filePaths: state.session.filePaths,
         patientId: subjectId,
         encounterId: encounterId,
         sourceId: sourceId,
-        title: state.resources
+        title: state.session.resources
             .whereType<MappingEncounter>()
             .first
             .encounterType

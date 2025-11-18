@@ -4,16 +4,10 @@ import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 
 class ScanSummaryCard extends StatelessWidget {
-  final int scannedCount;
-  final int importedImagesCount;
-  final int importedPdfsCount;
   final int totalPagesForOcr;
 
   const ScanSummaryCard({
     super.key,
-    required this.scannedCount,
-    required this.importedImagesCount,
-    required this.importedPdfsCount,
     required this.totalPagesForOcr,
   });
 
@@ -37,15 +31,6 @@ class ScanSummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            if (scannedCount > 0)
-              Text(
-                  '• $scannedCount scanned image${scannedCount > 1 ? 's' : ''}'),
-            if (importedImagesCount > 0)
-              Text(
-                  '• $importedImagesCount imported image${importedImagesCount > 1 ? 's' : ''}'),
-            if (importedPdfsCount > 0)
-              Text(
-                  '• $importedPdfsCount imported PDF${importedPdfsCount > 1 ? 's' : ''}'),
             const SizedBox(height: 8),
             Text(
               'Total: $totalPagesForOcr pages available for FHIR processing',

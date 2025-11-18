@@ -16,9 +16,7 @@ class DocumentReferenceService {
   DocumentReferenceService(this._database, this._pdfGenerationService);
 
   Future<List<String>> saveGroupedDocumentsAsFhirRecords({
-    required List<String> scannedImages,
-    required List<String> importedImages,
-    required List<String> importedPdfs,
+    required List<String> filePaths,
     required String patientId,
     String? encounterId,
     required String sourceId,
@@ -27,12 +25,8 @@ class DocumentReferenceService {
     try {
       final List<String> savedResourceIds = [];
 
-      final documentGroups =
-          await _pdfGenerationService.groupAndConvertDocuments(
-        scannedImages: scannedImages,
-        importedImages: importedImages,
-        importedPdfs: importedPdfs,
-      );
+      final documentGroups = await _pdfGenerationService
+          .groupAndConvertDocuments(filePaths: filePaths);
 
       for (int i = 0; i < documentGroups.length; i++) {
         final group = documentGroups[i];

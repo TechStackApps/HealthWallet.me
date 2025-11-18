@@ -1,8 +1,19 @@
+import 'dart:developer';
+
+import 'package:another_flushbar/flushbar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/navigation/app_router.dart';
+import 'package:health_wallet/core/theme/app_color.dart';
 import 'package:health_wallet/core/theme/app_text_style.dart';
+import 'package:health_wallet/features/home/domain/entities/wallet_notification.dart';
+import 'package:health_wallet/features/home/notifications/bloc/notification_bloc.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/import_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
@@ -12,16 +23,11 @@ import 'package:health_wallet/gen/assets.gen.dart';
 import 'package:health_wallet/core/theme/app_insets.dart';
 import 'package:health_wallet/core/utils/build_context_extension.dart';
 import 'package:health_wallet/features/dashboard/presentation/helpers/page_view_navigation_controller.dart';
-// incoming additions
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:health_wallet/core/utils/deep_link_file_cache.dart';
 
 @RoutePage()
 class DashboardPage extends StatefulWidget {
-  final int initialPage;
   const DashboardPage({
     super.key,
-    @queryParam this.initialPage = 0,
   });
 
   @override
@@ -35,21 +41,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    _navigationController = PageViewNavigationController(
-      initialPage: widget.initialPage,
-    );
+    _navigationController = getIt<PageViewNavigationController>();
     _navigationController.currentPageNotifier.addListener(_onPageChanged);
-
-    // Adopt incoming deep link file check to jump to Scan tab after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForDeepLinkFile();
-    });
-  }
-
-  void _checkForDeepLinkFile() {
-    if (DeepLinkFileCache.instance.hasFile()) {
-      _navigationController.jumpToPage(3);
-    }
   }
 
   void _onPageChanged() {
@@ -61,7 +54,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void dispose() {
     _navigationController.currentPageNotifier.removeListener(_onPageChanged);
-    _navigationController.dispose();
     super.dispose();
   }
 
@@ -78,42 +70,66 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     }
 
-    return BlocListener<SyncBloc, SyncState>(
-      listenWhen: (previous, current) {
-        // Combine: your original tutorial trigger and incoming demoDataConfirmed/onboarding flow
-        final incomingTrigger = current.demoDataConfirmed && !current.hasSyncedData;
-        final yourTrigger = current.shouldShowTutorial && !previous.shouldShowTutorial;
-        return incomingTrigger || yourTrigger;
-      },
-      listener: (context, syncState) async {
-        // Incoming behavior: if demo data confirmed and onboarding not shown, animate to page 0 then trigger tutorial
-        if (syncState.demoDataConfirmed && !syncState.hasSyncedData) {
-          final prefs = await SharedPreferences.getInstance();
-          final onboardingShown = prefs.getBool('onboarding_shown') ?? false;
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SyncBloc, SyncState>(
+          listenWhen: (previous, current) {
+            return current.shouldShowTutorial && !previous.shouldShowTutorial;
+          },
+          listener: (context, syncState) async {
+            if (syncState.shouldShowTutorial) {
+              _navigationController.navigateToPage(0);
+            }
+          },
+        ),
+        BlocListener<FhirMapperBloc, FhirMapperState>(
+          listenWhen: (previous, current) =>
+              previous.session != current.session,
+          listener: (context, state) {
+            context
+                .read<ScanBloc>()
+                .add(ScanSessionChangedProgress(session: state.session));
+          },
+        ),
+        BlocListener<FhirMapperBloc, FhirMapperState>(
+          listenWhen: (previous, current) =>
+              previous.session.status != current.session.status &&
+              current.session.id == previous.session.id,
+          listener: (context, state) {
+            if (state.session.status != ProcessingStatus.draft) return;
 
-          if (!onboardingShown) {
-            _navigationController.pageController.animateToPage(
-              0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.ease,
-            );
+            final isMapperRoute =
+                context.router.current.name == FhirMapperRoute.name;
+            final notificationRoute = FhirMapperRoute(session: state.session);
 
-            Future.delayed(const Duration(milliseconds: 400), () {
-              if (mounted && context.mounted) {
-                try {
-                  context.read<SyncBloc>().add(const TriggerTutorial());
-                } catch (_) {}
-              }
-            });
-            return;
-          }
-        }
+            context.read<NotificationBloc>().add(NotificationAdded(
+                  notification: WalletNotification(
+                    text: "${state.session.origin} processing finished",
+                    route: notificationRoute,
+                    read: isMapperRoute,
+                    time: DateTime.now(),
+                  ),
+                ));
 
-        // Your existing tutorial trigger behavior remains
-        if (syncState.shouldShowTutorial) {
-          _navigationController.navigateToPage(0);
-        }
-      },
+            if (!isMapperRoute) {
+              Flushbar(
+                title: "Processing done",
+                message:
+                    "${state.session.origin} processing is finished. Save your medical data!",
+                duration: const Duration(seconds: 2),
+                flushbarPosition: FlushbarPosition.TOP,
+                titleColor: Colors.white,
+                messageColor: Colors.white,
+                backgroundColor: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.all(20),
+                onTap: (_) => context.router.push(notificationRoute),
+              ).show(context);
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         body: Stack(
           children: [
@@ -135,13 +151,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   case 2:
                     // Keep your ScanPage API that expects navigationController
-                    return ScanPage(
-                      navigationController: _navigationController,
-                    );
+                    return const ScanPage();
                   case 3:
-                    return ImportPage(
-                      navigationController: _navigationController,
-                    );
+                    return const ImportPage();
                   default:
                     return const SizedBox.shrink();
                 }
@@ -177,7 +189,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                   boxShadow: context.isDarkMode
                                       ? [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(0.05),
+                                            color:
+                                                Colors.black.withOpacity(0.05),
                                             blurRadius: 8,
                                             spreadRadius: 0,
                                           ),

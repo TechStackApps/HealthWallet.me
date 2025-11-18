@@ -12,6 +12,22 @@ class MappedProperty with _$MappedProperty {
     @Default(0.0) double confidenceLevel,
   }) = _MappedProperty;
 
+  factory MappedProperty.fromJson(dynamic json) {
+    if (json is String?) {
+      return MappedProperty(value: json ?? '');
+    }
+
+    return MappedProperty(
+      value: json["value"] ?? '',
+      confidenceLevel: json["confidenceLevel"] ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'value': value,
+        'confidenceLevel': confidenceLevel,
+      };
+
   List<String> _createOverlappingChunks(String text, int chunkLength) {
     if (text.length <= chunkLength) {
       return [text];

@@ -7,17 +7,6 @@ class OcrProcessingHelper {
 
   OcrProcessingHelper(this._textRecognitionService);
 
-  Future<List<String>> convertPdfsToImages(List<String> pdfPaths) async {
-    final convertedImages = <String>[];
-
-    for (final pdfPath in pdfPaths) {
-      final images = await _textRecognitionService.convertPdfToImages(pdfPath);
-      convertedImages.addAll(images);
-    }
-
-    return convertedImages;
-  }
-
   Future<String> processOcrForImages(List<String> imagePaths) async {
     final pageTexts = <String>[];
 
@@ -36,20 +25,18 @@ class OcrProcessingHelper {
   }
 
   Future<List<String>> prepareAllImages({
-    required List<String> scannedImages,
-    required List<String> importedImages,
-    required List<String> importedPdfs,
+    required List<String> filePaths,
   }) async {
     final allImages = <String>[];
 
-    allImages.addAll(scannedImages);
-    allImages.addAll(importedImages);
-
-    if (importedPdfs.isNotEmpty) {
-      try {
-        final convertedImages = await convertPdfsToImages(importedPdfs);
+    for (final path in filePaths) {
+      if (_textRecognitionService.isImage(path)) {
+        allImages.add(path);
+      } else {
+        final convertedImages =
+            await _textRecognitionService.convertPdfToImages(path);
         allImages.addAll(convertedImages);
-      } catch (e) {}
+      }
     }
 
     return allImages;

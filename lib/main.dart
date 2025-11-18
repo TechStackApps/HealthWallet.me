@@ -3,6 +3,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:health_wallet/app/view/app.dart';
 import 'package:health_wallet/bootstrap.dart';
 import 'package:health_wallet/core/di/injection.dart';
+import 'package:health_wallet/core/services/deep_link_service.dart';
+import 'package:health_wallet/core/services/share_intent_service.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -11,7 +13,10 @@ void main() async {
 
   await configureDependencies();
 
+  getIt<ShareIntentService>().initialize();
+  getIt<DeepLinkService>().initialize();
+
   FlutterNativeSplash.remove();
 
-  await bootstrap(() => App());
+  await bootstrap(() => const App());
 }

@@ -18,37 +18,26 @@ class ScanButtonPressed extends ScanEvent with _$ScanButtonPressed {
 }
 
 @freezed
-class DeleteDocument extends ScanEvent with _$DeleteDocument {
-  const factory DeleteDocument({
-    required String imagePath,
-  }) = _DeleteDocument;
-}
-
-class ClearScans extends ScanEvent {
-  const ClearScans();
-}
-
-class ClearImports extends ScanEvent {
-  const ClearImports();
-}
-
-@freezed
-class DeletePdf extends ScanEvent with _$DeletePdf {
-  const factory DeletePdf({
-    required String pdfPath,
-  }) = _DeletePdf;
-}
-
-@freezed
-class LoadSavedPdfs extends ScanEvent with _$LoadSavedPdfs {
-  const factory LoadSavedPdfs() = _LoadSavedPdfs;
-}
-
-@freezed
 class DocumentImported extends ScanEvent with _$DocumentImported {
   const factory DocumentImported({
     required String filePath,
   }) = _DocumentImported;
+}
+
+@freezed
+class ScanSessionChangedProgress extends ScanEvent
+    with _$ScanSessionChangedProgress {
+  const factory ScanSessionChangedProgress({
+    required ProcessingSession session,
+  }) = _ScanSessionChangedProgress;
+}
+
+@freezed
+class ScanSessionCleared extends ScanEvent
+    with _$ScanSessionCleared {
+  const factory ScanSessionCleared({
+    required ProcessingSession session,
+  }) = _ScanSessionCleared;
 }
 
 enum ScanMode {

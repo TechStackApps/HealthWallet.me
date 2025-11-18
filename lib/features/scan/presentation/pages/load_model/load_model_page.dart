@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +11,9 @@ import 'package:health_wallet/gen/assets.gen.dart';
 
 @RoutePage<bool>()
 class LoadModelPage extends StatefulWidget {
-  const LoadModelPage({super.key});
+  const LoadModelPage({this.canAttachToEncounter = false, super.key});
+
+  final bool canAttachToEncounter;
 
   @override
   State<LoadModelPage> createState() => _LoadModelPageState();
@@ -115,16 +115,17 @@ class _LoadModelPageState extends State<LoadModelPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadiusGeometry.circular(8)),
               ),
-              onPressed: () =>
-                  _bloc.add(const LoadModelDownloadInitiated()),
+              onPressed: () => _bloc.add(const LoadModelDownloadInitiated()),
               child: Text(context.l10n.aiModelEnableDownload),
             ),
           ),
           SizedBox(
             width: double.infinity,
             child: TextButton(
-              onPressed: () => context.router.maybePop(),
-              child: Text(context.l10n.cancel),
+              onPressed: () => context.router.maybePop(false),
+              child: Text(widget.canAttachToEncounter
+                  ? 'I want to attach the document without processing'
+                  : context.l10n.cancel),
             ),
           ),
         ] else

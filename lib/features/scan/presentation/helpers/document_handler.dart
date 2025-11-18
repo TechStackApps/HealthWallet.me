@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:health_wallet/core/di/injection.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
 import 'package:health_wallet/features/home/presentation/bloc/home_bloc.dart';
+import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
+import 'package:health_wallet/features/scan/domain/repository/scan_repository.dart';
 import 'package:health_wallet/features/scan/domain/services/document_reference_service.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/image_preview_page.dart';
-import 'package:health_wallet/features/scan/presentation/widgets/attach_to_encounter_sheet.dart';
 import 'package:health_wallet/features/scan/presentation/widgets/dialog_helper.dart';
 import 'package:health_wallet/features/sync/domain/services/source_type_service.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
-import 'package:open_file/open_file.dart';
 import 'package:auto_route/auto_route.dart';
 
 /// Mixin providing common document handling functionality for scan and import pages.
@@ -21,20 +21,21 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
   /// Navigate to the FHIR mapper page after loading the model.
   Future<void> navigateToFhirMapper(
     BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> pdfs,
+    ProcessingSession session,
   ) async {
     try {
-      final result = await context.router.push<bool>(const LoadModelRoute());
+      final scanRepository = getIt<ScanRepository>();
 
-      if (result == true && context.mounted) {
-        context.router.push(FhirMapperRoute(
-          scannedImages: scannedImages,
-          importedImages: importedImages,
-          importedPdfs: pdfs,
-        ));
+      final isModelLoaded = await scanRepository.checkModelExistence();
+
+      if (!context.mounted) return;
+
+      if (isModelLoaded) {
+        context.router.push(FhirMapperRoute(session: session));
+        return;
       }
+
+      navigateToLoadModel(context, session);
     } catch (e) {
       if (context.mounted) {
         DialogHelper.showErrorDialog(context, 'Failed to create encounter: $e');
@@ -42,32 +43,34 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
     }
   }
 
-  /// Show encounter selector and attach documents to the selected encounter.
-  Future<void> showEncounterSelector(
+  Future<void> navigateToLoadModel(
     BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
+    ProcessingSession session,
   ) async {
-    final selectedEncounter = await AttachToEncounterSheet.show(context);
+    final result = await context.router
+        .push<bool>(LoadModelRoute(canAttachToEncounter: true));
+    if (!context.mounted) return;
 
-    if (selectedEncounter != null && context.mounted) {
-      await attachToEncounter(
-        context,
-        scannedImages,
-        importedImages,
-        savedPdfs,
-        selectedEncounter,
-      );
+    if (result == true) {
+      context.router.push(FhirMapperRoute(session: session));
+    } else {
+      context.read<ScanBloc>().add(ScanSessionCleared(session: session));
+
+      if (result == false) {
+        final encounterId =
+            await context.router.push<String>(const AttachToEncounterRoute());
+
+        if (encounterId == null || !context.mounted) return;
+
+        await attachToEncounter(context, session.filePaths, encounterId);
+      }
     }
   }
 
   /// Attach documents to the specified encounter.
   Future<void> attachToEncounter(
     BuildContext context,
-    List<String> scannedImages,
-    List<String> importedImages,
-    List<String> savedPdfs,
+    List<String> filePaths,
     String encounterId,
   ) async {
     DialogHelper.showLoadingDialog(
@@ -99,7 +102,7 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
 
       if (context.mounted) {
         context.read<PatientBloc>().add(
-              PatientPatientsLoaded(),
+              const PatientPatientsLoaded(),
             );
       }
 
@@ -107,9 +110,7 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
           GetIt.instance.get<DocumentReferenceService>();
 
       await documentReferenceService.saveGroupedDocumentsAsFhirRecords(
-        scannedImages: scannedImages,
-        importedImages: importedImages,
-        importedPdfs: savedPdfs,
+        filePaths: filePaths,
         patientId: patientId,
         encounterId: encounterId,
         sourceId: walletSource.id,
@@ -124,8 +125,7 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
 
       if (context.mounted) {
         final bloc = context.read<ScanBloc>();
-        final totalDocuments =
-            scannedImages.length + importedImages.length + savedPdfs.length;
+        final totalDocuments = filePaths.length;
 
         DialogHelper.showAttachmentSuccessDialog(
           context,
@@ -141,104 +141,5 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
         DialogHelper.showErrorDialog(context, 'Failed to attach documents: $e');
       }
     }
-  }
-
-  /// Handle tap on a document (image or PDF).
-  Future<void> handleDocumentTap(
-    BuildContext context,
-    String filePath,
-    int index,
-  ) async {
-    final state = context.read<ScanBloc>().state;
-    final isPdf = state.savedPdfPaths.contains(filePath);
-
-    if (isPdf) {
-      await openPdfWithSystemApp(context, filePath);
-      return;
-    }
-
-    // It's an image, open preview
-    final allImages = [
-      ...state.scannedImagePaths,
-      ...state.importedImagePaths,
-    ];
-
-    final currentIndex = allImages.indexOf(filePath);
-    if (currentIndex == -1) return;
-
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => ImagePreviewPage(
-          imagePath: filePath,
-          title: 'Page ${currentIndex + 1}',
-          allImages: allImages,
-          currentIndex: currentIndex,
-        ),
-      ),
-    );
-
-    if (result == true && context.mounted) {
-      context.read<ScanBloc>().add(
-            DeleteDocument(imagePath: filePath),
-          );
-    }
-  }
-
-  /// Open a PDF file with the system's default PDF viewer.
-  Future<void> openPdfWithSystemApp(
-      BuildContext context, String pdfPath) async {
-    try {
-      final result = await OpenFile.open(pdfPath);
-      if (result.type != ResultType.done) {
-        // PDF could not be opened, silently fail
-      }
-    } catch (e) {
-      // Error opening PDF, silently fail
-    }
-  }
-
-  /// Show confirmation dialog before deleting a document.
-  void showDeleteConfirmation(
-    BuildContext context,
-    String filePath,
-    int index,
-  ) {
-    final state = context.read<ScanBloc>().state;
-    final isPdf = state.savedPdfPaths.contains(filePath);
-    final fileName = filePath.split('/').last;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(isPdf ? 'Delete PDF' : 'Delete Page'),
-          content: Text(
-            'Are you sure you want to delete ${isPdf ? 'PDF: $fileName' : 'Page ${index + 1}'}?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                if (isPdf) {
-                  context.read<ScanBloc>().add(
-                        DeletePdf(pdfPath: filePath),
-                      );
-                } else {
-                  context.read<ScanBloc>().add(
-                        DeleteDocument(imagePath: filePath),
-                      );
-                }
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

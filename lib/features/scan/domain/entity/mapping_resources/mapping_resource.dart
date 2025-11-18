@@ -43,6 +43,8 @@ abstract class MappingResource {
     }
   }
 
+  Map<String, dynamic> toJson();
+
   IFhirResource toFhirResource({
     String? sourceId,
     String? encounterId,

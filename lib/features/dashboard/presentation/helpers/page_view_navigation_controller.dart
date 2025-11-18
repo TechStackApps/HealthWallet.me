@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:injectable/injectable.dart';
 
+@lazySingleton
 class PageViewNavigationController {
   final PageController _pageController;
   final ValueNotifier<int> _currentPageNotifier;
   int? _targetPage;
 
-  PageViewNavigationController({int initialPage = 0})
-      : _pageController = PageController(initialPage: initialPage),
-        _currentPageNotifier = ValueNotifier<int>(initialPage) {
+  PageViewNavigationController()
+      : _pageController = PageController(initialPage: 0),
+        _currentPageNotifier = ValueNotifier<int>(0) {
     _pageController.addListener(_onPageChanged);
   }
 
