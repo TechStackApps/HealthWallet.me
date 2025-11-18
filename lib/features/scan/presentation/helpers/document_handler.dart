@@ -56,7 +56,7 @@ mixin DocumentHandler<T extends StatefulWidget> on State<T> {
     } else {
       context.read<ScanBloc>().add(ScanSessionCleared(session: session));
 
-      if (result == true) {
+      if (result == false) {
         final encounterId =
             await context.router.push<String>(const AttachToEncounterRoute());
 
