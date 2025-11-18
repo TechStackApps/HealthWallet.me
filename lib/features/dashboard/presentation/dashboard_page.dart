@@ -13,7 +13,6 @@ import 'package:health_wallet/features/home/domain/entities/wallet_notification.
 import 'package:health_wallet/features/home/notifications/bloc/notification_bloc.dart';
 import 'package:health_wallet/features/scan/domain/entity/processing_session.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/pages/scan_page.dart';
 import 'package:health_wallet/features/scan/presentation/pages/import_page.dart';
 import 'package:health_wallet/features/home/presentation/home_page.dart';
@@ -82,41 +81,27 @@ class _DashboardPageState extends State<DashboardPage> {
             }
           },
         ),
-        BlocListener<FhirMapperBloc, FhirMapperState>(
+        BlocListener<ScanBloc, ScanState>(
           listenWhen: (previous, current) =>
-              previous.session != current.session,
+              current.notification != null &&
+              previous.notification != current.notification,
           listener: (context, state) {
-            context
-                .read<ScanBloc>()
-                .add(ScanSessionChangedProgress(session: state.session));
-          },
-        ),
-        BlocListener<FhirMapperBloc, FhirMapperState>(
-          listenWhen: (previous, current) =>
-              previous.session.status != current.session.status &&
-              current.session.id == previous.session.id,
-          listener: (context, state) {
-            if (state.session.status != ProcessingStatus.draft) return;
+            final notification = state.notification;
+            if (notification == null) return;
 
             final isMapperRoute =
-                context.router.current.name == FhirMapperRoute.name;
-            final notificationRoute = FhirMapperRoute(session: state.session);
+                context.router.current.name == notification.route.routeName;
 
-            context.read<NotificationBloc>().add(NotificationAdded(
-                  notification: WalletNotification(
-                    text: "${state.session.origin} processing finished",
-                    route: notificationRoute,
-                    read: isMapperRoute,
-                    time: DateTime.now(),
-                  ),
-                ));
+            context.read<NotificationBloc>().add(
+                  NotificationAdded(
+                      notification: notification.copyWith(read: isMapperRoute)),
+                );
 
             if (!isMapperRoute) {
               Flushbar(
                 title: "Processing done",
-                message:
-                    "${state.session.origin} processing is finished. Save your medical data!",
-                duration: const Duration(seconds: 2),
+                message: notification.text,
+                duration: const Duration(seconds: 3),
                 flushbarPosition: FlushbarPosition.TOP,
                 titleColor: Colors.white,
                 messageColor: Colors.white,
@@ -124,9 +109,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 borderRadius: BorderRadius.circular(12),
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.all(20),
-                onTap: (_) => context.router.push(notificationRoute),
+                onTap: (_) => context.router.push(notification.route),
               ).show(context);
             }
+
+            context.read<ScanBloc>().add(const ScanNotificationAcknowledged());
           },
         ),
       ],

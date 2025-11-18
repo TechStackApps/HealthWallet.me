@@ -69,7 +69,9 @@ class _ImportViewState extends State<ImportView> with DocumentHandler {
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status case SessionCreated(:final session)) {
-            navigateToFhirMapper(context, session);
+            if (_navigationController.currentPage == 3) {
+              navigateToFhirMapper(context, session);
+            }
           }
         },
         builder: (context, state) {

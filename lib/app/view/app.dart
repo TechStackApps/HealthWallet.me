@@ -13,7 +13,6 @@ import 'package:health_wallet/features/home/data/data_source/local/home_local_da
 import 'package:health_wallet/features/records/domain/repository/records_repository.dart';
 import 'package:health_wallet/features/records/presentation/bloc/records_bloc.dart';
 import 'package:health_wallet/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:health_wallet/features/scan/presentation/pages/fhir_mapper/bloc/fhir_mapper_bloc.dart';
 import 'package:health_wallet/features/sync/domain/repository/sync_repository.dart';
 import 'package:health_wallet/features/sync/presentation/bloc/sync_bloc.dart';
 import 'package:health_wallet/features/user/presentation/bloc/user_bloc.dart';
@@ -52,7 +51,6 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (_) => getIt<PatientBloc>()..add(const PatientInitialised()),
         ),
-        BlocProvider(create: (_) => getIt<FhirMapperBloc>()),
         BlocProvider(create: (_) => getIt<NotificationBloc>()),
       ],
       child: MultiBlocListener(

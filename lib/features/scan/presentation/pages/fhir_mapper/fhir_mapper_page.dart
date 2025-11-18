@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_wallet/core/navigation/app_router.dart';
@@ -16,16 +17,14 @@ import 'package:health_wallet/features/scan/presentation/widgets/scan_preview_ca
 import 'package:health_wallet/features/scan/presentation/widgets/scan_summary_card.dart';
 import 'package:health_wallet/features/user/presentation/preferences_modal/sections/patient/bloc/patient_bloc.dart';
 
-import 'bloc/fhir_mapper_bloc.dart';
-
 @RoutePage()
 class FhirMapperPage extends StatefulWidget {
   const FhirMapperPage({
-    required this.session,
+    required this.sessionId,
     super.key,
   });
 
-  final ProcessingSession session;
+  final String sessionId;
 
   @override
   State<FhirMapperPage> createState() => _FhirMapperPageState();
@@ -38,9 +37,9 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
 
   @override
   void initState() {
-    context.read<FhirMapperBloc>().add(
-          FhirMapperInitialized(
-              session: widget.session,
+    context.read<ScanBloc>().add(
+          ScanSessionActivated(
+              sessionId: widget.sessionId,
               currentPatients: context
                   .read<PatientBloc>()
                   .state
@@ -61,9 +60,8 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
   void _saveResources() {
     if (!_formKey.currentState!.validate()) return;
 
-    context
-        .read<FhirMapperBloc>()
-        .add(const FhirMapperResourceCreationInitiated());
+    context.read<ScanBloc>().add(
+        ScanResourceCreationInitiated(sessionId: widget.sessionId));
   }
 
   @override
@@ -77,21 +75,25 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: BlocConsumer<FhirMapperBloc, FhirMapperState>(
+      body: BlocConsumer<ScanBloc, ScanState>(
         listener: (context, state) {
-          if (state.status == FhirMapperStatus.success) {
+          final activeSession = state.sessions
+              .firstWhereOrNull((s) => s.id == widget.sessionId);
+          if (activeSession == null) return;
+
+          if (state.status == const ScanStatus.success()) {
             context
                 .read<ScanBloc>()
-                .add(ScanSessionCleared(session: state.session));
-            context.router.push(DashboardRoute());
+                .add(ScanSessionCleared(session: activeSession));
+            context.router.replaceAll([const DashboardRoute()]);
           }
-          if (state.status == FhirMapperStatus.failure) {
+          if (state.status is Failure) {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('Error'),
                 content: Text(
-                  'An error occurred: ${state.errorMessage}',
+                  'An error occurred: ${(state.status as Failure).error}',
                 ),
                 actions: [
                   TextButton(
@@ -104,7 +106,13 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
           }
         },
         builder: (context, state) {
-          if (state.status == FhirMapperStatus.convertingPdfs) {
+          final activeSession = state.sessions
+              .firstWhereOrNull((s) => s.id == widget.sessionId);
+          if (activeSession == null) {
+            return const Center(child: Text("Session not found!"));
+          }
+
+          if (state.status == const ScanStatus.convertingPdfs()) {
             return _buildLoadingIndicator('Converting PDFs for preview...');
           }
 
@@ -122,8 +130,8 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
                   pageController: _pageController,
                 ),
               const SizedBox(height: Insets.large),
-              _buildMappingSection(state),
-              _buildResourcesSection(state),
+              _buildMappingSection(state, activeSession),
+              _buildResourcesSection(state, activeSession),
               const SizedBox(height: Insets.large),
             ]),
           );
@@ -145,45 +153,41 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
     );
   }
 
-  Widget _buildMappingSection(FhirMapperState state) {
-    if (state.status == FhirMapperStatus.mappingReady) {
-      return BlocBuilder<ScanBloc, ScanState>(
-        builder: (context, scanState) {
-          final canProcess = !scanState.sessions
-              .any((session) => session.status == ProcessingStatus.processing);
+  Widget _buildMappingSection(ScanState state, ProcessingSession activeSession) {
+    if (state.status == const ScanStatus.mappingReady()) {
+      final canProcess = !state.sessions
+          .any((session) => session.status == ProcessingStatus.processing);
 
-          if (!canProcess) {
-            return const Text("Only one processing session can run at a time!");
-          }
+      if (!canProcess) {
+        return const Text("Only one processing session can run at a time!");
+      }
 
-          return SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => context
-                  .read<FhirMapperBloc>()
-                  .add(const FhirMappingInitiated()),
-              icon: const Icon(Icons.text_fields),
-              label: const Text(
-                'Process pages',
-                style: TextStyle(fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: context.colorScheme.primary,
-                foregroundColor: context.colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => context
+              .read<ScanBloc>()
+              .add(ScanMappingInitiated(sessionId: widget.sessionId)),
+          icon: const Icon(Icons.text_fields),
+          label: const Text(
+            'Process pages',
+            style: TextStyle(fontSize: 16),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: context.colorScheme.primary,
+            foregroundColor: context.colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-          );
-        },
+          ),
+        ),
       );
     }
 
-    if (state.status == FhirMapperStatus.mapping) {
+    if (state.status == const ScanStatus.mapping()) {
       return CustomProgressIndicator(
-        progress: state.session.progress,
+        progress: activeSession.progress,
         text: "Processing pages to FHIR resources...",
       );
     }
@@ -191,15 +195,16 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildResourcesSection(FhirMapperState state) {
-    if (state.status != FhirMapperStatus.editingResources) {
+  Widget _buildResourcesSection(
+      ScanState state, ProcessingSession activeSession) {
+    if (state.status != const ScanStatus.editingResources()) {
       return const SizedBox();
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!state.session.resources
+        if (!activeSession.resources
             .any((resource) => resource is MappingPatient)) ...[
           const Text("Select the patient", style: AppTextStyle.bodyLarge),
           const SizedBox(height: 8),
@@ -208,9 +213,8 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
             selectedPatient: state.selectedPatient!,
             onChanged: (patientGroup) {
               if (patientGroup != null) {
-                context
-                    .read<FhirMapperBloc>()
-                    .add(FhirMapperPatientSelected(patientGroup: patientGroup));
+                context.read<ScanBloc>().add(ScanPatientSelected(
+                    sessionId: widget.sessionId, patientGroup: patientGroup));
               }
             },
           ),
@@ -218,10 +222,11 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
         ],
         ResourcesForm(
           formKey: _formKey,
-          resources: state.session.resources,
+          resources: activeSession.resources,
           onPropertyChanged: (index, propertyKey, newValue) =>
-              context.read<FhirMapperBloc>().add(
-                    FhirMapperResourceChanged(
+              context.read<ScanBloc>().add(
+                    ScanResourceChanged(
+                      sessionId: widget.sessionId,
                       index: index,
                       propertyKey: propertyKey,
                       newValue: newValue,
@@ -241,7 +246,7 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadiusGeometry.circular(8)),
             ),
-            onPressed: state.status == FhirMapperStatus.savingResources
+            onPressed: state.status == const ScanStatus.savingResources()
                 ? null
                 : _saveResources,
             child: const Text("Add resources"),
@@ -256,9 +261,8 @@ class _FhirMapperPageState extends State<FhirMapperPage> {
       context: context,
       title: 'Are you sure you want to delete this resource?',
       onConfirm: () {
-        context
-            .read<FhirMapperBloc>()
-            .add(FhirMapperResourceRemoved(index: index));
+        context.read<ScanBloc>().add(
+            ScanResourceRemoved(sessionId: widget.sessionId, index: index));
       },
     );
   }
