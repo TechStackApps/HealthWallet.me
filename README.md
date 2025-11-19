@@ -180,7 +180,8 @@ lib/
 ### Future Plans 📋
 - QR code sharing (SMART Health Cards)
 - Proximity-based communication (Airdrop)
-- Responsive UI & CRDT backup system
+- Desktop app backup system(CRDT) and FHIR processing
+- Responsive UI
 - Wearable & health provider integration
 - AI health insights
 - AI Note taking prescription
